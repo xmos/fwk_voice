@@ -20,6 +20,48 @@ set(PROJECT_VERSION 0.5.0)
 ## Enable languages for project
 enable_language(XC CXX C ASM)
 
+set(PIPELINE_LIB_COMPILER_FLAGS
+    "-Os"
+    "-report"
+    "-fxscope"
+    "-mcmodel=small"
+    "-Wno-xcore-fptrgroup"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
+)
+
+set(PIPELINE_LIB_SOURCES
+    "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
+    "src/vfe_pipeline/vfe_pipeline.c"
+)
+
+set(PIPELINE_LIB_INCLUDES
+    "src"
+    "src/vfe_pipeline/vfe"
+    "src/vfe_pipeline/vfe/agc/api"
+    "src/vfe_pipeline/vfe/ic/api"
+    "src/vfe_pipeline/vfe/ns/api"
+    "src/vfe_pipeline/vfe/vad/api"
+    "src/vfe_pipeline/vfe/vtb/api"
+)
+
+add_library(lib_vfe_pipeline STATIC)
+
+set_target_properties(lib_vfe_pipeline PROPERTIES OUTPUT_NAME vfe_pipeline)
+set_target_properties(lib_vfe_pipeline PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/vfe_pipeline")
+
+target_include_directories(lib_vfe_pipeline PRIVATE
+    ${PIPELINE_LIB_INCLUDES}
+    ${XMOS_RTOS_PLATFORM_INCLUDES}
+)
+
+target_sources(lib_vfe_pipeline PRIVATE
+    ${PIPELINE_LIB_SOURCES}
+)
+
+target_compile_options(lib_vfe_pipeline PRIVATE ${PIPELINE_LIB_COMPILER_FLAGS})
+target_link_options(lib_vfe_pipeline PRIVATE ${PIPELINE_LIB_COMPILER_FLAGS})
+
+
 set(APP_COMPILER_FLAGS
     "-Os"
     "-g"
@@ -34,20 +76,11 @@ set(APP_COMPILER_FLAGS
 set(APP_SOURCES
     "src/main.c"
     "src/board_init.c"
-
-    "src/audio_pipeline/audio_pipeline.c"
-    "src/vfe_pipeline/dac_init.c"
-    "src/vfe_pipeline/vfe_pipeline.c"
+    "src/dac_init.c"
 )
 
 set(APP_INCLUDES
     "src"
-    "src/vfe"
-    "src/vfe/agc/api"
-    "src/vfe/ic/api"
-    "src/vfe/ns/api"
-    "src/vfe/vad/api"
-    "src/vfe/vtb/api"
 )
 
 add_compile_definitions(
@@ -68,7 +101,8 @@ endif()
 
 add_executable(${TARGET_NAME})
 
-target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe/libvfe.a")
+target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
+target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
 
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})

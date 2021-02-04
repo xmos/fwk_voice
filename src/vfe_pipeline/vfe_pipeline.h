@@ -15,4 +15,12 @@ void vfe_pipeline_init(
         rtos_mic_array_t *mic_array_ctx,
         rtos_i2s_master_t *i2s_master_ctx);
 
+void vfe_pipeline_input(rtos_mic_array_t *mic_array_ctx,
+                        int32_t (*audio_frame)[2],
+                        size_t frame_count);
+
+void vfe_pipeline_output(rtos_i2s_master_t *i2s_master_ctx,
+                         int32_t (*audio_frame)[2],
+                         size_t frame_count);
+
 #endif /* VFE_PIPELINE_H_ */
