@@ -39,13 +39,9 @@ static void* vfe_pipeline_input_i(void *input_app_data)
 static int vfe_pipeline_output_i(frame_data_t *frame_data,
                                  void *output_app_data)
 {
-    vfe_pipeline_output(output_app_data,
-                        (int32_t (*)[2]) frame_data->samples,
-                        VFE_FRAME_ADVANCE);
-
-    vPortFree(frame_data);
-
-    return 0;
+    return vfe_pipeline_output(output_app_data,
+                               (int32_t (*)[2]) frame_data->samples,
+                               VFE_FRAME_ADVANCE);
 }
 
 static void stage1(frame_data_t *frame_data)

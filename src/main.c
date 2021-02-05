@@ -46,7 +46,7 @@ void vfe_pipeline_input(void *mic_array_ctx,
                       portMAX_DELAY);
 }
 
-void vfe_pipeline_output(void *i2s_master_ctx,
+int vfe_pipeline_output(void *i2s_master_ctx,
                          int32_t (*audio_frame)[2],
                          size_t frame_count)
 {
@@ -54,6 +54,8 @@ void vfe_pipeline_output(void *i2s_master_ctx,
                        (int32_t*) audio_frame,
                        frame_count,
                        portMAX_DELAY);
+
+    return VFE_PIPELINE_FREE_FRAME;
 }
 
 void vApplicationMallocFailedHook(void)
