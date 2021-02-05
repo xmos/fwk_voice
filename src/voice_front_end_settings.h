@@ -1,4 +1,6 @@
-// Copyright (c) 2020, XMOS Ltd, All rights reserved
+// Copyright (c) 2020 XMOS LIMITED. This Software is subject to the terms of the
+// XMOS Public License: Version 1
+
 #ifndef _VFE_SETTINGS_
 #define _VFE_SETTINGS_
 
