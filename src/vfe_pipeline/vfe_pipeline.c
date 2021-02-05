@@ -23,13 +23,13 @@ typedef struct {
     vtb_md_t stage_1_md;
 } frame_data_t;
 
-static void* vfe_pipeline_input_i(rtos_mic_array_t *mic_array_ctx)
+static void* vfe_pipeline_input_i(void *input_app_data)
 {
     frame_data_t *frame_data;
 
     frame_data = pvPortMalloc(sizeof(frame_data_t));
 
-    vfe_pipeline_input(mic_array_ctx,
+    vfe_pipeline_input(input_app_data,
                        (int32_t (*)[2]) frame_data->samples,
                        VFE_FRAME_ADVANCE);
 
@@ -37,9 +37,9 @@ static void* vfe_pipeline_input_i(rtos_mic_array_t *mic_array_ctx)
 }
 
 static int vfe_pipeline_output_i(frame_data_t *frame_data,
-                                 rtos_i2s_master_t *i2s_master_ctx)
+                                 void *output_app_data)
 {
-    vfe_pipeline_output(i2s_master_ctx,
+    vfe_pipeline_output(output_app_data,
                         (int32_t (*)[2]) frame_data->samples,
                         VFE_FRAME_ADVANCE);
 
@@ -74,8 +74,8 @@ static void stage2(frame_data_t *frame_data)
                         frame_data->samples);
 }
 
-void vfe_pipeline_init(rtos_mic_array_t *mic_array_ctx,
-                       rtos_i2s_master_t *i2s_master_ctx)
+void vfe_pipeline_init(void *input_app_data,
+                       void *output_app_data)
 {
     const int stage_count = 2;
 
@@ -90,8 +90,8 @@ void vfe_pipeline_init(rtos_mic_array_t *mic_array_ctx,
 
     audio_pipeline_init((audio_pipeline_input_t) vfe_pipeline_input_i,
                         (audio_pipeline_output_t) vfe_pipeline_output_i,
-                        mic_array_ctx,
-                        i2s_master_ctx,
+                        input_app_data,
+                        output_app_data,
                         stages,
                         stage_stack_sizes,
                         configMAX_PRIORITIES / 2,

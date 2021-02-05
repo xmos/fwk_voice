@@ -36,21 +36,21 @@ static rtos_i2s_master_t *i2s_master_ctx = &i2s_master_ctx_s;
 
 chanend_t other_tile_c;
 
-void vfe_pipeline_input(rtos_mic_array_t *mic_array_ctx,
+void vfe_pipeline_input(void *mic_array_ctx,
                         int32_t (*audio_frame)[2],
                         size_t frame_count)
 {
-    rtos_mic_array_rx(mic_array_ctx,
+    rtos_mic_array_rx((rtos_mic_array_t *) mic_array_ctx,
                       audio_frame,
                       frame_count,
                       portMAX_DELAY);
 }
 
-void vfe_pipeline_output(rtos_i2s_master_t *i2s_master_ctx,
+void vfe_pipeline_output(void *i2s_master_ctx,
                          int32_t (*audio_frame)[2],
                          size_t frame_count)
 {
-    rtos_i2s_master_tx(i2s_master_ctx,
+    rtos_i2s_master_tx((rtos_i2s_master_t *) i2s_master_ctx,
                        (int32_t*) audio_frame,
                        frame_count,
                        portMAX_DELAY);

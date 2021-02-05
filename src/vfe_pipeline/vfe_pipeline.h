@@ -13,14 +13,14 @@
 #define VFE_PIPELINE_AUDIO_FRAME_LENGTH VFE_FRAME_ADVANCE
 
 void vfe_pipeline_init(
-        rtos_mic_array_t *mic_array_ctx,
-        rtos_i2s_master_t *i2s_master_ctx);
+        void *input_app_data,
+        void *output_app_data);
 
-void vfe_pipeline_input(rtos_mic_array_t *mic_array_ctx,
+void vfe_pipeline_input(void *input_app_data,
                         int32_t (*audio_frame)[2],
                         size_t frame_count);
 
-void vfe_pipeline_output(rtos_i2s_master_t *i2s_master_ctx,
+void vfe_pipeline_output(void *output_app_data,
                          int32_t (*audio_frame)[2],
                          size_t frame_count);
 
