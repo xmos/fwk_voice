@@ -6,9 +6,12 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 ## Specify configuration
+set(USE_XUD_HIL TRUE)
 set(USE_WIFI_MANAGER FALSE)
 set(USE_DHCPD FALSE)
 set(USE_FATFS FALSE)
+set(USE_RTOS_USB_DRIVER TRUE)
+set(USE_TINYUSB TRUE)
 
 ## Import XMOS configurations
 include("$ENV{XMOS_AIOT_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
@@ -77,16 +80,20 @@ set(APP_SOURCES
     "src/main.c"
     "src/board_init.c"
     "src/dac_init.c"
+    "src/usb/usb_audio.c"
+    "src/usb/usb_descriptors.c"
 )
 
 set(APP_INCLUDES
     "src"
+    "src/usb"
 )
 
 add_compile_definitions(
     DEBUG_PRINT_ENABLE=1
     PLATFORM_USES_TILE_0=1
     PLATFORM_USES_TILE_1=1
+    XUD_CORE_CLOCK=700
 )
 
 if(DEFINED THIS_XCORE_TILE)

@@ -72,8 +72,11 @@ static void set_app_pll(void)
 
 void board_tile0_init(
         chanend_t tile1,
+        rtos_intertile_t *intertile_ctx,
         rtos_i2c_master_t *i2c_master_ctx)
 {
+    rtos_intertile_init(intertile_ctx, tile1);
+
     rtos_i2c_master_init(
             i2c_master_ctx,
             PORT_I2C_SCL, 0, 0,
@@ -84,6 +87,7 @@ void board_tile0_init(
 
 void board_tile1_init(
         chanend_t tile0,
+        rtos_intertile_t *intertile_ctx,
         rtos_mic_array_t *mic_array_ctx,
         rtos_i2s_master_t *i2s_master_ctx)
 {
@@ -112,6 +116,8 @@ void board_tile1_init(
     xclock_t bclk = clock_init(XS1_CLKBLK_3);
 
     set_app_pll();
+
+    rtos_intertile_init(intertile_ctx, tile0);
 
     rtos_mic_array_init(
             mic_array_ctx,
