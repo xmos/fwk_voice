@@ -89,7 +89,7 @@ void board_tile1_init(
         chanend_t tile0,
         rtos_intertile_t *intertile_ctx,
         rtos_mic_array_t *mic_array_ctx,
-        rtos_i2s_master_t *i2s_master_ctx)
+        rtos_i2s_t *i2s_ctx)
 {
     port_t p_rst_shared = port_init(PORT_CODEC_RST_N, PORT_OUTPUT, PORT_UNBUFFERED);
     port_out(p_rst_shared, 0xF);
@@ -129,7 +129,7 @@ void board_tile1_init(
             p_pdm_mics);
 
     rtos_i2s_master_init(
-            i2s_master_ctx,
+            i2s_ctx,
             p_i2s_dout,
             1,
             NULL,

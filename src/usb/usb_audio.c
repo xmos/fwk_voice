@@ -96,6 +96,8 @@ void tud_resume_cb(void)
 
 void audio_task(void *arg)
 {
+    int was_open = 0;
+
     rtos_intertile_t *intertile_ctx = (rtos_intertile_t*) arg;
 
     while (!tusb_inited()) {
@@ -115,6 +117,7 @@ void audio_task(void *arg)
         xassert(frame_length == VFE_PIPELINE_AUDIO_FRAME_LENGTH * 2 * sizeof(int32_t));
 
         if (interface_open) {
+            was_open = 1;
             for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
                 samples_to_buffer[i][0] = vfe_output_frame[i][0] >> 16;
                 samples_to_buffer[i][1] = vfe_output_frame[i][1] >> 16;
@@ -130,6 +133,9 @@ void audio_task(void *arg)
                 tmp = 0;
             }
     #endif
+        } else if (was_open) {
+            tud_disconnect();
+            was_open = 0;
         }
 
         vPortFree(vfe_output_frame);
