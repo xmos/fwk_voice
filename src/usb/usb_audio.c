@@ -37,13 +37,6 @@
 
 #include "vfe_pipeline/vfe_pipeline.h"
 
-static inline void ptime(void) {
-    static uint32_t last;
-    uint32_t cur = get_reference_time() / 100;
-    rtos_printf("Time: %u. %u\n", cur, cur - last);
-    last = cur;
-}
-
 // Audio controls
 // Current states
 bool mute[CFG_TUD_AUDIO_N_CHANNELS_TX + 1]; 						// +1 for master channel 0
@@ -454,7 +447,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         for (int i = 0; i < samps; i++) {
             chbuf[i] = ibuf[i*CFG_TUD_AUDIO_N_CHANNELS_TX + ch];
         }
-        tud_audio_write(ch, chbuf, samps * CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX);
+        tud_audio_write(ch, (uint8_t *) chbuf, samps * CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX);
     }
 
     return true;

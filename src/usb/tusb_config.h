@@ -49,6 +49,9 @@
 #define CFG_TUD_TASK_QUEUE_SZ     8
 #define CFG_TUD_ENDPOINT0_SIZE    64
 
+#define CFG_TUD_XCORE_INTERRUPT_CORE 1
+#define CFG_TUD_XCORE_IO_CORE_MASK (1 << 4)
+
 //------------- CLASS -------------//
 #define CFG_TUD_CDC               0
 #define CFG_TUD_MSC               0

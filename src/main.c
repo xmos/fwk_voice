@@ -77,28 +77,6 @@ void vApplicationMallocFailedHook(void)
     for(;;);
 }
 
-void vApplicationCoreInitHook(BaseType_t xCoreID)
-{
-#if ON_TILE(0)
-    rtos_printf("Initializing tile 0, core %d on core %d\n", xCoreID, portGET_CORE_ID());
-#endif
-
-#if ON_TILE(1)
-    rtos_printf("Initializing tile 1 core %d on core %d\n", xCoreID, portGET_CORE_ID());
-
-    switch (xCoreID) {
-
-    case 0:
-        rtos_mic_array_interrupt_init(mic_array_ctx);
-        break;
-    case 1:
-        rtos_i2s_interrupt_init(i2s_ctx);
-        break;
-    }
-
-#endif
-}
-
 void vApplicationDaemonTaskStartup(void *arg)
 {
     uint32_t dac_configured;
@@ -152,7 +130,7 @@ void vApplicationDaemonTaskStartup(void *arg)
                 rtos_mic_array_third_stage_coefs(pdm_decimation_factor),
                 rtos_mic_array_fir_compensation(pdm_decimation_factor),
                 2 * MIC_DUAL_FRAME_SIZE,
-                configMAX_PRIORITIES-1);
+                3);
 
         rtos_i2s_start(
                 i2s_ctx,
@@ -160,7 +138,7 @@ void vApplicationDaemonTaskStartup(void *arg)
                 I2S_MODE_I2S,
                 0,
                 1.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
-                configMAX_PRIORITIES-1);
+                4);
 
         vfe_pipeline_init(mic_array_ctx, i2s_ctx);
     }
@@ -173,8 +151,6 @@ void vApplicationDaemonTaskStartup(void *arg)
 #if ON_TILE(0)
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
-    TaskHandle_t startup_task;
-
     (void) c0;
     board_tile0_init(c1, intertile_ctx, i2c_master_ctx);
     (void) c2;
@@ -182,32 +158,25 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     other_tile_c = c1;
 
+#if ON_TILE(USB_TILE_NO)
+    usb_manager_init();
+#endif
+
     xTaskCreate((TaskFunction_t) vApplicationDaemonTaskStartup,
                 "vApplicationDaemonTaskStartup",
                 RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
                 NULL,
                 1,
-                &startup_task);
-
-    /*
-     * Force the startup task to be on core 0. Any interrupts that it
-     * starts will therefore be enabled on core 0 and will not conflict
-     * with the XUD task.
-     */
-    vTaskCoreExclusionSet(startup_task, ~(1 << 0));
+                NULL);
 
     rtos_printf("start scheduler on tile 0\n");
     vTaskStartScheduler();
-
-    return;
 }
 #endif
 
 #if ON_TILE(1)
 void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
-    TaskHandle_t startup_task;
-
     board_tile1_init(c0, intertile_ctx, mic_array_ctx, i2s_ctx);
     (void) c1;
     (void) c2;
@@ -215,23 +184,18 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     other_tile_c = c0;
 
+#if ON_TILE(USB_TILE_NO)
+    usb_manager_init();
+#endif
+
     xTaskCreate((TaskFunction_t) vApplicationDaemonTaskStartup,
                 "vApplicationDaemonTaskStartup",
                 RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
                 NULL,
                 configMAX_PRIORITIES-1,
-                &startup_task);
-
-    /*
-     * Force the startup task to be on core 0. Any interrupts that it
-     * starts will therefore be enabled on core 0 and will not conflict
-     * with the XUD task.
-     */
-    vTaskCoreExclusionSet(startup_task, ~(1 << 0));
+                NULL);
 
     rtos_printf("start scheduler on tile 1\n");
     vTaskStartScheduler();
-
-    return;
 }
 #endif
