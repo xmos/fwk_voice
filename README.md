@@ -1,6 +1,4 @@
-# vfe_test
+# XVF3652
 
-This application implements the voice front end pipeline in FreeRTOS.
+This is the Next Generation Voice reference design
 
-It links against a static library containing lib_voice_front_end and
-its various dependency libraries.
