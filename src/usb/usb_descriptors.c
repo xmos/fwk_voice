@@ -25,15 +25,8 @@
 
 #include "tusb.h"
 
-/* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
- * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
- *
- * Auto ProductID layout's Bitmap:
- *   [MSB]     AUDIO | MIDI | HID | MSC | CDC          [LSB]
- */
-#define _PID_MAP(itf, n)  ( (CFG_TUD_##itf) << (n) )
-#define USB_PID           (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
-    _PID_MAP(MIDI, 3) | _PID_MAP(AUDIO, 4) | _PID_MAP(VENDOR, 5) )
+#define XMOS_VID    0x20B1
+#define XVF3652_PID 0x3652
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -43,16 +36,14 @@ tusb_desc_device_t const desc_device = {
     .bDescriptorType    = TUSB_DESC_DEVICE,
     .bcdUSB             = 0x0200,
 
-    // Use Interface Association Descriptor (IAD) for CDC
-    // As required by USB Specs IAD's subclass must be common class (2) and protocol must be IAD (1)
-    .bDeviceClass       = TUSB_CLASS_MISC,
-    .bDeviceSubClass    = MISC_SUBCLASS_COMMON,
-    .bDeviceProtocol    = MISC_PROTOCOL_IAD,
+    .bDeviceClass       = TUSB_CLASS_UNSPECIFIED,
+    .bDeviceSubClass    = TUSB_CLASS_UNSPECIFIED,
+    .bDeviceProtocol    = TUSB_CLASS_UNSPECIFIED,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor           = 0x20B1,
-    .idProduct          = USB_PID,
-    .bcdDevice          = 0x0100,
+    .idVendor           = XMOS_VID,
+    .idProduct          = XVF3652_PID,
+    .bcdDevice          = 0x0001,
 
     .iManufacturer      = 0x01,
     .iProduct           = 0x02,
@@ -74,11 +65,15 @@ uint8_t const* tud_descriptor_device_cb(void)
 enum {
     ITF_NUM_AUDIO_CONTROL = 0,
     ITF_NUM_AUDIO_STREAMING,
+    ITF_NUM_XMOS_DEV_CTRL,
     ITF_NUM_TOTAL
 };
 
-#define CONFIG_TOTAL_LEN    	(TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_MIC_DESC_LEN)
-#define EPNUM_AUDIO   0x01
+#define TUD_XMOS_DEVICE_CONTROL_DESC_LEN 9
+
+#define TUD_XMOS_DEVICE_CONTROL_DESCRIPTOR(_itfnum, _stridx) \
+  /* Interface */\
+  9, TUSB_DESC_INTERFACE, _itfnum, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC, 0x00, 0x00, _stridx
 
 #define UAC2_MIC_DESCRIPTOR(_itfnum, _stridx, _nBytesPerSample, _nBitsUsedPerSample, _epin, _epsize) \
   /* Standard Interface Association Descriptor (IAD) */\
@@ -110,6 +105,10 @@ enum {
   /* Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) */\
   TUD_AUDIO_DESC_CS_AS_ISO_EP(/*_attr*/ AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, /*_ctrl*/ AUDIO_CTRL_NONE, /*_lockdelayunit*/ AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, /*_lockdelay*/ 0x0000)
 
+
+#define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_MIC_DESC_LEN + TUD_XMOS_DEVICE_CONTROL_DESC_LEN)
+#define EPNUM_AUDIO   0x01
+
 // These variables are required by the audio driver in audio_device.c
 
 // List of audio descriptor lengths which is required by audio driver - you need as many entries as CFG_TUD_AUDIO - unfortunately this is not possible to determine otherwise
@@ -118,11 +117,14 @@ const uint16_t tud_audio_desc_lengths[] = {TUD_AUDIO_MIC_DESC_LEN};
 // TAKE CARE - THE NUMBER OF AUDIO STREAMING INTERFACES PER AUDIO FUNCTION MUST NOT EXCEED CFG_TUD_AUDIO_N_AS_INT - IF IT DOES INCREASE CFG_TUD_AUDIO_N_AS_INT IN tusb_config.h!
 
 uint8_t const desc_configuration[] = {
-// Interface count, string index, total length, attribute, power in mA
-        TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 400),
+    // Interface count, string index, total length, attribute, power in mA
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 400),
 
-        // Interface number, string index, EP Out & EP In address, EP size
-        UAC2_MIC_DESCRIPTOR(/*_itfnum*/ITF_NUM_AUDIO_CONTROL, /*_stridx*/0, /*_nBytesPerSample*/2, /*_nBitsUsedPerSample*/16, /*_epin*/0x80 | EPNUM_AUDIO, /*_epsize*/48*4)};
+    // Interface number, string index, EP Out & EP In address, EP size
+    UAC2_MIC_DESCRIPTOR(/*_itfnum*/ITF_NUM_AUDIO_CONTROL, /*_stridx*/4, /*_nBytesPerSample*/2, /*_nBitsUsedPerSample*/16, /*_epin*/0x80 | EPNUM_AUDIO, /*_epsize*/48*4),
+
+    // Interface number, string index
+    TUD_XMOS_DEVICE_CONTROL_DESCRIPTOR(ITF_NUM_XMOS_DEV_CTRL, 5)};
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor
@@ -139,10 +141,11 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 
 // array of pointer to string descriptors
 char const *string_desc_arr[] = {(const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-        "XMOS",       // 1: Manufacturer
-        "VFE",        // 2: Product
-        "123456",     // 3: Serials, should use chip ID
-        "UAC2",       // 4: Audio Interface
+        "XMOS",                    // 1: Manufacturer
+        "XVF3652",                 // 2: Product
+        "123456",                  // 3: Serials, should use chip ID
+        "UAC2",                    // 4: Audio Interface
+        "Device Control Interface" // 5: Vendor Interface
         };
 
 static uint16_t _desc_str[32];

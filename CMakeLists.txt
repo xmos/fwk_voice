@@ -11,6 +11,7 @@ set(USE_WIFI_MANAGER FALSE)
 set(USE_DHCPD FALSE)
 set(USE_FATFS FALSE)
 set(USE_RTOS_USB_DRIVER TRUE)
+set(USE_DEVICE_CONTROL TRUE)
 set(USE_TINYUSB TRUE)
 
 ## Import XMOS configurations
@@ -82,6 +83,7 @@ set(APP_SOURCES
     "src/dac_init.c"
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
+    "src/usb/usb_device_control.c"
 )
 
 set(APP_INCLUDES

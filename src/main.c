@@ -15,6 +15,7 @@
 
 #include "rtos_usb.h"
 #include "usb_support.h"
+#include "device_control.h"
 
 #include "vfe_pipeline/vfe_pipeline.h"
 
@@ -37,6 +38,11 @@ static rtos_i2s_t i2s_ctx_s;
 
 static rtos_mic_array_t *mic_array_ctx = &mic_array_ctx_s;
 static rtos_i2s_t *i2s_ctx = &i2s_ctx_s;
+#endif
+
+#if ON_TILE(USB_TILE_NO)
+static device_control_t device_control_usb_ctx_s;
+static device_control_t *device_control_usb_ctx = (device_control_t *) &device_control_usb_ctx_s;
 #endif
 
 static rtos_intertile_t intertile_ctx_s;
@@ -71,19 +77,75 @@ int vfe_pipeline_output(void *i2s_ctx,
     return VFE_PIPELINE_FREE_FRAME;
 }
 
+void usb_device_control_set_ctx(device_control_t *ctx,
+                                size_t servicer_count);
+
 void vApplicationMallocFailedHook(void)
 {
     rtos_printf("Malloc Failed on tile %d!\n", THIS_XCORE_TILE);
     for(;;);
 }
 
+#define DEVICE_CONTROL_USB_PORT 1
+#define DEVICE_CONTROL_USB_CLIENT_PRIORITY  (configMAX_PRIORITIES-1)
+
+DEVICE_CONTROL_CALLBACK_ATTR
+control_ret_t read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
+{
+    rtos_printf("Device control READ\n\t");
+
+    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
+    rtos_printf("The command is requesting %d bytes\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        payload[i] = (cmd & 0x7F) + i;
+    }
+    rtos_printf("Bytes to be sent are:\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        rtos_printf("%02x ", payload[i]);
+    }
+    rtos_printf("\n\n");
+
+    return CONTROL_SUCCESS;
+}
+
+DEVICE_CONTROL_CALLBACK_ATTR
+control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data)
+{
+    rtos_printf("Device control WRITE\n\t");
+
+    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
+    rtos_printf("The command has %d bytes\n\t", payload_len);
+    rtos_printf("Bytes received are:\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        rtos_printf("%02x ", payload[i]);
+    }
+    rtos_printf("\n\n");
+
+    return CONTROL_SUCCESS;
+}
+
 void vApplicationDaemonTaskStartup(void *arg)
 {
     uint32_t dac_configured;
+    #if ON_TILE(USB_TILE_NO)
+    control_ret_t dc_ret;
+    device_control_t *device_control_ctxs[] = {
+            device_control_usb_ctx,
+    };
+    #endif
 
     rtos_printf("Startup task running from tile %d on core %d\n", THIS_XCORE_TILE, portGET_CORE_ID());
 
     rtos_intertile_start(intertile_ctx);
+
+    #if ON_TILE(USB_TILE_NO)
+    {
+        dc_ret = device_control_start(device_control_usb_ctx,
+                                      0,
+                                      0);
+        xassert(dc_ret == CONTROL_SUCCESS);
+    }
+    #endif
 
     #if ON_TILE(I2C_TILE)
     {
@@ -114,6 +176,7 @@ void vApplicationDaemonTaskStartup(void *arg)
     #if ON_TILE(USB_TILE_NO)
     {
         usb_audio_init(intertile_ctx, configMAX_PRIORITIES-1);
+        usb_device_control_set_ctx(device_control_usb_ctx, 1);
         usb_manager_start(configMAX_PRIORITIES-1);
     }
     #endif
@@ -144,6 +207,28 @@ void vApplicationDaemonTaskStartup(void *arg)
     }
     #endif
 
+
+#if ON_TILE(USB_TILE_NO)
+{
+    control_resid_t resources[] = {0x3, 0x6, 0x9};
+
+    device_control_servicer_t servicer_ctx;
+    rtos_printf("Will register a servicer now on tile %d\n", THIS_XCORE_TILE);
+    dc_ret = device_control_servicer_register(&servicer_ctx,
+                                              device_control_ctxs,
+                                              sizeof(device_control_ctxs) / sizeof(device_control_ctxs[0]),
+                                              resources,
+                                              sizeof(resources));
+    xassert(dc_ret == CONTROL_SUCCESS);
+    rtos_printf("Servicer registered now on tile %d\n", THIS_XCORE_TILE);
+
+    for (;;) {
+        device_control_servicer_cmd_recv(&servicer_ctx, read_cmd, write_cmd, NULL, RTOS_OSAL_WAIT_FOREVER);
+    }
+}
+#endif
+
+
     vTaskDelete(NULL);
 }
 
@@ -159,6 +244,11 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
     other_tile_c = c1;
 
 #if ON_TILE(USB_TILE_NO)
+    device_control_init(device_control_usb_ctx,
+                        THIS_XCORE_TILE == USB_TILE_NO ? DEVICE_CONTROL_HOST_MODE : DEVICE_CONTROL_CLIENT_MODE,
+                        NULL,
+                        0);
+
     usb_manager_init();
 #endif
 
