@@ -32,6 +32,8 @@
 #include "vfe_pipeline/vfe_pipeline.h"
 #include "ww_model_runner/ww_model_runner.h"
 
+#include "gpio_test/gpio_test.h"
+
 #define I2C_TILE 0
 #define AUDIO_TILE 1
 #define WW_TILE 0
@@ -199,6 +201,9 @@ void vApplicationDaemonTaskStartup(void *arg)
     {
         rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
         rtos_gpio_start(gpio_ctx_t0);
+
+        gpio_test(gpio_ctx_t0);
+
     }
     #endif
 

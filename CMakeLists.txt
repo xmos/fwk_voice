@@ -81,10 +81,13 @@ set(APP_SOURCES
     "src/main.c"
     "src/board_init.c"
     "src/dac_init.c"
+    "src/app_pll_ctrl.c"
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
     "src/usb/usb_device_control.c"
     "src/ww_model_runner/ww_model_runner.c"
+
+    "src/gpio_test/gpio_test.c"
 )
 
 set(APP_INCLUDES
