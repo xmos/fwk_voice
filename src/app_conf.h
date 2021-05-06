@@ -4,11 +4,12 @@
 #ifndef APP_CONF_H_
 #define APP_CONF_H_
 
+#define appconfDEVICE_CONTROL_PORT 4
 #define appconfGPIO_T0_RPC_PORT 5
 #define appconfGPIO_T1_RPC_PORT 6
 
 /* WW Config */
-#define appconfWW_SAMPLES_PER_FRAME     (160)
+#define appconfWW_FRAMES_PER_INFERENCE          (160)
 
 /* Task Priorities */
 #define appconfSTARTUP_TASK_PRIORITY            (configMAX_PRIORITIES-1)
@@ -18,5 +19,6 @@
 #define appconfGPIO_RPC_HOST_PRIORITY           (configMAX_PRIORITIES-1)
 #define appconfGPIO_TASK_PRIORITY               (configMAX_PRIORITIES-1)
 #define appconfQSPI_FLASH_TASK_PRIORITY         (configMAX_PRIORITIES-1)
+#define appconfDEVICE_CONTROL_TASK_PRIORITY     (1)
 
 #endif /* APP_CONF_H_ */

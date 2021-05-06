@@ -82,11 +82,9 @@ void board_tile0_init(
         rtos_qspi_flash_t *qspi_flash_ctx)
 {
     rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
-
     rtos_intertile_init(intertile_ctx, tile1);
 
     rtos_gpio_init(gpio_ctx_t0);
-
 
     rtos_qspi_flash_init(
             qspi_flash_ctx,
@@ -139,6 +137,9 @@ void board_tile1_init(
         rtos_gpio_t *gpio_ctx_t0,
         rtos_gpio_t *gpio_ctx_t1)
 {
+    rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
+    rtos_intertile_init(intertile_ctx, tile0);
+
     port_t p_rst_shared = port_init(PORT_CODEC_RST_N, PORT_OUTPUT, PORT_UNBUFFERED);
     port_out(p_rst_shared, 0xF);
 
@@ -165,8 +166,7 @@ void board_tile1_init(
 
     set_app_pll();
 
-    rtos_intertile_init(intertile_ctx, tile0);
-    rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
+    rtos_gpio_init(gpio_ctx_t1);
 
     rtos_mic_array_init(
             mic_array_ctx,
@@ -190,16 +190,14 @@ void board_tile1_init(
             p_mclk,
             bclk);
 
-    rtos_gpio_init(gpio_ctx_t1);
+    rtos_gpio_rpc_client_init(
+            gpio_ctx_t0,
+            &gpio_rpc_config_t0,
+            intertile_ctx);
 
     rtos_gpio_rpc_host_init(
             gpio_ctx_t1,
             &gpio_rpc_config_t1,
             client_intertile_ctx,
             1);
-
-    rtos_gpio_rpc_client_init(
-            gpio_ctx_t0,
-            &gpio_rpc_config_t0,
-            intertile_ctx);
 }

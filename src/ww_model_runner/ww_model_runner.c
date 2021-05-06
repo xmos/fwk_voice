@@ -25,9 +25,9 @@ static void model_runner_manager(void *args)
 {
     StreamBufferHandle_t input_queue = (StreamBufferHandle_t)args;
 
-    int16_t buf[appconfWW_SAMPLES_PER_FRAME];
+    int16_t buf[appconfWW_FRAMES_PER_INFERENCE];
     while(1) {
-        xStreamBufferReceive(input_queue, buf, appconfWW_SAMPLES_PER_FRAME * sizeof(int16_t), portMAX_DELAY);
+        xStreamBufferReceive(input_queue, buf, appconfWW_FRAMES_PER_INFERENCE * sizeof(int16_t), portMAX_DELAY);
     	uint32_t init_time = get_reference_time();
     	while (get_reference_time() - init_time < WW_MODEL_RUNTICKS);
     }
