@@ -97,7 +97,7 @@ enum {
   /* Interface 1, Alternate 1 - alternate interface for data streaming */\
   TUD_AUDIO_DESC_STD_AS_INT(/*_itfnum*/ (uint8_t)((_itfnum)+1), /*_altset*/ 0x01, /*_nEPs*/ 0x01, /*_stridx*/ 0x00),\
   /* Class-Specific AS Interface Descriptor(4.9.2) */\
-  TUD_AUDIO_DESC_CS_AS_INT(/*_termid*/ 0x03, /*_ctrl*/ AUDIO_CTRL_NONE, /*_formattype*/ AUDIO_FORMAT_TYPE_I, /*_formats*/ AUDIO_DATA_FORMAT_TYPE_I_PCM, /*_nchannelsphysical*/ CFG_TUD_AUDIO_N_CHANNELS_TX, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, /*_stridx*/ 0x00),\
+  TUD_AUDIO_DESC_CS_AS_INT(/*_termid*/ 0x03, /*_ctrl*/ AUDIO_CTRL_NONE, /*_formattype*/ AUDIO_FORMAT_TYPE_I, /*_formats*/ AUDIO_DATA_FORMAT_TYPE_I_PCM, /*_nchannelsphysical*/ CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, /*_stridx*/ 0x00),\
   /* Type I Format Type Descriptor(2.3.1.6 - Audio Formats) */\
   TUD_AUDIO_DESC_TYPE_I_FORMAT(_nBytesPerSample, _nBitsUsedPerSample),\
   /* Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) */\
@@ -106,13 +106,13 @@ enum {
   TUD_AUDIO_DESC_CS_AS_ISO_EP(/*_attr*/ AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, /*_ctrl*/ AUDIO_CTRL_NONE, /*_lockdelayunit*/ AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, /*_lockdelay*/ 0x0000)
 
 
-#define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_MIC_DESC_LEN + TUD_XMOS_DEVICE_CONTROL_DESC_LEN)
+#define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_MIC_ONE_CH_DESC_LEN + TUD_XMOS_DEVICE_CONTROL_DESC_LEN)
 #define EPNUM_AUDIO   0x01
 
 // These variables are required by the audio driver in audio_device.c
 
 // List of audio descriptor lengths which is required by audio driver - you need as many entries as CFG_TUD_AUDIO - unfortunately this is not possible to determine otherwise
-const uint16_t tud_audio_desc_lengths[] = {TUD_AUDIO_MIC_DESC_LEN};
+const uint16_t tud_audio_desc_lengths[] = {TUD_AUDIO_MIC_ONE_CH_DESC_LEN};
 
 // TAKE CARE - THE NUMBER OF AUDIO STREAMING INTERFACES PER AUDIO FUNCTION MUST NOT EXCEED CFG_TUD_AUDIO_N_AS_INT - IF IT DOES INCREASE CFG_TUD_AUDIO_N_AS_INT IN tusb_config.h!
 
@@ -121,7 +121,7 @@ uint8_t const desc_configuration[] = {
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 400),
 
     // Interface number, string index, EP Out & EP In address, EP size
-    UAC2_MIC_DESCRIPTOR(/*_itfnum*/ITF_NUM_AUDIO_CONTROL, /*_stridx*/4, /*_nBytesPerSample*/2, /*_nBitsUsedPerSample*/16, /*_epin*/0x80 | EPNUM_AUDIO, /*_epsize*/48*4),
+    UAC2_MIC_DESCRIPTOR(/*_itfnum*/ITF_NUM_AUDIO_CONTROL, /*_stridx*/4, /*_nBytesPerSample*/CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX, /*_nBitsUsedPerSample*/CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX*8, /*_epin*/0x80 | EPNUM_AUDIO, /*_epsize*/CFG_TUD_AUDIO_EP_SZ_IN),
 
     // Interface number, string index
     TUD_XMOS_DEVICE_CONTROL_DESCRIPTOR(ITF_NUM_XMOS_DEV_CTRL, 5)};

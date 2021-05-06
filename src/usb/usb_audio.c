@@ -39,13 +39,13 @@
 
 // Audio controls
 // Current states
-bool mute[CFG_TUD_AUDIO_N_CHANNELS_TX + 1]; 						// +1 for master channel 0
-uint16_t volume[CFG_TUD_AUDIO_N_CHANNELS_TX + 1]; 					// +1 for master channel 0
+bool mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX + 1]; 						// +1 for master channel 0
+uint16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX + 1]; 					// +1 for master channel 0
 uint32_t sampFreq;
 uint8_t clkValid;
 
 // Range states
-audio_control_range_2_n_t(1) volumeRng[CFG_TUD_AUDIO_N_CHANNELS_TX+1]; 			// Volume range state
+audio_control_range_2_n_t(1) volumeRng[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX+1]; 			// Volume range state
 audio_control_range_4_n_t(1) sampleFreqRng; 						// Sample frequency range state
 
 // Audio test data
@@ -99,7 +99,7 @@ void audio_task(void *arg)
 
     for (;;) {
         int32_t (*vfe_output_frame)[2];
-        int16_t samples_to_buffer[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_N_CHANNELS_TX];
+        int16_t samples_to_buffer[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
         size_t frame_length;
 
         frame_length = rtos_intertile_rx(intertile_ctx,
@@ -122,7 +122,7 @@ void audio_task(void *arg)
 #if TEST_SEND_FAST
             if (tmp++ == 100) {
                 int16_t extra_sample = 0x7FFF;
-                xStreamBufferSend(sample_stream_buf, &extra_sample, CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX, 0);
+                xStreamBufferSend(sample_stream_buf, &extra_sample, CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX, 0);
                 tmp = 0;
             }
     #endif
@@ -295,7 +295,7 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport,
             audio_desc_channel_cluster_t ret;
 
             // Those are dummy values for now
-            ret.bNrChannels = CFG_TUD_AUDIO_N_CHANNELS_TX;
+            ret.bNrChannels = CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX;
             ret.bmChannelConfig = 0;
             ret.iChannelNames = 0;
 
@@ -413,7 +413,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
 
     bytes_available = xStreamBufferBytesAvailable(sample_stream_buf);
 
-    if (bytes_available > (VFE_PIPELINE_AUDIO_FRAME_LENGTH + 8) * CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX) {
+    if (bytes_available > (VFE_PIPELINE_AUDIO_FRAME_LENGTH + 8) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
         tx_byte_count = BYTES_PER_FRAME_EXTRA;
 #if 0
         rtos_printf("Will send more samples to prevent an overflow (%u bytes in buffer)\n", bytes_available);
@@ -422,33 +422,20 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         tx_byte_count = BYTES_PER_FRAME_NOMINAL;
     }
 
-    /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX is received here */
+    /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here */
     bytes_available = xStreamBufferReceive(sample_stream_buf, buf, tx_byte_count, 0);
 
 #if 0
     if (bytes_available < BYTES_PER_FRAME_NOMINAL) {
-        rtos_printf("Only sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX));
+        rtos_printf("Only sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
     } else if (bytes_available > BYTES_PER_FRAME_NOMINAL) {
-        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX));
+        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
     } else {
-        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX));
+        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
     }
 #endif
 
-    /*
-     * This "unzips" each channel's samples received from the stream buffer
-     * and writes the samples for each channel one at a time to the USB stack.
-     */
-    int16_t chbuf[SAMPLES_PER_FRAME_EXTRA];
-    int16_t *ibuf = (int16_t *) buf;
-    const size_t samps = bytes_available / (CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX);
-
-    for (int ch = 0; ch < CFG_TUD_AUDIO_N_CHANNELS_TX; ch++) {
-        for (int i = 0; i < samps; i++) {
-            chbuf[i] = ibuf[i*CFG_TUD_AUDIO_N_CHANNELS_TX + ch];
-        }
-        tud_audio_write(ch, (uint8_t *) chbuf, samps * CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX);
-    }
+    tud_audio_write((uint8_t *) buf, bytes_available);
 
     return true;
 }
@@ -508,8 +495,8 @@ void usb_audio_init(rtos_intertile_t *intertile_ctx,
     sampleFreqRng.subrange[0].bMax = VFE_PIPELINE_AUDIO_SAMPLE_RATE;
     sampleFreqRng.subrange[0].bRes = 0;
 
-    sample_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX,
-                                            CFG_TUD_AUDIO_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_N_CHANNELS_TX);
+    sample_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX,
+                                            CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX);
 
     xTaskCreate((TaskFunction_t) audio_task, "audio_task", portTASK_STACK_DEPTH(audio_task), intertile_ctx, priority,
     NULL);
