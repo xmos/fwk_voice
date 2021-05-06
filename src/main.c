@@ -3,28 +3,41 @@
 
 #include <platform.h>
 #include <xs1.h>
+#include <xcore/channel.h>
 
+/* FreeRTOS headers */
 #include "FreeRTOS.h"
 #include "task.h"
 #include "stream_buffer.h"
 #include "queue.h"
 
+/* Library headers */
+#include "rtos/drivers/gpio/api/rtos_gpio.h"
+#include "rtos/drivers/i2c/api/rtos_i2c_master.h"
+#include "rtos/drivers/i2s/api/rtos_i2s.h"
+#include "rtos/drivers/intertile/api/rtos_intertile.h"
+#include "rtos/drivers/mic_array/api/rtos_mic_array.h"
+#include "rtos/drivers/qspi_flash/api/rtos_qspi_flash.h"
+#include "rtos/drivers/spi/api/rtos_spi_master.h"
+
 #include "rtos_printf.h"
-
-#include <xcore/channel.h>
-
 #include "rtos_usb.h"
-#include "usb_support.h"
 
-#include "vfe_pipeline/vfe_pipeline.h"
-
+/* App headers */
+#include "app_conf.h"
 #include "board_init.h"
-
+#include "usb_support.h"
 #include "usb_audio.h"
+#include "vfe_pipeline/vfe_pipeline.h"
 
 #define I2C_TILE 0
 #define AUDIO_TILE 1
+#define WW_TILE 0
 
+#if ON_TILE(0)
+static rtos_qspi_flash_t qspi_flash_ctx_s;
+static rtos_qspi_flash_t *qspi_flash_ctx = &qspi_flash_ctx_s;
+#endif
 
 #if ON_TILE(I2C_TILE)
 static rtos_i2c_master_t i2c_master_ctx_s;
@@ -38,6 +51,12 @@ static rtos_i2s_t i2s_ctx_s;
 static rtos_mic_array_t *mic_array_ctx = &mic_array_ctx_s;
 static rtos_i2s_t *i2s_ctx = &i2s_ctx_s;
 #endif
+
+static rtos_gpio_t gpio_ctx_t0_s;
+static rtos_gpio_t *gpio_ctx_t0 = &gpio_ctx_t0_s;
+
+static rtos_gpio_t gpio_ctx_t1_s;
+static rtos_gpio_t *gpio_ctx_t1 = &gpio_ctx_t1_s;
 
 static rtos_intertile_t intertile_ctx_s;
 static rtos_intertile_t *intertile_ctx = &intertile_ctx_s;
@@ -111,10 +130,25 @@ void vApplicationDaemonTaskStartup(void *arg)
         vTaskDelete(NULL);
     }
 
+    rtos_gpio_rpc_config(gpio_ctx_t0, appconfGPIO_T0_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+    rtos_gpio_rpc_config(gpio_ctx_t1, appconfGPIO_T1_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+    #if ON_TILE(0)
+    {
+        rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
+        gpio_ctrl_create(gpio_ctx_t0, appconfGPIO_TASK_PRIORITY);
+    }
+    #endif
+
+    #if ON_TILE(1)
+    {
+        gpio_ctrl_create(gpio_ctx_t1, appconfGPIO_TASK_PRIORITY);
+    }
+    #endif
+
     #if ON_TILE(USB_TILE_NO)
     {
-        usb_audio_init(intertile_ctx, configMAX_PRIORITIES-1);
-        usb_manager_start(configMAX_PRIORITIES-1);
+        usb_audio_init(intertile_ctx, appconfUSB_AUDIO_TASK_PRIORITY);
+        usb_manager_start(appconfUSB_MGR_TASK_PRIORITY);
     }
     #endif
 
@@ -144,6 +178,17 @@ void vApplicationDaemonTaskStartup(void *arg)
     }
     #endif
 
+
+    #if ON_TILE(WW_TILE)
+    {
+        StreamBufferHandle_t audio_stream = xStreamBufferCreate(
+                                                   1.2 * (VFE_PIPELINE_AUDIO_FRAME_LENGTH/2),
+                                                   appconfWW_SAMPLES_PER_FRAME);
+        /* TODO Task that fills audio_stream with uint16_t samples */
+        ww_task_create(audio_stream, appconfWW_TASK_PRIORITY);
+    }
+    #endif
+
     vTaskDelete(NULL);
 }
 
@@ -152,7 +197,7 @@ void vApplicationDaemonTaskStartup(void *arg)
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
     (void) c0;
-    board_tile0_init(c1, intertile_ctx, i2c_master_ctx);
+    board_tile0_init(c1, intertile_ctx, i2c_master_ctx, gpio_ctx_t0, gpio_ctx_t1, qspi_flash_ctx);
     (void) c2;
     (void) c3;
 
@@ -166,7 +211,7 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
                 "vApplicationDaemonTaskStartup",
                 RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
                 NULL,
-                1,
+                appconfSTARTUP_TASK_PRIORITY,
                 NULL);
 
     rtos_printf("start scheduler on tile 0\n");
@@ -177,7 +222,7 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 #if ON_TILE(1)
 void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
-    board_tile1_init(c0, intertile_ctx, mic_array_ctx, i2s_ctx);
+    board_tile1_init(c0, intertile_ctx, mic_array_ctx, i2s_ctx, gpio_ctx_t0, gpio_ctx_t1);
     (void) c1;
     (void) c2;
     (void) c3;
@@ -192,7 +237,7 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
                 "vApplicationDaemonTaskStartup",
                 RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
                 NULL,
-                configMAX_PRIORITIES-1,
+                appconfSTARTUP_TASK_PRIORITY,
                 NULL);
 
     rtos_printf("start scheduler on tile 1\n");

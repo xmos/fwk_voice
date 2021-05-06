@@ -27,7 +27,7 @@ set(PIPELINE_LIB_COMPILER_FLAGS
     "-Os"
     "-report"
     "-fxscope"
-    "-mcmodel=small"
+    "-mcmodel=large"
     "-Wno-xcore-fptrgroup"
     "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
 )
@@ -82,11 +82,13 @@ set(APP_SOURCES
     "src/dac_init.c"
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
+    "src/ww_model_runner/ww_model_runner.c"
 )
 
 set(APP_INCLUDES
     "src"
     "src/usb"
+    "src/ww_model_runner"
 )
 
 add_compile_definitions(

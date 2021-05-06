@@ -70,12 +70,47 @@ static void set_app_pll(void)
     write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_CLK_DIVIDER_NUM, APP_PLL_DIV_0);
 }
 
+static rtos_driver_rpc_t gpio_rpc_config_t0;
+static rtos_driver_rpc_t gpio_rpc_config_t1;
+
 void board_tile0_init(
         chanend_t tile1,
         rtos_intertile_t *intertile_ctx,
-        rtos_i2c_master_t *i2c_master_ctx)
+        rtos_i2c_master_t *i2c_master_ctx,
+        rtos_gpio_t *gpio_ctx_t0,
+        rtos_gpio_t *gpio_ctx_t1,
+        rtos_qspi_flash_t *qspi_flash_ctx)
 {
+    rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
+
     rtos_intertile_init(intertile_ctx, tile1);
+
+    rtos_gpio_init(gpio_ctx_t0);
+
+
+    rtos_qspi_flash_init(
+            qspi_flash_ctx,
+            XS1_CLKBLK_1,
+            PORT_SQI_CS,
+            PORT_SQI_SCLK,
+            PORT_SQI_SIO,
+
+            /** Derive QSPI clock from the 600 MHz xcore clock **/
+            qspi_io_source_clock_xcore,
+
+            /** Full speed clock configuration **/
+            5, // 600 MHz / (2*5) -> 60 MHz,
+            1,
+            qspi_io_sample_edge_rising,
+            0,
+
+            /** SPI read clock configuration **/
+            12, // 600 MHz / (2*12) -> 25 MHz
+            0,
+            qspi_io_sample_edge_falling,
+            0,
+
+            qspi_flash_page_program_1_4_4);
 
     rtos_i2c_master_init(
             i2c_master_ctx,
@@ -83,13 +118,26 @@ void board_tile0_init(
             PORT_I2C_SDA, 0, 0,
             0,
             100);
+
+    rtos_gpio_rpc_host_init(
+            gpio_ctx_t0,
+            &gpio_rpc_config_t0,
+            client_intertile_ctx,
+            1);
+
+    rtos_gpio_rpc_client_init(
+            gpio_ctx_t1,
+            &gpio_rpc_config_t1,
+            intertile_ctx);
 }
 
 void board_tile1_init(
         chanend_t tile0,
         rtos_intertile_t *intertile_ctx,
         rtos_mic_array_t *mic_array_ctx,
-        rtos_i2s_t *i2s_ctx)
+        rtos_i2s_t *i2s_ctx,
+        rtos_gpio_t *gpio_ctx_t0,
+        rtos_gpio_t *gpio_ctx_t1)
 {
     port_t p_rst_shared = port_init(PORT_CODEC_RST_N, PORT_OUTPUT, PORT_UNBUFFERED);
     port_out(p_rst_shared, 0xF);
@@ -118,6 +166,7 @@ void board_tile1_init(
     set_app_pll();
 
     rtos_intertile_init(intertile_ctx, tile0);
+    rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
 
     rtos_mic_array_init(
             mic_array_ctx,
@@ -140,4 +189,17 @@ void board_tile1_init(
             p_lrclk,
             p_mclk,
             bclk);
+
+    rtos_gpio_init(gpio_ctx_t1);
+
+    rtos_gpio_rpc_host_init(
+            gpio_ctx_t1,
+            &gpio_rpc_config_t1,
+            client_intertile_ctx,
+            1);
+
+    rtos_gpio_rpc_client_init(
+            gpio_ctx_t0,
+            &gpio_rpc_config_t0,
+            intertile_ctx);
 }
