@@ -101,7 +101,7 @@ add_compile_definitions(
     PLATFORM_USES_TILE_0=1
     PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=700
-    WW=0
+    WW=1
 )
 
 add_executable(${TARGET_NAME})
