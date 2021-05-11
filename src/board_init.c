@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <xcore/hwtimer.h>
 
+#include "app_pll_ctrl.h"
 #include "board_init.h"
 
 typedef enum {
@@ -42,34 +43,6 @@ static xclock_t clock_init(xclock_t c)
     return c;
 }
 
-static void set_app_pll(void)
-{
-    unsigned tileid = get_local_tile_id();
-
-    xassert(AUDIO_CLOCK_FREQUENCY == 24576000);
-
-    // 24MHz in, 24.576MHz out, integer mode
-    // Found exact solution:   IN  24000000.0, OUT  24576000.0, VCO 2457600000.0, RD  5, FD  512                       , OD  5, FOD   10
-    const unsigned APP_PLL_DISABLE = 0x0201FF04;
-    const unsigned APP_PLL_CTL_0   = 0x0A01FF04;
-    const unsigned APP_PLL_DIV_0   = 0x80000004;
-    const unsigned APP_PLL_FRAC_0  = 0x00000000;
-
-    write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_CTL_NUM, APP_PLL_DISABLE);
-
-    hwtimer_t tmr = hwtimer_alloc();
-    {
-        xassert(tmr != 0);
-        hwtimer_delay(tmr, 100000); // 1ms with 100 MHz timer tick
-    }
-    hwtimer_free(tmr);
-
-    write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_CTL_NUM, APP_PLL_CTL_0);
-    write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_CTL_NUM, APP_PLL_CTL_0);
-    write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_0);
-    write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_CLK_DIVIDER_NUM, APP_PLL_DIV_0);
-}
-
 static rtos_driver_rpc_t gpio_rpc_config_t0;
 static rtos_driver_rpc_t gpio_rpc_config_t1;
 
@@ -83,6 +56,20 @@ void board_tile0_init(
 {
     rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
     rtos_intertile_init(intertile_ctx, tile1);
+
+    /*
+     * Configure the MCLK input port on tile 0.
+     * This is wired to app PLL/MCLK output from tile 1.
+     * It is set up to clock itself. This allows GETTS to
+     * be called on it to count its clock cycles. This
+     * count is used to nudge its frequency to match the
+     * USB host.
+     */
+    port_init(PORT_MCLK_IN, PORT_INPUT, PORT_UNBUFFERED);
+    clock_enable(XS1_CLKBLK_4);
+    clock_set_source_port(XS1_CLKBLK_4, PORT_MCLK_IN);
+    port_set_clock(PORT_MCLK_IN, XS1_CLKBLK_4);
+    clock_start(XS1_CLKBLK_4);
 
     rtos_gpio_init(gpio_ctx_t0);
 
@@ -164,7 +151,7 @@ void board_tile1_init(
     /* Clock blocks for I2S */
     xclock_t bclk = clock_init(XS1_CLKBLK_3);
 
-    set_app_pll();
+    app_pll_init();
 
     rtos_gpio_init(gpio_ctx_t1);
 

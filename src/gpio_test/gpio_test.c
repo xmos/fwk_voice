@@ -50,15 +50,12 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
 
         rtos_gpio_port_out(gpio_ctx, led_port, buttons_val);
 
-        if ((buttonA == 0 ) && (buttonB == 0)) {
-            rtos_printf("pll nom\n");
-            set_app_pll(APP_PLL_NOM);
-        } else if (buttonA == 0) {
+        if (buttonA == 0) {
             rtos_printf("pll faster\n");
-            set_app_pll(APP_PLL_FAST);
+            app_pll_nudge(APP_PLL_NUDGE_FASTER);
         } else if (buttonB == 0) {
             rtos_printf("pll slower\n");
-            set_app_pll(APP_PLL_SLOW);
+            app_pll_nudge(APP_PLL_NUDGE_SLOWER);
         }
     }
 }

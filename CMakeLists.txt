@@ -85,6 +85,7 @@ set(APP_SOURCES
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
     "src/usb/usb_device_control.c"
+    "src/usb/adaptive_rate_adjust.c"
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
@@ -102,6 +103,9 @@ add_compile_definitions(
     PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=700
     WW=1
+    
+    CFG_TUSB_DEBUG_PRINTF=rtos_printf
+    CFG_TUSB_DEBUG=0
 )
 
 add_executable(${TARGET_NAME})

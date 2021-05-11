@@ -89,8 +89,6 @@ void tud_resume_cb(void)
 
 void audio_task(void *arg)
 {
-    int was_open = 0;
-
     rtos_intertile_t *intertile_ctx = (rtos_intertile_t*) arg;
 
     while (!tusb_inited()) {
@@ -102,6 +100,10 @@ void audio_task(void *arg)
         int16_t samples_to_buffer[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
         size_t frame_length;
 
+        /* TODO: use rtos_intertile_rx_len and  rtos_intertile_rx_data */
+        /*       then do the 32->16 bit conversion in place.
+         *       then stream buffer send. no need to malloc or have two buffers.
+         */
         frame_length = rtos_intertile_rx(intertile_ctx,
                                          0,
                                          (void**) &vfe_output_frame,
@@ -110,7 +112,6 @@ void audio_task(void *arg)
         xassert(frame_length == VFE_PIPELINE_AUDIO_FRAME_LENGTH * 2 * sizeof(int32_t));
 
         if (interface_open) {
-            was_open = 1;
             for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
                 samples_to_buffer[i][0] = vfe_output_frame[i][0] >> 16;
                 samples_to_buffer[i][1] = vfe_output_frame[i][1] >> 16;
@@ -126,9 +127,6 @@ void audio_task(void *arg)
                 tmp = 0;
             }
     #endif
-        } else if (was_open) {
-            tud_disconnect();
-            was_open = 0;
         }
 
         vPortFree(vfe_output_frame);
@@ -395,47 +393,48 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
                                    uint8_t ep_in,
                                    uint8_t cur_alt_setting)
 {
+    static int ready;
+    uint8_t buf[BYTES_PER_FRAME_NOMINAL];
+    size_t tx_byte_count;
+    size_t bytes_available;
+
     (void) rhport;
     (void) itf;
     (void) ep_in;
     (void) cur_alt_setting;
 
-    uint8_t buf[BYTES_PER_FRAME_EXTRA];
-    size_t tx_byte_count;
-    size_t bytes_available;
-
-    interface_open = true;
+    if (!interface_open) {
+        ready = 0;
+        interface_open = true;
+    }
 
     if (xStreamBufferIsFull(sample_stream_buf)) {
         xStreamBufferReset(sample_stream_buf);
+        ready = 0;
+        rtos_printf("oops buffer is full\n");
         return true;
     }
 
     bytes_available = xStreamBufferBytesAvailable(sample_stream_buf);
-
-    if (bytes_available > (VFE_PIPELINE_AUDIO_FRAME_LENGTH + 8) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
-        tx_byte_count = BYTES_PER_FRAME_EXTRA;
-#if 0
-        rtos_printf("Will send more samples to prevent an overflow (%u bytes in buffer)\n", bytes_available);
-#endif
-    } else {
-        tx_byte_count = BYTES_PER_FRAME_NOMINAL;
+    if (bytes_available >= (2*VFE_PIPELINE_AUDIO_FRAME_LENGTH) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
+        /* wait until we have 2 frames in the buffer */
+        ready = 1;
     }
 
-    /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here */
+    if (!ready) {
+        return true;
+    }
+
+    tx_byte_count = BYTES_PER_FRAME_NOMINAL;
+
+    /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here? */
     bytes_available = xStreamBufferReceive(sample_stream_buf, buf, tx_byte_count, 0);
 
-#if 0
-    if (bytes_available < BYTES_PER_FRAME_NOMINAL) {
-        rtos_printf("Only sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
-    } else if (bytes_available > BYTES_PER_FRAME_NOMINAL) {
-        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
+    if (bytes_available > 0) {
+        tud_audio_write((uint8_t *) buf, bytes_available);
     } else {
-        rtos_printf("Sending %u samples\n", bytes_available / (CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX));
+        rtos_printf("Oops buffer is empty!\n");
     }
-#endif
-
-    tud_audio_write((uint8_t *) buf, bytes_available);
 
     return true;
 }
