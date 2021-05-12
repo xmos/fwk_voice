@@ -32,6 +32,7 @@
 #include "stream_buffer.h"
 
 #include "tusb.h"
+#include "usb_descriptors.h"
 
 #include "rtos/drivers/intertile/api/rtos_intertile.h"
 
@@ -202,7 +203,7 @@ bool tud_audio_set_req_entity_cb(uint8_t rhport,
     TU_VERIFY(p_request->bRequest == AUDIO_CS_REQ_CUR);
 
     // If request is for our feature unit
-    if (entityID == 2) {
+    if (entityID == UAC2_ENTITY_MIC_FEATURE_UNIT) {
         switch (ctrlSel) {
         case AUDIO_FU_CTRL_MUTE:
             // Request uses format layout 1
@@ -284,7 +285,7 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport,
     uint8_t entityID = TU_U16_HIGH(p_request->wIndex);
 
     // Input terminal (Microphone input)
-    if (entityID == 1) {
+    if (entityID == UAC2_ENTITY_MIC_INPUT_TERMINAL) {
         switch (ctrlSel) {
         case AUDIO_TE_CTRL_CONNECTOR:
             ;
@@ -310,7 +311,7 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport,
     }
 
     // Feature unit
-    if (entityID == 2) {
+    if (entityID == UAC2_ENTITY_MIC_FEATURE_UNIT) {
         switch (ctrlSel) {
         case AUDIO_FU_CTRL_MUTE:
             // Audio control mute cur parameter block consists of only one byte - we thus can send it right away
@@ -351,7 +352,7 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport,
     }
 
     // Clock Source unit
-    if (entityID == 4) {
+    if (entityID == UAC2_ENTITY_CLOCK) {
         switch (ctrlSel) {
         case AUDIO_CS_CTRL_SAM_FREQ:
 
@@ -388,13 +389,35 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport,
     return false; 	// Yet not implemented
 }
 
+bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
+                                    uint16_t n_bytes_received,
+                                    uint8_t func_id,
+                                    uint8_t ep_out,
+                                    uint8_t cur_alt_setting)
+{
+  (void)rhport;
+
+  uint8_t buf[BYTES_PER_RX_FRAME_NOMINAL];
+
+//  rtos_printf("Got %d bytes of speaker data. Buffer holds %d\n", n_bytes_received, BYTES_PER_RX_FRAME_NOMINAL);
+
+  xassert(n_bytes_received <= BYTES_PER_RX_FRAME_NOMINAL);
+
+  tud_audio_read((uint8_t *) buf, n_bytes_received);
+
+  /* loopback */
+  tud_audio_write((uint8_t *) buf, n_bytes_received);
+
+  return true;
+}
+
 bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
                                    uint8_t itf,
                                    uint8_t ep_in,
                                    uint8_t cur_alt_setting)
 {
     static int ready;
-    uint8_t buf[BYTES_PER_FRAME_NOMINAL];
+    uint8_t buf[BYTES_PER_TX_FRAME_NOMINAL];
     size_t tx_byte_count;
     size_t bytes_available;
 
@@ -425,13 +448,13 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         return true;
     }
 
-    tx_byte_count = BYTES_PER_FRAME_NOMINAL;
+    tx_byte_count = BYTES_PER_TX_FRAME_NOMINAL;
 
     /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here? */
     bytes_available = xStreamBufferReceive(sample_stream_buf, buf, tx_byte_count, 0);
 
     if (bytes_available > 0) {
-        tud_audio_write((uint8_t *) buf, bytes_available);
+//        tud_audio_write((uint8_t *) buf, bytes_available);
     } else {
         rtos_printf("Oops buffer is empty!\n");
     }
@@ -458,11 +481,12 @@ bool tud_audio_set_itf_cb(uint8_t rhport,
                           tusb_control_request_t const *p_request)
 {
     (void) rhport;
-    (void) p_request;
+    uint8_t const itf = tu_u16_low(tu_le16toh(p_request->wIndex));
+    uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
     xassert(!interface_open);
 
-    rtos_printf("Mic interface opened\n");
+    rtos_printf("Set audio interface %d alt %d\n", itf, alt);
 
     xStreamBufferReset(sample_stream_buf);
 
@@ -473,11 +497,12 @@ bool tud_audio_set_itf_close_EP_cb(uint8_t rhport,
                                    tusb_control_request_t const *p_request)
 {
     (void) rhport;
-    (void) p_request;
+    uint8_t const itf = tu_u16_low(tu_le16toh(p_request->wIndex));
+    uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
     interface_open = false;
 
-    rtos_printf("Mic interface closed\n");
+    rtos_printf("Close audio interface %d alt %d\n", itf, alt);
 
     return true;
 }
