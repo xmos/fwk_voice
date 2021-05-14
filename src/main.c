@@ -159,8 +159,18 @@ control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t 
     return CONTROL_SUCCESS;
 }
 
+static void mem_analysis( void *arg )
+{
+	for( ;; ) {
+		rtos_printf("Tile[%d]:\n\tMinimum heap free: %d\n\tCurrent heap free: %d\n", THIS_XCORE_TILE, xPortGetMinimumEverFreeHeapSize(), xPortGetFreeHeapSize());
+		vTaskDelay( pdMS_TO_TICKS( 5000 ) );
+	}
+}
+
 void vApplicationDaemonTaskStartup(void *arg)
 {
+    xTaskCreate( mem_analysis, "mem_an", portTASK_STACK_DEPTH(mem_analysis), NULL, configMAX_PRIORITIES, NULL );
+
     uint32_t dac_configured;
     #if ON_TILE(USB_TILE_NO)
     control_ret_t dc_ret;
@@ -291,7 +301,6 @@ void vApplicationDaemonTaskStartup(void *arg)
         }
     }
     #endif
-
 
     vTaskDelete(NULL);
 }

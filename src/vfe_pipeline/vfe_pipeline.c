@@ -44,6 +44,109 @@ static int vfe_pipeline_output_i(frame_data_t *frame_data,
                                VFE_FRAME_ADVANCE);
 }
 
+/* Implement an dummy AEC stage */
+
+/* Memory: 186kB per AEC-less-Stage A */
+#define DUMMY_AEC_DATA    (186000>>2)
+volatile static uint8_t waste[DUMMY_AEC_DATA];
+
+/* Threading:
+ * AEC currently uses 5 threads for parallel steps
+ * and requires 300 MIPS total
+ * Audiopipeline runs at 16kHz with a 240 frame advance
+ * split evenly amoung cores for now, but main core has additional work
+ */
+#include "event_groups.h"
+#include "burn_cycles.h"
+#define AEC_THREADS             3
+#define AEC_THREAD_PRIO         (configMAX_PRIORITIES - 1)
+#define AEC_DUMMY_BURN_TICKS    (4500000 / AEC_THREADS)
+
+typedef struct {
+    EventGroupHandle_t sync_group_start;
+    EventGroupHandle_t sync_group_end;
+} vfe_dsp_stage_0_state_t;
+
+typedef struct {
+    vfe_dsp_stage_0_state_t* stage_state;
+    int id;
+} aec_dummy_args_t;
+
+static vfe_dsp_stage_0_state_t dsp_stage_0_state;
+
+static void aec_burn_dummy(aec_dummy_args_t* args)
+{
+    EventGroupHandle_t sync_group_start = args->stage_state->sync_group_start;
+    EventGroupHandle_t sync_group_end = args->stage_state->sync_group_end;
+    int id = args->id;
+    uint32_t all_sync_bits = 0;
+
+    for(int i=0; i<=AEC_THREADS; i++)
+    {
+        all_sync_bits |= 1 << i;
+    }
+
+    while(1)
+    {
+        xEventGroupSync(sync_group_start, 1<<id, all_sync_bits, portMAX_DELAY);
+    	uint32_t init_time = get_reference_time();
+    	burn_cycles(AEC_DUMMY_BURN_TICKS);
+        // rtos_printf("duration of thread %d %u @ %u\n", id, get_reference_time()-init_time, get_reference_time());
+        xEventGroupSync(sync_group_end, 1<<id, all_sync_bits, portMAX_DELAY);
+    }
+}
+
+static void init_dsp_stage_0(vfe_dsp_stage_0_state_t* state)
+{
+    dsp_stage_0_state.sync_group_start = xEventGroupCreate();
+    dsp_stage_0_state.sync_group_end = xEventGroupCreate();
+    uint32_t all_sync_bits = 0;
+    waste[0] = 0;
+
+    for(int i=0; i<=AEC_THREADS; i++)
+    {
+        all_sync_bits |= 1 << i;
+    }
+
+    xEventGroupClearBits(dsp_stage_0_state.sync_group_start, all_sync_bits);
+    xEventGroupClearBits(dsp_stage_0_state.sync_group_end, all_sync_bits);
+
+    for (int i=0; i<AEC_THREADS; i++)
+    {
+        aec_dummy_args_t *args = pvPortMalloc(sizeof(aec_dummy_args_t));
+        args->stage_state = &dsp_stage_0_state;
+        args->id = i+1;
+
+        xTaskCreate((TaskFunction_t) aec_burn_dummy,
+                    "aec_dummy",
+                    RTOS_THREAD_STACK_SIZE(aec_burn_dummy),
+                    args,
+                    AEC_THREAD_PRIO,
+                    NULL);
+    }
+}
+
+static void stage0(frame_data_t *frame_data)
+{
+    EventBits_t all_sync_bits = 0;
+
+    for(int i=0; i<=AEC_THREADS; i++)
+    {
+        all_sync_bits |= 1 << i;
+    }
+
+    xEventGroupSync(dsp_stage_0_state.sync_group_start, 1, all_sync_bits, portMAX_DELAY);
+    xEventGroupClearBits(dsp_stage_0_state.sync_group_start, all_sync_bits);
+
+    // Wait for workers to finish
+    xEventGroupSync(dsp_stage_0_state.sync_group_end, 1, all_sync_bits, portMAX_DELAY);
+    xEventGroupClearBits(dsp_stage_0_state.sync_group_end, all_sync_bits);
+
+    memcpy(frame_data->samples,
+           frame_data->samples,
+           sizeof(frame_data->samples));
+}
+
 static void stage1(frame_data_t *frame_data)
 {
     vtb_ch_pair_t *post_proc_frame = NULL;
@@ -73,14 +176,18 @@ static void stage2(frame_data_t *frame_data)
 void vfe_pipeline_init(void *input_app_data,
                        void *output_app_data)
 {
-    const int stage_count = 2;
+    const int stage_count = 3;
 
-    const audio_pipeline_stage_t stages[stage_count] = {(audio_pipeline_stage_t) stage1, (audio_pipeline_stage_t) stage2, };
+    const audio_pipeline_stage_t stages[stage_count] = {(audio_pipeline_stage_t) stage0,
+                                                        (audio_pipeline_stage_t) stage1,
+                                                        (audio_pipeline_stage_t) stage2, };
 
     const configSTACK_DEPTH_TYPE stage_stack_sizes[stage_count] = {
+    configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage0),
     configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage1),
     configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage2), };
 
+    init_dsp_stage_0(&dsp_stage_0_state);
     init_dsp_stage_1(&dsp_stage_1_state);
     init_dsp_stage_2(&dsp_stage_2_state);
 

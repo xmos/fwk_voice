@@ -36,10 +36,12 @@ set(PIPELINE_LIB_COMPILER_FLAGS
 set(PIPELINE_LIB_SOURCES
     "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
     "src/vfe_pipeline/vfe_pipeline.c"
+    "src/vfe_pipeline/burn_cycles.S"
 )
 
 set(PIPELINE_LIB_INCLUDES
     "src"
+    "src/vfe_pipeline"
     "src/vfe_pipeline/vfe"
     "src/vfe_pipeline/vfe/agc/api"
     "src/vfe_pipeline/vfe/ic/api"
@@ -103,7 +105,7 @@ add_compile_definitions(
     PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=700
     WW=0
-    
+
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
 )
