@@ -31,8 +31,8 @@
 #include "FreeRTOS.h"
 #include "stream_buffer.h"
 
-#include "tusb.h"
 #include "usb_descriptors.h"
+#include "tusb.h"
 
 #include "rtos/drivers/intertile/api/rtos_intertile.h"
 
@@ -49,9 +49,11 @@ uint8_t clkValid;
 audio_control_range_2_n_t(1) volumeRng[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX+1]; 			// Volume range state
 audio_control_range_4_n_t(1) sampleFreqRng; 						// Sample frequency range state
 
-// Audio test data
-static bool interface_open = false;
-static StreamBufferHandle_t sample_stream_buf;
+static bool mic_interface_open = false;
+static bool spkr_interface_open = false;
+
+static StreamBufferHandle_t samples_to_host_stream_buf;
+static StreamBufferHandle_t samples_from_host_stream_buf;
 
 //--------------------------------------------------------------------+
 // Device callbacks
@@ -88,6 +90,80 @@ void tud_resume_cb(void)
 // AUDIO Task
 //--------------------------------------------------------------------+
 
+#if CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 2
+typedef int16_t samp_t;
+#elif CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 4
+typedef int32_t samp_t;
+#else
+#error CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX must be either 2 or 4
+#endif
+
+void usb_audio_send(rtos_intertile_t *intertile_ctx,
+                    size_t frame_count,
+                    int32_t (*processed_audio_frame)[2],
+                    int16_t (*reference_audio_frame)[2],
+                    int32_t (*raw_mic_audio_frame)[2])
+{
+    samp_t usb_audio_in_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
+
+#if CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 2
+    const int src_32_shift = 16;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
+    const int src_16_shift = 0;
+#endif
+#elif CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 4
+    const int src_32_shift = 0;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
+    const int src_16_shift = 16;
+#endif
+#endif
+
+    xassert(frame_count == VFE_PIPELINE_AUDIO_FRAME_LENGTH);
+
+    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 1
+        usb_audio_in_frame[i][0] = processed_audio_frame[i][0] >> src_32_shift;
+#endif
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 2
+        usb_audio_in_frame[i][1] = processed_audio_frame[i][1] >> src_32_shift;
+#endif
+
+
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
+        if (reference_audio_frame != NULL) {
+            usb_audio_in_frame[i][2] = reference_audio_frame[i][0] << src_16_shift;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 4
+            usb_audio_in_frame[i][3] = reference_audio_frame[i][1] << src_16_shift;
+#endif
+        } else {
+            usb_audio_in_frame[i][2] = 0;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 4
+            usb_audio_in_frame[i][3] = 0;
+#endif
+        }
+#endif
+
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 5
+        if (raw_mic_audio_frame != NULL) {
+            usb_audio_in_frame[i][4] = raw_mic_audio_frame[i][0] >> src_32_shift;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 6
+            usb_audio_in_frame[i][5] = raw_mic_audio_frame[i][1] >> src_32_shift;
+#endif
+        } else {
+            usb_audio_in_frame[i][4] = 0;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 6
+            usb_audio_in_frame[i][5] = 0;
+#endif
+        }
+#endif
+    }
+
+    rtos_intertile_tx(intertile_ctx,
+                      0,
+                      usb_audio_in_frame,
+                      sizeof(usb_audio_in_frame));
+}
+
 void audio_task(void *arg)
 {
     rtos_intertile_t *intertile_ctx = (rtos_intertile_t*) arg;
@@ -97,40 +173,26 @@ void audio_task(void *arg)
     }
 
     for (;;) {
-        int32_t (*vfe_output_frame)[2];
-        int16_t samples_to_buffer[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
+        samp_t usb_audio_in_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
         size_t frame_length;
 
-        /* TODO: use rtos_intertile_rx_len and  rtos_intertile_rx_data */
-        /*       then do the 32->16 bit conversion in place.
-         *       then stream buffer send. no need to malloc or have two buffers.
-         */
-        frame_length = rtos_intertile_rx(intertile_ctx,
-                                         0,
-                                         (void**) &vfe_output_frame,
-                                         portMAX_DELAY);
+        frame_length = rtos_intertile_rx_len(
+                intertile_ctx,
+                0,
+                portMAX_DELAY);
 
-        xassert(frame_length == VFE_PIPELINE_AUDIO_FRAME_LENGTH * 2 * sizeof(int32_t));
+        rtos_intertile_rx_data(
+                intertile_ctx,
+                usb_audio_in_frame,
+                frame_length);
 
-        if (interface_open) {
-            for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
-                samples_to_buffer[i][0] = vfe_output_frame[i][0] >> 16;
-                samples_to_buffer[i][1] = vfe_output_frame[i][1] >> 16;
-            }
+        xassert(frame_length == sizeof(usb_audio_in_frame));
 
-            if (xStreamBufferSend(sample_stream_buf, samples_to_buffer, sizeof(samples_to_buffer), 0) != sizeof(samples_to_buffer)) {
+        if (mic_interface_open) {
+            if (xStreamBufferSend(samples_to_host_stream_buf, usb_audio_in_frame, sizeof(usb_audio_in_frame), 0) != sizeof(usb_audio_in_frame)) {
                 rtos_printf("lost VFE output samples\n");
             }
-#if TEST_SEND_FAST
-            if (tmp++ == 100) {
-                int16_t extra_sample = 0x7FFF;
-                xStreamBufferSend(sample_stream_buf, &extra_sample, CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX, 0);
-                tmp = 0;
-            }
-    #endif
         }
-
-        vPortFree(vfe_output_frame);
     }
 }
 
@@ -406,7 +468,11 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
   tud_audio_read((uint8_t *) buf, n_bytes_received);
 
   /* loopback */
-  tud_audio_write((uint8_t *) buf, n_bytes_received);
+  //tud_audio_write((uint8_t *) buf, n_bytes_received);
+
+//  if (xStreamBufferSend(samples_from_host_stream_buf, buf, n_bytes_received, 0) != n_bytes_received) {
+//      rtos_printf("lost USB output samples\n");
+//  }
 
   return true;
 }
@@ -426,19 +492,19 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
     (void) ep_in;
     (void) cur_alt_setting;
 
-    if (!interface_open) {
+    if (!mic_interface_open) {
         ready = 0;
-        interface_open = true;
+        mic_interface_open = true;
     }
 
-    if (xStreamBufferIsFull(sample_stream_buf)) {
-        xStreamBufferReset(sample_stream_buf);
+    if (xStreamBufferIsFull(samples_to_host_stream_buf)) {
+        xStreamBufferReset(samples_to_host_stream_buf);
         ready = 0;
         rtos_printf("oops buffer is full\n");
         return true;
     }
 
-    bytes_available = xStreamBufferBytesAvailable(sample_stream_buf);
+    bytes_available = xStreamBufferBytesAvailable(samples_to_host_stream_buf);
     if (bytes_available >= (2*VFE_PIPELINE_AUDIO_FRAME_LENGTH) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
         /* wait until we have 2 frames in the buffer */
         ready = 1;
@@ -451,10 +517,10 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
     tx_byte_count = BYTES_PER_TX_FRAME_NOMINAL;
 
     /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here? */
-    bytes_available = xStreamBufferReceive(sample_stream_buf, buf, tx_byte_count, 0);
+    bytes_available = xStreamBufferReceive(samples_to_host_stream_buf, buf, tx_byte_count, 0);
 
     if (bytes_available > 0) {
-//        tud_audio_write((uint8_t *) buf, bytes_available);
+        tud_audio_write((uint8_t *) buf, bytes_available);
     } else {
         rtos_printf("Oops buffer is empty!\n");
     }
@@ -484,11 +550,22 @@ bool tud_audio_set_itf_cb(uint8_t rhport,
     uint8_t const itf = tu_u16_low(tu_le16toh(p_request->wIndex));
     uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
-    xassert(!interface_open);
+#if AUDIO_OUTPUT_ENABLED
+    if (itf == ITF_NUM_AUDIO_STREAMING_SPK) {
+        xassert(!mic_interface_open);
+//        spkr_interface_open = true;
+    }
+#endif
+#if AUDIO_INPUT_ENABLED
+    if (itf == ITF_NUM_AUDIO_STREAMING_MIC) {
+        xassert(!mic_interface_open);
+//        mic_interface_open = true;
+    }
+#endif
 
     rtos_printf("Set audio interface %d alt %d\n", itf, alt);
 
-    xStreamBufferReset(sample_stream_buf);
+    xStreamBufferReset(samples_to_host_stream_buf);
 
     return true;
 }
@@ -500,7 +577,16 @@ bool tud_audio_set_itf_close_EP_cb(uint8_t rhport,
     uint8_t const itf = tu_u16_low(tu_le16toh(p_request->wIndex));
     uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
-    interface_open = false;
+#if AUDIO_OUTPUT_ENABLED
+    if (itf == ITF_NUM_AUDIO_STREAMING_SPK) {
+        spkr_interface_open = false;
+    }
+#endif
+#if AUDIO_INPUT_ENABLED
+    if (itf == ITF_NUM_AUDIO_STREAMING_MIC) {
+        mic_interface_open = false;
+    }
+#endif
 
     rtos_printf("Close audio interface %d alt %d\n", itf, alt);
 
@@ -519,8 +605,11 @@ void usb_audio_init(rtos_intertile_t *intertile_ctx,
     sampleFreqRng.subrange[0].bMax = VFE_PIPELINE_AUDIO_SAMPLE_RATE;
     sampleFreqRng.subrange[0].bRes = 0;
 
-    sample_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX,
-                                            CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX);
+    samples_to_host_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX,
+                                            0);
+
+//    samples_from_host_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX,
+//                                            CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
 
     xTaskCreate((TaskFunction_t) audio_task, "audio_task", portTASK_STACK_DEPTH(audio_task), intertile_ctx, priority,
     NULL);

@@ -91,10 +91,23 @@ int vfe_pipeline_output(void *i2s_ctx,
                        frame_count,
                        portMAX_DELAY);
 
-    rtos_intertile_tx(intertile_ctx,
-                      0,
-                      audio_frame,
-                      frame_count * 2 * sizeof(int32_t));
+    static int16_t blah[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
+    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
+        blah[i][0] = audio_frame[i][0] >> 17;
+        blah[i][1] = audio_frame[i][1] >> 17;
+    }
+
+    static int32_t blah2[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
+    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
+        blah2[i][0] = audio_frame[i][0] >> 2;
+        blah2[i][1] = audio_frame[i][1] >> 2;
+    }
+
+    usb_audio_send(intertile_ctx,
+                        frame_count,
+                        audio_frame,
+                        blah,
+                        blah2);
 
     return VFE_PIPELINE_FREE_FRAME;
 }

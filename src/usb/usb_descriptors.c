@@ -23,9 +23,8 @@
  *
  */
 
-#include "tusb_config.h"
-#include "tusb.h"
 #include "usb_descriptors.h"
+#include "tusb.h"
 
 #define XMOS_VID    0x20B1
 #define XVF3652_PID 0x3652
@@ -64,28 +63,6 @@ uint8_t const* tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
-#if CFG_TUD_AUDIO_ENABLE_EP_IN && CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX > 0
-#define AUDIO_INPUT_ENABLED 1
-#else
-#define AUDIO_INPUT_ENABLED 0
-#endif
-#if CFG_TUD_AUDIO_ENABLE_EP_OUT && CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX > 0
-#define AUDIO_OUTPUT_ENABLED 1
-#else
-#define AUDIO_OUTPUT_ENABLED 0
-#endif
-
-enum {
-    ITF_NUM_AUDIO_CONTROL = 0,
-#if AUDIO_OUTPUT_ENABLED
-    ITF_NUM_AUDIO_STREAMING_SPK,
-#endif
-#if AUDIO_INPUT_ENABLED
-    ITF_NUM_AUDIO_STREAMING_MIC,
-#endif
-    ITF_NUM_XMOS_DEV_CTRL,
-    ITF_NUM_TOTAL
-};
 
 #define TUD_XMOS_DEVICE_CONTROL_DESC_LEN 9
 
