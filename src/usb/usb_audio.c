@@ -165,6 +165,67 @@ void usb_audio_send(rtos_intertile_t *intertile_ctx,
                       sizeof(usb_audio_in_frame));
 }
 
+void usb_audio_recv(rtos_intertile_t *intertile_ctx,
+                    size_t frame_count,
+                    int16_t (*reference_audio_frame)[2],
+                    int32_t (*raw_mic_audio_frame)[2])
+{
+    static samp_t usb_audio_out_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
+    size_t bytes_received;
+
+#if CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX == 2
+    const int src_16_shift = 0;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 3
+    const int src_32_shift = 16;
+#endif
+#elif CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX == 4
+    const int src_16_shift = 16;
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 3
+    const int src_32_shift = 0;
+#endif
+#endif
+
+    xassert(frame_count == VFE_PIPELINE_AUDIO_FRAME_LENGTH);
+
+    bytes_received = rtos_intertile_rx_len(
+            intertile_ctx,
+            0,
+            0);
+
+    if (bytes_received > 0) {
+        xassert(bytes_received == sizeof(usb_audio_out_frame));
+
+        rtos_intertile_rx_data(
+                intertile_ctx,
+                usb_audio_out_frame,
+                bytes_received);
+    } else {
+        memset(usb_audio_out_frame, 0, sizeof(usb_audio_out_frame));
+    }
+
+    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 1
+        reference_audio_frame[i][0] = usb_audio_out_frame[i][0] << src_16_shift;
+#endif
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 2
+        reference_audio_frame[i][1] = usb_audio_out_frame[i][1] << src_16_shift;
+#endif
+
+        if (raw_mic_audio_frame != NULL) {
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 3
+            raw_mic_audio_frame[i][0] = usb_audio_out_frame[i][2] << src_32_shift;
+#else
+            raw_mic_audio_frame[i][0] = 0;
+#endif
+#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 4
+            raw_mic_audio_frame[i][1] = usb_audio_out_frame[i][3] << src_32_shift;
+#else
+            raw_mic_audio_frame[i][1] = 0;
+#endif
+        }
+    }
+}
+
 void usb_audio_in_task(void *arg)
 {
     rtos_intertile_t *intertile_ctx = (rtos_intertile_t*) arg;
@@ -201,28 +262,18 @@ void usb_audio_out_task(void *arg)
 {
     rtos_intertile_t *intertile_ctx = (rtos_intertile_t*) arg;
 
-//    while (!tusb_inited()) {
-//        vTaskDelay(10);
-//    }
-
     for (;;) {
         samp_t usb_audio_out_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
         int8_t *rx_ptr;
         size_t bytes_received = 0;
 
-#if 0
-        rx_ptr = (int8_t *) usb_audio_out_frame;
-        while (bytes_received < sizeof(usb_audio_out_frame)) {
-            size_t bytes_available;
-            bytes_available = xStreamBufferReceive(samples_from_host_stream_buf, rx_ptr, sizeof(usb_audio_out_frame) - bytes_received, portMAX_DELAY);
-            bytes_received += bytes_available;
-            rx_ptr += bytes_available;
-        }
-#else
+        /*
+         * Only wake up when the stream buffer contains a whole audio
+         * pipeline frame.
+         */
         (void) ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
         bytes_received = xStreamBufferReceive(samples_from_host_stream_buf, usb_audio_out_frame, sizeof(usb_audio_out_frame), 0);
         xassert(bytes_received == sizeof(usb_audio_out_frame));
-#endif
 
         rtos_intertile_tx(
                 intertile_ctx,
@@ -499,7 +550,7 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 
 //  rtos_printf("Got %d bytes of speaker data. Buffer holds %d\n", n_bytes_received, BYTES_PER_RX_FRAME_NOMINAL);
 
-  xassert(n_bytes_received <= BYTES_PER_RX_FRAME_NOMINAL);
+  xassert(n_bytes_received == BYTES_PER_RX_FRAME_NOMINAL);
 
   if (!spkr_interface_open) {
       spkr_interface_open = true;
@@ -513,7 +564,21 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
   if (xStreamBufferSpacesAvailable(samples_from_host_stream_buf) >= n_bytes_received) {
       xStreamBufferSend(samples_from_host_stream_buf, buf, n_bytes_received, 0);
 
-      if (xStreamBufferBytesAvailable(samples_from_host_stream_buf) == 2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX) {
+
+      /*
+       * Wake up the task waiting on this buffer whenever there is one more
+       * millisecond worth of data (BYTES_PER_RX_FRAME_NOMINAL) than the
+       * amount of data required to be input into the pipeline.
+       *
+       * This way the task will not wake up each time this task puts another
+       * BYTES_PER_RX_FRAME_NOMINAL bytes into the stream buffer, but rather
+       * once every pipeline frame time.
+       */
+
+      const size_t buffer_notify_level = BYTES_PER_RX_FRAME_NOMINAL *
+              (1 + (VFE_PIPELINE_AUDIO_FRAME_LENGTH + SAMPLES_PER_FRAME_NOMINAL - 1) / SAMPLES_PER_FRAME_NOMINAL);
+
+      if (xStreamBufferBytesAvailable(samples_from_host_stream_buf) == buffer_notify_level) {
           xTaskNotifyGive(usb_audio_out_task_handle);
       }
 

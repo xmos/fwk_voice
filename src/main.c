@@ -76,32 +76,19 @@ void vfe_pipeline_input(void *mic_array_ctx,
                         int32_t (*audio_frame)[2],
                         size_t frame_count)
 {
-#if 0
+
+    /* TODO: Choose between mic source: PDM or USB */
     rtos_mic_array_rx((rtos_mic_array_t *) mic_array_ctx,
                       audio_frame,
                       frame_count,
                       portMAX_DELAY);
-#else
-    static int16_t usb_audio_out_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
-    size_t frame_length;
 
-    frame_length = rtos_intertile_rx_len(
-            intertile_ctx,
-            0,
-            portMAX_DELAY);
-
-    xassert(frame_length == sizeof(usb_audio_out_frame));
-
-    rtos_intertile_rx_data(
-            intertile_ctx,
-            usb_audio_out_frame,
-            frame_length);
-
-    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
-        audio_frame[i][0] = usb_audio_out_frame[i][0] << 16;
-        audio_frame[i][1] = usb_audio_out_frame[i][1] << 16;
-    }
-#endif
+    static int16_t ref_audio[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
+    usb_audio_recv(intertile_ctx,
+                   frame_count,
+                   ref_audio,
+                   NULL/*audio_frame*/);
+    /* TODO: Reference audio must be sent into the pipeline */
 }
 
 int vfe_pipeline_output(void *i2s_ctx,
