@@ -9,6 +9,8 @@
 #include "app_pll_ctrl.h"
 #include "board_init.h"
 
+#include "app_conf.h"
+
 typedef enum {
     PORT_INPUT = 0,
     PORT_OUTPUT = 1,
@@ -145,6 +147,9 @@ void board_tile1_init(
     port_t p_i2s_dout[1] = {
             PORT_I2S_DAC_DATA
     };
+    port_t p_i2s_din[1] = {
+            PORT_I2S_ADC_DATA
+    };
     port_t p_bclk = PORT_I2S_BCLK;
     port_t p_lrclk = PORT_I2S_LRCLK;
 
@@ -165,17 +170,39 @@ void board_tile1_init(
             p_pdm_clk,
             p_pdm_mics);
 
+#if appconfI2S_ENABLED
+#if appconfI2S_MODE == appconfI2S_MODE_MASTER
     rtos_i2s_master_init(
             i2s_ctx,
             (1 << 1) | (1 << 2),
             p_i2s_dout,
             1,
-            NULL,
-            0,
+            p_i2s_din,
+            1,
             p_bclk,
             p_lrclk,
             p_mclk,
             bclk);
+#elif appconfI2S_MODE == appconfI2S_MODE_SLAVE
+    rtos_i2s_slave_init(
+            i2s_ctx,
+            (1 << 1) | (1 << 2),
+            p_i2s_dout,
+            1,
+            p_i2s_din,
+            1,
+            p_bclk,
+            p_lrclk,
+            bclk);
+#else
+#error Invalid I2S mode
+#endif
+
+#else
+
+    (void) i2s_ctx;
+
+#endif
 
     rtos_gpio_rpc_client_init(
             gpio_ctx_t0,

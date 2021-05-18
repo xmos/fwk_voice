@@ -38,6 +38,8 @@
 
 #include "vfe_pipeline/vfe_pipeline.h"
 
+#include "app_conf.h"
+
 // Audio controls
 // Current states
 bool mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX + 1]; 						// +1 for master channel 0
@@ -154,7 +156,7 @@ void usb_audio_send(rtos_intertile_t *intertile_ctx,
     }
 
     rtos_intertile_tx(intertile_ctx,
-                      0,
+                      appconfUSB_AUDIO_PORT,
                       usb_audio_in_frame,
                       sizeof(usb_audio_in_frame));
 }
@@ -177,7 +179,7 @@ void usb_audio_recv(rtos_intertile_t *intertile_ctx,
 
     bytes_received = rtos_intertile_rx_len(
             intertile_ctx,
-            0,
+            appconfUSB_AUDIO_PORT,
             0);
 
     if (bytes_received > 0) {
@@ -228,7 +230,7 @@ void usb_audio_in_task(void *arg)
 
         frame_length = rtos_intertile_rx_len(
                 intertile_ctx,
-                0,
+                appconfUSB_AUDIO_PORT,
                 portMAX_DELAY);
 
         xassert(frame_length == sizeof(usb_audio_in_frame));
@@ -241,6 +243,8 @@ void usb_audio_in_task(void *arg)
         if (mic_interface_open) {
             if (xStreamBufferSend(samples_to_host_stream_buf, usb_audio_in_frame, sizeof(usb_audio_in_frame), 0) != sizeof(usb_audio_in_frame)) {
                 rtos_printf("lost VFE output samples\n");
+            } else {
+                //rtos_printf("all good\n");
             }
         }
     }
@@ -263,11 +267,13 @@ void usb_audio_out_task(void *arg)
         bytes_received = xStreamBufferReceive(samples_from_host_stream_buf, usb_audio_out_frame, sizeof(usb_audio_out_frame), 0);
         xassert(bytes_received == sizeof(usb_audio_out_frame));
 
+        //rtos_printf("usb out tx..");
         rtos_intertile_tx(
                 intertile_ctx,
-                0,
+                appconfUSB_AUDIO_PORT,
                 usb_audio_out_frame,
                 bytes_received);
+        //rtos_printf("done\n");
     }
 }
 
@@ -572,6 +578,7 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 
   } else {
       rtos_printf("lost USB output samples\n");
+      xStreamBufferReset(samples_from_host_stream_buf);
   }
 
 
