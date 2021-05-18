@@ -20,11 +20,14 @@ void vfe_pipeline_init(
         void *output_app_data);
 
 void vfe_pipeline_input(void *input_app_data,
-                        int32_t (*audio_frame)[2],
+                        int32_t (*mic_audio_frame)[2],
+                        int32_t (*ref_audio_frame)[2],
                         size_t frame_count);
 
 int vfe_pipeline_output(void *output_app_data,
-                        int32_t (*audio_frame)[2],
+                        int32_t (*proc_audio_frame)[2],
+                        int32_t (*mic_audio_frame)[2],
+                        int32_t (*ref_audio_frame)[2],
                         size_t frame_count);
 
 #endif /* VFE_PIPELINE_H_ */

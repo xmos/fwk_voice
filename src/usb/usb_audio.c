@@ -102,21 +102,15 @@ typedef int32_t samp_t;
 void usb_audio_send(rtos_intertile_t *intertile_ctx,
                     size_t frame_count,
                     int32_t (*processed_audio_frame)[2],
-                    int16_t (*reference_audio_frame)[2],
-                    int32_t (*raw_mic_audio_frame)[2])
+                    int32_t (*raw_mic_audio_frame)[2],
+                    int32_t (*reference_audio_frame)[2])
 {
     samp_t usb_audio_in_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
 
 #if CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 2
     const int src_32_shift = 16;
-#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
-    const int src_16_shift = 0;
-#endif
 #elif CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX == 4
     const int src_32_shift = 0;
-#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
-    const int src_16_shift = 16;
-#endif
 #endif
 
     xassert(frame_count == VFE_PIPELINE_AUDIO_FRAME_LENGTH);
@@ -131,10 +125,10 @@ void usb_audio_send(rtos_intertile_t *intertile_ctx,
 
 
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 3
-        if (reference_audio_frame != NULL) {
-            usb_audio_in_frame[i][2] = reference_audio_frame[i][0] << src_16_shift;
+        if (raw_mic_audio_frame != NULL) {
+            usb_audio_in_frame[i][2] = raw_mic_audio_frame[i][0] >> src_32_shift;
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 4
-            usb_audio_in_frame[i][3] = reference_audio_frame[i][1] << src_16_shift;
+            usb_audio_in_frame[i][3] = raw_mic_audio_frame[i][1] >> src_32_shift;
 #endif
         } else {
             usb_audio_in_frame[i][2] = 0;
@@ -145,10 +139,10 @@ void usb_audio_send(rtos_intertile_t *intertile_ctx,
 #endif
 
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 5
-        if (raw_mic_audio_frame != NULL) {
-            usb_audio_in_frame[i][4] = raw_mic_audio_frame[i][0] >> src_32_shift;
+        if (reference_audio_frame != NULL) {
+            usb_audio_in_frame[i][4] = reference_audio_frame[i][0] >> src_32_shift;
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX >= 6
-            usb_audio_in_frame[i][5] = raw_mic_audio_frame[i][1] >> src_32_shift;
+            usb_audio_in_frame[i][5] = reference_audio_frame[i][1] >> src_32_shift;
 #endif
         } else {
             usb_audio_in_frame[i][4] = 0;
@@ -167,22 +161,16 @@ void usb_audio_send(rtos_intertile_t *intertile_ctx,
 
 void usb_audio_recv(rtos_intertile_t *intertile_ctx,
                     size_t frame_count,
-                    int16_t (*reference_audio_frame)[2],
+                    int32_t (*reference_audio_frame)[2],
                     int32_t (*raw_mic_audio_frame)[2])
 {
     static samp_t usb_audio_out_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
     size_t bytes_received;
 
 #if CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX == 2
-    const int src_16_shift = 0;
-#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 3
     const int src_32_shift = 16;
-#endif
 #elif CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX == 4
-    const int src_16_shift = 16;
-#if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 3
     const int src_32_shift = 0;
-#endif
 #endif
 
     xassert(frame_count == VFE_PIPELINE_AUDIO_FRAME_LENGTH);
@@ -205,10 +193,10 @@ void usb_audio_recv(rtos_intertile_t *intertile_ctx,
 
     for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 1
-        reference_audio_frame[i][0] = usb_audio_out_frame[i][0] << src_16_shift;
+        reference_audio_frame[i][0] = usb_audio_out_frame[i][0] << src_32_shift;
 #endif
 #if CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX >= 2
-        reference_audio_frame[i][1] = usb_audio_out_frame[i][1] << src_16_shift;
+        reference_audio_frame[i][1] = usb_audio_out_frame[i][1] << src_32_shift;
 #endif
 
         if (raw_mic_audio_frame != NULL) {

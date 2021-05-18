@@ -72,51 +72,56 @@ static rtos_intertile_t *intertile_ctx = &intertile_ctx_s;
 
 chanend_t other_tile_c;
 
+int mic_from_usb = 0;
+
 void vfe_pipeline_input(void *mic_array_ctx,
-                        int32_t (*audio_frame)[2],
+                        int32_t (*mic_audio_frame)[2],
+                        int32_t (*ref_audio_frame)[2],
                         size_t frame_count)
 {
 
-    /* TODO: Choose between mic source: PDM or USB */
+    int32_t (*usb_mic_audio_frame)[2] = NULL;
+
+    if (mic_from_usb) {
+        usb_mic_audio_frame = mic_audio_frame;
+    }
+
+    /*
+     * NOTE: ALWAYS receive the next frame from the PDM mics,
+     * even if USB is the current mic source. The controls the
+     * timing since usb_audio_recv() does not block and will
+     * receive all zeros if no frame is available yet.
+     */
     rtos_mic_array_rx((rtos_mic_array_t *) mic_array_ctx,
-                      audio_frame,
+                      mic_audio_frame,
                       frame_count,
                       portMAX_DELAY);
 
-    static int16_t ref_audio[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
+    /*
+     * As noted above, this does not block.
+     */
     usb_audio_recv(intertile_ctx,
                    frame_count,
-                   ref_audio,
-                   NULL/*audio_frame*/);
-    /* TODO: Reference audio must be sent into the pipeline */
+                   ref_audio_frame,
+                   usb_mic_audio_frame);
 }
 
 int vfe_pipeline_output(void *i2s_ctx,
-                         int32_t (*audio_frame)[2],
-                         size_t frame_count)
+                        int32_t (*proc_audio_frame)[2],
+                        int32_t (*mic_audio_frame)[2],
+                        int32_t (*ref_audio_frame)[2],
+                        size_t frame_count)
 {
     rtos_i2s_tx((rtos_i2s_t *) i2s_ctx,
-                       (int32_t*) audio_frame,
+                       (int32_t*) proc_audio_frame,
                        frame_count,
                        portMAX_DELAY);
 
-    static int16_t blah[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
-    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
-        blah[i][0] = audio_frame[i][0] >> 17;
-        blah[i][1] = audio_frame[i][1] >> 17;
-    }
-
-    static int32_t blah2[VFE_PIPELINE_AUDIO_FRAME_LENGTH][2];
-    for (int i = 0; i < VFE_PIPELINE_AUDIO_FRAME_LENGTH; i++) {
-        blah2[i][0] = audio_frame[i][0] >> 2;
-        blah2[i][1] = audio_frame[i][1] >> 2;
-    }
-
     usb_audio_send(intertile_ctx,
-                        frame_count,
-                        audio_frame,
-                        blah,
-                        blah2);
+                  frame_count,
+                  proc_audio_frame,
+                  mic_audio_frame,
+                  ref_audio_frame);
 
     return VFE_PIPELINE_FREE_FRAME;
 }

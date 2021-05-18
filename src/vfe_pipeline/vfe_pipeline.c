@@ -20,6 +20,10 @@ static vfe_dsp_stage_2_state_t dsp_stage_2_state;
 
 typedef struct {
     vtb_ch_pair_t samples[VFE_CHANNEL_PAIRS][VFE_FRAME_ADVANCE];
+
+    vtb_ch_pair_t mic_samples_passthrough[VFE_CHANNEL_PAIRS][VFE_FRAME_ADVANCE];
+    vtb_ch_pair_t aec_reference_audio_samples[VFE_CHANNEL_PAIRS][VFE_FRAME_ADVANCE];
+
     vtb_md_t stage_1_md;
 } frame_data_t;
 
@@ -31,7 +35,10 @@ static void* vfe_pipeline_input_i(void *input_app_data)
 
     vfe_pipeline_input(input_app_data,
                        (int32_t (*)[2]) frame_data->samples,
+                       (int32_t (*)[2]) frame_data->aec_reference_audio_samples,
                        VFE_FRAME_ADVANCE);
+
+    memcpy(frame_data->mic_samples_passthrough, frame_data->samples, sizeof(frame_data->mic_samples_passthrough));
 
     return frame_data;
 }
@@ -41,6 +48,8 @@ static int vfe_pipeline_output_i(frame_data_t *frame_data,
 {
     return vfe_pipeline_output(output_app_data,
                                (int32_t (*)[2]) frame_data->samples,
+                               (int32_t (*)[2]) frame_data->mic_samples_passthrough,
+                               (int32_t (*)[2]) frame_data->aec_reference_audio_samples,
                                VFE_FRAME_ADVANCE);
 }
 
@@ -53,14 +62,18 @@ volatile static uint8_t waste[DUMMY_AEC_DATA];
 /* Threading:
  * AEC currently uses 5 threads for parallel steps
  * and requires 300 MIPS total
- * Audiopipeline runs at 16kHz with a 240 frame advance
- * split evenly amoung cores for now, but main core has additional work
+ * Audio pipeline runs at 16kHz with a 240 frame advance
+ * split evenly among cores for now, but main core has additional work
  */
-#include "event_groups.h"
-#include "burn_cycles.h"
+#define AEC_MIPS_REQUIRED       300
 #define AEC_THREADS             3
 #define AEC_THREAD_PRIO         (configMAX_PRIORITIES - 1)
-#define AEC_DUMMY_BURN_TICKS    (4500000 / AEC_THREADS)
+
+#define AEC_TOTAL_CYCLE_COUNT   ((AEC_MIPS_REQUIRED*1000000 / VFE_PIPELINE_AUDIO_SAMPLE_RATE)* VFE_PIPELINE_AUDIO_FRAME_LENGTH)
+#define AEC_DUMMY_BURN_TICKS    (AEC_TOTAL_CYCLE_COUNT / AEC_THREADS)
+
+#include "event_groups.h"
+#include "burn_cycles.h"
 
 typedef struct {
     EventGroupHandle_t sync_group_start;
