@@ -72,7 +72,7 @@ static rtos_intertile_t *intertile_ctx = &intertile_ctx_s;
 
 chanend_t other_tile_c;
 
-int mic_from_usb = 0;
+volatile int mic_from_usb = 0;
 
 void vfe_pipeline_input(void *mic_array_ctx,
                         int32_t (*mic_audio_frame)[2],
@@ -238,15 +238,14 @@ void vApplicationDaemonTaskStartup(void *arg)
     {
         rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
         rtos_gpio_start(gpio_ctx_t0);
-
-        gpio_test(gpio_ctx_t0);
-
     }
     #endif
 
     #if ON_TILE(1)
     {
         rtos_gpio_start(gpio_ctx_t1);
+
+        gpio_test(gpio_ctx_t0);
     }
     #endif
 

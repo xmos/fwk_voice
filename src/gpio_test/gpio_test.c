@@ -50,12 +50,14 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
 
         rtos_gpio_port_out(gpio_ctx, led_port, buttons_val);
 
+        extern volatile int mic_from_usb;
         if (buttonA == 0) {
-            rtos_printf("pll faster\n");
-            app_pll_nudge(APP_PLL_NUDGE_FASTER);
+            rtos_printf("button a\n");
+//            app_pll_nudge(APP_PLL_NUDGE_FASTER);
+            mic_from_usb = !mic_from_usb;
         } else if (buttonB == 0) {
-            rtos_printf("pll slower\n");
-            app_pll_nudge(APP_PLL_NUDGE_SLOWER);
+            rtos_printf("button b\n");
+//            app_pll_nudge(APP_PLL_NUDGE_SLOWER);
         }
     }
 }
