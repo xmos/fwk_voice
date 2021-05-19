@@ -26,7 +26,9 @@
 #ifndef _TUSB_CONFIG_H_
 #define _TUSB_CONFIG_H_
 
+#include <stdint.h>
 #include "app_conf.h"
+#include "vfe_pipeline/vfe_pipeline.h"
 
 //--------------------------------------------------------------------
 // COMMON CONFIGURATION
@@ -65,7 +67,6 @@
 //--------------------------------------------------------------------
 // AUDIO CLASS DRIVER CONFIGURATION
 //--------------------------------------------------------------------
-#include <stdint.h>
 extern const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO];
 
 #define CFG_TUD_AUDIO_FUNC_1_DESC_LEN                       tud_audio_desc_lengths[0]
@@ -85,7 +86,7 @@ extern const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO];
 #endif
 
 // EP and buffer sizes
-#define SAMPLES_PER_FRAME_NOMINAL                   (16000 / 1000) // this should come from VFE_PIPELINE_AUDIO_SAMPLE_RATE
+#define SAMPLES_PER_FRAME_NOMINAL                   (VFE_PIPELINE_AUDIO_SAMPLE_RATE / 1000)
 
 
 #define CFG_TUD_AUDIO_ENABLE_EP_IN                  1

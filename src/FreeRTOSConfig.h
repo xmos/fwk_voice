@@ -27,17 +27,16 @@ your application. */
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 1
 #define configUSE_TASK_NOTIFICATIONS            1
-#define configTASK_NOTIFICATION_ARRAY_ENTRIES   2
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   1
 #define configUSE_MUTEXES                       1
 #define configUSE_RECURSIVE_MUTEXES             1
 #define configUSE_COUNTING_SEMAPHORES           1
-#define configUSE_ALTERNATIVE_API               0 /* Deprecated! */
 #define configQUEUE_REGISTRY_SIZE               10
-#define configUSE_QUEUE_SETS                    1
+#define configUSE_QUEUE_SETS                    0
 #define configUSE_TIME_SLICING                  0
 #define configUSE_NEWLIB_REENTRANT              0
-#define configENABLE_BACKWARD_COMPATIBILITY     1 /* Required for FreeRTOS_TCP_WIN.c TODO: active closed bug, may have been fixed upstream */
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 5
+#define configENABLE_BACKWARD_COMPATIBILITY     0
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0
 #define configSTACK_DEPTH_TYPE                  uint32_t
 #define configMESSAGE_BUFFER_LENGTH_TYPE        size_t
 
@@ -53,7 +52,7 @@ your application. */
 #define configAPPLICATION_ALLOCATED_HEAP        0
 
 /* Hook function related definitions. */
-#define configUSE_IDLE_HOOK                     0
+#define configUSE_IDLE_HOOK                     1
 #define configUSE_TICK_HOOK                     0
 #define configCHECK_FOR_STACK_OVERFLOW          0
 #define configUSE_MALLOC_FAILED_HOOK            1

@@ -92,6 +92,17 @@ void vfe_pipeline_input(void *input_app_data,
 {
     audio_interfaces_t *audio_interfaces = input_app_data;
 
+    static int good;
+    if (!good) {
+        for (int i = 0; i < 10; i++) {
+            rtos_mic_array_rx(audio_interfaces->mic_array_ctx,
+                              mic_audio_frame,
+                              frame_count,
+                              portMAX_DELAY);
+        }
+        good = 1;
+    }
+
     /*
      * NOTE: ALWAYS receive the next frame from the PDM mics,
      * even if USB is the current mic source. The controls the
@@ -214,7 +225,7 @@ static void mem_analysis( void *arg )
 	}
 }
 
-void vApplicationDaemonTaskStartup(void *arg)
+void startup_task(void *arg)
 {
     xTaskCreate( mem_analysis, "mem_an", portTASK_STACK_DEPTH(mem_analysis), NULL, configMAX_PRIORITIES, NULL );
 
@@ -358,6 +369,10 @@ void vApplicationDaemonTaskStartup(void *arg)
     vTaskDelete(NULL);
 }
 
+void vApplicationIdleHook(void)
+{
+    asm volatile("waiteu");
+}
 
 #if ON_TILE(0)
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
@@ -378,9 +393,9 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
                         0);
 #endif
 
-    xTaskCreate((TaskFunction_t) vApplicationDaemonTaskStartup,
-                "vApplicationDaemonTaskStartup",
-                RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
+    xTaskCreate((TaskFunction_t) startup_task,
+                "startup_task",
+                RTOS_THREAD_STACK_SIZE(startup_task),
                 NULL,
                 appconfSTARTUP_TASK_PRIORITY,
                 NULL);
@@ -404,9 +419,9 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
     usb_manager_init();
 #endif
 
-    xTaskCreate((TaskFunction_t) vApplicationDaemonTaskStartup,
-                "vApplicationDaemonTaskStartup",
-                RTOS_THREAD_STACK_SIZE(vApplicationDaemonTaskStartup),
+    xTaskCreate((TaskFunction_t) startup_task,
+                "startup_task",
+                RTOS_THREAD_STACK_SIZE(startup_task),
                 NULL,
                 appconfSTARTUP_TASK_PRIORITY,
                 NULL);

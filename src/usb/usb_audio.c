@@ -58,6 +58,8 @@ static StreamBufferHandle_t samples_to_host_stream_buf;
 static StreamBufferHandle_t samples_from_host_stream_buf;
 static TaskHandle_t usb_audio_out_task_handle;
 
+#define USB_TRANSFERS_PER_VFE_FRAME ((VFE_PIPELINE_AUDIO_FRAME_LENGTH + SAMPLES_PER_FRAME_NOMINAL - 1) / SAMPLES_PER_FRAME_NOMINAL)
+
 //--------------------------------------------------------------------+
 // Device callbacks
 //--------------------------------------------------------------------+
@@ -243,8 +245,6 @@ void usb_audio_in_task(void *arg)
         if (mic_interface_open) {
             if (xStreamBufferSend(samples_to_host_stream_buf, usb_audio_in_frame, sizeof(usb_audio_in_frame), 0) != sizeof(usb_audio_in_frame)) {
                 rtos_printf("lost VFE output samples\n");
-            } else {
-                //rtos_printf("all good\n");
             }
         }
     }
@@ -256,7 +256,6 @@ void usb_audio_out_task(void *arg)
 
     for (;;) {
         samp_t usb_audio_out_frame[VFE_PIPELINE_AUDIO_FRAME_LENGTH][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
-        int8_t *rx_ptr;
         size_t bytes_received = 0;
 
         /*
@@ -265,15 +264,20 @@ void usb_audio_out_task(void *arg)
          */
         (void) ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
         bytes_received = xStreamBufferReceive(samples_from_host_stream_buf, usb_audio_out_frame, sizeof(usb_audio_out_frame), 0);
-        xassert(bytes_received == sizeof(usb_audio_out_frame));
 
-        //rtos_printf("usb out tx..");
-        rtos_intertile_tx(
-                intertile_ctx,
-                appconfUSB_AUDIO_PORT,
-                usb_audio_out_frame,
-                bytes_received);
-        //rtos_printf("done\n");
+        /*
+         * This shouldn't normally be zero, but it could be possible that
+         * the stream buffer is reset after this task has been notified.
+         */
+        if (bytes_received > 0) {
+            xassert(bytes_received == sizeof(usb_audio_out_frame));
+
+            rtos_intertile_tx(
+                    intertile_ctx,
+                    appconfUSB_AUDIO_PORT,
+                    usb_audio_out_frame,
+                    bytes_received);
+        }
     }
 }
 
@@ -542,22 +546,16 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 
   uint8_t buf[BYTES_PER_RX_FRAME_NOMINAL];
 
-//  rtos_printf("Got %d bytes of speaker data. Buffer holds %d\n", n_bytes_received, BYTES_PER_RX_FRAME_NOMINAL);
-
   xassert(n_bytes_received == BYTES_PER_RX_FRAME_NOMINAL);
 
   if (!spkr_interface_open) {
       spkr_interface_open = true;
   }
 
-  tud_audio_read((uint8_t *) buf, n_bytes_received);
-
-  /* loopback */
-  //tud_audio_write((uint8_t *) buf, n_bytes_received);
+  tud_audio_read(buf, n_bytes_received);
 
   if (xStreamBufferSpacesAvailable(samples_from_host_stream_buf) >= n_bytes_received) {
       xStreamBufferSend(samples_from_host_stream_buf, buf, n_bytes_received, 0);
-
 
       /*
        * Wake up the task waiting on this buffer whenever there is one more
@@ -568,9 +566,7 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
        * BYTES_PER_RX_FRAME_NOMINAL bytes into the stream buffer, but rather
        * once every pipeline frame time.
        */
-
-      const size_t buffer_notify_level = BYTES_PER_RX_FRAME_NOMINAL *
-              (1 + (VFE_PIPELINE_AUDIO_FRAME_LENGTH + SAMPLES_PER_FRAME_NOMINAL - 1) / SAMPLES_PER_FRAME_NOMINAL);
+      const size_t buffer_notify_level = BYTES_PER_RX_FRAME_NOMINAL * (1 + USB_TRANSFERS_PER_VFE_FRAME);
 
       if (xStreamBufferBytesAvailable(samples_from_host_stream_buf) == buffer_notify_level) {
           xTaskNotifyGive(usb_audio_out_task_handle);
@@ -578,10 +574,7 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 
   } else {
       rtos_printf("lost USB output samples\n");
-      xStreamBufferReset(samples_from_host_stream_buf);
   }
-
-
 
   return true;
 }
@@ -593,7 +586,6 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
 {
     static int ready;
     uint8_t buf[BYTES_PER_TX_FRAME_NOMINAL];
-    size_t tx_byte_count;
     size_t bytes_available;
 
     (void) rhport;
@@ -606,6 +598,10 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         mic_interface_open = true;
     }
 
+    /*
+     * If the buffer becomes full, reset it in an attempt to
+     * maintain a good fill level again.
+     */
     if (xStreamBufferIsFull(samples_to_host_stream_buf)) {
         xStreamBufferReset(samples_to_host_stream_buf);
         ready = 0;
@@ -614,7 +610,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
     }
 
     bytes_available = xStreamBufferBytesAvailable(samples_to_host_stream_buf);
-    if (bytes_available >= (2*VFE_PIPELINE_AUDIO_FRAME_LENGTH) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
+    if (bytes_available >= (2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
         /* wait until we have 2 frames in the buffer */
         ready = 1;
     }
@@ -623,13 +619,9 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         return true;
     }
 
-    tx_byte_count = BYTES_PER_TX_FRAME_NOMINAL;
-
-    /* TODO: Should ensure that a multiple of CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX is received here? */
-    bytes_available = xStreamBufferReceive(samples_to_host_stream_buf, buf, tx_byte_count, 0);
-
-    if (bytes_available > 0) {
-        tud_audio_write((uint8_t *) buf, bytes_available);
+    if (bytes_available >= BYTES_PER_TX_FRAME_NOMINAL) {
+        xStreamBufferReceive(samples_to_host_stream_buf, buf, BYTES_PER_TX_FRAME_NOMINAL, 0);
+        tud_audio_write(buf, BYTES_PER_TX_FRAME_NOMINAL);
     } else {
         rtos_printf("Oops buffer is empty!\n");
     }
@@ -662,11 +654,17 @@ bool tud_audio_set_itf_cb(uint8_t rhport,
 #if AUDIO_OUTPUT_ENABLED
     if (itf == ITF_NUM_AUDIO_STREAMING_SPK) {
         xStreamBufferReset(samples_from_host_stream_buf);
+        /* In case the interface is reset without
+         * closing it first */
+        spkr_interface_open = false;
     }
 #endif
 #if AUDIO_INPUT_ENABLED
     if (itf == ITF_NUM_AUDIO_STREAMING_MIC) {
         xStreamBufferReset(samples_to_host_stream_buf);
+        /* In case the interface is reset without
+         * closing it first */
+        mic_interface_open = false;
     }
 #endif
 
@@ -710,10 +708,19 @@ void usb_audio_init(rtos_intertile_t *intertile_ctx,
     sampleFreqRng.subrange[0].bMax = VFE_PIPELINE_AUDIO_SAMPLE_RATE;
     sampleFreqRng.subrange[0].bRes = 0;
 
-    samples_to_host_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX,
+    /*
+     * Note: Given the way that the USB callback notifies usb_audio_out_task,
+     * the size of this buffer MUST NOT be greater than 2 VFE frames.
+     */
+    samples_from_host_stream_buf = xStreamBufferCreate(2 * USB_TRANSFERS_PER_VFE_FRAME * BYTES_PER_RX_FRAME_NOMINAL,
                                             0);
 
-    samples_from_host_stream_buf = xStreamBufferCreate(2.5 * VFE_PIPELINE_AUDIO_FRAME_LENGTH * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX,
+    /*
+     * Note: The USB callback waits until there are at least 2 VFE frames
+     * in this buffer before starting to send to the host, so the size of
+     * this buffer MUST be AT LEAST 2 VFE frames.
+     */
+    samples_to_host_stream_buf = xStreamBufferCreate(2.5 * USB_TRANSFERS_PER_VFE_FRAME * BYTES_PER_TX_FRAME_NOMINAL,
                                             0);
 
     xTaskCreate((TaskFunction_t) usb_audio_in_task, "usb_audio_in_task", portTASK_STACK_DEPTH(usb_audio_in_task), intertile_ctx, priority, NULL);
