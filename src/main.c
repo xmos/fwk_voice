@@ -244,7 +244,7 @@ void startup_task(void *arg)
 
     rtos_intertile_start(intertile_ctx);
 
-    #if ON_TILE(USB_TILE_NO)
+    #if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
     {
         dc_ret = device_control_start(device_control_usb_ctx,
                                       appconfDEVICE_CONTROL_PORT,
@@ -298,7 +298,7 @@ void startup_task(void *arg)
     }
     #endif
 
-    #if ON_TILE(USB_TILE_NO)
+    #if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
     {
         usb_audio_init(intertile_ctx, appconfUSB_AUDIO_TASK_PRIORITY);
         usb_device_control_set_ctx(device_control_usb_ctx, 1);
