@@ -56,7 +56,7 @@ static int vfe_pipeline_output_i(frame_data_t *frame_data,
 /* Implement an dummy AEC stage */
 
 /* Memory: 186kB per AEC-less-Stage A */
-#define DUMMY_AEC_DATA    (186000>>2)
+#define DUMMY_AEC_DATA    (186000)
 volatile static uint8_t waste[DUMMY_AEC_DATA];
 
 /* Threading:
