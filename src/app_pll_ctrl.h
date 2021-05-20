@@ -7,7 +7,7 @@
 #include "board_init.h" // for AUDIO_CLOCK_FREQUENCY
 
 #ifndef APP_PLL_NUDGE_METHOD
-#define APP_PLL_NUDGE_METHOD 1
+#define APP_PLL_NUDGE_METHOD 2
 #endif
 
 #if (AUDIO_CLOCK_FREQUENCY != 24576000)

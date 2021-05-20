@@ -1,10 +1,14 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+#define DEBUG_UNIT ADAPTIVE_USB
+
 #include <xcore/port.h>
 #include <rtos_printf.h>
 #include "app_pll_ctrl.h"
+#include <xscope.h>
 
+#if 1
 bool tud_xcore_sof_cb(uint8_t rhport)
 {
     int valid;
@@ -34,8 +38,10 @@ bool tud_xcore_sof_cb(uint8_t rhport)
      */
     if (acc < 0) {
         app_pll_nudge(APP_PLL_NUDGE_SLOWER);
+        rtos_printf("SLOWER\n");
     } else if (acc > 0) {
         app_pll_nudge(APP_PLL_NUDGE_FASTER);
+        rtos_printf("FASTER\n");
     }
 #elif APP_PLL_NUDGE_METHOD == 2
     /*
@@ -45,13 +51,21 @@ bool tud_xcore_sof_cb(uint8_t rhport)
      */
     if (acc < 0 && acc < last_acc) {
         app_pll_nudge(APP_PLL_NUDGE_SLOWER);
+        rtos_printf("SLOWER\n");
     } else if (acc > 0 && acc > last_acc) {
         app_pll_nudge(APP_PLL_NUDGE_FASTER);
+        rtos_printf("FASTER\n");
     }
+
+    uint32_t val;
+    read_sswitch_reg(get_local_tile_id(), XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, &val);
+    val = (val & 0x0000FF00) >> 8;
+    xscope_int(PLL_FREQ, val);
 #endif
 
-//    rtos_printf("%u->%d\n", diff_time, acc);
+    rtos_printf("%u->%d (%d)\n", diff_time, acc, val);
 
     /* False tells TinyUSB to not send the SOF event to the stack */
     return false;
 }
+#endif

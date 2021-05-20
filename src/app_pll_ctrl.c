@@ -11,11 +11,20 @@ void app_pll_nudge(int nudge)
     unsigned tileid = get_local_tile_id();
 
 #if APP_PLL_NUDGE_METHOD == 1
-    /* This is how 3510/3610 nudges the clock frequency */
+    /*
+     * This is similar to how 3510/3610 nudges the clock frequency.
+     * Only one write of the slower/faster frequency though doesn't seem
+     * to be very reliable. Doing it 3 times seems better. But this is not
+     * scientific. I think method 2 is safer.
+     */
     if (nudge > 0) {
-        write_sswitch_reg_no_ack(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
     } else if (nudge < 0) {
-        write_sswitch_reg_no_ack(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
+        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
     }
     write_sswitch_reg_no_ack(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_NOM);
 

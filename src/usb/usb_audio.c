@@ -51,8 +51,8 @@ uint8_t clkValid;
 audio_control_range_2_n_t(1) volumeRng[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX+1]; 			// Volume range state
 audio_control_range_4_n_t(1) sampleFreqRng; 						// Sample frequency range state
 
-static bool mic_interface_open = false;
-static bool spkr_interface_open = false;
+static volatile bool mic_interface_open = false;
+static volatile bool spkr_interface_open = false;
 
 static StreamBufferHandle_t samples_to_host_stream_buf;
 static StreamBufferHandle_t samples_from_host_stream_buf;
@@ -653,18 +653,18 @@ bool tud_audio_set_itf_cb(uint8_t rhport,
 
 #if AUDIO_OUTPUT_ENABLED
     if (itf == ITF_NUM_AUDIO_STREAMING_SPK) {
-        xStreamBufferReset(samples_from_host_stream_buf);
         /* In case the interface is reset without
          * closing it first */
         spkr_interface_open = false;
+        xStreamBufferReset(samples_from_host_stream_buf);
     }
 #endif
 #if AUDIO_INPUT_ENABLED
     if (itf == ITF_NUM_AUDIO_STREAMING_MIC) {
-        xStreamBufferReset(samples_to_host_stream_buf);
         /* In case the interface is reset without
          * closing it first */
         mic_interface_open = false;
+        xStreamBufferReset(samples_to_host_stream_buf);
     }
 #endif
 
