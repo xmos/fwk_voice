@@ -1,12 +1,16 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#define DEBUG_UNIT ADAPTIVE_USB
+//#define DEBUG_UNIT ADAPTIVE_USB
 
 #include <xcore/port.h>
 #include <rtos_printf.h>
 #include "app_pll_ctrl.h"
 #include <xscope.h>
+
+#define USE_PID 1
+
+#include <dsp.h>
 
 #if 1
 bool tud_xcore_sof_cb(uint8_t rhport)
@@ -44,6 +48,72 @@ bool tud_xcore_sof_cb(uint8_t rhport)
         rtos_printf("FASTER\n");
     }
 #elif APP_PLL_NUDGE_METHOD == 2
+#if USE_PID
+
+#define P 16
+
+    static int32_t last_cycle_error;
+    int32_t cycle_error = diff_time - 3072;
+
+    static int32_t numerator = Q(P)((APP_PLL_FRAC_NOM & 0x0000FF00) >> 8);
+    static int32_t previous_error;
+    static int32_t integral;
+
+    if (!valid) {
+        numerator = Q(P)((APP_PLL_FRAC_NOM & 0x0000FF00) >> 8);
+        previous_error = 0;
+        integral = 0;
+        cycle_error = 0;
+        last_cycle_error = 0;
+    }
+
+    const int32_t kp = Q(P)(0.02);
+    const int32_t ki = 0;//Q(P)(0.001);
+    const int32_t kd = Q(P)(0.5);
+
+    int32_t error = acc;
+
+    if (cycle_error > 5) {
+        rtos_printf("HIIIIIIIIIIIIIIIII\n");
+        error += cycle_error;
+        last_cycle_error = cycle_error;
+    } else if (last_cycle_error > 0) {
+        rtos_printf("BYYYYYYYYYYYYYYYYE\n");
+        error += cycle_error + last_cycle_error;
+        last_cycle_error = 0;
+    }
+//    error += cycle_error + last_cycle_error;
+//    last_cycle_error = cycle_error;
+
+    const int32_t proportional = error;
+    integral = integral + error;
+    const int32_t derivative = error - previous_error;
+    previous_error = error;
+
+    int32_t output = dsp_math_multiply(kp, proportional, 0) +
+                     dsp_math_multiply(ki, integral, 0) +
+                     dsp_math_multiply(kd, derivative, 0);
+
+    numerator += output;
+    if (numerator > Q(P)(255)) {
+        numerator = Q(P)(255);
+    } else if (numerator < 0) {
+        numerator = 0;
+    }
+
+    int32_t numerator_int = (numerator + Q(P)(0.5)) >> P;
+
+    output += Q(P)(0.5);
+    output >>= P;
+
+    rtos_printf("%u: %d (%d, %d, %d) -> %d -> %d\n", diff_time, acc,
+                proportional, integral, derivative,
+                output, numerator_int);
+
+    app_pll_set_numerator(numerator_int);
+    xscope_int(PLL_FREQ, numerator_int);
+
+#else
     /*
      * With method 2, nudges are permanent, so must only nudge
      * if the accumulator is actively increasing or decreasing
@@ -56,14 +126,15 @@ bool tud_xcore_sof_cb(uint8_t rhport)
         app_pll_nudge(APP_PLL_NUDGE_FASTER);
         rtos_printf("FASTER\n");
     }
-
-    uint32_t val;
-    read_sswitch_reg(get_local_tile_id(), XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, &val);
-    val = (val & 0x0000FF00) >> 8;
-    xscope_int(PLL_FREQ, val);
+#endif
 #endif
 
-    rtos_printf("%u->%d (%d)\n", diff_time, acc, val);
+//    uint32_t val;
+//    read_sswitch_reg(get_local_tile_id(), XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, &val);
+//    val = (val & 0x0000FF00) >> 8;
+//    xscope_int(PLL_FREQ, val);
+//
+//    rtos_printf("%u->%d (%d)\n", diff_time, acc, val);
 
     /* False tells TinyUSB to not send the SOF event to the stack */
     return false;

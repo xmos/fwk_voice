@@ -30,7 +30,7 @@
 #define APP_PLL_NUDGE_SLOWER -1
 
 void app_pll_nudge(int nudge);
-
+void app_pll_set_numerator(int numerator);
 void app_pll_init(void);
 
 #endif /* APP_PLL_CTRL_H_ */
