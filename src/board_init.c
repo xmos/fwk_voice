@@ -162,7 +162,7 @@ void board_tile1_init(
 
     rtos_mic_array_init(
             mic_array_ctx,
-            (1 << 1) | (1 << 2),
+            (1 << appconfPDM_MIC_IO_CORE),
             pdmclk,
             pdmclk2,
             AUDIO_CLOCK_FREQUENCY / PDM_CLOCK_FREQUENCY,
@@ -174,7 +174,7 @@ void board_tile1_init(
 #if appconfI2S_MODE == appconfI2S_MODE_MASTER
     rtos_i2s_master_init(
             i2s_ctx,
-            (1 << 1) | (1 << 2),
+            (1 << appconfI2S_IO_CORE),
             p_i2s_dout,
             1,
             p_i2s_din,
@@ -186,7 +186,7 @@ void board_tile1_init(
 #elif appconfI2S_MODE == appconfI2S_MODE_SLAVE
     rtos_i2s_slave_init(
             i2s_ctx,
-            (1 << 1) | (1 << 2),
+            (1 << appconfI2S_IO_CORE),
             p_i2s_dout,
             1,
             p_i2s_din,

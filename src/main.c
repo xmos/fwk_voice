@@ -318,7 +318,7 @@ void startup_task(void *arg)
                 rtos_mic_array_third_stage_coefs(pdm_decimation_factor),
                 rtos_mic_array_fir_compensation(pdm_decimation_factor),
                 2 * MIC_DUAL_FRAME_SIZE,
-                3);
+                appconfPDM_MIC_INTERRUPT_CORE);
 
 #if appconfI2S_ENABLED
         rtos_i2s_start(
@@ -327,7 +327,7 @@ void startup_task(void *arg)
                 I2S_MODE_I2S,
                 2.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
                 1.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
-                4);
+                appconfI2S_INTERRUPT_CORE);
 #endif
 
         vfe_pipeline_init(&audio_interfaces, audio_interfaces.i2s_ctx);
