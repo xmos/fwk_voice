@@ -6,48 +6,22 @@
 #include <xcore/hwtimer.h>
 #include "app_pll_ctrl.h"
 
-void app_pll_nudge(int nudge)
+void app_pll_set_numerator(int numerator)
 {
-    unsigned tileid = get_local_tile_id();
-
-#if APP_PLL_NUDGE_METHOD == 1
-    /*
-     * This is similar to how 3510/3610 nudges the clock frequency.
-     * Only one write of the slower/faster frequency though doesn't seem
-     * to be very reliable. Doing it 3 times seems better. But this is not
-     * scientific. I think method 2 is safer.
-     */
-    if (nudge > 0) {
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_FAST);
-    } else if (nudge < 0) {
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
-        write_sswitch_reg(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_SLOW);
-    }
-    write_sswitch_reg_no_ack(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, APP_PLL_FRAC_NOM);
-
-#elif APP_PLL_NUDGE_METHOD == 2
-    /* This actually increments or decrements the frequency by a small step */
-    static uint32_t f = (APP_PLL_FRAC_NOM & 0x0000FF00) >> 8;
+    const unsigned tileid = get_local_tile_id();
     uint32_t fracval = APP_PLL_FRAC_NOM & 0xFFFF00FF;
+    uint32_t f;
 
-    if (nudge > 0) {
-        if (f < 255) {
-            f++;
-        }
-    } else if (nudge < 0) {
-        if (f > 0) {
-            f--;
-        }
+    if (numerator > 255) {
+        f = 255;
+    } else if (numerator < 0) {
+        f = 0;
+    } else {
+        f = numerator;
     }
 
     fracval |= (f << 8);
     write_sswitch_reg_no_ack(tileid, XS1_SSWITCH_SS_APP_PLL_FRAC_N_DIVIDER_NUM, fracval);
-
-//    rtos_printf("%d\n", f);
-#endif
 }
 
 void app_pll_init(void)
