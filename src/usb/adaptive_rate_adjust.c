@@ -71,14 +71,24 @@ bool tud_xcore_sof_cb(uint8_t rhport)
     int valid;
     int on_time;
 
-    uint32_t cur_time = get_reference_time();
-    uint32_t delta_time = cur_time - last_time;
+    uint16_t cur_cycle_count;
+    uint16_t delta_cycles;
+    uint32_t cur_time;
+    uint32_t delta_time;
+
+    asm volatile(
+            "{gettime %0; getts %1, res[%2]}"
+            : "=r"(cur_time), "=r"(cur_cycle_count)
+            : "r"(PORT_MCLK_IN)
+            : /* no clobbers */
+            );
+
+    delta_time = cur_time - last_time;
     last_time = cur_time;
     valid = delta_time >= SOF_DELTA_TIME_VALID_LOWER && delta_time <= SOF_DELTA_TIME_VALID_UPPER;
     on_time = delta_time >= SOF_DELTA_TIME_ON_TIME_LOWER && delta_time <= SOF_DELTA_TIME_ON_TIME_UPPER;
 
-    uint16_t cur_cycle_count = port_get_trigger_time(PORT_MCLK_IN);
-    uint16_t delta_cycles = cur_cycle_count - last_cycle_count;
+    delta_cycles = cur_cycle_count - last_cycle_count;
     last_cycle_count = cur_cycle_count;
 
     if (valid) {
@@ -103,14 +113,15 @@ bool tud_xcore_sof_cb(uint8_t rhport)
             const int32_t ki = Q(P)(0.0001);
             const int32_t kd = Q(P)(0);
 
+            int32_t output;
+            int32_t numerator_int;
             const int32_t proportional = error;
             const int32_t derivative = error - previous_error;
             previous_error = error;
 
-
-            int32_t output = dsp_math_multiply(kp, proportional, 0) +
-                             dsp_math_multiply(ki, integral, 0) +
-                             dsp_math_multiply(kd, derivative, 0);
+            output = dsp_math_multiply(kp, proportional, 0) +
+                     dsp_math_multiply(ki, integral, 0) +
+                     dsp_math_multiply(kd, derivative, 0);
 
             numerator += output;
             if (numerator > Q(P)(255)) {
@@ -119,7 +130,7 @@ bool tud_xcore_sof_cb(uint8_t rhport)
                 numerator = 0;
             }
 
-            int32_t numerator_int = (numerator + Q(P)(0.5)) >> P;
+            numerator_int = (numerator + Q(P)(0.5)) >> P;
 
             output += Q(P)(0.5);
             output >>= P;

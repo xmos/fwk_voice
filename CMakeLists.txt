@@ -93,6 +93,8 @@ set(APP_SOURCES
     "src/gpio_test/gpio_test.c"
 )
 
+set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FLAGS "-O3")
+
 set(APP_INCLUDES
     "src"
     "src/usb"
