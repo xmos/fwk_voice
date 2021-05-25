@@ -39,21 +39,23 @@ typedef struct {
     rtos_i2s_t *i2s_ctx;
 } audio_interfaces_t;
 
-#define I2C_TILE 0
-#define AUDIO_TILE 1
-#define WW_TILE 0
+#define FLASH_TILE_NO    0
+#define I2C_TILE_NO      0
+#define I2C_CTRL_TILE_NO 0
+#define AUDIO_TILE_NO    1
+#define WW_TILE_NO       0
 
-#if ON_TILE(0)
+#if ON_TILE(FLASH_TILE_NO)
 static rtos_qspi_flash_t qspi_flash_ctx_s;
 static rtos_qspi_flash_t *qspi_flash_ctx = &qspi_flash_ctx_s;
 #endif
 
-#if ON_TILE(I2C_TILE)
+#if ON_TILE(I2C_TILE_NO)
 static rtos_i2c_master_t i2c_master_ctx_s;
 static rtos_i2c_master_t *i2c_master_ctx = &i2c_master_ctx_s;
 #endif
 
-#if ON_TILE(AUDIO_TILE)
+#if ON_TILE(AUDIO_TILE_NO)
 static rtos_mic_array_t mic_array_ctx_s;
 static rtos_i2s_t i2s_ctx_s;
 
@@ -66,10 +68,32 @@ static audio_interfaces_t audio_interfaces = {
 };
 #endif
 
-#if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
+#if appconfUSB_ENABLED
+#if ON_TILE(USB_TILE_NO)
 static device_control_t device_control_usb_ctx_s;
+#else
+static device_control_client_t device_control_usb_ctx_s;
+#endif
 static device_control_t *device_control_usb_ctx = (device_control_t *) &device_control_usb_ctx_s;
 #endif
+
+#if appconfI2C_CTRL_ENABLED
+#if ON_TILE(I2C_CTRL_TILE_NO)
+static device_control_t device_control_i2c_ctx_s;
+#else
+static device_control_client_t device_control_i2c_ctx_s;
+#endif
+static device_control_t *device_control_i2c_ctx = (device_control_t *) &device_control_i2c_ctx_s;
+#endif
+
+device_control_t *device_control_ctxs[] = {
+#if appconfUSB_ENABLED
+        (device_control_t *) &device_control_usb_ctx_s,
+#endif
+#if appconfI2C_CTRL_ENABLED
+        (device_control_t *) &device_control_i2c_ctx_s,
+#endif
+};
 
 static rtos_gpio_t gpio_ctx_t0_s;
 static rtos_gpio_t *gpio_ctx_t0 = &gpio_ctx_t0_s;
@@ -179,82 +203,53 @@ void vApplicationMallocFailedHook(void)
     for(;;);
 }
 
-#define DEVICE_CONTROL_USB_PORT 1
-#define DEVICE_CONTROL_USB_CLIENT_PRIORITY  (configMAX_PRIORITIES-1)
-
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
+static void mem_analysis(void)
 {
-    rtos_printf("Device control READ\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command is requesting %d bytes\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++) {
-        payload[i] = (cmd & 0x7F) + i;
-    }
-    rtos_printf("Bytes to be sent are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++) {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data)
-{
-    rtos_printf("Device control WRITE\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command has %d bytes\n\t", payload_len);
-    rtos_printf("Bytes received are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++) {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
-static void mem_analysis( void *arg )
-{
-	for( ;; ) {
+	for (;;) {
 		rtos_printf("Tile[%d]:\n\tMinimum heap free: %d\n\tCurrent heap free: %d\n", THIS_XCORE_TILE, xPortGetMinimumEverFreeHeapSize(), xPortGetFreeHeapSize());
-		vTaskDelay( pdMS_TO_TICKS( 5000 ) );
+		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
 
 void startup_task(void *arg)
 {
-    xTaskCreate( mem_analysis, "mem_an", portTASK_STACK_DEPTH(mem_analysis), NULL, configMAX_PRIORITIES, NULL );
-
     uint32_t dac_configured;
-    #if ON_TILE(USB_TILE_NO) /* TODO: both tiles once I2C dev control is added */
+
     control_ret_t dc_ret;
-    device_control_t *device_control_ctxs[] = {
-#if appconfUSB_ENABLED
-            device_control_usb_ctx,
-#endif
-            /* TODO: Add I2C dev control context */
-    };
-    #endif
 
     rtos_printf("Startup task running from tile %d on core %d\n", THIS_XCORE_TILE, portGET_CORE_ID());
 
     rtos_intertile_start(intertile_ctx);
 
-    #if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
+
+    dc_ret = CONTROL_SUCCESS;
+
+    #if appconfUSB_ENABLED
     {
-        dc_ret = device_control_start(device_control_usb_ctx,
-                                      appconfDEVICE_CONTROL_PORT,
-                                      appconfDEVICE_CONTROL_TASK_PRIORITY);
-        xassert(dc_ret == CONTROL_SUCCESS);
+        if (dc_ret == CONTROL_SUCCESS) {
+            dc_ret = device_control_start(device_control_usb_ctx,
+                                          appconfDEVICE_CONTROL_USB_PORT,
+                                          appconfDEVICE_CONTROL_USB_CLIENT_PRIORITY);
+        }
+    }
+    #endif
+    #if appconfI2C_CTRL_ENABLED
+    {
+        if (dc_ret == CONTROL_SUCCESS) {
+            dc_ret = device_control_start(device_control_i2c_ctx,
+                                          appconfDEVICE_CONTROL_I2C_PORT,
+                                          appconfDEVICE_CONTROL_I2C_CLIENT_PRIORITY);
+        }
     }
     #endif
 
+    if (dc_ret != CONTROL_SUCCESS) {
+        rtos_printf("Device control failed to start on tile %d\n", THIS_XCORE_TILE);
+    }
+    xassert(dc_ret == CONTROL_SUCCESS);
+
 #if appconfI2S_ENABLED
-    #if ON_TILE(I2C_TILE)
+    #if ON_TILE(I2C_TILE_NO)
     {
         int dac_init(rtos_i2c_master_t *i2c_ctx);
 
@@ -281,11 +276,17 @@ void startup_task(void *arg)
 
     chanend_free(other_tile_c);
 
-    rtos_gpio_rpc_config(gpio_ctx_t0, appconfGPIO_T0_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
-    rtos_gpio_rpc_config(gpio_ctx_t1, appconfGPIO_T1_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
-    #if ON_TILE(0)
+    #if ON_TILE(FLASH_TILE_NO)
     {
         rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
+    }
+    #endif
+
+    rtos_gpio_rpc_config(gpio_ctx_t0, appconfGPIO_T0_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+    rtos_gpio_rpc_config(gpio_ctx_t1, appconfGPIO_T1_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+
+    #if ON_TILE(0)
+    {
         rtos_gpio_start(gpio_ctx_t0);
     }
     #endif
@@ -293,8 +294,20 @@ void startup_task(void *arg)
     #if ON_TILE(1)
     {
         rtos_gpio_start(gpio_ctx_t1);
-
         gpio_test(gpio_ctx_t0);
+    }
+    #endif
+
+    #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
+    {
+        rtos_i2c_slave_start(i2c_slave_ctx,
+                             device_control_i2c_ctx,
+                             (rtos_i2c_slave_start_cb_t) i2c_dev_ctrl_start_cb,
+                             (rtos_i2c_slave_rx_cb_t) i2c_dev_ctrl_rx_cb,
+                             (rtos_i2c_slave_tx_start_cb_t) i2c_dev_ctrl_tx_start_cb,
+                             (rtos_i2c_slave_tx_done_cb_t) NULL,
+                             appconfI2C_INTERRUPT_CORE,
+                             appconfI2C_TASK_PRIORITY);
     }
     #endif
 
@@ -306,7 +319,7 @@ void startup_task(void *arg)
     }
     #endif
 
-    #if ON_TILE(AUDIO_TILE)
+    #if ON_TILE(AUDIO_TILE_NO)
     {
         const int pdm_decimation_factor = rtos_mic_array_decimation_factor(
                 PDM_CLOCK_FREQUENCY,
@@ -330,11 +343,12 @@ void startup_task(void *arg)
                 appconfI2S_INTERRUPT_CORE);
 #endif
 
-        vfe_pipeline_init(&audio_interfaces, audio_interfaces.i2s_ctx);
+        vfe_pipeline_init(&audio_interfaces,
+                          audio_interfaces.i2s_ctx);
     }
     #endif
 
-    #if ON_TILE(WW_TILE)
+    #if ON_TILE(WW_TILE_NO)
     {
 #if WW
         StreamBufferHandle_t audio_stream = xStreamBufferCreate(
@@ -346,32 +360,50 @@ void startup_task(void *arg)
     }
     #endif
 
-    #if ON_TILE(USB_TILE_NO)
-    {
-        control_resid_t resources[] = {0x3, 0x6, 0x9};
-
-        device_control_servicer_t servicer_ctx;
-        rtos_printf("Will register a servicer now on tile %d\n", THIS_XCORE_TILE);
-        dc_ret = device_control_servicer_register(&servicer_ctx,
-                                                  device_control_ctxs,
-                                                  sizeof(device_control_ctxs) / sizeof(device_control_ctxs[0]),
-                                                  resources,
-                                                  sizeof(resources));
-        xassert(dc_ret == CONTROL_SUCCESS);
-        rtos_printf("Servicer registered now on tile %d\n", THIS_XCORE_TILE);
-
-        for (;;) {
-            device_control_servicer_cmd_recv(&servicer_ctx, read_cmd, write_cmd, NULL, RTOS_OSAL_WAIT_FOREVER);
-        }
-    }
-    #endif
-
-    vTaskDelete(NULL);
+    mem_analysis();
+    /*
+     * TODO: Watchdog?
+     */
 }
 
 void vApplicationIdleHook(void)
 {
+    rtos_printf("idle hook on tile %d core %d\n", THIS_XCORE_TILE, rtos_core_id_get());
     asm volatile("waiteu");
+}
+
+static void tile_common_init(void)
+{
+    #if appconfI2C_CTRL_ENABLED
+    {
+        device_control_init(device_control_i2c_ctx,
+                            THIS_XCORE_TILE == I2C_CTRL_TILE_NO ? DEVICE_CONTROL_HOST_MODE : DEVICE_CONTROL_CLIENT_MODE,
+                            &intertile_ctx,
+                            1);
+    }
+    #endif
+
+    #if appconfUSB_ENABLED
+    {
+        device_control_init(device_control_usb_ctx,
+                            THIS_XCORE_TILE == USB_TILE_NO ? DEVICE_CONTROL_HOST_MODE : DEVICE_CONTROL_CLIENT_MODE,
+                            &intertile_ctx,
+                            1);
+
+        #if ON_TILE(USB_TILE_NO)
+        {
+            usb_manager_init();
+        }
+        #endif
+    }
+    #endif
+
+    xTaskCreate((TaskFunction_t) startup_task,
+                "startup_task",
+                RTOS_THREAD_STACK_SIZE(startup_task),
+                NULL,
+                appconfSTARTUP_TASK_PRIORITY,
+                NULL);
 }
 
 #if ON_TILE(0)
@@ -384,21 +416,7 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     other_tile_c = c1;
 
-#if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
-    usb_manager_init();
-
-    device_control_init(device_control_usb_ctx,
-                        THIS_XCORE_TILE == USB_TILE_NO ? DEVICE_CONTROL_HOST_MODE : DEVICE_CONTROL_CLIENT_MODE,
-                        NULL,
-                        0);
-#endif
-
-    xTaskCreate((TaskFunction_t) startup_task,
-                "startup_task",
-                RTOS_THREAD_STACK_SIZE(startup_task),
-                NULL,
-                appconfSTARTUP_TASK_PRIORITY,
-                NULL);
+    tile_common_init();
 
     rtos_printf("start scheduler on tile 0\n");
     vTaskStartScheduler();
@@ -415,16 +433,7 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     other_tile_c = c0;
 
-#if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
-    usb_manager_init();
-#endif
-
-    xTaskCreate((TaskFunction_t) startup_task,
-                "startup_task",
-                RTOS_THREAD_STACK_SIZE(startup_task),
-                NULL,
-                appconfSTARTUP_TASK_PRIORITY,
-                NULL);
+    tile_common_init();
 
     rtos_printf("start scheduler on tile 1\n");
     vTaskStartScheduler();

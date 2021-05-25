@@ -10,6 +10,10 @@
 #include "timers.h"
 #include "queue.h"
 
+#include "app_conf.h"
+
+#include "device_control.h"
+
 #include "audio_pipeline/audio_pipeline.h"
 #include "vfe_pipeline.h"
 
@@ -139,9 +143,68 @@ static void init_dsp_stage_0(vfe_dsp_stage_0_state_t* state)
     }
 }
 
+DEVICE_CONTROL_CALLBACK_ATTR
+control_ret_t read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
+{
+    rtos_printf("Device control READ\n\t");
+
+    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
+    rtos_printf("The command is requesting %d bytes\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        payload[i] = (cmd & 0x7F) + i;
+    }
+    rtos_printf("Bytes to be sent are:\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        rtos_printf("%02x ", payload[i]);
+    }
+    rtos_printf("\n\n");
+
+    return CONTROL_SUCCESS;
+}
+
+DEVICE_CONTROL_CALLBACK_ATTR
+control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data)
+{
+    rtos_printf("Device control WRITE\n\t");
+
+    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
+    rtos_printf("The command has %d bytes\n\t", payload_len);
+    rtos_printf("Bytes received are:\n\t", payload_len);
+    for (int i = 0; i < payload_len; i++) {
+        rtos_printf("%02x ", payload[i]);
+    }
+    rtos_printf("\n\n");
+
+    return CONTROL_SUCCESS;
+}
+
 static void stage0(frame_data_t *frame_data)
 {
+    static int init;
+    static device_control_servicer_t servicer_ctx;
+
+    if (!init) {
+        extern device_control_t *device_control_ctxs[];
+        const control_resid_t resources[] = {'A', 'E', 'C'};
+        control_ret_t dc_ret;
+
+        rtos_printf("Will register the AEC servicer now with %d device controllers\n",
+                    appconfUSB_ENABLED ? 1 : 0 + appconfI2C_CTRL_ENABLED ? 1 : 0);
+
+        dc_ret = device_control_servicer_register(&servicer_ctx,
+                                                  device_control_ctxs,
+                                                  appconfUSB_ENABLED ? 1 : 0 + appconfI2C_CTRL_ENABLED ? 1 : 0,
+                                                  resources,
+                                                  sizeof(resources));
+        xassert(dc_ret == CONTROL_SUCCESS);
+        rtos_printf("AEC servicer registered\n");
+
+        init = 1;
+    }
+
     EventBits_t all_sync_bits = 0;
+
+    device_control_servicer_cmd_recv(&servicer_ctx, read_cmd, write_cmd, NULL, 0);
 
     for(int i=0; i<=AEC_THREADS; i++)
     {
@@ -186,8 +249,9 @@ static void stage2(frame_data_t *frame_data)
                         frame_data->samples);
 }
 
-void vfe_pipeline_init(void *input_app_data,
-                       void *output_app_data)
+void vfe_pipeline_init(
+        void *input_app_data,
+        void *output_app_data)
 {
     const int stage_count = 3;
 
