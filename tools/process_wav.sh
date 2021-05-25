@@ -41,6 +41,8 @@ if [[ "$CHANNELS" == 2 ]]; then
     # file only has microphone channels
     #   need to insert 2 silent reference channels
     REMIX_PATTERN="remix 0 0 1 2"
+elif [[ "$CHANNELS" == 6 ]]; then
+    REMIX_PATTERN="remix 3 4 5 6"
 else
     REMIX_PATTERN=""
 fi

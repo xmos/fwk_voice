@@ -163,8 +163,8 @@ int vfe_pipeline_output(void *output_app_data,
     usb_audio_send(intertile_ctx,
                   frame_count,
                   proc_audio_frame,
-                  mic_audio_frame,
-                  ref_audio_frame);
+                  ref_audio_frame,
+                  mic_audio_frame);
 #endif
 
     return VFE_PIPELINE_FREE_FRAME;
