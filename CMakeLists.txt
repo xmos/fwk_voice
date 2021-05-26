@@ -22,7 +22,7 @@ project(sw_xvf3652)
 set(PROJECT_VERSION 0.5.0)
 
 ## Enable languages for project
-enable_language(XC CXX C ASM)
+enable_language(CXX C ASM)
 
 set(PIPELINE_LIB_COMPILER_FLAGS
     "-Os"
