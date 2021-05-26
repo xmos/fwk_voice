@@ -121,12 +121,6 @@ static void i2c_init(void)
 static void mics_init(void)
 {
 #if ON_TILE(AUDIO_HW_TILE_NO)
-    /*** TODO: This should be done by the driver ***/
-    port_enable(PORT_PDM_CLK);
-    port_start_buffered(PORT_PDM_DATA, 32);
-    port_enable(PORT_MCLK_IN);
-    /***********************************************/
-
     rtos_mic_array_init(
             mic_array_ctx,
             (1 << appconfPDM_MIC_IO_CORE),
@@ -142,10 +136,6 @@ static void mics_init(void)
 static void i2s_init(void)
 {
 #if ON_TILE(AUDIO_HW_TILE_NO) && appconfI2S_ENABLED
-    /*** TODO: This should be done by the driver ***/
-    port_enable(PORT_MCLK_IN);
-    /***********************************************/
-
     port_t p_i2s_dout[1] = {
             PORT_I2S_DAC_DATA
     };
