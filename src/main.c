@@ -12,21 +12,14 @@
 #include "queue.h"
 
 /* Library headers */
-#include "rtos/drivers/gpio/api/rtos_gpio.h"
-#include "rtos/drivers/i2c/api/rtos_i2c_master.h"
-#include "rtos/drivers/i2s/api/rtos_i2s.h"
-#include "rtos/drivers/intertile/api/rtos_intertile.h"
-#include "rtos/drivers/mic_array/api/rtos_mic_array.h"
-#include "rtos/drivers/qspi_flash/api/rtos_qspi_flash.h"
-#include "rtos/drivers/spi/api/rtos_spi_master.h"
-
 #include "rtos_printf.h"
 #include "rtos_usb.h"
 #include "device_control.h"
 
 /* App headers */
 #include "app_conf.h"
-#include "board_init.h"
+#include "platform/platform_init.h"
+#include "platform/driver_instances.h"
 #include "usb_support.h"
 #include "usb_audio.h"
 #include "vfe_pipeline/vfe_pipeline.h"
@@ -34,39 +27,7 @@
 
 #include "gpio_test/gpio_test.h"
 
-typedef struct {
-    rtos_mic_array_t *mic_array_ctx;
-    rtos_i2s_t *i2s_ctx;
-} audio_interfaces_t;
-
-#define FLASH_TILE_NO    0
-#define I2C_TILE_NO      0
-#define I2C_CTRL_TILE_NO 0
-#define AUDIO_TILE_NO    1
 #define WW_TILE_NO       0
-
-#if ON_TILE(FLASH_TILE_NO)
-static rtos_qspi_flash_t qspi_flash_ctx_s;
-static rtos_qspi_flash_t *qspi_flash_ctx = &qspi_flash_ctx_s;
-#endif
-
-#if ON_TILE(I2C_TILE_NO)
-static rtos_i2c_master_t i2c_master_ctx_s;
-static rtos_i2c_master_t *i2c_master_ctx = &i2c_master_ctx_s;
-#endif
-
-#if ON_TILE(AUDIO_TILE_NO)
-static rtos_mic_array_t mic_array_ctx_s;
-static rtos_i2s_t i2s_ctx_s;
-
-static rtos_mic_array_t *mic_array_ctx = &mic_array_ctx_s;
-static rtos_i2s_t *i2s_ctx = &i2s_ctx_s;
-
-static audio_interfaces_t audio_interfaces = {
-        .mic_array_ctx = &mic_array_ctx_s,
-        .i2s_ctx = &i2s_ctx_s,
-};
-#endif
 
 #if appconfUSB_ENABLED
 #if ON_TILE(USB_TILE_NO)
@@ -95,15 +56,6 @@ device_control_t *device_control_ctxs[] = {
 #endif
 };
 
-static rtos_gpio_t gpio_ctx_t0_s;
-static rtos_gpio_t *gpio_ctx_t0 = &gpio_ctx_t0_s;
-
-static rtos_gpio_t gpio_ctx_t1_s;
-static rtos_gpio_t *gpio_ctx_t1 = &gpio_ctx_t1_s;
-
-static rtos_intertile_t intertile_ctx_s;
-static rtos_intertile_t *intertile_ctx = &intertile_ctx_s;
-
 chanend_t other_tile_c;
 
 volatile int mic_from_usb = 0;
@@ -114,12 +66,12 @@ void vfe_pipeline_input(void *input_app_data,
                         int32_t (*ref_audio_frame)[2],
                         size_t frame_count)
 {
-    audio_interfaces_t *audio_interfaces = input_app_data;
+    (void) input_app_data;
 
     static int good;
     if (!good) {
         for (int i = 0; i < 10; i++) {
-            rtos_mic_array_rx(audio_interfaces->mic_array_ctx,
+            rtos_mic_array_rx(mic_array_ctx,
                               mic_audio_frame,
                               frame_count,
                               portMAX_DELAY);
@@ -133,7 +85,7 @@ void vfe_pipeline_input(void *input_app_data,
      * timing since usb_audio_recv() does not block and will
      * receive all zeros if no frame is available yet.
      */
-    rtos_mic_array_rx(audio_interfaces->mic_array_ctx,
+    rtos_mic_array_rx(mic_array_ctx,
                       mic_audio_frame,
                       frame_count,
                       portMAX_DELAY);
@@ -159,7 +111,7 @@ void vfe_pipeline_input(void *input_app_data,
         /* This shouldn't need to block given it shares a clock with the PDM mics */
 
         size_t rx_count =
-        rtos_i2s_rx(audio_interfaces->i2s_ctx,
+        rtos_i2s_rx(i2s_ctx,
                     (int32_t*) ref_audio_frame,
                     frame_count,
                     portMAX_DELAY);
@@ -174,9 +126,9 @@ int vfe_pipeline_output(void *output_app_data,
                         int32_t (*ref_audio_frame)[2],
                         size_t frame_count)
 {
-#if appconfI2S_ENABLED
-    rtos_i2s_t *i2s_ctx = output_app_data;
+    (void) output_app_data;
 
+#if appconfI2S_ENABLED
     rtos_i2s_tx(i2s_ctx,
                 (int32_t*) proc_audio_frame,
                 frame_count,
@@ -221,6 +173,55 @@ void startup_task(void *arg)
 
     rtos_intertile_start(intertile_ctx);
 
+    rtos_gpio_rpc_config(gpio_ctx_t0, appconfGPIO_T0_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+    rtos_gpio_rpc_config(gpio_ctx_t1, appconfGPIO_T1_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
+
+    #if ON_TILE(0)
+    {
+        rtos_gpio_start(gpio_ctx_t0);
+    }
+    #endif
+
+    #if ON_TILE(1)
+    {
+        rtos_gpio_start(gpio_ctx_t1);
+        gpio_test(gpio_ctx_t0);
+    }
+    #endif
+
+#if appconfI2S_ENABLED
+    #if ON_TILE(I2C_TILE_NO)
+    {
+        int dac_init(void);
+
+        rtos_i2c_master_start(i2c_master_ctx);
+
+        if (dac_init() == 0) {
+            dac_configured = 1;
+        } else {
+            rtos_printf("DAC initialization failed\n");
+            dac_configured = 0;
+        }
+        chan_out_byte(other_tile_c, dac_configured);
+    }
+    #else
+    {
+        dac_configured = chan_in_byte(other_tile_c);
+    }
+    #endif
+
+    if (!dac_configured) {
+        vTaskDelete(NULL);
+    }
+#endif
+
+    chanend_free(other_tile_c);
+
+    #if ON_TILE(FLASH_TILE_NO)
+    {
+        rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
+    }
+    #endif
 
     dc_ret = CONTROL_SUCCESS;
 
@@ -248,56 +249,6 @@ void startup_task(void *arg)
     }
     xassert(dc_ret == CONTROL_SUCCESS);
 
-#if appconfI2S_ENABLED
-    #if ON_TILE(I2C_TILE_NO)
-    {
-        int dac_init(rtos_i2c_master_t *i2c_ctx);
-
-        rtos_i2c_master_start(i2c_master_ctx);
-
-        if (dac_init(i2c_master_ctx) == 0) {
-            dac_configured = 1;
-        } else {
-            rtos_printf("DAC initialization failed\n");
-            dac_configured = 0;
-        }
-        chan_out_byte(other_tile_c, dac_configured);
-    }
-    #else
-    {
-        dac_configured = chan_in_byte(other_tile_c);
-    }
-    #endif
-
-    if (!dac_configured) {
-        vTaskDelete(NULL);
-    }
-#endif
-
-    chanend_free(other_tile_c);
-
-    #if ON_TILE(FLASH_TILE_NO)
-    {
-        rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
-    }
-    #endif
-
-    rtos_gpio_rpc_config(gpio_ctx_t0, appconfGPIO_T0_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
-    rtos_gpio_rpc_config(gpio_ctx_t1, appconfGPIO_T1_RPC_PORT, appconfGPIO_RPC_HOST_PRIORITY);
-
-    #if ON_TILE(0)
-    {
-        rtos_gpio_start(gpio_ctx_t0);
-    }
-    #endif
-
-    #if ON_TILE(1)
-    {
-        rtos_gpio_start(gpio_ctx_t1);
-        gpio_test(gpio_ctx_t0);
-    }
-    #endif
-
     #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
     {
         rtos_i2c_slave_start(i2c_slave_ctx,
@@ -319,10 +270,10 @@ void startup_task(void *arg)
     }
     #endif
 
-    #if ON_TILE(AUDIO_TILE_NO)
+    #if ON_TILE(AUDIO_HW_TILE_NO)
     {
         const int pdm_decimation_factor = rtos_mic_array_decimation_factor(
-                PDM_CLOCK_FREQUENCY,
+                appconfPDM_CLOCK_FREQUENCY,
                 VFE_PIPELINE_AUDIO_SAMPLE_RATE);
 
         rtos_mic_array_start(
@@ -336,15 +287,14 @@ void startup_task(void *arg)
 #if appconfI2S_ENABLED
         rtos_i2s_start(
                 i2s_ctx,
-                rtos_i2s_mclk_bclk_ratio(AUDIO_CLOCK_FREQUENCY, VFE_PIPELINE_AUDIO_SAMPLE_RATE),
+                rtos_i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, VFE_PIPELINE_AUDIO_SAMPLE_RATE),
                 I2S_MODE_I2S,
                 2.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
                 1.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
                 appconfI2S_INTERRUPT_CORE);
 #endif
 
-        vfe_pipeline_init(&audio_interfaces,
-                          audio_interfaces.i2s_ctx);
+        vfe_pipeline_init(NULL, NULL);
     }
     #endif
 
@@ -372,8 +322,12 @@ void vApplicationIdleHook(void)
     asm volatile("waiteu");
 }
 
-static void tile_common_init(void)
+static void tile_common_init(chanend_t c)
 {
+    platform_init(c);
+
+    other_tile_c = c;
+
     #if appconfI2C_CTRL_ENABLED
     {
         device_control_init(device_control_i2c_ctx,
@@ -404,38 +358,29 @@ static void tile_common_init(void)
                 NULL,
                 appconfSTARTUP_TASK_PRIORITY,
                 NULL);
+
+    rtos_printf("start scheduler on tile %d\n", THIS_XCORE_TILE);
+    vTaskStartScheduler();
 }
 
 #if ON_TILE(0)
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
     (void) c0;
-    board_tile0_init(c1, intertile_ctx, i2c_master_ctx, gpio_ctx_t0, gpio_ctx_t1, qspi_flash_ctx);
     (void) c2;
     (void) c3;
 
-    other_tile_c = c1;
-
-    tile_common_init();
-
-    rtos_printf("start scheduler on tile 0\n");
-    vTaskStartScheduler();
+    tile_common_init(c1);
 }
 #endif
 
 #if ON_TILE(1)
 void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
-    board_tile1_init(c0, intertile_ctx, mic_array_ctx, i2s_ctx, gpio_ctx_t0, gpio_ctx_t1);
     (void) c1;
     (void) c2;
     (void) c3;
 
-    other_tile_c = c0;
-
-    tile_common_init();
-
-    rtos_printf("start scheduler on tile 1\n");
-    vTaskStartScheduler();
+    tile_common_init(c0);
 }
 #endif

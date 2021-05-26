@@ -4,6 +4,9 @@
 #ifndef APP_CONF_H_
 #define APP_CONF_H_
 
+#define appconfAUDIO_CLOCK_FREQUENCY  24576000
+#define appconfPDM_CLOCK_FREQUENCY    3072000
+
 #define appconfUSB_AUDIO_PORT          0
 #define appconfGPIO_T0_RPC_PORT        1
 #define appconfGPIO_T1_RPC_PORT        2

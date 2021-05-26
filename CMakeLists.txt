@@ -81,9 +81,10 @@ set(APP_COMPILER_FLAGS
 
 set(APP_SOURCES
     "src/main.c"
-    "src/board_init.c"
     "src/dac_init.c"
     "src/app_pll_ctrl.c"
+    "src/platform/driver_instances.c"
+    "src/platform/platform_init.c"
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
     "src/usb/usb_device_control.c"

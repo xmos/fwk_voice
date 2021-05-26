@@ -3,6 +3,7 @@
 
 #define DEBUG_UNIT ADAPTIVE_USB
 
+#include <stdbool.h>
 #include <xcore/port.h>
 #include <rtos_printf.h>
 #include <dsp.h>
@@ -50,7 +51,7 @@
  * The ideal number of appPLL cycles between each SOF that
  * the PID controller is aiming for.
  */
-#define DELTA_CYCLES_TARGET (((AUDIO_CLOCK_FREQUENCY / 10) * SOF_DELTA_TIME_US) / 100000)
+#define DELTA_CYCLES_TARGET (((appconfAUDIO_CLOCK_FREQUENCY / 10) * SOF_DELTA_TIME_US) / 100000)
 
 /*
  * The number of fractional bits in the fixed point

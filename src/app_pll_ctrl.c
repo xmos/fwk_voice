@@ -4,6 +4,7 @@
 #include <platform.h>
 #include <xs1.h>
 #include <xcore/hwtimer.h>
+#include <xcore/assert.h>
 #include "app_pll_ctrl.h"
 
 void app_pll_set_numerator(int numerator)

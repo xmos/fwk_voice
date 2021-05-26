@@ -4,11 +4,10 @@
 #ifndef APP_PLL_CTRL_H_
 #define APP_PLL_CTRL_H_
 
-#include "board_init.h" // for AUDIO_CLOCK_FREQUENCY
+#include "app_conf.h"
 
-
-#if (AUDIO_CLOCK_FREQUENCY != 24576000)
-#error PLL values only valid if AUDIO_CLOCK_FREQUENCY == 24576000
+#if (appconfAUDIO_CLOCK_FREQUENCY != 24576000)
+#error PLL values only valid if appconfAUDIO_CLOCK_FREQUENCY == 24576000
 #endif
 
 #define APP_PLL_CTL_VAL   0x0A019803 // Valid for all fractional values
