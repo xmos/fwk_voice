@@ -15,7 +15,7 @@ set(USE_DEVICE_CONTROL TRUE)
 set(USE_TINYUSB TRUE)
 
 ## Import XMOS configurations
-include("$ENV{XMOS_AIOT_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
+include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
 
 ## Define project
 project(sw_xvf3652)
