@@ -25,6 +25,7 @@
 
 #include "usb_descriptors.h"
 #include "tusb.h"
+#include "app_control/usb_device_control.h"
 
 #define XMOS_VID    0x20B1
 #define XVF3652_PID 0x3652
@@ -63,15 +64,6 @@ uint8_t const* tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
-
-#define TUD_XMOS_DEVICE_CONTROL_DESC_LEN 9
-
-#define TUD_XMOS_DEVICE_CONTROL_DESCRIPTOR(_itfnum, _stridx) \
-  /* Interface */\
-  9, TUSB_DESC_INTERFACE, _itfnum, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC, 0x00, 0x00, _stridx
-
-
-
 
 const size_t uac2_interface_descriptors_length =
         TUD_AUDIO_DESC_CLK_SRC_LEN +
@@ -123,8 +115,6 @@ const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO] = {
 #define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * uac2_total_descriptors_length + TUD_XMOS_DEVICE_CONTROL_DESC_LEN)
 #define EPNUM_AUDIO   0x01
 
-
-// TAKE CARE - THE NUMBER OF AUDIO STREAMING INTERFACES PER AUDIO FUNCTION MUST NOT EXCEED CFG_TUD_AUDIO_N_AS_INT - IF IT DOES INCREASE CFG_TUD_AUDIO_N_AS_INT IN tusb_config.h!
 
 #define AUDIO_INTERFACE_STRING_INDEX 4
 

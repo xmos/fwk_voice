@@ -9,7 +9,7 @@
 #include <dsp.h>
 #include <xscope.h>
 
-#include "app_pll_ctrl.h"
+#include "platform/app_pll_ctrl.h"
 
 /*
  * Setting this non-zero initializes the appPLL numerator

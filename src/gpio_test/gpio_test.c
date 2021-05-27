@@ -5,7 +5,7 @@
 
 #include "FreeRTOS.h"
 
-#include "app_pll_ctrl.h"
+#include "platform/app_pll_ctrl.h"
 #include "gpio_test/gpio_test.h"
 
 RTOS_GPIO_ISR_CALLBACK_ATTR

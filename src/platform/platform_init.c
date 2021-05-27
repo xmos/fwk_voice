@@ -5,6 +5,7 @@
 
 #include "app_conf.h"
 #include "app_pll_ctrl.h"
+#include "usb_support.h"
 #include "driver_instances.h"
 
 /** TILE 0 Clock Blocks */
@@ -116,6 +117,14 @@ static void i2c_init(void)
             0,
             100);
 #endif
+
+#if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
+    rtos_i2c_slave_init(i2c_slave_ctx,
+                        (1 << appconfI2C_IO_CORE),
+                        PORT_I2C_SLAVE_SCL,
+                        PORT_I2C_SLAVE_SDA,
+                        appconf_CONTROL_I2C_DEVICE_ADDR);
+#endif
 }
 
 static void mics_init(void)
@@ -135,7 +144,7 @@ static void mics_init(void)
 
 static void i2s_init(void)
 {
-#if ON_TILE(AUDIO_HW_TILE_NO) && appconfI2S_ENABLED
+#if appconfI2S_ENABLED && ON_TILE(AUDIO_HW_TILE_NO)
     port_t p_i2s_dout[1] = {
             PORT_I2S_DAC_DATA
     };
@@ -172,6 +181,13 @@ static void i2s_init(void)
 #endif
 }
 
+static void usb_init(void)
+{
+#if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
+    usb_manager_init();
+#endif
+}
+
 void platform_init(chanend_t other_tile_c)
 {
     rtos_intertile_init(intertile_ctx, other_tile_c);
@@ -182,4 +198,5 @@ void platform_init(chanend_t other_tile_c)
     i2c_init();
     mics_init();
     i2s_init();
+    usb_init();
 }

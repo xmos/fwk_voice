@@ -81,14 +81,21 @@ set(APP_COMPILER_FLAGS
 
 set(APP_SOURCES
     "src/main.c"
-    "src/dac_init.c"
-    "src/app_pll_ctrl.c"
+    
     "src/platform/driver_instances.c"
     "src/platform/platform_init.c"
+    "src/platform/platform_start.c"
+    "src/platform/app_pll_ctrl.c"
+    "src/platform/aic3204.c"
+    
+    "src/app_control/app_control.c"
+    "src/app_control/i2c_device_control.c"
+    "src/app_control/usb_device_control.c"
+    
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
-    "src/usb/usb_device_control.c"
     "src/usb/adaptive_rate_adjust.c"
+    
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"

@@ -4,8 +4,12 @@
 #ifndef APP_CONF_H_
 #define APP_CONF_H_
 
-#define appconfAUDIO_CLOCK_FREQUENCY  24576000
-#define appconfPDM_CLOCK_FREQUENCY    3072000
+#include "voice_front_end_settings.h"
+
+#define appconfAUDIO_CLOCK_FREQUENCY        24576000
+#define appconfPDM_CLOCK_FREQUENCY          3072000
+#define appconfAUDIO_PIPELINE_SAMPLE_RATE   16000
+#define appconfAUDIO_PIPELINE_FRAME_ADVANCE VFE_FRAME_ADVANCE
 
 #define appconfUSB_AUDIO_PORT          0
 #define appconfGPIO_T0_RPC_PORT        1
@@ -23,7 +27,7 @@
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
-#define appconfI2C_CTRL_ENABLED    0
+#define appconfI2C_CTRL_ENABLED    1
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -44,22 +48,24 @@
 #define appconfUSB_AUDIO_MODE      appconfUSB_AUDIO_TESTING
 #endif
 
+/* Application control Config */
+#define appconf_CONTROL_I2C_DEVICE_ADDR 0x42
+#define appconf_CONTROL_SERVICER_COUNT  1
 
 /* WW Config */
 #define appconfWW_FRAMES_PER_INFERENCE          (160)
 
 /* I/O and interrupt cores for Tile 0 */
 #define appconfXUD_IO_CORE                      1 /* Must be kept off core 0 with the RTOS tick ISR */
-#define appconfI2C_IO_CORE                      2 /* Must be kept off core 0 with the RTOS tick ISR */
-#define appconfUSB_INTERRUPT_CORE               3 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
-#define appconfI2C_INTERRUPT_CORE               0 /* Must be kept off I/O cores. */
+#define appconfUSB_INTERRUPT_CORE               2 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 
 /* I/O and interrupt cores for Tile 1 */
 #define appconfPDM_MIC_IO_CORE                  1 /* Must be kept off core 0 with the RTOS tick ISR */
 #define appconfI2S_IO_CORE                      2 /* Must be kept off core 0 with the RTOS tick ISR */
-#define appconfPDM_MIC_INTERRUPT_CORE           3 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
-#define appconfI2S_INTERRUPT_CORE               4 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
-
+#define appconfI2C_IO_CORE                      3 /* Must be kept off core 0 with the RTOS tick ISR */
+#define appconfPDM_MIC_INTERRUPT_CORE           4 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
+#define appconfI2S_INTERRUPT_CORE               5 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
+#define appconfI2C_INTERRUPT_CORE               0 /* Must be kept off I/O cores. */
 
 /* Task Priorities */
 #define appconfSTARTUP_TASK_PRIORITY              (configMAX_PRIORITIES/2 + 5)

@@ -6,10 +6,13 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include "voice_front_end_settings.h"
+#include "app_conf.h"
 
-#define VFE_PIPELINE_AUDIO_SAMPLE_RATE 16000
-#define VFE_PIPELINE_AUDIO_FRAME_LENGTH VFE_FRAME_ADVANCE
+/*
+ * TODO: just remove these two and replace all instances with the appconf version.
+ */
+#define VFE_PIPELINE_AUDIO_SAMPLE_RATE  appconfAUDIO_PIPELINE_SAMPLE_RATE
+#define VFE_PIPELINE_AUDIO_FRAME_LENGTH appconfAUDIO_PIPELINE_FRAME_ADVANCE
 
 #define VFE_PIPELINE_DONT_FREE_FRAME 0
 #define VFE_PIPELINE_FREE_FRAME      1

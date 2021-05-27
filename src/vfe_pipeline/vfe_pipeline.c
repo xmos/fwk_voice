@@ -10,14 +10,12 @@
 #include "timers.h"
 #include "queue.h"
 
+#include "voice_front_end.h"
+
 #include "app_conf.h"
-
-#include "device_control.h"
-
+#include "app_control/app_control.h"
 #include "audio_pipeline/audio_pipeline.h"
 #include "vfe_pipeline.h"
-
-#include "voice_front_end.h"
 
 static vfe_dsp_stage_1_state_t dsp_stage_1_state;
 static vfe_dsp_stage_2_state_t dsp_stage_2_state;
@@ -184,18 +182,16 @@ static void stage0(frame_data_t *frame_data)
     static device_control_servicer_t servicer_ctx;
 
     if (!init) {
-        extern device_control_t *device_control_ctxs[];
         const control_resid_t resources[] = {'A', 'E', 'C'};
         control_ret_t dc_ret;
 
         rtos_printf("Will register the AEC servicer now with %d device controllers\n",
-                    appconfUSB_ENABLED ? 1 : 0 + appconfI2C_CTRL_ENABLED ? 1 : 0);
+                    APP_CONTROL_TRANSPORT_COUNT);
 
         dc_ret = device_control_servicer_register(&servicer_ctx,
                                                   device_control_ctxs,
-                                                  appconfUSB_ENABLED ? 1 : 0 + appconfI2C_CTRL_ENABLED ? 1 : 0,
-                                                  resources,
-                                                  sizeof(resources));
+                                                  APP_CONTROL_TRANSPORT_COUNT,
+                                                  resources, sizeof(resources));
         xassert(dc_ret == CONTROL_SUCCESS);
         rtos_printf("AEC servicer registered\n");
 
