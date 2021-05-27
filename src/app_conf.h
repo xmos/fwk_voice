@@ -4,7 +4,7 @@
 #ifndef APP_CONF_H_
 #define APP_CONF_H_
 
-#include "voice_front_end_settings.h"
+#include "vfe_pipeline/vfe/voice_front_end_settings.h"
 
 #define appconfAUDIO_CLOCK_FREQUENCY        24576000
 #define appconfPDM_CLOCK_FREQUENCY          3072000
@@ -27,7 +27,7 @@
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
-#define appconfI2C_CTRL_ENABLED    1
+#define appconfI2C_CTRL_ENABLED    0
 #endif
 
 #define appconfI2S_MODE_MASTER     0
