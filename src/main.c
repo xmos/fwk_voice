@@ -39,6 +39,22 @@ void vfe_pipeline_input(void *input_app_data,
 {
     (void) input_app_data;
 
+    static int flushed;
+    while (!flushed) {
+        size_t received;
+        received = rtos_mic_array_rx(mic_array_ctx,
+                                     mic_audio_frame,
+                                     frame_count,
+                                     0);
+        if (received == 0) {
+            rtos_mic_array_rx(mic_array_ctx,
+                              mic_audio_frame,
+                              frame_count,
+                              portMAX_DELAY);
+            flushed = 1;
+        }
+    }
+
     /*
      * NOTE: ALWAYS receive the next frame from the PDM mics,
      * even if USB is the current mic source. The controls the
