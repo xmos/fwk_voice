@@ -5,8 +5,7 @@
 
 /* Library headers */
 #include "rtos_printf.h"
-#include "app_control/usb_device_control.h"
-#include "app_control/i2c_device_control.h"
+#include "device_control_usb.h"
 
 /* App headers */
 #include "app_conf.h"
@@ -39,6 +38,17 @@ device_control_t *device_control_ctxs[APP_CONTROL_TRANSPORT_COUNT] = {
 device_control_t *tud_device_control_get_ctrl_ctx_cb(void)
 {
     return device_control_usb_ctx;
+}
+
+usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t *driver_count)
+{
+    *driver_count = 1;
+    return &usb_device_control_app_driver;
+}
+
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request)
+{
+    return usb_device_control_xfer(rhport, stage, request);
 }
 
 int app_control_init(void)

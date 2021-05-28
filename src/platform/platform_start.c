@@ -4,7 +4,7 @@
 #include <platform.h>
 
 #include "app_control/app_control.h"
-#include "app_control/i2c_device_control.h"
+#include "device_control_i2c.h"
 
 #include "app_conf.h"
 #include "usb_support.h"

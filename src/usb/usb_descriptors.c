@@ -25,7 +25,7 @@
 
 #include "usb_descriptors.h"
 #include "tusb.h"
-#include "app_control/usb_device_control.h"
+#include "device_control_usb.h"
 
 #define XMOS_VID    0x20B1
 #define XVF3652_PID 0x3652
