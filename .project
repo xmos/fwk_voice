@@ -3,7 +3,7 @@
 	<name>sw_xvf3652</name>
 	<comment></comment>
 	<projects>
-		<project>aiot_sdk</project>
+		<project>xcore_sdk</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
