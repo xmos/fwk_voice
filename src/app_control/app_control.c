@@ -35,7 +35,7 @@ device_control_t *device_control_ctxs[APP_CONTROL_TRANSPORT_COUNT] = {
 #endif
 };
 
-device_control_t *tud_device_control_get_ctrl_ctx_cb(void)
+device_control_t *device_control_usb_get_ctrl_ctx_cb(void)
 {
     return device_control_usb_ctx;
 }
@@ -43,12 +43,12 @@ device_control_t *tud_device_control_get_ctrl_ctx_cb(void)
 usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t *driver_count)
 {
     *driver_count = 1;
-    return &usb_device_control_app_driver;
+    return &device_control_usb_app_driver;
 }
 
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request)
 {
-    return usb_device_control_xfer(rhport, stage, request);
+    return device_control_usb_xfer(rhport, stage, request);
 }
 
 int app_control_init(void)

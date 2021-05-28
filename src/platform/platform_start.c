@@ -40,9 +40,9 @@ static void i2c_start(void)
 #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
     rtos_i2c_slave_start(i2c_slave_ctx,
                          device_control_i2c_ctx,
-                         (rtos_i2c_slave_start_cb_t) i2c_dev_ctrl_start_cb,
-                         (rtos_i2c_slave_rx_cb_t) i2c_dev_ctrl_rx_cb,
-                         (rtos_i2c_slave_tx_start_cb_t) i2c_dev_ctrl_tx_start_cb,
+                         (rtos_i2c_slave_start_cb_t) device_control_i2c_start_cb,
+                         (rtos_i2c_slave_rx_cb_t) device_control_i2c_rx_cb,
+                         (rtos_i2c_slave_tx_start_cb_t) device_control_i2c_tx_start_cb,
                          (rtos_i2c_slave_tx_done_cb_t) NULL,
                          appconfI2C_INTERRUPT_CORE,
                          appconfI2C_TASK_PRIORITY);
