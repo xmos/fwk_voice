@@ -27,7 +27,7 @@
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
-#define appconfI2C_CTRL_ENABLED    0
+#define appconfI2C_CTRL_ENABLED    1
 #endif
 
 #define appconfI2S_MODE_MASTER     0
