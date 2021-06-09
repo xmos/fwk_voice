@@ -104,7 +104,7 @@ static void aec_burn_dummy(aec_dummy_args_t* args)
     while(1)
     {
         xEventGroupSync(sync_group_start, 1<<id, all_sync_bits, portMAX_DELAY);
-    	uint32_t init_time = get_reference_time();
+    	// uint32_t init_time = get_reference_time();
     	burn_cycles(AEC_DUMMY_BURN_TICKS);
         // rtos_printf("duration of thread %d %u @ %u\n", id, get_reference_time()-init_time, get_reference_time());
         xEventGroupSync(sync_group_end, 1<<id, all_sync_bits, portMAX_DELAY);
@@ -185,13 +185,10 @@ static void stage0(frame_data_t *frame_data)
         const control_resid_t resources[] = {'A', 'E', 'C'};
         control_ret_t dc_ret;
 
-        rtos_printf("Will register the AEC servicer now with %d device controllers\n",
-                    APP_CONTROL_TRANSPORT_COUNT);
+        rtos_printf("Will register the AEC servicer now with\n");
 
-        dc_ret = device_control_servicer_register(&servicer_ctx,
-                                                  device_control_ctxs,
-                                                  APP_CONTROL_TRANSPORT_COUNT,
-                                                  resources, sizeof(resources));
+        dc_ret = app_control_servicer_register(&servicer_ctx,
+                                              resources, sizeof(resources));
         xassert(dc_ret == CONTROL_SUCCESS);
         rtos_printf("AEC servicer registered\n");
 
@@ -251,14 +248,17 @@ void vfe_pipeline_init(
 {
     const int stage_count = 3;
 
-    const audio_pipeline_stage_t stages[stage_count] = {(audio_pipeline_stage_t) stage0,
-                                                        (audio_pipeline_stage_t) stage1,
-                                                        (audio_pipeline_stage_t) stage2, };
+    const audio_pipeline_stage_t stages[] = {
+        (audio_pipeline_stage_t) stage0,
+        (audio_pipeline_stage_t) stage1,
+        (audio_pipeline_stage_t) stage2,
+    };
 
-    const configSTACK_DEPTH_TYPE stage_stack_sizes[stage_count] = {
-    configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage0),
-    configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage1),
-    configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage2), };
+    const configSTACK_DEPTH_TYPE stage_stack_sizes[] = {
+        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage0),
+        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage1),
+        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage2),
+    };
 
     init_dsp_stage_0(&dsp_stage_0_state);
     init_dsp_stage_1(&dsp_stage_1_state);

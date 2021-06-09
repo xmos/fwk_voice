@@ -12,6 +12,8 @@
 #include "app_control.h"
 #include "platform/driver_instances.h"
 
+#define APP_CONTROL_TRANSPORT_COUNT ((appconfI2C_CTRL_ENABLED ? 1 : 0) + (appconfUSB_ENABLED ? 1 : 0))
+
 #if ON_TILE(USB_TILE_NO)
 static device_control_t device_control_usb_ctx_s;
 #else
@@ -26,7 +28,7 @@ static device_control_client_t device_control_i2c_ctx_s;
 #endif
 device_control_t *device_control_i2c_ctx = (device_control_t *) &device_control_i2c_ctx_s;
 
-device_control_t *device_control_ctxs[APP_CONTROL_TRANSPORT_COUNT] = {
+static device_control_t *device_control_ctxs[APP_CONTROL_TRANSPORT_COUNT] = {
 #if appconfUSB_ENABLED
         (device_control_t *) &device_control_usb_ctx_s,
 #endif
@@ -49,6 +51,16 @@ usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t *driver_count)
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request)
 {
     return device_control_usb_xfer(rhport, stage, request);
+}
+
+control_ret_t app_control_servicer_register(device_control_servicer_t *ctx,
+                                            const control_resid_t resources[],
+                                            size_t num_resources)
+{
+    return device_control_servicer_register(ctx,
+                                            device_control_ctxs,
+                                            APP_CONTROL_TRANSPORT_COUNT,
+                                            resources, num_resources);
 }
 
 int app_control_init(void)
