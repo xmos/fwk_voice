@@ -23,7 +23,7 @@
 #endif
 
 #ifndef appconfUSB_ENABLED
-#define appconfUSB_ENABLED         0
+#define appconfUSB_ENABLED         1
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
@@ -31,7 +31,7 @@
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
-#define appconfSPI_OUTPUT_ENABLED  1
+#define appconfSPI_OUTPUT_ENABLED  0
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -50,6 +50,10 @@
 #define appconfUSB_AUDIO_TESTING   1
 #ifndef appconfUSB_AUDIO_MODE
 #define appconfUSB_AUDIO_MODE      appconfUSB_AUDIO_TESTING
+#endif
+
+#if appconfUSB_ENABLED && appconfSPI_OUTPUT_ENABLED
+#error Cannot use both USB and SPI interfaces
 #endif
 
 /* Application control Config */
