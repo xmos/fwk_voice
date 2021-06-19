@@ -23,11 +23,15 @@
 #endif
 
 #ifndef appconfUSB_ENABLED
-#define appconfUSB_ENABLED         1
+#define appconfUSB_ENABLED         0
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
 #define appconfI2C_CTRL_ENABLED    1
+#endif
+
+#ifndef appconfSPI_OUTPUT_ENABLED
+#define appconfSPI_OUTPUT_ENABLED  1
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -56,8 +60,11 @@
 #define appconfWW_FRAMES_PER_INFERENCE          (160)
 
 /* I/O and interrupt cores for Tile 0 */
+/* Note, USB and SPI are mutually exclusive */
 #define appconfXUD_IO_CORE                      1 /* Must be kept off core 0 with the RTOS tick ISR */
+#define appconfSPI_IO_CORE                      1 /* Must be kept off core 0 with the RTOS tick ISR */
 #define appconfUSB_INTERRUPT_CORE               2 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
+#define appconfSPI_INTERRUPT_CORE               2 /* Must be kept off I/O cores. */
 
 /* I/O and interrupt cores for Tile 1 */
 #define appconfPDM_MIC_IO_CORE                  1 /* Must be kept off core 0 with the RTOS tick ISR */
@@ -76,6 +83,7 @@
 #define appconfDEVICE_CONTROL_I2C_CLIENT_PRIORITY (configMAX_PRIORITIES/2 + 2)
 #define appconfUSB_MGR_TASK_PRIORITY              (configMAX_PRIORITIES/2 + 1)
 #define appconfUSB_AUDIO_TASK_PRIORITY            (configMAX_PRIORITIES/2 + 1)
+#define appconfSPI_TASK_PRIORITY                  (configMAX_PRIORITIES/2 + 1)
 #define appconfQSPI_FLASH_TASK_PRIORITY           (configMAX_PRIORITIES/2 + 0)
 #define appconfWW_TASK_PRIORITY                   (configMAX_PRIORITIES/2 - 1)
 
