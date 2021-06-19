@@ -13,6 +13,7 @@
 #define XUD_CLKBLK_1  XS1_CLKBLK_2 /* Reserved for lib_xud */
 #define XUD_CLKBLK_2  XS1_CLKBLK_3 /* Reserved for lib_xud */
 #define MCLK_CLKBLK   XS1_CLKBLK_4
+#define SPI_CLKBLK    XS1_CLKBLK_5
 
 /** TILE 1 Clock Blocks */
 #define PDM_CLKBLK_1  XS1_CLKBLK_1
@@ -127,6 +128,20 @@ static void i2c_init(void)
 #endif
 }
 
+static void spi_init(void)
+{
+#if appconfSPI_OUTPUT_ENABLED && ON_TILE(SPI_OUTPUT_TILE_NO)
+    rtos_spi_slave_init(spi_slave_ctx,
+                        (1 << appconfSPI_IO_CORE),
+                        SPI_CLKBLK,
+                        SPI_MODE_1,
+                        WIFI_CLK,
+                        WIFI_MOSI,
+                        WIFI_MISO,
+                        WIFI_WIRQ);
+#endif
+}
+
 static void mics_init(void)
 {
 #if ON_TILE(AUDIO_HW_TILE_NO)
@@ -196,6 +211,7 @@ void platform_init(chanend_t other_tile_c)
     gpio_init();
     flash_init();
     i2c_init();
+    spi_init();
     mics_init();
     i2s_init();
     usb_init();

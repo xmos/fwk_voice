@@ -49,6 +49,63 @@ static void i2c_start(void)
 #endif
 }
 
+
+RTOS_SPI_SLAVE_CALLBACK_ATTR
+void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
+{
+    static uint8_t tx_buf[32];
+    static uint8_t rx_buf[32];
+
+    rtos_printf("SPI SLAVE STARTING!\n");
+
+    for (int i = 0; i < 32; i++) {
+        tx_buf[i] = i;
+    }
+
+    spi_slave_xfer_prepare(ctx, rx_buf, sizeof(rx_buf), tx_buf, sizeof(tx_buf));
+}
+
+RTOS_SPI_SLAVE_CALLBACK_ATTR
+void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data)
+{
+    uint8_t *tx_buf;
+    uint8_t *rx_buf;
+    size_t rx_len;
+    size_t tx_len;
+
+    if (spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0) == 0) {
+        rtos_printf("SPI slave xfer complete\n");
+        rtos_printf("%d bytes sent, %d bytes received\n", tx_len, rx_len);
+        rtos_printf("TX: ");
+        for (int i = 0; i < 32; i++) {
+            rtos_printf("%02x ", tx_buf[i]);
+        }
+        rtos_printf("\n");
+        rtos_printf("RX: ");
+        for (int i = 0; i < 32; i++) {
+            rtos_printf("%02x ", rx_buf[i]);
+        }
+        rtos_printf("\n");
+    }
+}
+
+static void spi_start(void)
+{
+#if appconfSPI_OUTPUT_ENABLED && ON_TILE(SPI_OUTPUT_TILE_NO)
+
+    const rtos_gpio_port_id_t wifi_rst_port = rtos_gpio_port(WIFI_WUP_RST_N);
+    rtos_gpio_port_enable(gpio_ctx_t0, wifi_rst_port);
+    rtos_gpio_port_out(gpio_ctx_t0, wifi_rst_port, 0x00);
+
+    rtos_spi_slave_start(spi_slave_ctx,
+                         NULL,
+                         (rtos_spi_slave_start_cb_t) spi_slave_start_cb,
+                         (rtos_spi_slave_xfer_done_cb_t) spi_slave_xfer_done_cb,
+                         appconfSPI_INTERRUPT_CORE,
+                         appconfSPI_TASK_PRIORITY);
+#endif
+}
+
 static void audio_codec_start(void)
 {
 #if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
@@ -102,6 +159,7 @@ void platform_start(void)
     gpio_start();
     flash_start();
     i2c_start();
+    spi_start();
     audio_codec_start();
     mics_start();
     i2s_start();

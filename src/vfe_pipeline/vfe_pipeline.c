@@ -185,7 +185,7 @@ static void stage0(frame_data_t *frame_data)
         const control_resid_t resources[] = {'A', 'E', 'C'};
         control_ret_t dc_ret;
 
-        rtos_printf("Will register the AEC servicer now with\n");
+        rtos_printf("Will register the AEC servicer now\n");
 
         dc_ret = app_control_servicer_register(&servicer_ctx,
                                               resources, sizeof(resources));
