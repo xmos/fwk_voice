@@ -16,6 +16,7 @@
 #define appconfGPIO_T1_RPC_PORT        2
 #define appconfDEVICE_CONTROL_USB_PORT 3
 #define appconfDEVICE_CONTROL_I2C_PORT 4
+#define appconfSPI_AUDIO_PORT          5
 
 
 #ifndef appconfI2S_ENABLED
@@ -23,7 +24,7 @@
 #endif
 
 #ifndef appconfUSB_ENABLED
-#define appconfUSB_ENABLED         1
+#define appconfUSB_ENABLED         0
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
@@ -31,7 +32,7 @@
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
-#define appconfSPI_OUTPUT_ENABLED  0
+#define appconfSPI_OUTPUT_ENABLED  1
 #endif
 
 #define appconfI2S_MODE_MASTER     0

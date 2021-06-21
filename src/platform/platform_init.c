@@ -134,11 +134,11 @@ static void spi_init(void)
     rtos_spi_slave_init(spi_slave_ctx,
                         (1 << appconfSPI_IO_CORE),
                         SPI_CLKBLK,
-                        SPI_MODE_1,
+                        SPI_MODE_3,
                         WIFI_CLK,
                         WIFI_MOSI,
                         WIFI_MISO,
-                        WIFI_WIRQ);
+                        XS1_PORT_1A);
 #endif
 }
 

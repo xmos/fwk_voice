@@ -49,7 +49,7 @@ static void i2c_start(void)
 #endif
 }
 
-
+#if 0
 RTOS_SPI_SLAVE_CALLBACK_ATTR
 void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
 {
@@ -59,7 +59,7 @@ void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
     rtos_printf("SPI SLAVE STARTING!\n");
 
     for (int i = 0; i < 32; i++) {
-        tx_buf[i] = i;
+        tx_buf[i] = i | 0x80;
     }
 
     spi_slave_xfer_prepare(ctx, rx_buf, sizeof(rx_buf), tx_buf, sizeof(tx_buf));
@@ -88,6 +88,10 @@ void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data)
         rtos_printf("\n");
     }
 }
+#endif
+
+void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data);
+void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data);
 
 static void spi_start(void)
 {
@@ -96,6 +100,10 @@ static void spi_start(void)
     const rtos_gpio_port_id_t wifi_rst_port = rtos_gpio_port(WIFI_WUP_RST_N);
     rtos_gpio_port_enable(gpio_ctx_t0, wifi_rst_port);
     rtos_gpio_port_out(gpio_ctx_t0, wifi_rst_port, 0x00);
+
+    const rtos_gpio_port_id_t wifi_cs_port = rtos_gpio_port(WIFI_CS_N);
+    rtos_gpio_port_enable(gpio_ctx_t0, wifi_cs_port);
+    rtos_gpio_port_out(gpio_ctx_t0, wifi_cs_port, 0x0F);
 
     rtos_spi_slave_start(spi_slave_ctx,
                          NULL,
