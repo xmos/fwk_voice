@@ -94,6 +94,8 @@ set(APP_SOURCES
     "src/usb/usb_descriptors.c"
     "src/usb/adaptive_rate_adjust.c"
     
+    "src/spi/spi_interface.c"
+    
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
