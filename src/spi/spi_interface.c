@@ -8,27 +8,31 @@
 #include "platform/driver_instances.h"
 
 static StreamBufferHandle_t samples_to_host_stream_buf;
+static SemaphoreHandle_t mutex;
+static rtos_gpio_port_id_t spi_irq_port;
 
 typedef int16_t samp_t;
+
+#define SPI_CHANNELS 1
 
 void spi_audio_send(rtos_intertile_t *intertile_ctx,
                     size_t frame_count,
                     int32_t (*processed_audio_frame)[2])
 {
-    samp_t spi_audio_in_frame[appconfAUDIO_PIPELINE_FRAME_ADVANCE][2];
+    samp_t spi_audio_in_frame[appconfAUDIO_PIPELINE_FRAME_ADVANCE][SPI_CHANNELS];
 
 
-    const int src_32_shift = 16;
+    const int src_32_shift = 32 - 8 * sizeof(samp_t);
+    const int src_32_offset = sizeof(samp_t) == 1 ? 128 : 0;
 
     xassert(frame_count == appconfAUDIO_PIPELINE_FRAME_ADVANCE);
 
     for (int i = 0; i < appconfAUDIO_PIPELINE_FRAME_ADVANCE; i++) {
-        spi_audio_in_frame[i][0] = processed_audio_frame[i][0] >> src_32_shift;
-        spi_audio_in_frame[i][1] = processed_audio_frame[i][1] >> src_32_shift;
+        spi_audio_in_frame[i][0] = src_32_offset + (processed_audio_frame[i][0] >> src_32_shift);
+#if SPI_CHANNELS > 1
+        spi_audio_in_frame[i][1] = src_32_offset + (processed_audio_frame[i][1] >> src_32_shift);
+#endif
     }
-
-//    rtos_printf("%02x %02x %02x %02x\n", spi_audio_in_frame[0][0], spi_audio_in_frame[0][1],
-//                spi_audio_in_frame[1][0], spi_audio_in_frame[1][1]);
 
     rtos_intertile_tx(intertile_ctx,
                       appconfSPI_AUDIO_PORT,
@@ -39,7 +43,7 @@ void spi_audio_send(rtos_intertile_t *intertile_ctx,
 static void spi_audio_in_task(void *arg)
 {
     for (;;) {
-        samp_t spi_audio_in_frame[appconfAUDIO_PIPELINE_FRAME_ADVANCE][2];
+        samp_t spi_audio_in_frame[appconfAUDIO_PIPELINE_FRAME_ADVANCE][SPI_CHANNELS];
         size_t frame_length;
 
         frame_length = rtos_intertile_rx_len(
@@ -54,20 +58,28 @@ static void spi_audio_in_task(void *arg)
                 spi_audio_in_frame,
                 frame_length);
 
-        if (xStreamBufferSend(samples_to_host_stream_buf, spi_audio_in_frame, sizeof(spi_audio_in_frame), 0) != sizeof(spi_audio_in_frame)) {
-            //rtos_printf("lost VFE output samples\n");
+        xSemaphoreTake(mutex, portMAX_DELAY);
+        if (xStreamBufferSend(samples_to_host_stream_buf, spi_audio_in_frame, sizeof(spi_audio_in_frame), 0) == sizeof(spi_audio_in_frame)) {
+            rtos_gpio_port_out(gpio_ctx_t0, spi_irq_port, 1);
+        } else {
+//            rtos_printf("lost VFE output samples\n");
         }
+
+        xSemaphoreGive(mutex);
     }
 }
 
 RTOS_SPI_SLAVE_CALLBACK_ATTR
 void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
 {
-    static samp_t tx_buf[appconfAUDIO_PIPELINE_FRAME_ADVANCE][2];
+    static samp_t tx_buf[appconfAUDIO_PIPELINE_FRAME_ADVANCE][SPI_CHANNELS];
 
-    rtos_printf("SPI SLAVE STARTING!\n");
+    mutex =  xSemaphoreCreateMutex();
+    samples_to_host_stream_buf = xStreamBufferCreate(16 * appconfAUDIO_PIPELINE_FRAME_ADVANCE * SPI_CHANNELS * sizeof(samp_t), 0);
 
-    samples_to_host_stream_buf = xStreamBufferCreate(3 * appconfAUDIO_PIPELINE_FRAME_ADVANCE * 2 * sizeof(int16_t), 0);
+    spi_irq_port = rtos_gpio_port(XS1_PORT_1D);
+    rtos_gpio_port_enable(gpio_ctx_t0, spi_irq_port);
+    rtos_gpio_port_out(gpio_ctx_t0, spi_irq_port, 0);
 
     xTaskCreate((TaskFunction_t) spi_audio_in_task, "spi_audio_in_task", portTASK_STACK_DEPTH(spi_audio_in_task), NULL, 16, NULL);
 
@@ -84,20 +96,24 @@ void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data)
 
     if (spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0) == 0) {
 
-        xStreamBufferReceive(samples_to_host_stream_buf, tx_buf, tx_len, 0);
-//        tx_buf[0] = 0x42; tx_buf[1] = 0x99;
+        xSemaphoreTake(mutex, portMAX_DELAY);
 
-        rtos_printf("SPI slave xfer complete\n");
-        rtos_printf("%d bytes sent, %d bytes received\n", tx_len, rx_len);
-//        rtos_printf("TX: ");
-//        for (int i = 0; i < 32; i++) {
-//            rtos_printf("%02x ", tx_buf[i]);
-//        }
-//        rtos_printf("\n");
-//        rtos_printf("RX: ");
-//        for (int i = 0; i < 32; i++) {
-//            rtos_printf("%02x ", rx_buf[i]);
-//        }
-//        rtos_printf("\n");
+        if (xStreamBufferIsFull(samples_to_host_stream_buf)) {
+            xStreamBufferReset(samples_to_host_stream_buf);
+        }
+
+        if (xStreamBufferReceive(samples_to_host_stream_buf, tx_buf, tx_len, 0) != tx_len) {
+            rtos_printf("SPI audio buffer empty, will send zeros\n");
+            memset(tx_buf, 0, tx_len);
+        }
+
+        if (xStreamBufferBytesAvailable(samples_to_host_stream_buf) > 0) {
+            rtos_gpio_port_out(gpio_ctx_t0, spi_irq_port, 1);
+        } else {
+            rtos_printf("SPI audio buffer drained\n");
+            rtos_gpio_port_out(gpio_ctx_t0, spi_irq_port, 0);
+        }
+
+        xSemaphoreGive(mutex);
     }
 }

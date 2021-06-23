@@ -124,11 +124,6 @@ int vfe_pipeline_output(void *output_app_data,
                         size_t frame_count,
                         int32_t (*processed_audio_frame)[2]);
 
-//    proc_audio_frame[0][0] = 0xDE0000;
-//    proc_audio_frame[0][1] = 0xAD0000;
-//    proc_audio_frame[1][0] = 0xBE0000;
-//    proc_audio_frame[1][1] = 0xEF0000;
-
     spi_audio_send(intertile_ctx,
                    frame_count,
                    proc_audio_frame);
