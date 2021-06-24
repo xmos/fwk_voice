@@ -81,21 +81,21 @@ set(APP_COMPILER_FLAGS
 
 set(APP_SOURCES
     "src/main.c"
-    
+
     "src/platform/driver_instances.c"
     "src/platform/platform_init.c"
     "src/platform/platform_start.c"
     "src/platform/app_pll_ctrl.c"
     "src/platform/aic3204.c"
-    
+
     "src/app_control/app_control.c"
-    
+
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
     "src/usb/adaptive_rate_adjust.c"
-    
+
     "src/spi/spi_interface.c"
-    
+
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
@@ -115,6 +115,7 @@ add_compile_definitions(
     PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=700
     WW=0
+    ENABLE_RTOS_XSCOPE_TRACE=0
 
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
