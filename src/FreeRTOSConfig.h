@@ -61,7 +61,11 @@ your application. */
 
 /* Run time and task stats gathering related definitions. */
 #define configGENERATE_RUN_TIME_STATS           0
+#if ENABLE_RTOS_XSCOPE_TRACE
 #define configUSE_TRACE_FACILITY                1
+#else
+#define configUSE_TRACE_FACILITY                0
+#endif
 #define configUSE_STATS_FORMATTING_FUNCTIONS    2 /* Setting to 2 does not include <stdio.h> in tasks.c */
 
 /* Co-routine related definitions. */
@@ -117,6 +121,8 @@ your application. */
 #define INCLUDE_xQueueGetMutexHolder            1
 
 /* A header file that defines trace macro can be included here. */
+#if ENABLE_RTOS_XSCOPE_TRACE
 #include "xcore_trace.h"
+#endif
 
 #endif /* FREERTOS_CONFIG_H */
