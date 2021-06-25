@@ -8,9 +8,6 @@
 #include <stdint.h>
 #include "app_conf.h"
 
-/*
- * TODO: just remove these two and replace all instances with the appconf version.
- */
 #define VFE_PIPELINE_AUDIO_SAMPLE_RATE  appconfAUDIO_PIPELINE_SAMPLE_RATE
 #define VFE_PIPELINE_AUDIO_FRAME_LENGTH appconfAUDIO_PIPELINE_FRAME_ADVANCE
 
