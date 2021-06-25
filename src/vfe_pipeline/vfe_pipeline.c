@@ -255,9 +255,9 @@ void vfe_pipeline_init(
     };
 
     const configSTACK_DEPTH_TYPE stage_stack_sizes[] = {
-        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage0),
+        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage0) + RTOS_THREAD_STACK_SIZE(vfe_pipeline_input_i),
         configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage1),
-        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage2),
+        configMINIMAL_STACK_SIZE + RTOS_THREAD_STACK_SIZE(stage2) + RTOS_THREAD_STACK_SIZE(vfe_pipeline_output_i),
     };
 
     init_dsp_stage_0(&dsp_stage_0_state);

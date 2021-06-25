@@ -14,6 +14,7 @@
 /* Library headers */
 #include "rtos_printf.h"
 #include "device_control.h"
+#include "src.h"
 
 /* App headers */
 #include "app_conf.h"
@@ -105,10 +106,31 @@ int vfe_pipeline_output(void *output_app_data,
     (void) output_app_data;
 
 #if appconfI2S_ENABLED
-    rtos_i2s_tx(i2s_ctx,
-                (int32_t*) proc_audio_frame,
-                frame_count,
-                portMAX_DELAY);
+
+    int const rate_multiplier = appconfI2S_AUDIO_SAMPLE_RATE / appconfAUDIO_PIPELINE_SAMPLE_RATE;
+
+    if (rate_multiplier == 3) {
+        static int32_t src_data[2][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
+        static int32_t i2s_audio_frames[VFE_FRAME_ADVANCE * 3][2];
+
+        for (int i = 0; i < VFE_FRAME_ADVANCE; i++) {
+            for (int j = 0; j < 2; j++) {
+                i2s_audio_frames[3*i + 0][j] = src_us3_voice_input_sample(src_data[j], src_ff3v_fir_coefs[2], proc_audio_frame[i][j]);
+                i2s_audio_frames[3*i + 1][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[1]);
+                i2s_audio_frames[3*i + 2][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[0]);
+            }
+        }
+
+        rtos_i2s_tx(i2s_ctx,
+                    (int32_t *) i2s_audio_frames,
+                    frame_count * rate_multiplier,
+                    portMAX_DELAY);
+    } else {
+        rtos_i2s_tx(i2s_ctx,
+                    (int32_t *) proc_audio_frame,
+                    frame_count,
+                    portMAX_DELAY);
+    }
 #endif
 
 #if appconfUSB_ENABLED

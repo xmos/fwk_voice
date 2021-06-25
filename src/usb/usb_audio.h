@@ -1,9 +1,5 @@
-/*
- * usb_audio.h
- *
- *  Created on: Feb 23, 2021
- *      Author: mbruno
- */
+// Copyright (c) 2021 XMOS LIMITED. This Software is subject to the terms of the
+// XMOS Public License: Version 1
 
 #ifndef USB_AUDIO_H_
 #define USB_AUDIO_H_
