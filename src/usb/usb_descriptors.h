@@ -1,9 +1,5 @@
-/*
- * usb_descriptors.h
- *
- *  Created on: May 12, 2021
- *      Author: mbruno
- */
+// Copyright (c) 2021 XMOS LIMITED. This Software is subject to the terms of the
+// XMOS Public License: Version 1
 
 #ifndef USB_DESCRIPTORS_H_
 #define USB_DESCRIPTORS_H_

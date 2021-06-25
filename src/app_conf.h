@@ -28,8 +28,8 @@
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE
-//#define appconfUSB_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
-#define appconfUSB_AUDIO_SAMPLE_RATE 48000
+#define appconfUSB_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
+//#define appconfUSB_AUDIO_SAMPLE_RATE 48000
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
@@ -38,6 +38,11 @@
 
 #ifndef appconfSPI_OUTPUT_ENABLED
 #define appconfSPI_OUTPUT_ENABLED  0
+#endif
+
+#ifndef appconfI2S_AUDIO_SAMPLE_RATE
+//#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
+#define appconfI2S_AUDIO_SAMPLE_RATE 48000
 #endif
 
 #define appconfI2S_MODE_MASTER     0

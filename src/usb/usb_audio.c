@@ -1,4 +1,7 @@
 /* 
+ * Copyright (c) 2021 XMOS LIMITED. This Software is subject to the terms of the
+ * XMOS Public License: Version 1
+ *
  * The MIT License (MIT)
  *
  * Copyright (c) 2020 Reinhard Panhuber
@@ -564,15 +567,15 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
   if (xStreamBufferSpacesAvailable(samples_from_host_stream_buf) >= stream_buffer_send_byte_count) {
 
       if (RATE_MULTIPLIER == 3) {
-          static int32_t data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX][SRC_FF3V_FIR_NUM_PHASES][SRC_FF3V_FIR_TAPS_PER_PHASE];
+          static int32_t src_data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX][SRC_FF3V_FIR_NUM_PHASES][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
           samp_t stream_buffer_audio_frames[AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
 
           for (int i = 0; i < AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER; i++) {
               for (int j = 0; j < CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX; j++) {
                   int64_t sum = 0;
-                  sum = src_ds3_voice_add_sample(sum, data[j][0], src_ff3v_fir_coefs[0], usb_audio_frames[3*i + 0][j]);
-                  sum = src_ds3_voice_add_sample(sum, data[j][1], src_ff3v_fir_coefs[1], usb_audio_frames[3*i + 1][j]);
-                  stream_buffer_audio_frames[i][j] = src_ds3_voice_add_final_sample(sum, data[j][2], src_ff3v_fir_coefs[2], usb_audio_frames[3*i + 2][j]);
+                  sum = src_ds3_voice_add_sample(sum, src_data[j][0], src_ff3v_fir_coefs[0], usb_audio_frames[3*i + 0][j]);
+                  sum = src_ds3_voice_add_sample(sum, src_data[j][1], src_ff3v_fir_coefs[1], usb_audio_frames[3*i + 1][j]);
+                  stream_buffer_audio_frames[i][j] = src_ds3_voice_add_final_sample(sum, src_data[j][2], src_ff3v_fir_coefs[2], usb_audio_frames[3*i + 2][j]);
               }
           }
           xStreamBufferSend(samples_from_host_stream_buf, stream_buffer_audio_frames, stream_buffer_send_byte_count, 0);
@@ -650,7 +653,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         xStreamBufferReceive(samples_to_host_stream_buf, stream_buffer_audio_frames, sizeof(stream_buffer_audio_frames), 0);
 
         if (RATE_MULTIPLIER == 3) {
-            static int32_t src_data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX][SRC_FF3V_FIR_TAPS_PER_PHASE];
+            static int32_t src_data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
             samp_t usb_audio_frames[AUDIO_FRAMES_PER_USB_FRAME][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
 
             for (int i = 0; i < AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER; i++) {
