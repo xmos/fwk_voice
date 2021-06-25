@@ -61,7 +61,7 @@ static TaskHandle_t usb_audio_out_task_handle;
 
 #define RATE_MULTIPLIER (appconfUSB_AUDIO_SAMPLE_RATE / appconfAUDIO_PIPELINE_SAMPLE_RATE)
 
-#define USB_TRANSFERS_PER_VFE_FRAME ((RATE_MULTIPLIER * appconfAUDIO_PIPELINE_FRAME_ADVANCE + SAMPLES_PER_FRAME_NOMINAL - 1) / SAMPLES_PER_FRAME_NOMINAL)
+#define USB_FRAMES_PER_VFE_FRAME (appconfAUDIO_PIPELINE_FRAME_ADVANCE / (appconfAUDIO_PIPELINE_SAMPLE_RATE / 1000))
 
 //--------------------------------------------------------------------+
 // Device callbacks
@@ -547,49 +547,49 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 {
   (void)rhport;
 
-  uint8_t buf[BYTES_PER_RX_FRAME_NOMINAL];
-  size_t vfe_byte_count;
+  samp_t usb_audio_frames[AUDIO_FRAMES_PER_USB_FRAME][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
 
-  xassert(n_bytes_received == BYTES_PER_RX_FRAME_NOMINAL);
+  const size_t stream_buffer_send_byte_count = sizeof(usb_audio_frames) / RATE_MULTIPLIER;
 
-  vfe_byte_count = BYTES_PER_RX_FRAME_NOMINAL / RATE_MULTIPLIER;
+  if (n_bytes_received != sizeof(usb_audio_frames)) {
+      return false;
+  }
 
   if (!spkr_interface_open) {
       spkr_interface_open = true;
   }
 
-  tud_audio_read(buf, n_bytes_received);
+  tud_audio_read(usb_audio_frames, n_bytes_received);
 
-  if (xStreamBufferSpacesAvailable(samples_from_host_stream_buf) >= vfe_byte_count) {
+  if (xStreamBufferSpacesAvailable(samples_from_host_stream_buf) >= stream_buffer_send_byte_count) {
 
       if (RATE_MULTIPLIER == 3) {
           static int32_t data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX][SRC_FF3V_FIR_NUM_PHASES][SRC_FF3V_FIR_TAPS_PER_PHASE];
-          samp_t (*usb_samples)[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX] = (void *) buf;
-          samp_t vfe_samples[SAMPLES_PER_FRAME_NOMINAL][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
+          samp_t stream_buffer_audio_frames[AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
 
-          for (int i = 0; i < SAMPLES_PER_FRAME_NOMINAL / RATE_MULTIPLIER; i++) {
+          for (int i = 0; i < AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER; i++) {
               for (int j = 0; j < CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX; j++) {
                   int64_t sum = 0;
-                  sum = src_ds3_voice_add_sample(sum, data[j][0], src_ff3v_fir_coefs[0], usb_samples[3*i + 0][j]);
-                  sum = src_ds3_voice_add_sample(sum, data[j][1], src_ff3v_fir_coefs[1], usb_samples[3*i + 1][j]);
-                  vfe_samples[i][j] = src_ds3_voice_add_final_sample(sum, data[j][2], src_ff3v_fir_coefs[2], usb_samples[3*i + 2][j]);
+                  sum = src_ds3_voice_add_sample(sum, data[j][0], src_ff3v_fir_coefs[0], usb_audio_frames[3*i + 0][j]);
+                  sum = src_ds3_voice_add_sample(sum, data[j][1], src_ff3v_fir_coefs[1], usb_audio_frames[3*i + 1][j]);
+                  stream_buffer_audio_frames[i][j] = src_ds3_voice_add_final_sample(sum, data[j][2], src_ff3v_fir_coefs[2], usb_audio_frames[3*i + 2][j]);
               }
           }
-          xStreamBufferSend(samples_from_host_stream_buf, vfe_samples, vfe_byte_count, 0);
+          xStreamBufferSend(samples_from_host_stream_buf, stream_buffer_audio_frames, stream_buffer_send_byte_count, 0);
       } else {
-          xStreamBufferSend(samples_from_host_stream_buf, buf, vfe_byte_count, 0);
+          xStreamBufferSend(samples_from_host_stream_buf, usb_audio_frames, stream_buffer_send_byte_count, 0);
       }
 
       /*
        * Wake up the task waiting on this buffer whenever there is one more
-       * millisecond worth of data (BYTES_PER_RX_FRAME_NOMINAL) than the
-       * amount of data required to be input into the pipeline.
+       * USB frame worth of audio data than the amount of data required to
+       * be input into the pipeline.
        *
        * This way the task will not wake up each time this task puts another
-       * BYTES_PER_RX_FRAME_NOMINAL bytes into the stream buffer, but rather
-       * once every pipeline frame time.
+       * milliseconds of audio into the stream buffer, but rather once every
+       * pipeline frame time.
        */
-      const size_t buffer_notify_level = (BYTES_PER_RX_FRAME_NOMINAL / RATE_MULTIPLIER) * (1 + USB_TRANSFERS_PER_VFE_FRAME);
+      const size_t buffer_notify_level = stream_buffer_send_byte_count * (1 + USB_FRAMES_PER_VFE_FRAME);
 
       if (xStreamBufferBytesAvailable(samples_from_host_stream_buf) == buffer_notify_level) {
           xTaskNotifyGive(usb_audio_out_task_handle);
@@ -608,7 +608,7 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
                                    uint8_t cur_alt_setting)
 {
     static int ready;
-    uint8_t buf[BYTES_PER_TX_FRAME_NOMINAL / RATE_MULTIPLIER];
+    samp_t stream_buffer_audio_frames[AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
     size_t bytes_available;
 
     (void) rhport;
@@ -637,8 +637,8 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
     }
 
     bytes_available = xStreamBufferBytesAvailable(samples_to_host_stream_buf);
-    if (bytes_available >= (2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE) * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
-        /* wait until we have 2 frames in the buffer */
+    if (bytes_available >= 2 * sizeof(samp_t) * appconfAUDIO_PIPELINE_FRAME_ADVANCE * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX) {
+        /* wait until we have 2 full audio pipeline output frames in the buffer */
         ready = 1;
     }
 
@@ -646,24 +646,23 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport,
         return true;
     }
 
-    if (bytes_available >= sizeof(buf)) {
-        xStreamBufferReceive(samples_to_host_stream_buf, buf, sizeof(buf), 0);
+    if (bytes_available >= sizeof(stream_buffer_audio_frames)) {
+        xStreamBufferReceive(samples_to_host_stream_buf, stream_buffer_audio_frames, sizeof(stream_buffer_audio_frames), 0);
 
         if (RATE_MULTIPLIER == 3) {
             static int32_t src_data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX][SRC_FF3V_FIR_TAPS_PER_PHASE];
-            samp_t (*vfe_samples)[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX] = (void *) buf;
-            samp_t usb_samples[SAMPLES_PER_FRAME_NOMINAL][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
+            samp_t usb_audio_frames[AUDIO_FRAMES_PER_USB_FRAME][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX];
 
-            for (int i = 0; i < SAMPLES_PER_FRAME_NOMINAL / RATE_MULTIPLIER; i++) {
+            for (int i = 0; i < AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER; i++) {
                 for (int j = 0; j < CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX; j++) {
-                    usb_samples[3*i + 0][j] = src_us3_voice_input_sample(src_data[j], src_ff3v_fir_coefs[2], vfe_samples[i][j]);
-                    usb_samples[3*i + 1][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[1]);
-                    usb_samples[3*i + 2][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[0]);
+                    usb_audio_frames[3*i + 0][j] = src_us3_voice_input_sample(src_data[j], src_ff3v_fir_coefs[2], stream_buffer_audio_frames[i][j]);
+                    usb_audio_frames[3*i + 1][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[1]);
+                    usb_audio_frames[3*i + 2][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[0]);
                 }
             }
-            tud_audio_write(usb_samples, sizeof(usb_samples));
+            tud_audio_write(usb_audio_frames, sizeof(usb_audio_frames));
         } else {
-            tud_audio_write(buf, sizeof(buf));
+            tud_audio_write(stream_buffer_audio_frames, sizeof(stream_buffer_audio_frames));
         }
     } else {
         rtos_printf("Oops buffer is empty!\n");
@@ -755,7 +754,7 @@ void usb_audio_init(rtos_intertile_t *intertile_ctx,
      * Note: Given the way that the USB callback notifies usb_audio_out_task,
      * the size of this buffer MUST NOT be greater than 2 VFE frames.
      */
-    samples_from_host_stream_buf = xStreamBufferCreate(2 * USB_TRANSFERS_PER_VFE_FRAME * BYTES_PER_RX_FRAME_NOMINAL / RATE_MULTIPLIER,
+    samples_from_host_stream_buf = xStreamBufferCreate(2 * sizeof(samp_t) * appconfAUDIO_PIPELINE_FRAME_ADVANCE * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX,
                                             0);
 
     /*
@@ -763,7 +762,7 @@ void usb_audio_init(rtos_intertile_t *intertile_ctx,
      * in this buffer before starting to send to the host, so the size of
      * this buffer MUST be AT LEAST 2 VFE frames.
      */
-    samples_to_host_stream_buf = xStreamBufferCreate(2.5 * USB_TRANSFERS_PER_VFE_FRAME * BYTES_PER_TX_FRAME_NOMINAL / RATE_MULTIPLIER,
+    samples_to_host_stream_buf = xStreamBufferCreate(2.5 * sizeof(samp_t) * appconfAUDIO_PIPELINE_FRAME_ADVANCE * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX,
                                             0);
 
     xTaskCreate((TaskFunction_t) usb_audio_in_task, "usb_audio_in_task", portTASK_STACK_DEPTH(usb_audio_in_task), intertile_ctx, priority, NULL);
