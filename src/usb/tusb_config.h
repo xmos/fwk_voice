@@ -73,7 +73,7 @@ extern const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO];
 #define CFG_TUD_AUDIO_FUNC_1_N_AS_INT                       1
 #define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ                    64
 
-
+/* TODO make these configurable in app_conf? */
 #define CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX          2
 #define CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX          2
 
@@ -86,7 +86,7 @@ extern const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO];
 #endif
 
 // EP and buffer sizes
-#define SAMPLES_PER_FRAME_NOMINAL                   (VFE_PIPELINE_AUDIO_SAMPLE_RATE / 1000)
+#define SAMPLES_PER_FRAME_NOMINAL                   (appconfUSB_AUDIO_SAMPLE_RATE / 1000)
 
 
 #define CFG_TUD_AUDIO_ENABLE_EP_IN                  1
