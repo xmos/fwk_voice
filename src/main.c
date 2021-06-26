@@ -106,31 +106,10 @@ int vfe_pipeline_output(void *output_app_data,
     (void) output_app_data;
 
 #if appconfI2S_ENABLED
-
-    int const rate_multiplier = appconfI2S_AUDIO_SAMPLE_RATE / appconfAUDIO_PIPELINE_SAMPLE_RATE;
-
-    if (rate_multiplier == 3) {
-        static int32_t src_data[2][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
-        static int32_t i2s_audio_frames[VFE_FRAME_ADVANCE * 3][2];
-
-        for (int i = 0; i < VFE_FRAME_ADVANCE; i++) {
-            for (int j = 0; j < 2; j++) {
-                i2s_audio_frames[3*i + 0][j] = src_us3_voice_input_sample(src_data[j], src_ff3v_fir_coefs[2], proc_audio_frame[i][j]);
-                i2s_audio_frames[3*i + 1][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[1]);
-                i2s_audio_frames[3*i + 2][j] = src_us3_voice_get_next_sample(src_data[j], src_ff3v_fir_coefs[0]);
-            }
-        }
-
-        rtos_i2s_tx(i2s_ctx,
-                    (int32_t *) i2s_audio_frames,
-                    frame_count * rate_multiplier,
-                    portMAX_DELAY);
-    } else {
-        rtos_i2s_tx(i2s_ctx,
-                    (int32_t *) proc_audio_frame,
-                    frame_count,
-                    portMAX_DELAY);
-    }
+    rtos_i2s_tx(i2s_ctx,
+                (int32_t*) proc_audio_frame,
+                frame_count,
+                portMAX_DELAY);
 #endif
 
 #if appconfUSB_ENABLED
@@ -152,6 +131,55 @@ int vfe_pipeline_output(void *output_app_data,
 #endif
 
     return VFE_PIPELINE_FREE_FRAME;
+}
+
+RTOS_I2S_APP_SEND_FILTER_CALLBACK_ATTR
+size_t i2s_send_upsample_cb(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *send_buf, size_t samples_available)
+{
+    static int i;
+    static int32_t src_data[2][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned(8)));
+
+    xassert(i2s_frame_size == 2);
+
+    switch (i) {
+    case 0:
+        if (samples_available >= 2) {
+            i2s_frame[0] = src_us3_voice_input_sample(src_data[0], src_ff3v_fir_coefs[2], send_buf[0]);
+            i2s_frame[1] = src_us3_voice_input_sample(src_data[1], src_ff3v_fir_coefs[2], send_buf[1]);
+            i = 1;
+            return 2;
+        } else {
+            //rtos_printf("i2s tx underrun\n");
+            i2s_frame[0] = 0;
+            i2s_frame[1] = 0;
+            return 0;
+        }
+    case 1:
+        i2s_frame[0] = src_us3_voice_get_next_sample(src_data[0], src_ff3v_fir_coefs[1]);
+        i2s_frame[1] = src_us3_voice_get_next_sample(src_data[1], src_ff3v_fir_coefs[1]);
+        i = 2;
+        return 0;
+    case 2:
+        i2s_frame[0] = src_us3_voice_get_next_sample(src_data[0], src_ff3v_fir_coefs[0]);
+        i2s_frame[1] = src_us3_voice_get_next_sample(src_data[1], src_ff3v_fir_coefs[0]);
+        i = 0;
+        return 0;
+    default:
+        xassert(0);
+        return 0;
+    }
+}
+
+//RTOS_I2S_APP_RECEIVE_FILTER_CALLBACK_ATTR
+//void i2s_receive_upsample_cb(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *send_buf, size_t samples_available)
+//{
+//
+//}
+
+void i2s_rate_conversion_enable(void)
+{
+    rtos_i2s_send_filter_cb_set(i2s_ctx, i2s_send_upsample_cb, NULL);
+    //rtos_i2s_receive_filter_cb_set(i2s_ctx, i2s_send_downsample_cb, NULL);
 }
 
 void vApplicationMallocFailedHook(void)

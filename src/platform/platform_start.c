@@ -140,16 +140,22 @@ static void mics_start(void)
 #endif
 }
 
+void i2s_rate_conversion_enable(void);
+
 static void i2s_start(void)
 {
 #if appconfI2S_ENABLED && ON_TILE(AUDIO_HW_TILE_NO)
-    int const rate_multiplier = appconfI2S_AUDIO_SAMPLE_RATE / appconfAUDIO_PIPELINE_SAMPLE_RATE;
+
+    if (appconfI2S_AUDIO_SAMPLE_RATE == 3*appconfAUDIO_PIPELINE_SAMPLE_RATE) {
+        i2s_rate_conversion_enable();
+    }
+
     rtos_i2s_start(
             i2s_ctx,
             rtos_i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, appconfI2S_AUDIO_SAMPLE_RATE),
             I2S_MODE_I2S,
-            2.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE * rate_multiplier,
-            1.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE * rate_multiplier,
+            2.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE,
+            1.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE,
             appconfI2S_INTERRUPT_CORE);
 #endif
 }
