@@ -123,11 +123,15 @@ int vfe_pipeline_output(void *output_app_data,
 #if appconfSPI_OUTPUT_ENABLED
     void spi_audio_send(rtos_intertile_t *intertile_ctx,
                         size_t frame_count,
-                        int32_t (*processed_audio_frame)[2]);
+                        int32_t (*processed_audio_frame)[2],
+                        int32_t (*reference_audio_frame)[2],
+                        int32_t (*raw_mic_audio_frame)[2]);
 
     spi_audio_send(intertile_ctx,
                    frame_count,
-                   proc_audio_frame);
+                   proc_audio_frame,
+                   ref_audio_frame,
+                   mic_audio_frame);
 #endif
 
     return VFE_PIPELINE_FREE_FRAME;

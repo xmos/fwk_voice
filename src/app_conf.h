@@ -24,7 +24,7 @@
 #endif
 
 #ifndef appconfUSB_ENABLED
-#define appconfUSB_ENABLED         1
+#define appconfUSB_ENABLED         0
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE
@@ -37,7 +37,7 @@
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
-#define appconfSPI_OUTPUT_ENABLED  0
+#define appconfSPI_OUTPUT_ENABLED  1
 #endif
 
 #ifndef appconfI2S_AUDIO_SAMPLE_RATE
@@ -61,6 +61,12 @@
 #define appconfUSB_AUDIO_TESTING   1
 #ifndef appconfUSB_AUDIO_MODE
 #define appconfUSB_AUDIO_MODE      appconfUSB_AUDIO_TESTING
+#endif
+
+#define appconfSPI_AUDIO_RELEASE   0
+#define appconfSPI_AUDIO_TESTING   1
+#ifndef appconfSPI_AUDIO_MODE
+#define appconfSPI_AUDIO_MODE      appconfSPI_AUDIO_TESTING
 #endif
 
 #if appconfUSB_ENABLED && appconfSPI_OUTPUT_ENABLED
