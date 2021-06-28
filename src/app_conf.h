@@ -41,8 +41,8 @@
 #endif
 
 #ifndef appconfI2S_AUDIO_SAMPLE_RATE
-//#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
-#define appconfI2S_AUDIO_SAMPLE_RATE 48000
+#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
+//#define appconfI2S_AUDIO_SAMPLE_RATE 48000
 #endif
 
 #define appconfI2S_MODE_MASTER     0
