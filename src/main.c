@@ -106,10 +106,29 @@ int vfe_pipeline_output(void *output_app_data,
     (void) output_app_data;
 
 #if appconfI2S_ENABLED
+#if !appconfI2S_TDM_ENABLED
     rtos_i2s_tx(i2s_ctx,
                 (int32_t*) proc_audio_frame,
                 frame_count,
                 portMAX_DELAY);
+#else
+    for (int i = 0; i < frame_count; i++) {
+
+        int32_t tdm_output[6];
+
+        tdm_output[0] = mic_audio_frame[i][0] | 0x1;
+        tdm_output[1] = mic_audio_frame[i][1] | 0x1;
+        tdm_output[2] = ref_audio_frame[i][0] & ~0x1;
+        tdm_output[3] = ref_audio_frame[i][1] & ~0x1;
+        tdm_output[4] = proc_audio_frame[i][0] & ~0x1;
+        tdm_output[5] = proc_audio_frame[i][1] & ~0x1;
+
+        rtos_i2s_tx(i2s_ctx,
+                    tdm_output,
+                    appconfI2S_AUDIO_SAMPLE_RATE / appconfAUDIO_PIPELINE_SAMPLE_RATE,
+                    portMAX_DELAY);
+    }
+#endif
 #endif
 
 #if appconfUSB_ENABLED
@@ -212,7 +231,9 @@ size_t i2s_send_downsample_cb(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_fram
 
 void i2s_rate_conversion_enable(void)
 {
+#if !appconfI2S_TDM_ENABLED
     rtos_i2s_send_filter_cb_set(i2s_ctx, i2s_send_upsample_cb, NULL);
+#endif
     rtos_i2s_receive_filter_cb_set(i2s_ctx, i2s_send_downsample_cb, NULL);
 }
 
