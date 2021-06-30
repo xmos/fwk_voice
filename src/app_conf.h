@@ -24,7 +24,7 @@
 #endif
 
 #ifndef appconfUSB_ENABLED
-#define appconfUSB_ENABLED         0
+#define appconfUSB_ENABLED         1
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE
@@ -37,12 +37,21 @@
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
-#define appconfSPI_OUTPUT_ENABLED  1
+#define appconfSPI_OUTPUT_ENABLED  0
 #endif
 
 #ifndef appconfI2S_AUDIO_SAMPLE_RATE
-#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
-//#define appconfI2S_AUDIO_SAMPLE_RATE 48000
+//#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
+#define appconfI2S_AUDIO_SAMPLE_RATE 48000
+#endif
+
+/*
+ * This option sends all 6 16 KHz channels (two channels of processed audio,
+ * stereo reference audio, and stereo microphone audio) out over a single
+ * 48 KHz I2S line.
+ */
+#ifndef appconfI2S_TDM_ENABLED
+#define appconfI2S_TDM_ENABLED 1
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -54,7 +63,7 @@
 #define appconfAEC_REF_USB         0
 #define appconfAEC_REF_I2S         1
 #ifndef appconfAEC_REF_DEFAULT
-#define appconfAEC_REF_DEFAULT     appconfAEC_REF_USB
+#define appconfAEC_REF_DEFAULT     appconfAEC_REF_I2S
 #endif
 
 #define appconfUSB_AUDIO_RELEASE   0
@@ -71,6 +80,10 @@
 
 #if appconfUSB_ENABLED && appconfSPI_OUTPUT_ENABLED
 #error Cannot use both USB and SPI interfaces
+#endif
+
+#if appconfI2S_TDM_ENABLED && appconfI2S_AUDIO_SAMPLE_RATE != 3*appconfAUDIO_PIPELINE_SAMPLE_RATE
+#error appconfI2S_AUDIO_SAMPLE_RATE must be 48000 to use I2S TDM
 #endif
 
 /* Application control Config */

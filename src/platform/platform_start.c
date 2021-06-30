@@ -155,7 +155,7 @@ static void i2s_start(void)
             rtos_i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, appconfI2S_AUDIO_SAMPLE_RATE),
             I2S_MODE_I2S,
             2.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE,
-            1.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE,
+            1.2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE * (appconfI2S_TDM_ENABLED ? 3 : 1),
             appconfI2S_INTERRUPT_CORE);
 #endif
 }
