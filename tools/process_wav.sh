@@ -33,7 +33,7 @@ if [[ "$uname" == 'Linux' ]]; then
     DEVICE_NAME="hw:CARD=XVF3652,DEV=0"
 elif [[ "$uname" == 'Darwin' ]]; then
     DEVICE_DRIVER="coreaudio"
-    DEVICE_NAME="XVF3652"
+    DEVICE_NAME="UAC2"
 fi
 
 # determine input remix pattern
