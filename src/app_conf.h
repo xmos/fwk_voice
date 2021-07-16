@@ -17,6 +17,7 @@
 #define appconfDEVICE_CONTROL_USB_PORT 3
 #define appconfDEVICE_CONTROL_I2C_PORT 4
 #define appconfSPI_AUDIO_PORT          5
+#define appconfWW_SAMPLES_PORT         6
 
 
 #ifndef appconfI2S_ENABLED
@@ -25,6 +26,10 @@
 
 #ifndef appconfUSB_ENABLED
 #define appconfUSB_ENABLED         1
+#endif
+
+#ifndef appconfWW_ENABLED
+#define appconfWW_ENABLED         1
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE

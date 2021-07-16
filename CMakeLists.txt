@@ -7,9 +7,7 @@ endif()
 
 ## Specify configuration
 set(USE_XUD_HIL TRUE)
-set(USE_WIFI_MANAGER FALSE)
-set(USE_DHCPD FALSE)
-set(USE_FATFS FALSE)
+set(USE_FATFS TRUE)
 set(USE_RTOS_USB_DRIVER TRUE)
 set(USE_DEVICE_CONTROL TRUE)
 set(USE_TINYUSB TRUE)
@@ -99,6 +97,8 @@ set(APP_SOURCES
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
+
+    "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa.cpp"
 )
 
 set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FLAGS "-O3")
@@ -107,6 +107,8 @@ set(APP_INCLUDES
     "src"
     "src/usb"
     "src/ww_model_runner"
+
+    "$ENV{WW_PATH}/xs3a"
 )
 
 add_compile_definitions(
@@ -114,17 +116,19 @@ add_compile_definitions(
     PLATFORM_USES_TILE_0=1
     PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=700
-    WW=0
-    ENABLE_RTOS_XSCOPE_TRACE=0
+    ENABLE_RTOS_XSCOPE_TRACE=1
 
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
+
+    PRL_MODEL_ALIGN=\_\_attribute\_\_\(\(aligned\(8\)\)\)\_\_attribute\_\_\(\(section\(\".ExtMem_data\"\)\)\)
 )
 
 add_executable(${TARGET_NAME})
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
 target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
+target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
 
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
