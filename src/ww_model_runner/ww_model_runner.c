@@ -16,19 +16,21 @@
 #if appconfWW_ENABLED
 
 #include "pryon_lite.h"
+#include "fs_support.h"
 
-// sizes below are based on verion v2.10.6
-// #define MODEL_RUNNER_STACK_SIZE (3 * 1024)
-// #define MODEL_RUNNER_CODE_SIZE (43 * 1024)
-// #define MODEL_RUNNER_DECODE_BUFFER_SIZE (30 * 1024)
-// #define MODEL_RUNNER_MODEL_DATA_SIZE (234 * 1024)
-// #define WW_MODEL_RUNTICKS 1250000
+#define MODEL_RUNNER_STACK_SIZE 2500//(650+1450)  // in WORDS
+#define DECODER_BUF_SIZE (35000)  // (29936)  for v2.10.6
+#define WW_MAX_SIZE_BYTES   (300000)    // 250k model size + 20% headroom
 
-#define MODEL_RUNNER_STACK_SIZE (650)  // in WORDS
-#define DECODER_BUF_SIZE (30000)  // (29936)  for v2.10.6
+/* Due to the xcore qspi flash driver being written in software
+ * we cannot read directly to DDR, as the nondeterministic
+ * transaction time will cause the qspi driver to fail to meet timing */
+#define WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES     (4096)
 
-extern char prlBinaryModelData[];
-extern size_t prlBinaryModelLen;
+#define WW_MODEL_FILEPATH		"/flash/ww/model.bin"
+
+__attribute__((section(".ExtMem_data"))) __attribute__((aligned(8)))
+char prlBinaryModelData[WW_MAX_SIZE_BYTES] = {0};
 
 static PryonLiteDecoderHandle sDecoder = NULL;
 
@@ -51,10 +53,59 @@ static void vadCallback(PryonLiteDecoderHandle handle,
     rtos_printf("VAD state: %s\n", vadEvent->vadState ? "active" : "inactive");
 }
 
+size_t ww_load_model_from_fs_to_extmem(void)
+{
+    size_t retval = 0;
+    uint8_t transfer_buf[WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES];
+    FIL ww_model_file;
+    uint32_t ww_model_file_size = -1;
+    uint32_t bytes_read = 0;
+    FRESULT result;
+
+    result = f_open(&ww_model_file, WW_MODEL_FILEPATH, FA_READ);
+    if (result == FR_OK)
+    {
+        rtos_printf("Found model %s\n", WW_MODEL_FILEPATH);
+        ww_model_file_size = f_size(&ww_model_file);
+
+        if (ww_model_file_size > 0)
+        {
+            uint8_t *extmem_ptr = (uint8_t*)prlBinaryModelData;
+            uint32_t more = WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES;
+            uint32_t total_read = 0;
+            do {
+                rtos_printf("Read more %u 0x%x\n", more, transfer_buf[0]);
+                result = f_read(&ww_model_file,
+                                transfer_buf,
+                                more,
+                                (unsigned int*)&bytes_read);
+                if ((result == FR_OK) && (bytes_read == more))
+                {
+                    memcpy(extmem_ptr, transfer_buf, bytes_read);
+                    total_read += bytes_read;
+                    extmem_ptr += bytes_read;
+                    more = (ww_model_file_size - total_read) > WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES
+                            ? WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES
+                            : (ww_model_file_size - total_read);
+                }
+            } while (more > 0);
+        }
+    }
+    if (ww_model_file_size != -1)
+    {
+        f_close(&ww_model_file);
+        retval = ww_model_file_size;
+    }
+
+    return retval;
+}
 
 static void model_runner_manager(void *args)
 {
     StreamBufferHandle_t input_queue = (StreamBufferHandle_t)args;
+    size_t prlBinaryModelLen = 0;
+
+    prlBinaryModelLen = ww_load_model_from_fs_to_extmem();
 
     rtos_printf("model size is %d bytes\n", prlBinaryModelLen);
     /* load model */

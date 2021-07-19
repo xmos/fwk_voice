@@ -98,7 +98,7 @@ set(APP_SOURCES
 
     "src/gpio_test/gpio_test.c"
 
-    "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa.cpp"
+    # "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa.cpp"
 )
 
 set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FLAGS "-O3")
@@ -121,7 +121,7 @@ add_compile_definitions(
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
 
-    PRL_MODEL_ALIGN=\_\_attribute\_\_\(\(aligned\(8\)\)\)\_\_attribute\_\_\(\(section\(\".ExtMem_data\"\)\)\)
+    # PRL_MODEL_ALIGN=\_\_attribute\_\_\(\(aligned\(8\)\)\)\_\_attribute\_\_\(\(section\(\".ExtMem_data\"\)\)\)
 )
 
 add_executable(${TARGET_NAME})

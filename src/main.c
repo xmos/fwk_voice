@@ -29,13 +29,6 @@
 
 #include "gpio_test/gpio_test.h"
 
-#define WW_TILE_NO       0
-#define FS_TILE_NO       0
-
-#if (WW_TILE_NO != FS_TILE_NO)
-#error  WW and FS must be on the same tile
-#endif
-
 volatile int mic_from_usb = 0;
 volatile int aec_ref_source = appconfAEC_REF_DEFAULT;
 

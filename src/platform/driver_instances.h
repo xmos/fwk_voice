@@ -19,6 +19,12 @@
 #define I2C_CTRL_TILE_NO   1
 #define SPI_OUTPUT_TILE_NO 0
 #define AUDIO_HW_TILE_NO   1
+#define WW_TILE_NO       0
+#define FS_TILE_NO       0
+
+#if (WW_TILE_NO != FS_TILE_NO)
+#error  WW and FS must be on the same tile
+#endif
 
 extern rtos_intertile_t *intertile_ctx;
 extern rtos_gpio_t *gpio_ctx_t0;
