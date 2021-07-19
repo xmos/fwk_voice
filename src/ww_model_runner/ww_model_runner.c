@@ -18,7 +18,7 @@
 #include "pryon_lite.h"
 #include "fs_support.h"
 
-#define MODEL_RUNNER_STACK_SIZE 2500//(650+1450)  // in WORDS
+#define MODEL_RUNNER_STACK_SIZE (650)  // in WORDS
 #define DECODER_BUF_SIZE (35000)  // (29936)  for v2.10.6
 #define WW_MAX_SIZE_BYTES   (300000)    // 250k model size + 20% headroom
 
@@ -31,6 +31,8 @@
 
 __attribute__((section(".ExtMem_data"))) __attribute__((aligned(8)))
 char prlBinaryModelData[WW_MAX_SIZE_BYTES] = {0};
+
+static size_t prlBinaryModelLen = 0;
 
 static PryonLiteDecoderHandle sDecoder = NULL;
 
@@ -74,7 +76,6 @@ size_t ww_load_model_from_fs_to_extmem(void)
             uint32_t more = WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES;
             uint32_t total_read = 0;
             do {
-                rtos_printf("Read more %u 0x%x\n", more, transfer_buf[0]);
                 result = f_read(&ww_model_file,
                                 transfer_buf,
                                 more,
@@ -103,9 +104,6 @@ size_t ww_load_model_from_fs_to_extmem(void)
 static void model_runner_manager(void *args)
 {
     StreamBufferHandle_t input_queue = (StreamBufferHandle_t)args;
-    size_t prlBinaryModelLen = 0;
-
-    prlBinaryModelLen = ww_load_model_from_fs_to_extmem();
 
     rtos_printf("model size is %d bytes\n", prlBinaryModelLen);
     /* load model */
@@ -232,6 +230,23 @@ void ww_samples_in_task(void *arg)
     }
 }
 
+void ww_load_to_extmem(void *args)
+{
+    StreamBufferHandle_t input_queue = (StreamBufferHandle_t)args;
+
+    prlBinaryModelLen = ww_load_model_from_fs_to_extmem();
+
+    xTaskCreate((TaskFunction_t)model_runner_manager,
+                "model_manager",
+                MODEL_RUNNER_STACK_SIZE,
+                input_queue,
+                uxTaskPriorityGet(NULL),
+                NULL);
+
+    vTaskDelete(NULL);
+    while(1);
+}
+
 void ww_task_create(unsigned priority)
 {
     StreamBufferHandle_t audio_stream = xStreamBufferCreate(
@@ -245,9 +260,9 @@ void ww_task_create(unsigned priority)
                 priority-1,
                 NULL);
 
-    xTaskCreate((TaskFunction_t)model_runner_manager,
-                "model_manager",
-                MODEL_RUNNER_STACK_SIZE,
+    xTaskCreate((TaskFunction_t)ww_load_to_extmem,
+                "ww_load_to_extmem",
+                RTOS_THREAD_STACK_SIZE(ww_load_to_extmem),
                 audio_stream,
                 priority,
                 NULL);
