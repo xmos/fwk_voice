@@ -46,8 +46,8 @@
 #endif
 
 #ifndef appconfI2S_AUDIO_SAMPLE_RATE
-//#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
-#define appconfI2S_AUDIO_SAMPLE_RATE 48000
+#define appconfI2S_AUDIO_SAMPLE_RATE appconfAUDIO_PIPELINE_SAMPLE_RATE
+//#define appconfI2S_AUDIO_SAMPLE_RATE 48000
 #endif
 
 /*
@@ -56,7 +56,7 @@
  * 48 KHz I2S line.
  */
 #ifndef appconfI2S_TDM_ENABLED
-#define appconfI2S_TDM_ENABLED 1
+#define appconfI2S_TDM_ENABLED 0
 #endif
 
 #define appconfI2S_MODE_MASTER     0
