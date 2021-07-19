@@ -39,20 +39,42 @@ static PryonLiteDecoderHandle sDecoder = NULL;
 __attribute__((aligned(8))) static uint8_t decoder_buf[DECODER_BUF_SIZE];
 static uint8_t *decoder_buf_ptr = (uint8_t *)&decoder_buf;
 
+#define WW_ERROR_LED 0
+#define WW_VAD_LED   1
+#define WW_ALEXA_LED 2
+#define set_led(led, val)   \
+{   \
+    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS); \
+    uint32_t cur_val;   \
+    cur_val = rtos_gpio_port_in(gpio_ctx_t0, led_port); \
+    rtos_gpio_port_out(gpio_ctx_t0, led_port, (val == 0) ? cur_val & ~(1<<led) : (cur_val | (1<<led)));    \
+}
+
 static void detectionCallback(PryonLiteDecoderHandle handle,
                               const PryonLiteResult *result)
 {
+    set_led(WW_ALEXA_LED, 1);
     rtos_printf(
         "Detected: keyword='%s'  confidence=%d  beginSampleIndex=%lld  "
         "endSampleIndex=%lld\n",
         result->keyword, result->confidence, result->beginSampleIndex,
         result->endSampleIndex);
+    rtos_printf("\tww free stack words: %d\n", uxTaskGetStackHighWaterMark(NULL));
 }
 
 static void vadCallback(PryonLiteDecoderHandle handle,
                         const PryonLiteVadEvent *vadEvent)
 {
     rtos_printf("VAD state: %s\n", vadEvent->vadState ? "active" : "inactive");
+
+    if (vadEvent->vadState == 0)
+    {
+        set_led(WW_ALEXA_LED, 0);
+        set_led(WW_VAD_LED, 0);
+    } else {
+        set_led(WW_VAD_LED, 1);
+    }
+    rtos_printf("\tvad free stack words: %d\n", uxTaskGetStackHighWaterMark(NULL));
 }
 
 size_t ww_load_model_from_fs_to_extmem(void)
@@ -134,6 +156,7 @@ static void model_runner_manager(void *args)
     if (status != PRYON_LITE_ERROR_OK)
     {
         rtos_printf("Failed to initialize pryon lite decoder!\n");
+        set_led(WW_ERROR_LED, 1);
         while (1);
     }
 
@@ -146,6 +169,7 @@ static void model_runner_manager(void *args)
     if (status != PRYON_LITE_ERROR_OK)
     {
         rtos_printf("Failed to set pryon lite threshold!\n");
+        set_led(WW_ERROR_LED, 1);
         while (1);
     }
 
@@ -179,6 +203,7 @@ static void model_runner_manager(void *args)
 
             if (status != PRYON_LITE_ERROR_OK)
             {
+                set_led(WW_ERROR_LED, 1);
                 rtos_printf("Error while pushing new samples!\n");
                 while (1);
             }
@@ -252,6 +277,9 @@ void ww_task_create(unsigned priority)
     StreamBufferHandle_t audio_stream = xStreamBufferCreate(
                                                2 * appconfAUDIO_PIPELINE_FRAME_ADVANCE,
                                                appconfWW_FRAMES_PER_INFERENCE);
+    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS);
+    rtos_gpio_port_enable(gpio_ctx_t0, led_port);
+    rtos_gpio_port_out(gpio_ctx_t0, led_port, 0);
 
     xTaskCreate((TaskFunction_t)ww_samples_in_task,
                 "ww_audio_rx",
