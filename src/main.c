@@ -29,6 +29,7 @@
 
 #include "gpio_test/gpio_test.h"
 
+
 volatile int mic_from_usb = 0;
 volatile int aec_ref_source = appconfAEC_REF_DEFAULT;
 
@@ -275,8 +276,6 @@ void startup_task(void *arg)
 #endif
 
 #if appconfWW_ENABLED && ON_TILE(WW_TILE_NO)
-
-    /* TODO Task that fills audio_stream with uint16_t samples */
     ww_task_create(appconfWW_TASK_PRIORITY);
 #endif
 
