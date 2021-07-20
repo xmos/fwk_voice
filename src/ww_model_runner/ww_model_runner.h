@@ -5,8 +5,11 @@
 #define WW_MODEL_RUNNER_H_
 
 #include "FreeRTOS.h"
-#include "stream_buffer.h"
 
-void ww_task_create(StreamBufferHandle_t input_stream, unsigned priority);
+void ww_task_create(unsigned priority);
+
+void ww_audio_send(rtos_intertile_t *intertile_ctx,
+                   size_t frame_count,
+                   int32_t (*processed_audio_frame)[2]);
 
 #endif /* WW_MODEL_RUNNER_H_ */

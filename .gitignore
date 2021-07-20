@@ -6,3 +6,7 @@
 *.a
 *.vcd
 *.gtkw
+
+# Filesystem cruft
+*.fs
+*/flash_bin_node0

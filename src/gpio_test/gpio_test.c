@@ -29,9 +29,7 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
     uint32_t buttonB;
 
     const rtos_gpio_port_id_t button_port = rtos_gpio_port(PORT_BUTTONS);
-    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS);
 
-    rtos_gpio_port_enable(gpio_ctx, led_port);
     rtos_gpio_port_enable(gpio_ctx, button_port);
 
     rtos_gpio_isr_callback_set(gpio_ctx, button_port, button_callback, xTaskGetCurrentTaskHandle());
@@ -48,18 +46,14 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
         buttonA = ( buttons_val >> 0 ) & 0x01;
         buttonB = ( buttons_val >> 1 ) & 0x01;
 
-        rtos_gpio_port_out(gpio_ctx, led_port, buttons_val);
-
         extern volatile int mic_from_usb;
         extern volatile int aec_ref_source;
         if (buttonA == 0) {
             rtos_printf("button a\n");
-//            app_pll_nudge(APP_PLL_NUDGE_FASTER);
             mic_from_usb = !mic_from_usb;
         } else if (buttonB == 0) {
             rtos_printf("button b\n");
             aec_ref_source = !aec_ref_source;
-//            app_pll_nudge(APP_PLL_NUDGE_SLOWER);
         }
     }
 }

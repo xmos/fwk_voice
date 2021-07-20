@@ -25,10 +25,10 @@
 #include "usb_audio.h"
 #include "vfe_pipeline/vfe_pipeline.h"
 #include "ww_model_runner/ww_model_runner.h"
+#include "fs_support.h"
 
 #include "gpio_test/gpio_test.h"
 
-#define WW_TILE_NO       0
 
 volatile int mic_from_usb = 0;
 volatile int aec_ref_source = appconfAEC_REF_DEFAULT;
@@ -137,6 +137,12 @@ int vfe_pipeline_output(void *output_app_data,
                   proc_audio_frame,
                   ref_audio_frame,
                   mic_audio_frame);
+#endif
+
+#if appconfWW_ENABLED
+    ww_audio_send(intertile_ctx,
+                  frame_count,
+                  proc_audio_frame);
 #endif
 
 #if appconfSPI_OUTPUT_ENABLED
@@ -265,13 +271,12 @@ void startup_task(void *arg)
     vfe_pipeline_init(NULL, NULL);
 #endif
 
-#if WW && ON_TILE(WW_TILE_NO)
+#if ON_TILE(FS_TILE_NO)
+    rtos_fatfs_init(qspi_flash_ctx);
+#endif
 
-    StreamBufferHandle_t audio_stream = xStreamBufferCreate(
-                                               1.2 * VFE_PIPELINE_AUDIO_FRAME_LENGTH,
-                                               appconfWW_FRAMES_PER_INFERENCE);
-    /* TODO Task that fills audio_stream with uint16_t samples */
-    ww_task_create(audio_stream, appconfWW_TASK_PRIORITY);
+#if appconfWW_ENABLED && ON_TILE(WW_TILE_NO)
+    ww_task_create(appconfWW_TASK_PRIORITY);
 #endif
 
     mem_analysis();
