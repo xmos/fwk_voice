@@ -10,10 +10,10 @@
 
 /** TILE 0 Clock Blocks */
 #define FLASH_CLKBLK  XS1_CLKBLK_1
-#define XUD_CLKBLK_1  XS1_CLKBLK_2 /* Reserved for lib_xud */
-#define XUD_CLKBLK_2  XS1_CLKBLK_3 /* Reserved for lib_xud */
-#define MCLK_CLKBLK   XS1_CLKBLK_4
-#define SPI_CLKBLK    XS1_CLKBLK_5
+#define MCLK_CLKBLK   XS1_CLKBLK_2
+#define SPI_CLKBLK    XS1_CLKBLK_3
+#define XUD_CLKBLK_1  XS1_CLKBLK_4 /* Reserved for lib_xud */
+#define XUD_CLKBLK_2  XS1_CLKBLK_5 /* Reserved for lib_xud */
 
 /** TILE 1 Clock Blocks */
 #define PDM_CLKBLK_1  XS1_CLKBLK_1

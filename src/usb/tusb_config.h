@@ -56,8 +56,9 @@
 #define CFG_TUD_TASK_QUEUE_SZ     8
 #define CFG_TUD_ENDPOINT0_SIZE    64
 
-#define CFG_TUD_XCORE_INTERRUPT_CORE appconfUSB_INTERRUPT_CORE
-#define CFG_TUD_XCORE_IO_CORE_MASK   (1 << appconfXUD_IO_CORE)
+#define CFG_TUD_XCORE_INTERRUPT_CORE     appconfUSB_INTERRUPT_CORE
+#define CFG_TUD_XCORE_SOF_INTERRUPT_CORE appconfUSB_SOF_INTERRUPT_CORE
+#define CFG_TUD_XCORE_IO_CORE_MASK       (1 << appconfXUD_IO_CORE)
 
 //------------- CLASS -------------//
 #define CFG_TUD_CDC               0
