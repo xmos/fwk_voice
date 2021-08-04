@@ -554,6 +554,13 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
 
   const size_t stream_buffer_send_byte_count = sizeof(usb_audio_frames) / RATE_MULTIPLIER;
 
+  /*
+   * TODO: For adaptive mode (vs synchronous) then we need to
+   * add support for frames that do not have the
+   * nominal number of audio frames (16 or 48).
+   * - What should the limit be? 2x maybe?
+   * - Would we still require a whole number of audio frames?
+   */
   if (n_bytes_received != sizeof(usb_audio_frames)) {
       return false;
   }
@@ -570,6 +577,15 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
           static int32_t src_data[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX][SRC_FF3V_FIR_NUM_PHASES][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
           samp_t stream_buffer_audio_frames[AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER][CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX];
 
+          /*
+           * TODO: For adaptive mode, use the actual number of audio frames
+           * received, not AUDIO_FRAMES_PER_USB_FRAME. This would require
+           * that a whole number of audio frames were contained within the
+           * USB packet. It would also require the number of frames to be a multiple
+           * of RATE_MULTIPLIER. Maybe we need to keep a static buffer around, and then
+           * run this bit as is, still sending only AUDIO_FRAMES_PER_USB_FRAME at a time
+           * to the stream buffer.
+           */
           for (int i = 0; i < AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER; i++) {
               for (int j = 0; j < CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX; j++) {
                   int64_t sum = 0;
@@ -594,6 +610,10 @@ bool tud_audio_rx_done_post_read_cb(uint8_t rhport,
        */
       const size_t buffer_notify_level = stream_buffer_send_byte_count * (1 + USB_FRAMES_PER_VFE_FRAME);
 
+      /*
+       * TODO: If the above is modified such that not exactly AUDIO_FRAMES_PER_USB_FRAME / RATE_MULTIPLIER
+       * frames are written to the stream buffer at a time, then this will need to change to >=.
+       */
       if (xStreamBufferBytesAvailable(samples_from_host_stream_buf) == buffer_notify_level) {
           xTaskNotifyGive(usb_audio_out_task_handle);
       }
