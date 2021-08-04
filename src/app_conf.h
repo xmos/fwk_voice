@@ -29,7 +29,7 @@
 #endif
 
 #ifndef appconfWW_ENABLED
-#define appconfWW_ENABLED         1
+#define appconfWW_ENABLED         0
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE

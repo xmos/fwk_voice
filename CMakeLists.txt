@@ -105,8 +105,6 @@ set(APP_INCLUDES
     "src"
     "src/usb"
     "src/ww_model_runner"
-
-    "$ENV{WW_PATH}/xs3a"
 )
 
 add_compile_definitions(
@@ -122,9 +120,14 @@ add_compile_definitions(
 
 add_executable(${TARGET_NAME})
 
+if(USE_WW)
+    list(APPEND APP_INCLUDES "$ENV{WW_PATH}/xs3a")
+    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
+    add_compile_definitions(appconfWW_ENABLED=1)
+endif()
+
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
 target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
-target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
 
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})

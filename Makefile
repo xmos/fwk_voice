@@ -5,8 +5,11 @@ PROJECT_NAME = sw_xvf3652
 
 # BOARD is used by the XMOS RTOS platform .cmake file
 BOARD ?= XCORE-AI-EXPLORER
+WW ?= 1
 
-# PLATFORM_USES_TILE_0 through PLATFORM_USES_TILE_3 are 
+CMAKE_ARGS = -DUSE_WW=$(WW)
+
+# PLATFORM_USES_TILE_0 through PLATFORM_USES_TILE_3 are
 # used by the multitile_build.mk file. If only tile 0 is
 # used then none of these need to be specified.
 # either 1 or true may be used to enable them. If they
@@ -49,6 +52,6 @@ distclean:
 run: $(EXECUTABLE)
 	xrun --xscope $(EXECUTABLE)
 
-# This multitile build support file c the 
+# This multitile build support file c the
 # recipe for EXECUTABLE
 include $(XCORE_SDK_PATH)/tools/cmake_utils/multitile_build.mk
