@@ -23,7 +23,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  XCORE_SDK_REPO: git@github.com:xmos/xcore_sdk.git
+  XCORE_SDK_REPO: xmos/xcore_sdk.git
   XCORE_SDK_PATH: xcore_sdk
 
 jobs:
@@ -69,7 +69,7 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona/documents -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
+          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
