@@ -30,6 +30,7 @@ set(PIPELINE_LIB_COMPILER_FLAGS
     "-Wno-xcore-fptrgroup"
     "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
 )
+list(APPEND PIPELINE_LIB_COMPILER_FLAGS $ENV{APP_CONF_DEFINES})
 
 set(PIPELINE_LIB_SOURCES
     "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
@@ -76,6 +77,7 @@ set(APP_COMPILER_FLAGS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config.xscope"
     "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
 )
+list(APPEND APP_COMPILER_FLAGS $ENV{APP_CONF_DEFINES})
 
 set(APP_SOURCES
     "src/main.c"
