@@ -1,6 +1,11 @@
-# Build
+# Editor cruft
+**/.vscode/
+
+# Build cruft
 **/build*/
+**/_build*/
 **/bin*/
+**/dist*/
 
 # Build & debug cruft
 *.a
@@ -9,4 +14,4 @@
 
 # Filesystem cruft
 *.fs
-*/flash_bin_node0
+**/flash_bin_node0

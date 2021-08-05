@@ -7,7 +7,8 @@ PROJECT_NAME = sw_xvf3652
 BOARD ?= XCORE-AI-EXPLORER
 WW ?= 1
 
-CMAKE_ARGS = -DUSE_WW=$(WW)
+CMAKE_ARGS ?= 
+CMAKE_ARGS += -DUSE_WW=$(WW)
 
 # PLATFORM_USES_TILE_0 through PLATFORM_USES_TILE_3 are
 # used by the multitile_build.mk file. If only tile 0 is

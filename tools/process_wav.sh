@@ -37,6 +37,7 @@ elif [[ "$uname" == 'Darwin' ]]; then
 fi
 
 # determine input remix pattern
+#  the input channel order is: ref L, ref R, mic 0, mic 1
 if [[ "$CHANNELS" == 2 ]]; then
     # file only has microphone channels
     #   need to insert 2 silent reference channels
