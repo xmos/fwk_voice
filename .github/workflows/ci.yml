@@ -47,12 +47,16 @@ jobs:
       
       - name: Build
         run: |
+          cat env | grep XCORE_SDK_PATH
+          echo "************"
+          echo "************"
+          echo "************"        
           ls -l ../ 
           echo "************"
           echo "************"
           echo "************"
           ls -l
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest bash -l tools/ci/build_configurations.sh
+          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest bash -l tools/ci/build_configurations.sh
 
       - name: Save firmware artifacts
         uses: actions/upload-artifact@v2
