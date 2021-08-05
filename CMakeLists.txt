@@ -22,24 +22,7 @@ set(PROJECT_VERSION 0.5.0)
 ## Enable languages for project
 enable_language(CXX C ASM)
 
-set(PIPELINE_LIB_COMPILER_FLAGS
-    "-Os"
-    "-report"
-    "-fxscope"
-    "-mcmodel=large"
-    "-Wno-xcore-fptrgroup"
-    "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
-)
-
-set(PIPELINE_LIB_SOURCES
-    "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
-    "src/vfe_pipeline/vfe_pipeline.c"
-    "src/vfe_pipeline/burn_cycles.S"
-)
-
-set(PIPELINE_LIB_INCLUDES
-    "src"
-    "src/vfe_pipeline"
+set(VFE_LIB_INCLUDES
     "src/vfe_pipeline/vfe"
     "src/vfe_pipeline/vfe/agc/api"
     "src/vfe_pipeline/vfe/ic/api"
@@ -47,24 +30,6 @@ set(PIPELINE_LIB_INCLUDES
     "src/vfe_pipeline/vfe/vad/api"
     "src/vfe_pipeline/vfe/vtb/api"
 )
-
-add_library(lib_vfe_pipeline STATIC)
-
-set_target_properties(lib_vfe_pipeline PROPERTIES OUTPUT_NAME vfe_pipeline)
-set_target_properties(lib_vfe_pipeline PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/vfe_pipeline")
-
-target_include_directories(lib_vfe_pipeline PRIVATE
-    ${PIPELINE_LIB_INCLUDES}
-    ${XMOS_RTOS_PLATFORM_INCLUDES}
-)
-
-target_sources(lib_vfe_pipeline PRIVATE
-    ${PIPELINE_LIB_SOURCES}
-)
-
-target_compile_options(lib_vfe_pipeline PRIVATE ${PIPELINE_LIB_COMPILER_FLAGS})
-target_link_options(lib_vfe_pipeline PRIVATE ${PIPELINE_LIB_COMPILER_FLAGS})
-
 
 set(APP_COMPILER_FLAGS
     "-Os"
@@ -88,6 +53,10 @@ set(APP_SOURCES
 
     "src/app_control/app_control.c"
 
+    "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
+    "src/vfe_pipeline/vfe_pipeline.c"
+    "src/vfe_pipeline/burn_cycles.S"
+
     "src/usb/usb_audio.c"
     "src/usb/usb_descriptors.c"
     "src/usb/adaptive_rate_adjust.c"
@@ -103,6 +72,7 @@ set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FL
 
 set(APP_INCLUDES
     "src"
+    "src/vfe_pipeline"
     "src/usb"
     "src/ww_model_runner"
 )
@@ -127,10 +97,10 @@ if(USE_WW)
 endif()
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
-target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
+#target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
 
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
-target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
+target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${VFE_LIB_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
 
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
