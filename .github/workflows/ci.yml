@@ -22,10 +22,6 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
-#env:
-  #XCORE_SDK_REPO: xmos/xcore_sdk
-  #XCORE_SDK_PATH: /xcore_sdk
-
 jobs:
   build_apps:
     name: Build UA and INT configurations
@@ -47,18 +43,6 @@ jobs:
       
       - name: Build
         run: |
-          ls -l
-          echo "****************"
-          echo "****************"
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest ls -l
-          echo "****************"
-          echo "****************"
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest env
-          echo "****************"
-          echo "****************"
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest ls ${XCORE_SDK_PATH}
-          echo "****************"
-          echo "****************"
           docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:latest bash -l tools/ci/build_configurations.sh
 
       - name: Save firmware artifacts
@@ -68,24 +52,24 @@ jobs:
           path: ./dist
           retention-days: 5
 
-  # build_documentation:
-  #   name: Build and package documentation
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Avona
-  #       uses: actions/checkout@v2
+  build_documentation:
+    name: Build and package documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Avona
+        uses: actions/checkout@v2
       
-  #     - name: Pull doc_builder container
-  #       run: |
-  #         docker pull ghcr.io/xmos/doc_builder:main 
+      - name: Pull doc_builder container
+        run: |
+          docker pull ghcr.io/xmos/doc_builder:main 
       
-  #     - name: Build documentation
-  #       run: |
-  #         docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
+      - name: Build documentation
+        run: |
+          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
       
-  #     - name: Save documentation artifacts
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: sw_avona_docs
-  #         path: ./doc/_build/html
-  #         retention-days: 5
+      - name: Save documentation artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sw_avona_docs
+          path: ./doc/_build/html
+          retention-days: 5

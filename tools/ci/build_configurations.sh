@@ -3,7 +3,7 @@ set -e
 
 DISTDIR=dist
 
-#mkdir -p ${DISTDIR}
+mkdir -p ${DISTDIR}
 
 echo '******************************************************'
 echo '* Building UA configuration'

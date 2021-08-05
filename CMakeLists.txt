@@ -126,8 +126,6 @@ if(USE_WW)
     add_compile_definitions(appconfWW_ENABLED=1)
 endif()
 
-message(STATUS ${XUD_HIL_SOURCES})
-
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
 target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
 
