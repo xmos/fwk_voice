@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: xmos/xcore_sdk
-          path: ../
+          path: /xcore_sdk
           submodules: recursive
           
       - name: Pull xcore_sdk_builder container
