@@ -23,7 +23,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  XCORE_SDK_REPO: xmos/xcore_sdk.git
+  XCORE_SDK_REPO: xmos/xcore_sdk
   XCORE_SDK_PATH: xcore_sdk
 
 jobs:
