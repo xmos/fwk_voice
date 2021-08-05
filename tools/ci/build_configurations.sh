@@ -15,5 +15,5 @@ echo '******************************************************'
 echo '******************************************************'
 echo '* Building INT configuration'
 echo '******************************************************'
-(make distclean all WW=0 appconfI2S_ENABLED=1 appconfUSB_ENABLED=0)
+(make distclean all WW=0 appconfI2S_ENABLED=1 appconfUSB_ENABLED=0 appconfUSB_AUDIO_MODE=0)
 (cp bin/sw_xvf3652.xe ${DISTDIR}/sw_xvf3652_INT.xe)
