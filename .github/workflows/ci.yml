@@ -37,8 +37,8 @@ jobs:
       - name: Checkout SDK
         uses: actions/checkout@v2
         with:
-          repository: ${env.XCORE_SDK_REPO}
-          path: ${env.XCORE_SDK_PATH}
+          repository: ${{ env.XCORE_SDK_REPO }}
+          path: ${{ env.XCORE_SDK_PATH }}
           submodules: recursive
           
       - name: Pull xcore_sdk_builder container
