@@ -12,6 +12,20 @@
 #include "platform/app_pll_ctrl.h"
 
 /*
+ * TODO:
+ * Technically, this is implementing synchronous mode, not adaptive mode.
+ * If the number of audio frames sent per USB frame time is guaranteed to
+ * always be the same (16 or 48) then the two modes are indistinguishable.
+ * But if this is not the case (eg. occasionally receive 15 or 49) then
+ * this method will not work to properly implement adaptive mode.
+ *
+ * If this function had visibility into the actual data rates then maybe
+ * this can be solved here. Otherwise it may need to be moved into
+ * tud_audio_rx_done_post_read_cb() or usb_audio_out_task(). These run
+ * at a lower frequency though so would not be ideal.
+ */
+
+/*
  * Setting this non-zero initializes the appPLL numerator
  * to 0 to allow the PID controller's step response to be
  * viewed via xscope.
