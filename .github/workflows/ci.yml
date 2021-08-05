@@ -47,7 +47,7 @@ jobs:
       
       - name: Build
         run: |
-          cat env | grep XCORE_SDK_PATH
+          env | grep XCORE_SDK_PATH
           echo "************"
           echo "************"
           echo "************"        
