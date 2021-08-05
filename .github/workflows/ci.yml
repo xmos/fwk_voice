@@ -22,9 +22,9 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
-env:
-  XCORE_SDK_REPO: xmos/xcore_sdk
-  XCORE_SDK_PATH: xcore_sdk
+#env:
+  #XCORE_SDK_REPO: xmos/xcore_sdk
+  #XCORE_SDK_PATH: /xcore_sdk
 
 jobs:
   build_apps:
@@ -37,8 +37,8 @@ jobs:
       - name: Checkout SDK
         uses: actions/checkout@v2
         with:
-          repository: ${{ env.XCORE_SDK_REPO }}
-          path: ${{ env.XCORE_SDK_PATH }}
+          repository: xmos/xcore_sdk
+          path: ../
           submodules: recursive
           
       - name: Pull xcore_sdk_builder container
@@ -47,7 +47,7 @@ jobs:
       
       - name: Build
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=xcore_sdk -v ${{ github.workspace }}:sw_avona ghcr.io/xmos/xcore_sdk_builder:latest bash -l tools/ci/build_configurations.sh
+          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/xcore_sdk -v ${{ github.workspace }}:/sw_avona -v ${{ github.workspace }}:/xcore_sdk ghcr.io/xmos/xcore_sdk_builder:latest bash -l tools/ci/build_configurations.sh
 
       - name: Save firmware artifacts
         uses: actions/upload-artifact@v2
@@ -69,7 +69,7 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
+          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
