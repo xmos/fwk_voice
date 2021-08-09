@@ -80,8 +80,6 @@ set(APP_INCLUDES
 
 add_compile_definitions(
     DEBUG_PRINT_ENABLE=1
-    PLATFORM_USES_TILE_0=1
-    PLATFORM_USES_TILE_1=1
     XUD_CORE_CLOCK=600
     ENABLE_RTOS_XSCOPE_TRACE=0
 
@@ -98,7 +96,6 @@ if(USE_WW)
 endif()
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
-#target_link_libraries(${TARGET_NAME} lib_vfe_pipeline)
 
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${VFE_LIB_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
