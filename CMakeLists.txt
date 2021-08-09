@@ -85,7 +85,6 @@ add_compile_definitions(
 
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
-    WW_250K=0
 )
 
 add_executable(${TARGET_NAME})
@@ -93,7 +92,11 @@ add_executable(${TARGET_NAME})
 if(USE_WW)
     list(APPEND APP_INCLUDES "$ENV{WW_PATH}/xs3a")
     target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
-    add_compile_definitions(appconfWW_ENABLED=1)
+    add_compile_definitions(
+        appconfWW_ENABLED=1
+        WW_250K=0
+        WW_MODEL_IN_EXTMEM=0
+    )
 endif()
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")

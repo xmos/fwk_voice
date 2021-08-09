@@ -18,22 +18,26 @@
 #include "pryon_lite.h"
 #include "fs_support.h"
 
-#define MODEL_RUNNER_STACK_SIZE (650)  // in WORDS
-#define DECODER_BUF_SIZE (35000)  // (29936)  for v2.10.6
-#define WW_MAX_SIZE_BYTES   (300000)    // 250k model size + 20% headroom
+#if (WW_250K == 1)
+#define WW_MODEL_FILEPATH		"/flash/ww/250kenUS.bin"
+#define MODEL_RUNNER_STACK_SIZE (650)    // in WORDS
+#define DECODER_BUF_SIZE        (35000)  // (29936)  for v2.10.6
+#define WW_MAX_SIZE_BYTES       (300000) // 250k model size + 20% headroom
+#else
+#define WW_MODEL_FILEPATH		"/flash/ww/50kenUS.bin"
+#define MODEL_RUNNER_STACK_SIZE (650)   // in WORDS
+#define DECODER_BUF_SIZE        (30000) // (27960)  for v2.10.6
+#define WW_MAX_SIZE_BYTES       (60000) // 50k model size + 20% headroom
+#endif /* (WW_250K == 1) */
 
+#if (WW_MODEL_IN_EXTMEM == 1)
 /* Due to the xcore qspi flash driver being written in software
  * we cannot read directly to DDR, as the nondeterministic
  * transaction time will cause the qspi driver to fail to meet timing */
 #define WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES     (4096)
 
-#if (WW_250K == 1)
-#define WW_MODEL_FILEPATH		"/flash/ww/model250k.bin"
-#else
-#define WW_MODEL_FILEPATH		"/flash/ww/model50k.bin"
-#endif
-
 __attribute__((section(".ExtMem_data"))) __attribute__((aligned(8)))
+#endif /* (WW_MODEL_IN_EXTMEM == 1) */
 char prlBinaryModelData[WW_MAX_SIZE_BYTES] = {0};
 
 static size_t prlBinaryModelLen = 0;
@@ -81,7 +85,8 @@ static void vadCallback(PryonLiteDecoderHandle handle,
     rtos_printf("\tvad free stack words: %d\n", uxTaskGetStackHighWaterMark(NULL));
 }
 
-size_t ww_load_model_from_fs_to_extmem(void)
+#if (WW_MODEL_IN_EXTMEM == 1)
+static size_t ww_load_model_from_fs_to_extmem(void)
 {
     size_t retval = 0;
     uint8_t transfer_buf[WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES];
@@ -122,13 +127,47 @@ size_t ww_load_model_from_fs_to_extmem(void)
     }
     if (ww_model_file_size != -1)
     {
-        rtos_printf("Invalid file size loading model %s\n", WW_MODEL_FILEPATH);
+        rtos_printf("Loaded model %s\n", WW_MODEL_FILEPATH);
         f_close(&ww_model_file);
         retval = ww_model_file_size;
     }
 
     return retval;
 }
+#else
+static size_t ww_load_model_from_fs_to_sram(void)
+{
+    size_t retval = 0;
+    FIL ww_model_file;
+    uint32_t ww_model_file_size = -1;
+    uint32_t bytes_read = 0;
+    FRESULT result;
+
+    result = f_open(&ww_model_file, WW_MODEL_FILEPATH, FA_READ);
+    if (result == FR_OK)
+    {
+        rtos_printf("Found model %s\n", WW_MODEL_FILEPATH);
+        ww_model_file_size = f_size(&ww_model_file);
+
+        result = f_read(&ww_model_file,
+                        (uint8_t*)prlBinaryModelData,
+                        ww_model_file_size,
+                        (unsigned int*)&bytes_read);
+
+        configASSERT(bytes_read == ww_model_file_size);
+    } else {
+        rtos_printf("Failed to open model %s\n", WW_MODEL_FILEPATH);
+    }
+    if (ww_model_file_size != -1)
+    {
+        rtos_printf("Loaded model %s\n", WW_MODEL_FILEPATH);
+        f_close(&ww_model_file);
+        retval = ww_model_file_size;
+    }
+
+    return retval;
+}
+#endif /* (WW_MODEL_IN_EXTMEM == 1) */
 
 static void model_runner_manager(void *args)
 {
@@ -262,11 +301,17 @@ void ww_samples_in_task(void *arg)
     }
 }
 
-void ww_load_to_extmem(void *args)
+static void ww_load_from_fs(void *args)
 {
     StreamBufferHandle_t input_queue = (StreamBufferHandle_t)args;
 
+#if (WW_MODEL_IN_EXTMEM == 1)
+    rtos_printf("Load model to extmem\n");
     prlBinaryModelLen = ww_load_model_from_fs_to_extmem();
+#else
+    rtos_printf("Load model to sram\n");
+    prlBinaryModelLen = ww_load_model_from_fs_to_sram();
+#endif
 
     xTaskCreate((TaskFunction_t)model_runner_manager,
                 "model_manager",
@@ -295,9 +340,9 @@ void ww_task_create(unsigned priority)
                 priority-1,
                 NULL);
 
-    xTaskCreate((TaskFunction_t)ww_load_to_extmem,
+    xTaskCreate((TaskFunction_t)ww_load_from_fs,
                 "ww_load_to_extmem",
-                RTOS_THREAD_STACK_SIZE(ww_load_to_extmem),
+                RTOS_THREAD_STACK_SIZE(ww_load_from_fs),
                 audio_stream,
                 priority,
                 NULL);
