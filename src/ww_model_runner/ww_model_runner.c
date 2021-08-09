@@ -27,7 +27,11 @@
  * transaction time will cause the qspi driver to fail to meet timing */
 #define WW_FLASH_TO_EXTMEM_CHUNK_SIZE_BYTES     (4096)
 
-#define WW_MODEL_FILEPATH		"/flash/ww/model.bin"
+#if (WW_250K == 1)
+#define WW_MODEL_FILEPATH		"/flash/ww/model250k.bin"
+#else
+#define WW_MODEL_FILEPATH		"/flash/ww/model50k.bin"
+#endif
 
 __attribute__((section(".ExtMem_data"))) __attribute__((aligned(8)))
 char prlBinaryModelData[WW_MAX_SIZE_BYTES] = {0};
@@ -113,9 +117,12 @@ size_t ww_load_model_from_fs_to_extmem(void)
                 }
             } while (more > 0);
         }
+    } else {
+        rtos_printf("Failed to open model %s\n", WW_MODEL_FILEPATH);
     }
     if (ww_model_file_size != -1)
     {
+        rtos_printf("Invalid file size loading model %s\n", WW_MODEL_FILEPATH);
         f_close(&ww_model_file);
         retval = ww_model_file_size;
     }

@@ -85,6 +85,7 @@ add_compile_definitions(
 
     CFG_TUSB_DEBUG_PRINTF=rtos_printf
     CFG_TUSB_DEBUG=0
+    WW_250K=0
 )
 
 add_executable(${TARGET_NAME})

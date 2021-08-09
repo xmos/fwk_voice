@@ -26,7 +26,8 @@ fi
 
 # Copy files into filesystem
 sudo mkdir fat_mnt/ww
-sudo cp "$WW_PATH/models/common/WR_250k.en-US.alexa.bin" fat_mnt/ww/model.bin
+sudo cp "$WW_PATH/models/common/WR_250k.en-US.alexa.bin" fat_mnt/ww/model250k.bin
+sudo cp "$WW_PATH/models/common/WS_50k.en-US.alexa.bin" fat_mnt/ww/model50k.bin
 
 # Unmount the filesystem
 if [ "$UNAME" == "Linux" ] ; then
