@@ -286,7 +286,7 @@ void startup_task(void *arg)
      */
 }
 
-void vApplicationIdleHook(void)
+void vApplicationMinimalIdleHook(void)
 {
     rtos_printf("idle hook on tile %d core %d\n", THIS_XCORE_TILE, rtos_core_id_get());
     asm volatile("waiteu");
