@@ -189,27 +189,10 @@ control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t 
 
 static void stage0(frame_data_t *frame_data)
 {
-//    static int init;
-//    static device_control_servicer_t servicer_ctx;
-//
-//    if (!init)
-//    {
-//        const control_resid_t resources[] = {'A', 'E', 'C'};
-//        control_ret_t dc_ret;
-//
-//        rtos_printf("Will register the AEC servicer now\n");
-//
-//        dc_ret = app_control_servicer_register(&servicer_ctx,
-//                                               resources, sizeof(resources));
-//        xassert(dc_ret == CONTROL_SUCCESS);
-//        rtos_printf("AEC servicer registered\n");
-//
-//        init = 1;
-//    }
-
     EventBits_t all_sync_bits = 0;
 
-    device_control_servicer_cmd_recv(&ap_servicer, read_cmd, write_cmd, NULL, 0);
+//    device_control_servicer_cmd_recv(&ap_servicer, read_cmd, write_cmd, NULL, 0);
+    device_control_servicer_cmd_recv(&aec_servicer, read_cmd, write_cmd, NULL, 0);
 
     for (int i = 0; i <= AEC_THREADS; i++)
     {
@@ -232,6 +215,8 @@ static void stage1(frame_data_t *frame_data)
 {
     vtb_ch_pair_t *post_proc_frame = NULL;
 
+    device_control_servicer_cmd_recv(&stage1_servicer, read_cmd, write_cmd, NULL, 0);
+
     dsp_stage_1_process(&dsp_stage_1_state,
                         (vtb_ch_pair_t *)frame_data->samples,
                         &frame_data->stage_1_md,
@@ -244,6 +229,8 @@ static void stage1(frame_data_t *frame_data)
 
 static void stage2(frame_data_t *frame_data)
 {
+    device_control_servicer_cmd_recv(&stage2_servicer, read_cmd, write_cmd, NULL, 0);
+
     /*
      * The output frame can apparently be the input frame,
      * provided that VFE_CHANNEL_PAIRS == 1
@@ -285,34 +272,35 @@ void vfe_pipeline_init(
                         configMAX_PRIORITIES / 2,
                         stage_count);
 
-    control_resid_t resources[1];
+    control_resid_t resources[2];
     control_ret_t dc_ret;
 
-    resources[0] = 1;
-    rtos_printf("Will register the AP servicer now\n");
-    dc_ret = app_control_servicer_register(&ap_servicer,
-                                           resources, sizeof(resources));
-    xassert(dc_ret == CONTROL_SUCCESS);
-    rtos_printf("AP servicer registered\n");
+//    resources[0] = 1;
+//    rtos_printf("Will register the AP servicer now\n");
+//    dc_ret = app_control_servicer_register(&ap_servicer,
+//                                           resources, sizeof(resources));
+//    xassert(dc_ret == CONTROL_SUCCESS);
+//    rtos_printf("AP servicer registered\n");
 
-    resources[0] = 2;
+    resources[0] = 1;
+    resources[1] = 2;
     rtos_printf("Will register the AEC servicer now\n");
     dc_ret = app_control_servicer_register(&aec_servicer,
-                                           resources, sizeof(resources));
+                                           resources, 2);
     xassert(dc_ret == CONTROL_SUCCESS);
     rtos_printf("AEC servicer registered\n");
 
     resources[0] = 3;
     rtos_printf("Will register the Stage 1 servicer now\n");
     dc_ret = app_control_servicer_register(&stage1_servicer,
-                                           resources, sizeof(resources));
+                                           resources, 1);
     xassert(dc_ret == CONTROL_SUCCESS);
     rtos_printf("Stage 1 servicer registered\n");
 
     resources[0] = 4;
     rtos_printf("Will register the Stage 2 servicer now\n");
     dc_ret = app_control_servicer_register(&stage2_servicer,
-                                           resources, sizeof(resources));
+                                           resources, 1);
     xassert(dc_ret == CONTROL_SUCCESS);
     rtos_printf("Stage 2 servicer registered\n");
 }

@@ -41,67 +41,39 @@ int main(int argc, char **argv)
         printf("This last command status is %d\n", status);
     }
 
+
     uint8_t buf[16];
-    ret = control_read_command('A',
-                               0x85,
-                               buf,
-                               sizeof(buf));
-    if (ret == CONTROL_SUCCESS) {
-        for (int i = 0; i < sizeof(buf); i++) {
-            printf("%02x ", buf[i]);
-        }
-        printf("\n");
-    }
-
-    ret = control_read_command(CONTROL_SPECIAL_RESID,
-                               CONTROL_GET_LAST_COMMAND_STATUS,
-                               &status,
-                               sizeof(status));
-
-    if (ret == CONTROL_SUCCESS) {
-        printf("This last command status is %d\n", status);
-    }
 
     for (int i = 0; i < sizeof(buf); i++) {
         buf[i] = 0x90 + i;
     }
-    ret = control_write_command('E',
-                               0x04,
-                               buf,
-                               sizeof(buf));
-    if (ret == CONTROL_SUCCESS) {
-        printf("Write command complete\n");
-    } else {
-        printf("Write command failed\n");
-    }
 
+    for (int i = 1; i <= 4; i++) {
 
-    ret = control_read_command('C',
-                               0x86,
-                               buf,
-                               sizeof(buf));
-    if (ret == CONTROL_SUCCESS) {
-        for (int i = 0; i < sizeof(buf); i++) {
-            printf("%02x ", buf[i]);
+        ret = control_write_command(i,
+                                   0x04,
+                                   buf,
+                                   sizeof(buf));
+        if (ret == CONTROL_SUCCESS) {
+            printf("Write command complete\n");
+        } else {
+            printf("Write command failed\n");
         }
-        printf("\n");
-    }
 
-    ret = control_read_command('A',
-                               0x85,
-                               buf,
-                               sizeof(buf));
-    if (ret == CONTROL_SUCCESS) {
-        for (int i = 0; i < sizeof(buf); i++) {
-            printf("%02x ", buf[i]);
+        ret = control_read_command(i,
+                                   0x85,
+                                   buf,
+                                   sizeof(buf));
+        if (ret == CONTROL_SUCCESS) {
+            printf("Read command complete\n\t");
+            for (int i = 0; i < sizeof(buf); i++) {
+                printf("%02x ", buf[i]);
+            }
+            printf("\n");
+        } else {
+            printf("Read command failed\n");
         }
-        printf("\n");
     }
-
 
     return 0;
-//    ret = control_write_command(SPECIAL_RESID,
-//                                    DEV_CTRL_CMD_SET_READ_PARAMS,
-//                                    (uint8_t *) params,
-//                                    param_count * sizeof(uint32_t));
 }
