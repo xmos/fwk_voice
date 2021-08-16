@@ -31,12 +31,31 @@ static void flash_start(void)
 #endif
 }
 
-static void i2c_start(void)
+static void i2c_master_start(void)
 {
 #if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
     rtos_i2c_master_start(i2c_master_ctx);
 #endif
+}
 
+static void audio_codec_start(void)
+{
+#if appconfI2S_ENABLED
+    int ret;
+#if ON_TILE(I2C_TILE_NO)
+    ret = aic3204_init();
+    if (ret != 0) {
+        rtos_printf("DAC initialization failed\n");
+    }
+    rtos_intertile_tx(intertile_ctx, 0, &ret, sizeof(ret));
+#else
+    rtos_intertile_rx(intertile_ctx, 0, &ret, RTOS_OSAL_WAIT_FOREVER);
+#endif
+#endif
+}
+
+static void i2c_slave_start(void)
+{
 #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
     rtos_i2c_slave_start(i2c_slave_ctx,
                          device_control_i2c_ctx,
@@ -48,50 +67,6 @@ static void i2c_start(void)
                          appconfI2C_TASK_PRIORITY);
 #endif
 }
-
-#if 0
-RTOS_SPI_SLAVE_CALLBACK_ATTR
-void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
-{
-    static uint8_t tx_buf[32];
-    static uint8_t rx_buf[32];
-
-    rtos_printf("SPI SLAVE STARTING!\n");
-
-    for (int i = 0; i < 32; i++) {
-        tx_buf[i] = i | 0x80;
-    }
-
-    spi_slave_xfer_prepare(ctx, rx_buf, sizeof(rx_buf), tx_buf, sizeof(tx_buf));
-}
-
-RTOS_SPI_SLAVE_CALLBACK_ATTR
-void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data)
-{
-    uint8_t *tx_buf;
-    uint8_t *rx_buf;
-    size_t rx_len;
-    size_t tx_len;
-
-    if (spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0) == 0) {
-        rtos_printf("SPI slave xfer complete\n");
-        rtos_printf("%d bytes sent, %d bytes received\n", tx_len, rx_len);
-        rtos_printf("TX: ");
-        for (int i = 0; i < 32; i++) {
-            rtos_printf("%02x ", tx_buf[i]);
-        }
-        rtos_printf("\n");
-        rtos_printf("RX: ");
-        for (int i = 0; i < 32; i++) {
-            rtos_printf("%02x ", rx_buf[i]);
-        }
-        rtos_printf("\n");
-    }
-}
-#endif
-
-void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data);
-void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data);
 
 static void spi_start(void)
 {
@@ -111,15 +86,6 @@ static void spi_start(void)
                          (rtos_spi_slave_xfer_done_cb_t) spi_slave_xfer_done_cb,
                          appconfSPI_INTERRUPT_CORE,
                          appconfSPI_TASK_PRIORITY);
-#endif
-}
-
-static void audio_codec_start(void)
-{
-#if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
-    if (aic3204_init() != 0) {
-        rtos_printf("DAC initialization failed\n");
-    }
 #endif
 }
 
@@ -173,9 +139,10 @@ void platform_start(void)
 
     gpio_start();
     flash_start();
-    i2c_start();
-    spi_start();
+    i2c_master_start();
     audio_codec_start();
+    i2c_slave_start();
+    spi_start();
     mics_start();
     i2s_start();
     usb_start();
