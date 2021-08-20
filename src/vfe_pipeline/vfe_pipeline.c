@@ -114,11 +114,6 @@ static void aec_burn_dummy(aec_dummy_args_t *args)
     }
 }
 
-static device_control_servicer_t ap_servicer;
-static device_control_servicer_t aec_servicer;
-static device_control_servicer_t stage1_servicer;
-static device_control_servicer_t stage2_servicer;
-
 static void init_dsp_stage_0(vfe_dsp_stage_0_state_t *state)
 {
     dsp_stage_0_state.sync_group_start = xEventGroupCreate();
@@ -149,50 +144,11 @@ static void init_dsp_stage_0(vfe_dsp_stage_0_state_t *state)
     }
 }
 
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
-{
-    rtos_printf("Device control READ\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command is requesting %d bytes\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        payload[i] = (cmd & 0x7F) + i;
-    }
-    rtos_printf("Bytes to be sent are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data)
-{
-    rtos_printf("Device control WRITE\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command has %d bytes\n\t", payload_len);
-    rtos_printf("Bytes received are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
 static void stage0(frame_data_t *frame_data)
 {
     EventBits_t all_sync_bits = 0;
 
-//    device_control_servicer_cmd_recv(&ap_servicer, read_cmd, write_cmd, NULL, 0);
-    device_control_servicer_cmd_recv(&aec_servicer, read_cmd, write_cmd, NULL, 0);
+    app_control_aec_handler(NULL, 0);
 
     for (int i = 0; i <= AEC_THREADS; i++)
     {
@@ -215,7 +171,7 @@ static void stage1(frame_data_t *frame_data)
 {
     vtb_ch_pair_t *post_proc_frame = NULL;
 
-    device_control_servicer_cmd_recv(&stage1_servicer, read_cmd, write_cmd, NULL, 0);
+    app_control_stage1_handler(&dsp_stage_1_state, 0);
 
     dsp_stage_1_process(&dsp_stage_1_state,
                         (vtb_ch_pair_t *)frame_data->samples,
@@ -229,7 +185,7 @@ static void stage1(frame_data_t *frame_data)
 
 static void stage2(frame_data_t *frame_data)
 {
-    device_control_servicer_cmd_recv(&stage2_servicer, read_cmd, write_cmd, NULL, 0);
+    app_control_stage2_handler(&dsp_stage_2_state, 0);
 
     /*
      * The output frame can apparently be the input frame,
@@ -263,6 +219,10 @@ void vfe_pipeline_init(
     init_dsp_stage_1(&dsp_stage_1_state);
     init_dsp_stage_2(&dsp_stage_2_state);
 
+    app_control_aec_servicer_register();
+    app_control_stage1_servicer_register();
+    app_control_stage2_servicer_register();
+
     audio_pipeline_init((audio_pipeline_input_t)vfe_pipeline_input_i,
                         (audio_pipeline_output_t)vfe_pipeline_output_i,
                         input_app_data,
@@ -271,36 +231,4 @@ void vfe_pipeline_init(
                         stage_stack_sizes,
                         configMAX_PRIORITIES / 2,
                         stage_count);
-
-    control_resid_t resources[2];
-    control_ret_t dc_ret;
-
-//    resources[0] = 1;
-//    rtos_printf("Will register the AP servicer now\n");
-//    dc_ret = app_control_servicer_register(&ap_servicer,
-//                                           resources, sizeof(resources));
-//    xassert(dc_ret == CONTROL_SUCCESS);
-//    rtos_printf("AP servicer registered\n");
-
-    resources[0] = 1;
-    resources[1] = 2;
-    rtos_printf("Will register the AEC servicer now\n");
-    dc_ret = app_control_servicer_register(&aec_servicer,
-                                           resources, 2);
-    xassert(dc_ret == CONTROL_SUCCESS);
-    rtos_printf("AEC servicer registered\n");
-
-    resources[0] = 3;
-    rtos_printf("Will register the Stage 1 servicer now\n");
-    dc_ret = app_control_servicer_register(&stage1_servicer,
-                                           resources, 1);
-    xassert(dc_ret == CONTROL_SUCCESS);
-    rtos_printf("Stage 1 servicer registered\n");
-
-    resources[0] = 4;
-    rtos_printf("Will register the Stage 2 servicer now\n");
-    dc_ret = app_control_servicer_register(&stage2_servicer,
-                                           resources, 1);
-    xassert(dc_ret == CONTROL_SUCCESS);
-    rtos_printf("Stage 2 servicer registered\n");
 }
