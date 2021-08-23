@@ -130,6 +130,14 @@ static void usb_start(void)
 {
 #if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
     usb_manager_start(appconfUSB_MGR_TASK_PRIORITY);
+
+    /*
+     * Calling usb_manager_start() a second time starts two
+     * TinyUSB threads. This allows the USB audio endpoint to keep
+     * moving while slow device control requests are blocked.
+     * Likely not very safe and may not be necessary.
+     */
+    //usb_manager_start(appconfUSB_MGR_TASK_PRIORITY);
 #endif
 }
 

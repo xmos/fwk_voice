@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
     control_version_t version;
     control_status_t status;
-
+#if 1
     ret = control_read_command(CONTROL_SPECIAL_RESID,
                                CONTROL_GET_VERSION,
                                &version,
@@ -40,15 +40,15 @@ int main(int argc, char **argv)
     if (ret == CONTROL_SUCCESS) {
         printf("This last command status is %d\n", status);
     }
-
+#endif
 
     uint8_t buf[16];
 
-    for (int i = 0; i < sizeof(buf); i++) {
-        buf[i] = 0x90 + i;
-    }
-
     for (int i = 1; i <= 4; i++) {
+#if 1
+        for (int i = 0; i < sizeof(buf); i++) {
+            buf[i] = 0x90 + i;
+        }
 
         ret = control_write_command(i,
                                    0x04,
@@ -59,7 +59,8 @@ int main(int argc, char **argv)
         } else {
             printf("Write command failed\n");
         }
-
+#endif
+#if 1
         ret = control_read_command(i,
                                    0x85,
                                    buf,
@@ -73,6 +74,7 @@ int main(int argc, char **argv)
         } else {
             printf("Read command failed\n");
         }
+#endif
     }
 
     return 0;
