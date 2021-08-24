@@ -72,4 +72,5 @@ jobs:
         with:
           name: sw_avona_docs
           path: ./doc/_build/html
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
           retention-days: 5
