@@ -43,7 +43,7 @@ jobs:
       
       - name: Build
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_app_builder:develop bash -l tools/ci/build_configurations.sh
+          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_app_builder:develop bash -l tools/ci/build_release_configs.sh
 
       - name: Save firmware artifacts
         uses: actions/upload-artifact@v2

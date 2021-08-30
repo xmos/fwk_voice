@@ -63,7 +63,7 @@ static void detectionCallback(PryonLiteDecoderHandle handle,
 {
     set_led(WW_ALEXA_LED, 1);
     rtos_printf(
-        "Detected: keyword='%s'  confidence=%d  beginSampleIndex=%lld  "
+        "Wakeword Detected: keyword='%s'  confidence=%d  beginSampleIndex=%lld  "
         "endSampleIndex=%lld\n",
         result->keyword, result->confidence, result->beginSampleIndex,
         result->endSampleIndex);
@@ -73,7 +73,7 @@ static void detectionCallback(PryonLiteDecoderHandle handle,
 static void vadCallback(PryonLiteDecoderHandle handle,
                         const PryonLiteVadEvent *vadEvent)
 {
-    rtos_printf("VAD state: %s\n", vadEvent->vadState ? "active" : "inactive");
+    rtos_printf("Wakeword VAD: state=%s\n", vadEvent->vadState ? "active" : "inactive");
 
     if (vadEvent->vadState == 0)
     {
