@@ -24,8 +24,8 @@
 #if (WW_250K == 1)
 #define WW_MODEL_FILEPATH		"/flash/ww/250kenUS.bin"
 #define MODEL_RUNNER_STACK_SIZE (650)    // in WORDS
-#define DECODER_BUF_SIZE        (35000)  // (29936)  for v2.10.6
-#define WW_MAX_SIZE_BYTES       (300000) // 250k model size + 20% headroom
+#define DECODER_BUF_SIZE        (30000)  // (29936)  for v2.10.6
+#define WW_MAX_SIZE_BYTES       (233528) // 234k model size + 0% headroom
 #else
 #define WW_MODEL_FILEPATH		"/flash/ww/50kenUS.bin"
 #define MODEL_RUNNER_STACK_SIZE (650)   // in WORDS

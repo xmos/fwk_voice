@@ -94,7 +94,7 @@ if(USE_WW)
     target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
     add_compile_definitions(
         appconfWW_ENABLED=1
-        WW_250K=0
+        WW_250K=1
         WW_MODEL_IN_EXTMEM=0
     )
 endif()
