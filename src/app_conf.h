@@ -71,6 +71,12 @@
 #define appconfAEC_REF_DEFAULT     appconfAEC_REF_I2S
 #endif
 
+#define appconfMIC_SRC_MICS        0
+#define appconfMIC_SRC_USB         1
+#ifndef appconfMIC_SRC_DEFAULT
+#define appconfMIC_SRC_DEFAULT     appconfMIC_SRC_MICS
+#endif
+
 #define appconfUSB_AUDIO_RELEASE   0
 #define appconfUSB_AUDIO_TESTING   1
 #ifndef appconfUSB_AUDIO_MODE

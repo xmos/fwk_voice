@@ -20,4 +20,3 @@ echo '******************************************************'
 (make distclean)
 (make -j WW=0 APP_CONF_DEFINES='-DappconfI2S_ENABLED=1\;-DappconfUSB_ENABLED=0')
 (cp bin/sw_xvf3652.xe ${DISTDIR}/sw_xvf3652_INT.xe)
-

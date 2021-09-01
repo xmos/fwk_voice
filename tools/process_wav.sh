@@ -37,12 +37,20 @@ elif [[ "$uname" == 'Darwin' ]]; then
 fi
 
 # determine input remix pattern
-#  the input channel order is: ref L, ref R, mic 0, mic 1
-if [[ "$CHANNELS" == 2 ]]; then
+#  the test vector input channel order is: Mic 1, Mic 0, Ref L, Ref R
+#  NOTE: 3x10 output channel order is: Ref L, Ref R, Mic 1, Mic 0, ASR, Comms
+#        Avona's output channel order is: ASR, Comms, Ref L, Ref R, Mic 0, Mic 1
+if [[ "$CHANNELS" == 1 ]]; then # reference-less test vector
+    # file only has 1 microphone channel
+    #   need to insert 2 silent reference channels and repeat microphone channel
+    echo "remix 0 0 1 1"
+elif [[ "$CHANNELS" == 2 ]]; then # reference-less test vector
     # file only has microphone channels
     #   need to insert 2 silent reference channels
-    REMIX_PATTERN="remix 0 0 1 2"
-elif [[ "$CHANNELS" == 6 ]]; then
+    REMIX_PATTERN="remix 0 0 2 1"
+elif [[ "$CHANNELS" == 4 ]]; then # standard test vector
+    REMIX_PATTERN="remix 3 4 2 1"
+elif [[ "$CHANNELS" == 6 ]]; then  # assuming test vector from Avona
     REMIX_PATTERN="remix 3 4 5 6"
 else
     REMIX_PATTERN=""
