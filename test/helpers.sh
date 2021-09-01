@@ -4,9 +4,9 @@ uname=`uname`
 # Get the USB audio device name
 get_device_name() {
     if [[ "$uname" == 'Linux' ]]; then
-        echo "hw:CARD=XVF3652,DEV=0"
+        echo "hw:CARD=Avona,DEV=0"
     elif [[ "$uname" == 'Darwin' ]]; then
-        echo "UAC2"
+        echo "Avona"
     else
         printf '%s\n' "Unsupported unix name: $uname" >&2
         exit 1    

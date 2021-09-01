@@ -30,10 +30,10 @@ OUTPUT_FILE=${@:$OPTIND+1:1}
 uname=`uname`
 if [[ "$uname" == 'Linux' ]]; then
     DEVICE_DRIVER="alsa"
-    DEVICE_NAME="hw:CARD=XVF3652,DEV=0"
+    DEVICE_NAME="hw:CARD=Avona,DEV=0"
 elif [[ "$uname" == 'Darwin' ]]; then
     DEVICE_DRIVER="coreaudio"
-    DEVICE_NAME="UAC2"
+    DEVICE_NAME="Avona"
 fi
 
 # determine input remix pattern

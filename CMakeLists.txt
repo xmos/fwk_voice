@@ -16,8 +16,8 @@ set(USE_TINYUSB TRUE)
 include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
 
 ## Define project
-project(sw_xvf3652)
-set(PROJECT_VERSION 0.5.0)
+project(sw_avona)
+set(PROJECT_VERSION 0.10.0)
 
 ## Enable languages for project
 enable_language(CXX C ASM)

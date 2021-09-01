@@ -61,7 +61,7 @@ From the root folder of the example run:
 
 .. code-block:: console
 
-    $ xrun --xscope bin/sw_xvf3652.xe
+    $ xrun --xscope bin/sw_avona.xe
 
 Or
 

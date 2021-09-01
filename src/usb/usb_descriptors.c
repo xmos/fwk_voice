@@ -31,7 +31,7 @@
 #include "device_control_usb.h"
 
 #define XMOS_VID    0x20B1
-#define XVF3652_PID 0x3652
+#define AVONA_PID 0x0020
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -47,7 +47,7 @@ tusb_desc_device_t const desc_device = {
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor           = XMOS_VID,
-    .idProduct          = XVF3652_PID,
+    .idProduct          = AVONA_PID,
     .bcdDevice          = 0x0001,
 
     .iManufacturer      = 0x01,
@@ -215,9 +215,9 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 // array of pointer to string descriptors
 char const *string_desc_arr[] = {(const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
         "XMOS",                    // 1: Manufacturer
-        "XVF3652",                 // 2: Product
+        "Avona",                   // 2: Product
         "123456",                  // 3: Serials, should use chip ID
-        "UAC2",                    // 4: Audio Interface
+        "Avona",                   // 4: Audio Interface
         "Device Control Interface" // 5: Vendor Interface
         };
 
