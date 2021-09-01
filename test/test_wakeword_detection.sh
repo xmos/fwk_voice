@@ -54,8 +54,9 @@ sleep $(get_firmware_startup_duration)
 # play the input wav files
 for WAV_FILE in $WAV_LIST; do
     echo "Wakeword Test: $WAV_FILE"
+
     sox $WAV_DIR/$WAV_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER $DEVICE_NAME
-    sleep 3
+    sleep 2
 done
 
 # kill the firmware
