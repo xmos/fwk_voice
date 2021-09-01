@@ -1,6 +1,6 @@
 # This variable is used for setting the EXECUTABLE name
 # and is used for the final binary, as well as any intermediates.
-PROJECT_NAME = sw_xvf3652
+PROJECT_NAME = sw_avona
 
 # BOARD is used by the XMOS RTOS platform .cmake file
 BOARD ?= XCORE-AI-EXPLORER

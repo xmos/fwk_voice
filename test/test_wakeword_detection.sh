@@ -55,7 +55,7 @@ sleep $(get_firmware_startup_duration)
 for WAV_FILE in $WAV_LIST; do
     echo "Wakeword Test: $WAV_FILE"
 
-    sox $WAV_DIR/$WAV_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER $DEVICE_NAME
+    sox $WAV_DIR/$WAV_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER "$DEVICE_NAME"
     sleep 2
 done
 

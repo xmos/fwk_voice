@@ -30,10 +30,10 @@ OUTPUT_FILE=${@:$OPTIND+1:1}
 uname=`uname`
 if [[ "$uname" == 'Linux' ]]; then
     DEVICE_DRIVER="alsa"
-    DEVICE_NAME="hw:CARD=XVF3652,DEV=0"
+    DEVICE_NAME="hw:CARD=Avona Voice Reference Design,DEV=0"
 elif [[ "$uname" == 'Darwin' ]]; then
     DEVICE_DRIVER="coreaudio"
-    DEVICE_NAME="UAC2"
+    DEVICE_NAME="Avona Voice Reference Design"
 fi
 
 # determine input remix pattern
@@ -61,11 +61,11 @@ SOX_PLAY_OPTS="--buffer=65536 --rate=16000 --bits=16 --encoding=signed-integer -
 SOX_REC_OPTS="--buffer=65536 --channels=6 --rate=16000 --bits=16 --encoding=signed-integer --endian=little --no-dither"
 
 #set -x
-sox -t $DEVICE_DRIVER $DEVICE_NAME $SOX_REC_OPTS -t wav $OUTPUT_FILE &
+sox -t $DEVICE_DRIVER "$DEVICE_NAME" $SOX_REC_OPTS -t wav $OUTPUT_FILE &
 
 #sleep 1 # need to wait a bit
 
-sox $INPUT_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER $DEVICE_NAME
+sox $INPUT_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER "$DEVICE_NAME"
 
 pkill -P $$
 wait # to die
