@@ -32,6 +32,7 @@
 
 #define XMOS_VID    0x20B1
 #define AVONA_PID 0x0020
+#define AVONA_PRODUCT_STR "Avona Voice Reference Design"
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -214,11 +215,11 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 
 // array of pointer to string descriptors
 char const *string_desc_arr[] = {(const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-        "XMOS",                    // 1: Manufacturer
-        "Avona",                   // 2: Product
-        "123456",                  // 3: Serials, should use chip ID
-        "Avona",                   // 4: Audio Interface
-        "Device Control Interface" // 5: Vendor Interface
+        "XMOS",                     // 1: Manufacturer
+        AVONA_PRODUCT_STR,          // 2: Product
+        "123456",                   // 3: Serials, should use chip ID
+        AVONA_PRODUCT_STR,          // 4: Audio Interface
+        "Device Control Interface"  // 5: Vendor Interface
         };
 
 static uint16_t _desc_str[32];
