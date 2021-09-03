@@ -31,9 +31,47 @@
 #endif
 
 static cmd_t commands[] = {
-        {APP_CONTROL_RESID_AP, "version", TYPE_UINT32, 0, APP_CONTROL_CMD_AP_VERSION, CMD_RO, 1, "the Avona audio pipeline version"}, \
-        {APP_CONTROL_RESID_AP, "mic_from_usb", TYPE_UINT8, 0, APP_CONTROL_CMD_AP_MIC_FROM_USB, CMD_RW, 1, "whether the microphone audio is received from the USB host or not"}, \
+        {APP_CONTROL_RESID_AP, "version", TYPE_UINT32, 0, APP_CONTROL_CMD_AP_VERSION, CMD_RO, 1, "Returns the Avona audio pipeline version"},
+        {APP_CONTROL_RESID_AP, "mic_from_usb", TYPE_UINT8, 0, APP_CONTROL_CMD_AP_MIC_FROM_USB, CMD_RW, 1, "Microphone audio is received from the USB host when true"},
+        {APP_CONTROL_RESID_AP, "fixed_point_cmd", TYPE_INT32, 24, 0x7F, CMD_RW, 2, "This is an example fixed point command"},
 };
+
+static char *command_param_type_name(cmd_param_type_t type)
+{
+    char *tstr;
+
+    switch (type) {
+    case TYPE_UINT8:
+        tstr = "uint8";
+        break;
+
+    case TYPE_INT8:
+        tstr = "int8";
+        break;
+
+    case TYPE_UINT32:
+        tstr = "uint32";
+        break;
+
+    case TYPE_INT32:
+        tstr = "int32";
+        break;
+
+    case TYPE_UINT64:
+        tstr = "uint64";
+        break;
+
+    case TYPE_INT64:
+        tstr = "int64";
+        break;
+
+    default:
+        tstr = "unknown";
+        break;
+    }
+
+    return tstr;
+}
 
 void command_list_print(void)
 {
@@ -42,13 +80,19 @@ void command_list_print(void)
     for (i = 0; i < ARRAY_SIZE(commands); i++) {
         /* print shit about each command. do a get and/or set version */
         cmd_t *cmd = &commands[i];
-        if (cmd->rw != CMD_WO) {
-            printf("get %s: Gets %s\n", cmd->cmd_name, cmd->info);
+
+        printf("%s\n", cmd->cmd_name);
+        printf("\tThis command is %s ", cmd->rw == CMD_WO ? "write only" : cmd->rw == CMD_RO ? "read only" : "read/write");
+
+
+        if (cmd->fractional_bits == 0) {
+            printf("and has %d integer values of type %s\n", cmd->num_values, command_param_type_name(cmd->type));
+        } else {
+            printf("and has %d fixed point values of type %s with %d fractional bits\n", cmd->num_values, command_param_type_name(cmd->type), cmd->fractional_bits);
         }
-        if (cmd->rw != CMD_RO) {
-            printf("set %s: Sets %s\n", cmd->cmd_name, cmd->info);
-        }
+        printf("\t%s\n", cmd->info);
     }
+    printf("\n");
 }
 
 cmd_t *command_lookup(const char *s)

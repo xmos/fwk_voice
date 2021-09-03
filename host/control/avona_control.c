@@ -14,7 +14,7 @@
 #define VERSION_CMD 0x80
 
 struct arg_lit *help, *version;
-struct arg_str *get, *set, *params;
+struct arg_str *get, *set, *cmd_args;
 struct arg_end *end;
 
 int main(int argc, char **argv)
@@ -25,10 +25,10 @@ int main(int argc, char **argv)
         help    = arg_lit0(NULL, "help", "display this help and exit"),
         version = arg_lit0(NULL, "version", "display version info and exit"),
 
-        get     = arg_str0("g", "get", "<cmd>", "Gets the value(s) for the specified command. Must not be used with --set."),
-        set     = arg_str0("s", "set", "<cmd>", "Sets the provided parameter value(s) with the specified command. Must not be used with --get."),
+        get     = arg_str0("g", "get", "<cmd>", "Sends the specified get command and prints the return value(s). Must not be used with --set."),
+        set     = arg_str0("s", "set", "<cmd>", "Sends the specified set command with the provided argument(s). Must not be used with --get."),
 
-        params  = arg_str0(NULL, NULL, "<param>", "Command parameters for use with set"),
+        cmd_args  = arg_strn(NULL, NULL, "<arg>", 0, 100,  "Command argument values for use with set"),
 
         end     = arg_end(20),
     };
@@ -42,6 +42,8 @@ int main(int argc, char **argv)
         arg_print_syntax(stdout, argtable, "\n");
         printf("Control tool for Avona\n\n");
         arg_print_glossary_gnu(stdout, argtable);
+        printf("The following commands are supported:\n");
+        command_list_print();
         return 0;
     }
 
@@ -66,7 +68,7 @@ int main(int argc, char **argv)
 
         if (get->count != 0 && set->count == 0) {
 
-            if (params->count == 0) {
+            if (cmd_args->count == 0) {
 
                 cmd = command_lookup(get->sval[0]);
                 if (cmd != NULL) {
@@ -76,7 +78,7 @@ int main(int argc, char **argv)
                     printf("Command %s not recognized\n", get->sval[0]);
                 }
             } else {
-                printf("Get commands do not take any parameters\n");
+                printf("Get commands do not take any arguments\n");
             }
 
             if (cmd_values != NULL) {
@@ -91,16 +93,16 @@ int main(int argc, char **argv)
             cmd = command_lookup(set->sval[0]);
             if (cmd != NULL) {
 
-                if (cmd->num_values == params->count) {
-                    cmd_values = calloc(params->count, sizeof(cmd_param_t));
+                if (cmd->num_values == cmd_args->count) {
+                    cmd_values = calloc(cmd_args->count, sizeof(cmd_param_t));
 
-                    for (int i = 0; i < params->count; i++) {
-                        cmd_values[i] = command_arg_string_to_value(cmd, params->sval[i]);
+                    for (int i = 0; i < cmd_args->count; i++) {
+                        cmd_values[i] = command_arg_string_to_value(cmd, cmd_args->sval[i]);
                     }
 
-                    ret = command_set(cmd, cmd_values, params->count);
+                    ret = command_set(cmd, cmd_values, cmd_args->count);
                 } else {
-                    printf("The command %s requires %d parameters\n", cmd->cmd_name, cmd->num_values);
+                    printf("The command %s requires %d argument%s\n", cmd->cmd_name, cmd->num_values, cmd->num_values == 1 ? "" : "s");
                 }
 
             } else {

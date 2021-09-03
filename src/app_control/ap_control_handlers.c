@@ -12,6 +12,8 @@ static device_control_servicer_t ap_servicer;
 extern volatile int mic_from_usb;
 extern volatile int aec_ref_source;
 
+static int32_t fixed_point_vals[2];
+
 DEVICE_CONTROL_CALLBACK_ATTR
 static control_ret_t ap_read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
 {
@@ -28,6 +30,14 @@ static control_ret_t ap_read_cmd(control_resid_t resid, control_cmd_t cmd, uint8
     case CONTROL_CMD_SET_READ(APP_CONTROL_CMD_AP_MIC_FROM_USB):
         if (payload_len == sizeof(uint8_t)) {
             *payload = mic_from_usb;
+        } else {
+            ret = CONTROL_DATA_LENGTH_ERROR;
+        }
+        break;
+    case CONTROL_CMD_SET_READ(0x7F):
+        if (payload_len == 2 * sizeof(int32_t)) {
+            ((int32_t *) payload)[0] = fixed_point_vals[0];
+            ((int32_t *) payload)[1] = fixed_point_vals[1];
         } else {
             ret = CONTROL_DATA_LENGTH_ERROR;
         }
@@ -50,6 +60,14 @@ static control_ret_t ap_write_cmd(control_resid_t resid, control_cmd_t cmd, cons
     case CONTROL_CMD_SET_WRITE(APP_CONTROL_CMD_AP_MIC_FROM_USB):
         if (payload_len == sizeof(uint8_t)) {
             mic_from_usb = *payload;
+        } else {
+            ret = CONTROL_DATA_LENGTH_ERROR;
+        }
+        break;
+    case CONTROL_CMD_SET_WRITE(0x7F):
+        if (payload_len == 2 * sizeof(int32_t)) {
+            fixed_point_vals[0] = ((int32_t *) payload)[0];
+            fixed_point_vals[1] = ((int32_t *) payload)[1];
         } else {
             ret = CONTROL_DATA_LENGTH_ERROR;
         }
