@@ -99,7 +99,7 @@
 
 /* Application control Config */
 #define appconf_CONTROL_I2C_DEVICE_ADDR 0x42
-#define appconf_CONTROL_SERVICER_COUNT  1
+#define appconf_CONTROL_SERVICER_COUNT  4
 
 /* WW Config */
 #define appconfWW_FRAMES_PER_INFERENCE          (160)

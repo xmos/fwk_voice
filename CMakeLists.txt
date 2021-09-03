@@ -53,6 +53,10 @@ set(APP_SOURCES
     "src/platform/aic3204.c"
 
     "src/app_control/app_control.c"
+    "src/app_control/ap_control_handlers.c"
+    "src/app_control/aec_control_handlers.c"
+    "src/app_control/stage1_control_handlers.c"
+    "src/app_control/stage2_control_handlers.c"
 
     "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
     "src/vfe_pipeline/vfe_pipeline.c"

@@ -1,0 +1,55 @@
+cmake_minimum_required(VERSION 3.14)
+
+project(avona_control LANGUAGES C)
+set(TARGET_NAME avona_control)
+
+# Disable in-source build.
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "In-source build is not allowed! Please specify a build folder.\n\tex:cmake -B build")
+endif()
+
+# Tell cmake where to install things
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/install CACHE PATH "" FORCE)
+
+if (DEVICE_CONTROL_USE_RPI_I2C)
+    # Define the cross compiler locations
+    set(CMAKE_C_COMPILER   /opt/raspberrypi-tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc)
+    set(CMAKE_CXX_COMPILER /opt/raspberrypi-tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc)
+    # Define the sysroot path for the RaspberryPi distribution in our tools folder 
+    set(CMAKE_FIND_ROOT_PATH /opt/raspberrypi-tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/)
+
+    # Use our definitions for compiler tools
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    # Search for libraries and headers in the target directories only
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    add_definitions(-std=c11)
+endif ()
+
+set(APP_SOURCES
+    "avona_control.c"
+    "commands.c"
+    "argtable/argtable3.c"
+)
+
+set(APP_INCLUDES "")
+
+include("$ENV{XCORE_SDK_PATH}/modules/rtos/sw_services/device_control/host/device_control_host.cmake")
+
+add_executable(${TARGET_NAME})
+
+target_link_libraries(${TARGET_NAME} ${DEVICE_CONTROL_LIBRARIES})
+target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${DEVICE_CONTROL_SOURCES})
+target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${DEVICE_CONTROL_INCLUDES})
+
+if (MSVC)
+    target_compile_options(${TARGET_NAME} PRIVATE /O2 /W4)
+    target_link_options(${TARGET_NAME} PRIVATE "")
+elseif (CMAKE_COMPILER_IS_GNUCC)
+    message(STATUS "Building with GCC")
+    target_compile_options(${TARGET_NAME} PRIVATE -O2 -Wall)
+    target_link_options(${TARGET_NAME} PRIVATE "")
+else ()
+    message(FATAL_ERROR "Unsupported compiler!")
+endif ()
+
