@@ -6,13 +6,51 @@
  */
 
 #include <stdio.h>
-#include "device_control_host.h"
+#include <stdlib.h>
+#include <inttypes.h>
+#include "argtable/argtable3.h"
+#include "commands.h"
 
 #define VERSION_CMD 0x80
+
+struct arg_lit *help, *version;
+struct arg_str *get, *set, *params;
+struct arg_end *end;
 
 int main(int argc, char **argv)
 {
     control_ret_t ret = CONTROL_ERROR;
+
+    void *argtable[] = {
+        help    = arg_lit0(NULL, "help", "display this help and exit"),
+        version = arg_lit0(NULL, "version", "display version info and exit"),
+
+        get     = arg_str0("g", "get", "<cmd>", "Gets the value(s) for the specified command. Must not be used with --set."),
+        set     = arg_str0("s", "set", "<cmd>", "Sets the provided parameter value(s) with the specified command. Must not be used with --get."),
+
+        params  = arg_str0(NULL, NULL, "<param>", "Command parameters for use with set"),
+
+        end     = arg_end(20),
+    };
+
+
+    int nerrors;
+    nerrors = arg_parse(argc, argv, argtable);
+
+    if (help->count > 0) {
+        printf("Usage: %s", argv[0]);
+        arg_print_syntax(stdout, argtable, "\n");
+        printf("Control tool for Avona\n\n");
+        arg_print_glossary_gnu(stdout, argtable);
+        return 0;
+    }
+
+    if (nerrors > 0) {
+        /* Display the error details contained in the arg_end struct.*/
+        arg_print_errors(stdout, end, argv[0]);
+        printf("Try '%s --help' for more information.\n", argv[0]);
+        return 1;
+    }
 
 #if USE_USB
     ret = control_init_usb(0x20B1, 0x3652, 0);
@@ -20,62 +58,63 @@ int main(int argc, char **argv)
     ret = control_init_i2c(0x42);
 #endif
 
-    control_version_t version;
-    control_status_t status;
-#if 1
-    ret = control_read_command(CONTROL_SPECIAL_RESID,
-                               CONTROL_GET_VERSION,
-                               &version,
-                               sizeof(version));
-
     if (ret == CONTROL_SUCCESS) {
-        printf("This is device control version %d\n", version);
-    }
+        cmd_t *cmd;
+        cmd_param_t *cmd_values = NULL;
 
-    ret = control_read_command(CONTROL_SPECIAL_RESID,
-                               CONTROL_GET_LAST_COMMAND_STATUS,
-                               &status,
-                               sizeof(status));
+        ret = CONTROL_ERROR;
 
-    if (ret == CONTROL_SUCCESS) {
-        printf("This last command status is %d\n", status);
-    }
-#endif
+        if (get->count != 0 && set->count == 0) {
 
-    uint8_t buf[16];
+            if (params->count == 0) {
 
-    for (int i = 1; i <= 4; i++) {
-#if 1
-        for (int i = 0; i < sizeof(buf); i++) {
-            buf[i] = 0x90 + i;
-        }
-
-        ret = control_write_command(i,
-                                   0x04,
-                                   buf,
-                                   sizeof(buf));
-        if (ret == CONTROL_SUCCESS) {
-            printf("Write command complete\n");
-        } else {
-            printf("Write command failed\n");
-        }
-#endif
-#if 1
-        ret = control_read_command(i,
-                                   0x85,
-                                   buf,
-                                   sizeof(buf));
-        if (ret == CONTROL_SUCCESS) {
-            printf("Read command complete\n\t");
-            for (int i = 0; i < sizeof(buf); i++) {
-                printf("%02x ", buf[i]);
+                cmd = command_lookup(get->sval[0]);
+                if (cmd != NULL) {
+                    cmd_values = calloc(cmd->num_values, sizeof(cmd_param_t));
+                    ret = command_get(cmd, cmd_values, cmd->num_values);
+                } else {
+                    printf("Command %s not recognized\n", get->sval[0]);
+                }
+            } else {
+                printf("Get commands do not take any parameters\n");
             }
-            printf("\n");
-        } else {
-            printf("Read command failed\n");
+
+            if (cmd_values != NULL) {
+                for (int i = 0; i < cmd->num_values; i++) {
+                    command_value_print(cmd, cmd_values[i]);
+                }
+                printf("\n");
+            }
+
+        } else if (set->count != 0 && get->count == 0) {
+
+            cmd = command_lookup(set->sval[0]);
+            if (cmd != NULL) {
+
+                if (cmd->num_values == params->count) {
+                    cmd_values = calloc(params->count, sizeof(cmd_param_t));
+
+                    for (int i = 0; i < params->count; i++) {
+                        cmd_values[i] = command_arg_string_to_value(cmd, params->sval[i]);
+                    }
+
+                    ret = command_set(cmd, cmd_values, params->count);
+                } else {
+                    printf("The command %s requires %d parameters\n", cmd->cmd_name, cmd->num_values);
+                }
+
+            } else {
+                printf("Command %s not recognized\n", get->sval[0]);
+            }
+
+        } else if (set->count != 0 && get->count != 0) {
+            printf("Must not specify both --get and --set commands\n");
         }
-#endif
+
+        if (cmd_values != NULL) {
+            free(cmd_values);
+        }
     }
 
-    return 0;
+    return ret == CONTROL_SUCCESS ? 0 : 1;
 }

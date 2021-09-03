@@ -31,7 +31,7 @@ void app_control_aec_handler(void *state, unsigned timeout)
 
 void app_control_aec_servicer_register(void)
 {
-    const control_resid_t resources[] = {APP_CONTROL_AEC_SERVICER_ID};
+    const control_resid_t resources[] = {APP_CONTROL_RESID_AEC};
     control_ret_t dc_ret;
 
     rtos_printf("Will register the AEC servicer now\n");

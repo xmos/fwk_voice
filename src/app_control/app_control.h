@@ -24,25 +24,25 @@ int app_control_init(void);
  */
 
 /***** Audio Pipeline Control *****/
-#define APP_CONTROL_AP_SERVICER_ID 1
+#define APP_CONTROL_RESID_AP 1
 void app_control_ap_handler(void *state, unsigned timeout);
 void app_control_ap_servicer_register(void);
 
 
 /***** AEC Control *****/
-#define APP_CONTROL_AEC_SERVICER_ID 2
+#define APP_CONTROL_RESID_AEC 2
 void app_control_aec_handler(void *state, unsigned timeout);
 void app_control_aec_servicer_register();
 
 
 /***** Stage 1 Control *****/
-#define APP_CONTROL_STAGE1_SERVICER_ID 3
+#define APP_CONTROL_RESID_STAGE1 3
 void app_control_stage1_handler(void *state, unsigned timeout);
 void app_control_stage1_servicer_register();
 
 
 /***** Stage 2 Control *****/
-#define APP_CONTROL_STAGE2_SERVICER_ID 4
+#define APP_CONTROL_RESID_STAGE2 4
 void app_control_stage2_handler(void *state, unsigned timeout);
 void app_control_stage2_servicer_register();
 

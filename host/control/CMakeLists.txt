@@ -28,6 +28,8 @@ endif ()
 
 set(APP_SOURCES
     "avona_control.c"
+    "commands.c"
+    "argtable/argtable3.c"
 )
 
 set(APP_INCLUDES "")

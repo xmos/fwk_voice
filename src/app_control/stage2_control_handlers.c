@@ -31,7 +31,7 @@ void app_control_stage2_handler(void *state, unsigned timeout)
 
 void app_control_stage2_servicer_register(void)
 {
-    const control_resid_t resources[] = {APP_CONTROL_STAGE2_SERVICER_ID};
+    const control_resid_t resources[] = {APP_CONTROL_RESID_STAGE2};
     control_ret_t dc_ret;
 
     rtos_printf("Will register the Stage 2 servicer now\n");
