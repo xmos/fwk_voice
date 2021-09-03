@@ -18,6 +18,9 @@
 #include "pryon_lite.h"
 #include "fs_support.h"
 
+#define ASR_CHANNEL             (0)
+#define COMMS_CHANNEL           (1)
+
 #if (WW_250K == 1)
 #define WW_MODEL_FILEPATH		"/flash/ww/250kenUS.bin"
 #define MODEL_RUNNER_STACK_SIZE (650)    // in WORDS
@@ -63,7 +66,7 @@ static void detectionCallback(PryonLiteDecoderHandle handle,
 {
     set_led(WW_ALEXA_LED, 1);
     rtos_printf(
-        "Detected: keyword='%s'  confidence=%d  beginSampleIndex=%lld  "
+        "Wakeword Detected: keyword='%s'  confidence=%d  beginSampleIndex=%lld  "
         "endSampleIndex=%lld\n",
         result->keyword, result->confidence, result->beginSampleIndex,
         result->endSampleIndex);
@@ -73,7 +76,7 @@ static void detectionCallback(PryonLiteDecoderHandle handle,
 static void vadCallback(PryonLiteDecoderHandle handle,
                         const PryonLiteVadEvent *vadEvent)
 {
-    rtos_printf("VAD state: %s\n", vadEvent->vadState ? "active" : "inactive");
+    rtos_printf("Wakeword VAD: state=%s\n", vadEvent->vadState ? "active" : "inactive");
 
     if (vadEvent->vadState == 0)
     {
@@ -266,7 +269,7 @@ void ww_audio_send(rtos_intertile_t *intertile_ctx,
     uint16_t ww_samples[appconfAUDIO_PIPELINE_FRAME_ADVANCE];
 
     for (int i = 0; i < frame_count; i++) {
-        ww_samples[i] = (uint16_t)(processed_audio_frame[i][0] >> 16);
+        ww_samples[i] = (uint16_t)(processed_audio_frame[i][ASR_CHANNEL] >> 16);
     }
 
     rtos_intertile_tx(intertile_ctx,

@@ -15,3 +15,9 @@
 # Filesystem cruft
 *.fs
 **/flash_bin_node0
+filesystem_support/fw-*
+filesystem_support/spanning-xn*
+filesystem_support/target-xn*
+
+# test cruft
+test/*.log

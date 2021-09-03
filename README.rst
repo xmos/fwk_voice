@@ -39,7 +39,13 @@ Run make:
 
     $ make
 
-After creating the binary, flash the wakeword model, then run the following commands:
+After building the firmware, create the filesystem including the wakeword models and flash the device with the following commands:
+
+Note, MacOS users will need to install `dosfstools`.
+
+.. code-block:: console
+
+    $ brew install dosfstools
 
 .. code-block:: console
 
@@ -55,7 +61,7 @@ From the root folder of the example run:
 
 .. code-block:: console
 
-    $ xrun --xscope bin/sw_xvf3652.xe
+    $ xrun --xscope bin/sw_avona.xe
 
 Or
 

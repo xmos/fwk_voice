@@ -39,11 +39,11 @@ jobs:
           
       - name: Pull xcore_sdk_builder container
         run: |
-          docker pull ghcr.io/xmos/xcore_sdk_builder:develop 
+          docker pull ghcr.io/xmos/sdk_app_builder:develop 
       
       - name: Build
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/xcore_sdk_builder:develop bash -l tools/ci/build_configurations.sh
+          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_app_builder:develop bash -l tools/ci/build_release_configs.sh
 
       - name: Save firmware artifacts
         uses: actions/upload-artifact@v2
@@ -61,15 +61,16 @@ jobs:
       
       - name: Pull doc_builder container
         run: |
-          docker pull ghcr.io/xmos/doc_builder:main 
+          docker pull ghcr.io/xmos/sdk_doc_builder:develop 
       
       - name: Build documentation
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/doc_builder:main make clean html linkcheck SPHINXOPTS="-W --keep-going"
+          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="-W --keep-going"
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
         with:
           name: sw_avona_docs
           path: ./doc/_build/html
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
           retention-days: 5
