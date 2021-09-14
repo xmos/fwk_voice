@@ -63,10 +63,12 @@ Malloc Failed on tile x!
 This application uses dynamic memory allocation for all FreeRTOS tasks and RTOS primitives.
 
 Likely issues are:
+
 - User malloc of a buffer too large
 - model_runner_manager requires a stack that is too large
 
 Potential solutions:
+
 - Increase the available heap for the kernel.  Modify configTOTAL_HEAP_SIZE in src/FreeRTOSConfig.h
 
 
@@ -78,4 +80,5 @@ This message occurs when there was not available space in the stream buffer to t
 The likely issue is that the model_runner_manager task is taking too long to run.
 
 Potential solutions:
+
 - Increase the priority of the model_runner_manager task
