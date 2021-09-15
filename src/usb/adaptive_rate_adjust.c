@@ -230,6 +230,16 @@ static void sof_intertile_init(chanend_t other_tile_c)
 #endif
 
 #if ON_TILE(1)
+    /*
+     * TODO: Move this to adaptive_rate_adjust_start() perhaps,
+     * and then call it from platform_start().
+     * It could then support enabling the ISR on a specified core.
+     * ATM, the ISR will run on whatever core is running prior to
+     * the RTOS starting, which isn't guaranteed to be anything,
+     * though seems to always be RTOS core 0. This is fine, but
+     * the tick interrupt can interfere, and if it does happen to
+     * end up on the mic or i2s cores, that might be bad.
+     */
     triggerable_setup_interrupt_callback(sof_t1_isr_c,
                                          NULL,
                                          RTOS_INTERRUPT_CALLBACK(sof_t1_isr));
