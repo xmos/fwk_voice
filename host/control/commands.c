@@ -20,8 +20,9 @@
 
 /*
  * All commands here should have MSB set to 0.
- * If the command is registered as RO or RW, then
- * it will be set.
+ * If the command is sent as a read command then
+ * it will be set automatically by the device control
+ * host library.
  */
 #define APP_CONTROL_CMD_AP_VERSION 0x00
 #define APP_CONTROL_CMD_AP_MIC_FROM_USB 0x01

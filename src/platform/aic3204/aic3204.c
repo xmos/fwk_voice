@@ -10,6 +10,17 @@
 /* Header for the audio codec chip registers and i2c address */
 #include "aic3204.h"
 
+#if XCOREAI_EXPLORER
+#define reset_dac()                                                         \
+{                                                                           \
+    const rtos_gpio_port_id_t rst_port = rtos_gpio_port(PORT_CODEC_RST_N);  \
+    rtos_gpio_port_enable(gpio_ctx_t1, rst_port);                           \
+    rtos_gpio_port_out(gpio_ctx_t1, rst_port, 0xF);                         \
+}
+#else
+#define reset_dac() {;}
+#endif
+
 /*
  * Writes a value to a register in the AIC3204 DAC chip.
  */
@@ -36,9 +47,7 @@ static inline int aic3204_reg_write(uint8_t reg, uint8_t val)
  */
 int aic3204_init(void)
 {
-    const rtos_gpio_port_id_t codec_rst_port = rtos_gpio_port(PORT_CODEC_RST_N);
-    rtos_gpio_port_enable(gpio_ctx_t1, codec_rst_port);
-    rtos_gpio_port_out(gpio_ctx_t1, codec_rst_port, 0xF);
+    reset_dac();
 
 	if (
 		// Set register page to 0

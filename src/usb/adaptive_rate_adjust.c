@@ -11,6 +11,14 @@
 
 #include "platform/app_pll_ctrl.h"
 
+#if XVF3610_Q60A
+#define PORT_MCLK           PORT_MCLK_IN_OUT
+#elif XCOREAI_EXPLORER
+#define PORT_MCLK           PORT_MCLK_IN
+#else
+#error Unsupported board
+#endif
+
 /*
  * TODO:
  * Technically, this is implementing synchronous mode, not adaptive mode.
@@ -94,7 +102,7 @@ bool tud_xcore_sof_cb(uint8_t rhport)
     asm volatile(
             "{gettime %0; getts %1, res[%2]}"
             : "=r"(cur_time), "=r"(cur_cycle_count)
-            : "r"(PORT_MCLK_IN)
+            : "r"(PORT_MCLK)
             : /* no clobbers */
             );
 

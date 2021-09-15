@@ -29,7 +29,7 @@
 #endif
 
 #ifndef appconfWW_ENABLED
-#define appconfWW_ENABLED         0
+#define appconfWW_ENABLED          0
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE
@@ -50,13 +50,17 @@
 //#define appconfI2S_AUDIO_SAMPLE_RATE 48000
 #endif
 
+#ifndef appconfEXTERNAL_MCLK
+#define appconfEXTERNAL_MCLK       0
+#endif
+
 /*
  * This option sends all 6 16 KHz channels (two channels of processed audio,
  * stereo reference audio, and stereo microphone audio) out over a single
  * 48 KHz I2S line.
  */
 #ifndef appconfI2S_TDM_ENABLED
-#define appconfI2S_TDM_ENABLED 0
+#define appconfI2S_TDM_ENABLED     0
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -89,13 +93,7 @@
 #define appconfSPI_AUDIO_MODE      appconfSPI_AUDIO_TESTING
 #endif
 
-#if appconfUSB_ENABLED && appconfSPI_OUTPUT_ENABLED
-#error Cannot use both USB and SPI interfaces
-#endif
-
-#if appconfI2S_TDM_ENABLED && appconfI2S_AUDIO_SAMPLE_RATE != 3*appconfAUDIO_PIPELINE_SAMPLE_RATE
-#error appconfI2S_AUDIO_SAMPLE_RATE must be 48000 to use I2S TDM
-#endif
+#include "app_conf_check.h"
 
 /* Application control Config */
 #define appconf_CONTROL_I2C_DEVICE_ADDR 0x42

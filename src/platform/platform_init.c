@@ -20,10 +20,26 @@
 #define PDM_CLKBLK_2  XS1_CLKBLK_2
 #define I2S_CLKBLK    XS1_CLKBLK_3
 
+#if XVF3610_Q60A
+#define PORT_MCLK           PORT_MCLK_IN_OUT
+#define PORT_SQI_CS         PORT_SQI_CS_0
+#define PORT_SQI_SCLK       PORT_SQI_SCLK_0
+#define PORT_SQI_SIO        PORT_SQI_SIO_0
+#define PORT_I2S_DAC_DATA   I2S_DATA_IN
+#define PORT_I2S_ADC_DATA   I2S_MIC_DATA
+#elif XCOREAI_EXPLORER
+#define PORT_MCLK           PORT_MCLK_IN
+#else
+#error Unsupported board
+#endif
+
 static void mclk_init(void)
 {
 #if ON_TILE(1)
+#if appconfEXTERNAL_MCLK
+#else
     app_pll_init();
+#endif
 #endif
 #if ON_TILE(0)
     /*
@@ -34,10 +50,10 @@ static void mclk_init(void)
      * count is used to adjust its frequency to match the
      * USB host.
      */
-    port_enable(PORT_MCLK_IN);
+    port_enable(PORT_MCLK);
     clock_enable(MCLK_CLKBLK);
-    clock_set_source_port(MCLK_CLKBLK, PORT_MCLK_IN);
-    port_set_clock(PORT_MCLK_IN, MCLK_CLKBLK);
+    clock_set_source_port(MCLK_CLKBLK, PORT_MCLK);
+    port_set_clock(PORT_MCLK, MCLK_CLKBLK);
     clock_start(MCLK_CLKBLK);
 #endif
 }
@@ -151,7 +167,7 @@ static void mics_init(void)
             PDM_CLKBLK_1,
             PDM_CLKBLK_2,
             appconfAUDIO_CLOCK_FREQUENCY / appconfPDM_CLOCK_FREQUENCY,
-            PORT_MCLK_IN,
+            PORT_MCLK,
             PORT_PDM_CLK,
             PORT_PDM_DATA);
 #endif
@@ -177,7 +193,7 @@ static void i2s_init(void)
             1,
             PORT_I2S_BCLK,
             PORT_I2S_LRCLK,
-            PORT_MCLK_IN,
+            PORT_MCLK,
             I2S_CLKBLK);
 #elif appconfI2S_MODE == appconfI2S_MODE_SLAVE
     rtos_i2s_slave_init(
