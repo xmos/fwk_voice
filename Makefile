@@ -4,7 +4,7 @@ PROJECT_NAME = sw_avona
 
 # BOARD is used by the XMOS RTOS platform .cmake file
 BOARD ?= XCORE-AI-EXPLORER
-WW ?= 1
+WW ?= amazon
 APP_CONF_DEFINES ?=
 
 CMAKE_ARGS ?=

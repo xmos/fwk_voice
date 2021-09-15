@@ -12,4 +12,6 @@ void ww_audio_send(rtos_intertile_t *intertile_ctx,
                    size_t frame_count,
                    int32_t (*processed_audio_frame)[2]);
 
+void model_runner_manager(void *args);
+
 #endif /* WW_MODEL_RUNNER_H_ */

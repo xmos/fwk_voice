@@ -95,13 +95,11 @@ add_compile_definitions(
 add_executable(${TARGET_NAME})
 
 if(USE_WW)
-    list(APPEND APP_INCLUDES "$ENV{WW_PATH}/xs3a")
-    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
     add_compile_definitions(
         appconfWW_ENABLED=1
-        WW_250K=0
-        WW_MODEL_IN_EXTMEM=0
     )
+    message(STATUS "Using ${USE_WW} model runner")
+    include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
