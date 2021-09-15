@@ -10,7 +10,7 @@
 #include "usb_support.h"
 #include "driver_instances.h"
 
-#if XVF3610_Q60A
+#if XVF3610_Q60A && !appconfI2C_CTRL_ENABLED
 #include "dac3101/dac3101.h"
 #define codec_init()  dac3101_init()
 #elif XCOREAI_EXPLORER

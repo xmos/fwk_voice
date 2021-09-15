@@ -5,12 +5,15 @@
 
 #include "app_conf.h"
 #include "app_pll_ctrl.h"
+#include "adaptive_rate_adjust.h"
 #include "usb_support.h"
 #include "driver_instances.h"
 
 /** TILE 0 Clock Blocks */
 #define FLASH_CLKBLK  XS1_CLKBLK_1
+#if XCOREAI_EXPLORER
 #define MCLK_CLKBLK   XS1_CLKBLK_2
+#endif
 #define SPI_CLKBLK    XS1_CLKBLK_3
 #define XUD_CLKBLK_1  XS1_CLKBLK_4 /* Reserved for lib_xud */
 #define XUD_CLKBLK_2  XS1_CLKBLK_5 /* Reserved for lib_xud */
@@ -19,6 +22,9 @@
 #define PDM_CLKBLK_1  XS1_CLKBLK_1
 #define PDM_CLKBLK_2  XS1_CLKBLK_2
 #define I2S_CLKBLK    XS1_CLKBLK_3
+#if XVF3610_Q60A || OSPREY_BOARD
+#define MCLK_CLKBLK   XS1_CLKBLK_4
+#endif
 
 #if XVF3610_Q60A
 #define PORT_MCLK           PORT_MCLK_IN_OUT
@@ -27,34 +33,23 @@
 #define PORT_SQI_SIO        PORT_SQI_SIO_0
 #define PORT_I2S_DAC_DATA   I2S_DATA_IN
 #define PORT_I2S_ADC_DATA   I2S_MIC_DATA
+#define PORT_I2C_SLAVE_SCL  PORT_I2C_SCL
+#define PORT_I2C_SLAVE_SDA  PORT_I2C_SDA
 #elif XCOREAI_EXPLORER
+#define PORT_MCLK           PORT_MCLK_IN
+#elif OSPREY_BOARD
 #define PORT_MCLK           PORT_MCLK_IN
 #else
 #error Unsupported board
 #endif
 
-static void mclk_init(void)
+static void mclk_init(chanend_t other_tile_c)
 {
-#if ON_TILE(1)
-#if appconfEXTERNAL_MCLK
-#else
+#if !appconfEXTERNAL_MCLK && ON_TILE(1)
     app_pll_init();
 #endif
-#endif
-#if ON_TILE(0)
-    /*
-     * Configure the MCLK input port on tile 0.
-     * This is wired to appPLL/MCLK output from tile 1.
-     * It is set up to clock itself. This allows GETTS to
-     * be called on it to count its clock cycles. This
-     * count is used to adjust its frequency to match the
-     * USB host.
-     */
-    port_enable(PORT_MCLK);
-    clock_enable(MCLK_CLKBLK);
-    clock_set_source_port(MCLK_CLKBLK, PORT_MCLK);
-    port_set_clock(PORT_MCLK, MCLK_CLKBLK);
-    clock_start(MCLK_CLKBLK);
+#if appconfUSB_ENABLED
+    adaptive_rate_adjust_init(other_tile_c, MCLK_CLKBLK);
 #endif
 }
 
@@ -127,12 +122,14 @@ static void flash_init(void)
 static void i2c_init(void)
 {
 #if ON_TILE(I2C_TILE_NO)
+#if XCOREAI_EXPLORER || (XVF3610_Q60A && !appconfI2C_CTRL_ENABLED)
     rtos_i2c_master_init(
             i2c_master_ctx,
             PORT_I2C_SCL, 0, 0,
             PORT_I2C_SDA, 0, 0,
             0,
             100);
+#endif
 #endif
 
 #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
@@ -223,7 +220,7 @@ void platform_init(chanend_t other_tile_c)
 {
     rtos_intertile_init(intertile_ctx, other_tile_c);
 
-    mclk_init();
+    mclk_init(other_tile_c);
     gpio_init();
     flash_init();
     i2c_init();

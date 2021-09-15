@@ -21,7 +21,11 @@
 
 
 #ifndef appconfI2S_ENABLED
+#if XVF3610_Q60A || XCOREAI_EXPLORER
 #define appconfI2S_ENABLED         1
+#else
+#define appconfI2S_ENABLED         0
+#endif
 #endif
 
 #ifndef appconfUSB_ENABLED
@@ -38,7 +42,18 @@
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
+#if XCOREAI_EXPLORER
+/*
+ * When this is enabled on the XVF3610_Q60A board, the board
+ * cannot function as an I2C master and will not configure the
+ * DAC. In this case the DAC should be configured externally.
+ * MCLK will also default to be external if this is set on
+ * the XVF3610_Q60A board.
+ */
 #define appconfI2C_CTRL_ENABLED    1
+#else
+#define appconfI2C_CTRL_ENABLED    0
+#endif
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
@@ -51,7 +66,11 @@
 #endif
 
 #ifndef appconfEXTERNAL_MCLK
+#if XVF3610_Q60A && appconfI2C_CTRL_ENABLED
+#define appconfEXTERNAL_MCLK       1
+#else
 #define appconfEXTERNAL_MCLK       0
+#endif
 #endif
 
 /*

@@ -3,20 +3,30 @@
 
 #define DEBUG_UNIT ADAPTIVE_USB
 
+#include "adaptive_rate_adjust.h"
+
 #include <stdbool.h>
 #include <xcore/port.h>
 #include <rtos_printf.h>
 #include <dsp.h>
 #include <xscope.h>
 
+#include <xcore/assert.h>
+#include <xcore/triggerable.h>
+#include <rtos_interrupt.h>
+
 #include "platform/app_pll_ctrl.h"
 
 #if XVF3610_Q60A
-#define PORT_MCLK           PORT_MCLK_IN_OUT
+#define PORT_MCLK       PORT_MCLK_IN_OUT
 #elif XCOREAI_EXPLORER
-#define PORT_MCLK           PORT_MCLK_IN
+#define PORT_MCLK       PORT_MCLK_IN
+#elif OSPREY_BOARD
+#define PORT_MCLK       PORT_MCLK_IN
 #else
-#error Unsupported board
+#ifndef PORT_MCLK
+#define PORT_MCLK       0
+#endif
 #endif
 
 /*
@@ -81,8 +91,7 @@
  */
 #define P 16
 
-#if 1
-bool tud_xcore_sof_cb(uint8_t rhport)
+static void sof_cb(void)
 {
     static int32_t numerator = PID_TEST ? 0 : Q(P)((APP_PLL_FRAC_NOM & 0x0000FF00) >> 8);
     static int32_t previous_error;
@@ -98,6 +107,10 @@ bool tud_xcore_sof_cb(uint8_t rhport)
     uint16_t delta_cycles;
     uint32_t cur_time;
     uint32_t delta_time;
+
+    if (PORT_MCLK == 0) {
+        return;
+    }
 
     asm volatile(
             "{gettime %0; getts %1, res[%2]}"
@@ -157,7 +170,6 @@ bool tud_xcore_sof_cb(uint8_t rhport)
 
             output += Q(P)(0.5);
             output >>= P;
-
             rtos_printf("%u (%d, %d, %d) -> %d -> %d\n", delta_cycles,
                         proportional, integral, derivative,
                         output, numerator_int);
@@ -178,8 +190,83 @@ bool tud_xcore_sof_cb(uint8_t rhport)
         integral = 0;
         rtos_printf("reset PID\n");
     }
+}
+
+static chanend_t sof_t1_isr_c;
+
+bool tud_xcore_sof_cb(uint8_t rhport)
+{
+#if XCOREAI_EXPLORER
+    sof_cb();
+#else
+    chanend_out_end_token(sof_t1_isr_c);
+#endif
 
     /* False tells TinyUSB to not send the SOF event to the stack */
     return false;
 }
+
+DEFINE_RTOS_INTERRUPT_CALLBACK(sof_t1_isr, arg)
+{
+    (void) arg;
+
+    chanend_check_end_token(sof_t1_isr_c);
+    sof_cb();
+}
+
+#if XVF3610_Q60A || OSPREY_BOARD
+static void sof_intertile_init(chanend_t other_tile_c)
+{
+    sof_t1_isr_c = chanend_alloc();
+    xassert(sof_t1_isr_c != 0);
+
+#if ON_TILE(1)
+    chanend_out_word(other_tile_c, sof_t1_isr_c);
+    chanend_out_end_token(other_tile_c);
 #endif
+#if ON_TILE(0)
+    chanend_set_dest(sof_t1_isr_c, chanend_in_word(other_tile_c));
+    chanend_check_end_token(other_tile_c);
+#endif
+
+#if ON_TILE(1)
+    triggerable_setup_interrupt_callback(sof_t1_isr_c,
+                                         NULL,
+                                         RTOS_INTERRUPT_CALLBACK(sof_t1_isr));
+    triggerable_enable_trigger(sof_t1_isr_c);
+#endif
+}
+#endif
+
+void adaptive_rate_adjust_init(chanend_t other_tile_c, xclock_t mclk_clkblk)
+{
+#if (XCOREAI_EXPLORER && ON_TILE(0)) || ((XVF3610_Q60A || OSPREY_BOARD) && ON_TILE(1))
+    /*
+     * Configure the MCLK input port on the tile that
+     * will run sof_cb() and count its clock cycles.
+     *
+     * On the Explorer board the appPLL/MCLK output from
+     * tile 1 is wired over to tile 0. On the Osprey and
+     * 3610 boards it is not.
+     *
+     * It is set up to clock itself. This allows GETTS to
+     * be called on it to count its clock cycles. This
+     * count is used to adjust its frequency to match the
+     * USB host.
+     */
+    port_enable(PORT_MCLK);
+    clock_enable(mclk_clkblk);
+    clock_set_source_port(mclk_clkblk, PORT_MCLK);
+    port_set_clock(PORT_MCLK, mclk_clkblk);
+    clock_start(mclk_clkblk);
+#endif
+#if XVF3610_Q60A || OSPREY_BOARD
+    /*
+     * On the Osprey and 3610 boards an additional intertile
+     * channel and ISR must be set up in order to run the
+     * SOF ISR on tile 1, since MCLK is not wired over to
+     * tile 0.
+     */
+    sof_intertile_init(other_tile_c);
+#endif
+}

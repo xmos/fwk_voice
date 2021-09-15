@@ -24,8 +24,13 @@ static int mute_status = -1;
 #define GPIO_BITMASK    (BUTTON_0_BITMASK | BUTTON_1_BITMASK)
 #define GPIO_PORT       PORT_BUTTONS
 
+#elif OSPREY_BOARD
+#define BUTTON_0_BITMASK    0x04
+#define GPIO_BITMASK    (BUTTON_0_BITMASK)
+#define GPIO_PORT       PORT_BUTTON
+
 #else
-#error Unsupported board
+#define GPIO_PORT       0
 #endif
 
 RTOS_GPIO_ISR_CALLBACK_ATTR
@@ -78,11 +83,17 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
         extern volatile int mic_from_usb;
         extern volatile int aec_ref_source;
         if (( gpio_val & BUTTON_0_BITMASK ) == 0) {
-            rtos_printf("button a\n");
             mic_from_usb = !mic_from_usb;
+            rtos_printf("Microphone from USB: %s\n", mic_from_usb ? "true" : "false");
         } else if (( gpio_val & BUTTON_1_BITMASK ) == 0) {
-            rtos_printf("button b\n");
             aec_ref_source = !aec_ref_source;
+            rtos_printf("AEC reference source: %s\n", aec_ref_source == appconfAEC_REF_I2S ? "I2S" : "USB");
+        }
+#elif OSPREY_BOARD
+        extern volatile int mic_from_usb;
+        if (( gpio_val & BUTTON_0_BITMASK ) == 0) {
+            mic_from_usb = !mic_from_usb;
+            rtos_printf("Microphone from USB: %s\n", mic_from_usb ? "true" : "false");
         }
 #endif
     }
@@ -90,10 +101,12 @@ static void gpio_handler(rtos_gpio_t *gpio_ctx)
 
 void gpio_test(rtos_gpio_t *gpio_ctx)
 {
-    xTaskCreate((TaskFunction_t) gpio_handler,
-                "gpio_handler",
-                RTOS_THREAD_STACK_SIZE(gpio_handler),
-                gpio_ctx,
-                configMAX_PRIORITIES-2,
-                NULL);
+    if (GPIO_PORT != 0) {
+        xTaskCreate((TaskFunction_t) gpio_handler,
+                    "gpio_handler",
+                    RTOS_THREAD_STACK_SIZE(gpio_handler),
+                    gpio_ctx,
+                    configMAX_PRIORITIES-2,
+                    NULL);
+    }
 }
