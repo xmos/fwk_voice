@@ -9,7 +9,14 @@
 #include "app_conf.h"
 #include "usb_support.h"
 #include "driver_instances.h"
-#include "aic3204.h"
+
+#if XVF3610_Q60A && !appconfI2C_CTRL_ENABLED
+#include "dac3101/dac3101.h"
+#define codec_init()  dac3101_init()
+#elif XCOREAI_EXPLORER
+#include "aic3204/aic3204.h"
+#define codec_init()  aic3204_init()
+#endif
 
 static void gpio_start(void)
 {
@@ -33,23 +40,29 @@ static void flash_start(void)
 
 static void i2c_master_start(void)
 {
+#ifdef codec_init
 #if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
     rtos_i2c_master_start(i2c_master_ctx);
+#endif
 #endif
 }
 
 static void audio_codec_start(void)
 {
+#ifdef codec_init
 #if appconfI2S_ENABLED
     int ret;
 #if ON_TILE(I2C_TILE_NO)
-    ret = aic3204_init();
+    ret = codec_init();
+
     if (ret != 0) {
         rtos_printf("DAC initialization failed\n");
     }
     rtos_intertile_tx(intertile_ctx, 0, &ret, sizeof(ret));
 #else
-    rtos_intertile_rx(intertile_ctx, 0, &ret, RTOS_OSAL_WAIT_FOREVER);
+    rtos_intertile_rx_len(intertile_ctx, 0, RTOS_OSAL_WAIT_FOREVER);
+    rtos_intertile_rx_data(intertile_ctx, &ret, sizeof(ret));
+#endif
 #endif
 #endif
 }

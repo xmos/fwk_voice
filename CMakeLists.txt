@@ -50,7 +50,8 @@ set(APP_SOURCES
     "src/platform/platform_init.c"
     "src/platform/platform_start.c"
     "src/platform/app_pll_ctrl.c"
-    "src/platform/aic3204.c"
+    "src/platform/aic3204/aic3204.c"
+    "src/platform/dac3101/dac3101.c"
 
     "src/app_control/app_control.c"
     "src/app_control/ap_control_handlers.c"

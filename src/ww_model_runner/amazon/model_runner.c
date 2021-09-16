@@ -39,16 +39,85 @@ static PryonLiteDecoderHandle sDecoder = NULL;
 __attribute__((aligned(8))) static uint8_t decoder_buf[DECODER_BUF_SIZE];
 static uint8_t *decoder_buf_ptr = (uint8_t *)&decoder_buf;
 
+#if XVF3610_Q60A
+#define WW_ERROR_LED 4
+#define WW_VAD_LED   1
+#define WW_ALEXA_LED 5
+
+#define led_init()                                                      \
+{                                                                       \
+    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_GPO);      \
+    rtos_gpio_port_enable(gpio_ctx_t0, led_port);                       \
+    rtos_gpio_port_out(gpio_ctx_t0, led_port, 0xFF);                    \
+}
+
+#define set_led(led, val)                                               \
+{                                                                       \
+    if (led != WW_VAD_LED)                                              \
+    {                                                                   \
+        const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_GPO);  \
+        uint32_t cur_val;                                               \
+        cur_val = rtos_gpio_port_in(gpio_ctx_t0, led_port);             \
+        rtos_gpio_port_out(gpio_ctx_t0,                                 \
+                           led_port,                                    \
+                           (val != 0) ?                                 \
+                           cur_val & ~(1<<led) :                        \
+                           (cur_val | (1<<led)));                       \
+   }                                                                    \
+}
+#elif OSPREY_BOARD
+#define WW_ERROR_LED 4
+#define WW_VAD_LED   6
+#define WW_ALEXA_LED 7
+
+#define led_init()                                                      \
+{                                                                       \
+    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS);      \
+    rtos_gpio_port_enable(gpio_ctx_t0, led_port);                       \
+    rtos_gpio_port_out(gpio_ctx_t0, led_port, 0xFF);                    \
+}
+
+#define set_led(led, val)                                               \
+{                                                                       \
+    if (led != WW_ERROR_LED)                                            \
+    {                                                                   \
+        const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS); \
+        uint32_t cur_val;                                               \
+        cur_val = rtos_gpio_port_in(gpio_ctx_t0, led_port);             \
+        rtos_gpio_port_out(gpio_ctx_t0,                                 \
+                           led_port,                                    \
+                           (val != 0) ?                                 \
+                           cur_val & ~(1<<led) :                        \
+                           (cur_val | (1<<led)));                       \
+   }                                                                    \
+}
+#elif XCOREAI_EXPLORER
 #define WW_ERROR_LED 0
 #define WW_VAD_LED   1
 #define WW_ALEXA_LED 2
-#define set_led(led, val)   \
-{   \
+
+#define led_init()                                                  \
+{                                                                   \
     const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS); \
-    uint32_t cur_val;   \
-    cur_val = rtos_gpio_port_in(gpio_ctx_t0, led_port); \
-    rtos_gpio_port_out(gpio_ctx_t0, led_port, (val == 0) ? cur_val & ~(1<<led) : (cur_val | (1<<led)));    \
+    rtos_gpio_port_enable(gpio_ctx_t0, led_port);                   \
+    rtos_gpio_port_out(gpio_ctx_t0, led_port, 0);                   \
 }
+
+#define set_led(led, val)                                           \
+{                                                                   \
+    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS); \
+    uint32_t cur_val;                                               \
+    cur_val = rtos_gpio_port_in(gpio_ctx_t0, led_port);             \
+    rtos_gpio_port_out(gpio_ctx_t0,                                 \
+                       led_port,                                    \
+                       (val == 0) ?                                 \
+                       cur_val & ~(1<<led) :                        \
+                       (cur_val | (1<<led)));                       \
+}
+#else
+#define led_init()        {;}
+#define set_led(led, val) {;}
+#endif
 
 static void detectionCallback(PryonLiteDecoderHandle handle,
                               const PryonLiteResult *result)
@@ -119,9 +188,7 @@ void model_runner_manager(void *args)
     /* Perform any initialization here */
 
     rtos_printf("Setup model runner gpio\n");
-    const rtos_gpio_port_id_t led_port = rtos_gpio_port(PORT_LEDS);
-    rtos_gpio_port_enable(gpio_ctx_t0, led_port);
-    rtos_gpio_port_out(gpio_ctx_t0, led_port, 0);
+    led_init();
 
     rtos_printf("Load model to sram\n");
     prlBinaryModelLen = ww_load_model_from_fs_to_sram();

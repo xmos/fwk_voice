@@ -21,7 +21,11 @@
 
 
 #ifndef appconfI2S_ENABLED
+#if XVF3610_Q60A || XCOREAI_EXPLORER
 #define appconfI2S_ENABLED         1
+#else
+#define appconfI2S_ENABLED         0
+#endif
 #endif
 
 #ifndef appconfUSB_ENABLED
@@ -29,7 +33,7 @@
 #endif
 
 #ifndef appconfWW_ENABLED
-#define appconfWW_ENABLED         0
+#define appconfWW_ENABLED          0
 #endif
 
 #ifndef appconfUSB_AUDIO_SAMPLE_RATE
@@ -38,7 +42,18 @@
 #endif
 
 #ifndef appconfI2C_CTRL_ENABLED
+#if XCOREAI_EXPLORER
+/*
+ * When this is enabled on the XVF3610_Q60A board, the board
+ * cannot function as an I2C master and will not configure the
+ * DAC. In this case the DAC should be configured externally.
+ * MCLK will also default to be external if this is set on
+ * the XVF3610_Q60A board.
+ */
 #define appconfI2C_CTRL_ENABLED    1
+#else
+#define appconfI2C_CTRL_ENABLED    0
+#endif
 #endif
 
 #ifndef appconfSPI_OUTPUT_ENABLED
@@ -50,13 +65,21 @@
 //#define appconfI2S_AUDIO_SAMPLE_RATE 48000
 #endif
 
+#ifndef appconfEXTERNAL_MCLK
+#if XVF3610_Q60A && appconfI2C_CTRL_ENABLED
+#define appconfEXTERNAL_MCLK       1
+#else
+#define appconfEXTERNAL_MCLK       0
+#endif
+#endif
+
 /*
  * This option sends all 6 16 KHz channels (two channels of processed audio,
  * stereo reference audio, and stereo microphone audio) out over a single
  * 48 KHz I2S line.
  */
 #ifndef appconfI2S_TDM_ENABLED
-#define appconfI2S_TDM_ENABLED 0
+#define appconfI2S_TDM_ENABLED     0
 #endif
 
 #define appconfI2S_MODE_MASTER     0
@@ -89,13 +112,7 @@
 #define appconfSPI_AUDIO_MODE      appconfSPI_AUDIO_TESTING
 #endif
 
-#if appconfUSB_ENABLED && appconfSPI_OUTPUT_ENABLED
-#error Cannot use both USB and SPI interfaces
-#endif
-
-#if appconfI2S_TDM_ENABLED && appconfI2S_AUDIO_SAMPLE_RATE != 3*appconfAUDIO_PIPELINE_SAMPLE_RATE
-#error appconfI2S_AUDIO_SAMPLE_RATE must be 48000 to use I2S TDM
-#endif
+#include "app_conf_check.h"
 
 /* Application control Config */
 #define appconf_CONTROL_I2C_DEVICE_ADDR 0x42
