@@ -65,7 +65,7 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="-W --keep-going"
+          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="--keep-going"
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
