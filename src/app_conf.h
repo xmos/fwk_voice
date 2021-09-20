@@ -111,6 +111,8 @@
 #define appconfUSB_INTERRUPT_CORE               2 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 #define appconfUSB_SOF_INTERRUPT_CORE           3 /* Must be kept off I/O cores. Best kept off cores with other ISRs. */
 #define appconfSPI_INTERRUPT_CORE               2 /* Must be kept off I/O cores. */
+#define appconfSWMEM_INTERRUPT_CORE             4 /* Must be kept off I/O cores. Best kept off cores with other ISRs. */
+
 
 /* I/O and interrupt cores for Tile 1 */
 #define appconfPDM_MIC_IO_CORE                  1 /* Must be kept off core 0 with the RTOS tick ISR */

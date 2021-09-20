@@ -30,7 +30,21 @@ static void flash_start(void)
 #if ON_TILE(FLASH_TILE_NO)
     rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
     #if (USE_SWMEM == 1)
-        swmem_setup(qspi_flash_ctx, 0 /*ignored*/);
+
+    /*
+     * TODO: Move the interrupt_core parameter into the swmem driver
+     */
+    uint32_t core_exclude_map;
+
+    /* Ensure that the mic array interrupt is enabled on the requested core */
+    rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
+    rtos_osal_thread_core_exclusion_set(NULL, ~(1 << appconfSWMEM_INTERRUPT_CORE));
+
+    swmem_setup(qspi_flash_ctx, 0 /*ignored*/);
+
+    /* Restore the core exclusion map for the calling thread */
+    rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
+
     #endif
 #endif
 }
