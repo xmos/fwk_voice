@@ -8,7 +8,7 @@ This is the XMOS Avona voice reference design
 Supported Hardware
 ****************** 
 
-This example is supported on the XCORE-AI-EXPLORER board.
+This application is supported on the XCORE-AI-EXPLORER, OSPREY-BOARD and XVF3610_Q60A boards.
 
 ***** 
 Setup
@@ -37,9 +37,19 @@ Run make:
 
 .. code-block:: console
 
-    $ make
+    $ make -j
 
-After building the firmware, create the filesystem including the wakeword models and flash the device with the following commands:
+
+After building the firmware, flash the wakeword model with the following commands:
+
+.. code-block:: console
+
+    $ cd bin
+    $ xobjdump --strip sw_avona.xe
+    $ xobjdump --split sw_avona.xb
+    $ xflash --write-all image_n0c0.swmem --target XCORE-AI-EXPLORER
+
+Though not currently supported, one can create the filesystem including the wakeword models and flash the device with the following commands:
 
 Note, MacOS users will need to install `dosfstools`.
 

@@ -10,6 +10,7 @@
 #include "usb_support.h"
 #include "driver_instances.h"
 #include "aic3204.h"
+#include "xcore_device_memory.h"
 
 static void gpio_start(void)
 {
@@ -28,6 +29,9 @@ static void flash_start(void)
 {
 #if ON_TILE(FLASH_TILE_NO)
     rtos_qspi_flash_start(qspi_flash_ctx, appconfQSPI_FLASH_TASK_PRIORITY);
+    #if (USE_SWMEM == 1)
+        swmem_setup(qspi_flash_ctx, 0 /*ignored*/);
+    #endif
 #endif
 }
 

@@ -11,6 +11,8 @@ set(USE_FATFS TRUE)
 set(USE_RTOS_USB_DRIVER TRUE)
 set(USE_DEVICE_CONTROL TRUE)
 set(USE_TINYUSB TRUE)
+set(USE_DEVICE_MEMORY_SUPPORT TRUE)
+set(USE_LIB_XS3_MATH TRUE)
 
 ## Import XMOS configurations
 include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
@@ -65,6 +67,7 @@ set(APP_SOURCES
     "src/spi/spi_interface.c"
 
     "src/ww_model_runner/ww_model_runner.c"
+    "src/ww_model_runner/mat_mul.c"
 
     "src/gpio_test/gpio_test.c"
 )
@@ -91,11 +94,17 @@ add_executable(${TARGET_NAME})
 
 if(USE_WW)
     list(APPEND APP_INCLUDES "$ENV{WW_PATH}/xs3a")
-    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
+#    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
+    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U-xmos.a")
     add_compile_definitions(
         appconfWW_ENABLED=1
         WW_250K=1
-        WW_MODEL_IN_EXTMEM=0
+        WW_MODEL_IN_SRAM=0
+        USE_SWMEM=1
+    )
+    set(APP_SOURCES
+        ${APP_SOURCES}
+        "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa-xmos.cpp"
     )
 endif()
 
