@@ -13,7 +13,7 @@
 #include "platform/driver_instances.h"
 #include "ww_model_runner/ww_model_runner.h"
 
-configSTACK_DEPTH_TYPE model_runner_manager_stack_size = 150;
+configSTACK_DEPTH_TYPE model_runner_manager_stack_size = 287;
 
 void model_runner_manager(void *args)
 {
