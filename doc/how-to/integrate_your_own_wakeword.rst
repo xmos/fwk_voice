@@ -48,8 +48,13 @@ To build with your custom wakeword engine, use the following command from the ro
 
 .. code-block:: console
 
-    $ make WW=my_custom_model_runner
+    $ make WW=my_custom_model_runner BOARD=<target board>
+    
+Supported values for <target board> are:
 
+- XVF3610_Q60A
+- XCORE-AI-EXPLORER
+- OSPREY_BOARD
 
 ***************
 Troubleshooting
