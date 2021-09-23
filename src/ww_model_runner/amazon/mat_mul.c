@@ -10,8 +10,10 @@
 #define STRIP_ROWS (256)
 #define MAX_N_COLS (540)
 
-//#define MAX_MATRIX_SIZE_BYTES (87*540 /*=46980*/)  // for loading entire matrix at once
-#define MAX_MATRIX_SIZE_BYTES (MAX_N_COLS * STRIP_ROWS) // for loading matrix in strips of STRIP_ROWS
+//#define MAX_MATRIX_SIZE_BYTES (87*540 /*=46980*/)  // for loading entire
+//matrix at once
+#define MAX_MATRIX_SIZE_BYTES                                                  \
+  (MAX_N_COLS * STRIP_ROWS) // for loading matrix in strips of STRIP_ROWS
 
 #define MAX_SCRATCH_SIZE_BYTES ROUND_UPTO_NEAREST_MULTIPLE(MAX_N_COLS, 16)
 
@@ -41,9 +43,10 @@ inline size_t load(void **dest, const void *src, size_t size) {
 // NOTE: The symbol has to be "mtx_asm" to match the name of the symbol in the
 // original libpryon_lite-U.a
 
-
-// This version loads the matrix coeffs in strips, limiting the amount of SRAM required
-//   NOTE: Be sure to use the correct MAX_MATRIX_SIZE_BYTES at the beginning of this source file
+// This version loads the matrix coeffs in strips, limiting the amount of SRAM
+// required
+//   NOTE: Be sure to use the correct MAX_MATRIX_SIZE_BYTES at the beginning of
+//   this source file
 void mtx_asm(int32_t *output, const int8_t *matrix, const int16_t *input_vector,
              const signed int M_rows, const signed int N_cols) {
 
@@ -78,8 +81,10 @@ void mtx_asm(int32_t *output, const int8_t *matrix, const int16_t *input_vector,
 };
 
 // This version loads all the matrix coeffs at once and requires the most SRAM
-//   NOTE: Be sure to use the correct MAX_MATRIX_SIZE_BYTES at the beginning of this source file
-// void mtx_asm(int32_t *output, const int8_t *matrix, const int16_t *input_vector,
+//   NOTE: Be sure to use the correct MAX_MATRIX_SIZE_BYTES at the beginning of
+//   this source file
+// void mtx_asm(int32_t *output, const int8_t *matrix, const int16_t
+// *input_vector,
 //              const signed int M_rows, const signed int N_cols) {
 
 //   int8_t *matrix_buffer_ptr = &matrix_buffer[0];

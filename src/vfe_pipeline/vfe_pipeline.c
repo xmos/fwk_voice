@@ -144,67 +144,11 @@ static void init_dsp_stage_0(vfe_dsp_stage_0_state_t *state)
     }
 }
 
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t read_cmd(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data)
-{
-    rtos_printf("Device control READ\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command is requesting %d bytes\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        payload[i] = (cmd & 0x7F) + i;
-    }
-    rtos_printf("Bytes to be sent are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
-DEVICE_CONTROL_CALLBACK_ATTR
-control_ret_t write_cmd(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data)
-{
-    rtos_printf("Device control WRITE\n\t");
-
-    rtos_printf("Servicer on tile %d received command %02x for resid %02x\n\t", THIS_XCORE_TILE, cmd, resid);
-    rtos_printf("The command has %d bytes\n\t", payload_len);
-    rtos_printf("Bytes received are:\n\t", payload_len);
-    for (int i = 0; i < payload_len; i++)
-    {
-        rtos_printf("%02x ", payload[i]);
-    }
-    rtos_printf("\n\n");
-
-    return CONTROL_SUCCESS;
-}
-
 static void stage0(frame_data_t *frame_data)
 {
-    static int init;
-    static device_control_servicer_t servicer_ctx;
-
-    if (!init)
-    {
-        const control_resid_t resources[] = {'A', 'E', 'C'};
-        control_ret_t dc_ret;
-
-        rtos_printf("Will register the AEC servicer now\n");
-
-        dc_ret = app_control_servicer_register(&servicer_ctx,
-                                               resources, sizeof(resources));
-        xassert(dc_ret == CONTROL_SUCCESS);
-        rtos_printf("AEC servicer registered\n");
-
-        init = 1;
-    }
-
     EventBits_t all_sync_bits = 0;
 
-    device_control_servicer_cmd_recv(&servicer_ctx, read_cmd, write_cmd, NULL, 0);
+    app_control_aec_handler(NULL, 0);
 
     for (int i = 0; i <= AEC_THREADS; i++)
     {
@@ -227,6 +171,8 @@ static void stage1(frame_data_t *frame_data)
 {
     vtb_ch_pair_t *post_proc_frame = NULL;
 
+    app_control_stage1_handler(&dsp_stage_1_state, 0);
+
     dsp_stage_1_process(&dsp_stage_1_state,
                         (vtb_ch_pair_t *)frame_data->samples,
                         &frame_data->stage_1_md,
@@ -239,6 +185,8 @@ static void stage1(frame_data_t *frame_data)
 
 static void stage2(frame_data_t *frame_data)
 {
+    app_control_stage2_handler(&dsp_stage_2_state, 0);
+
     /*
      * The output frame can apparently be the input frame,
      * provided that VFE_CHANNEL_PAIRS == 1
@@ -270,6 +218,10 @@ void vfe_pipeline_init(
     init_dsp_stage_0(&dsp_stage_0_state);
     init_dsp_stage_1(&dsp_stage_1_state);
     init_dsp_stage_2(&dsp_stage_2_state);
+
+    app_control_aec_servicer_register();
+    app_control_stage1_servicer_register();
+    app_control_stage2_servicer_register();
 
     audio_pipeline_init((audio_pipeline_input_t)vfe_pipeline_input_i,
                         (audio_pipeline_output_t)vfe_pipeline_output_i,

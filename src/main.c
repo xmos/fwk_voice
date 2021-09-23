@@ -56,6 +56,8 @@ void vfe_pipeline_input(void *input_app_data,
         }
     }
 
+    app_control_ap_handler(NULL, 0);
+
     /*
      * NOTE: ALWAYS receive the next frame from the PDM mics,
      * even if USB is the current mic source. The controls the
@@ -269,6 +271,7 @@ void startup_task(void *arg)
 #endif
 
 #if ON_TILE(AUDIO_HW_TILE_NO)
+    app_control_ap_servicer_register();
     vfe_pipeline_init(NULL, NULL);
 #endif
 
@@ -286,7 +289,7 @@ void startup_task(void *arg)
      */
 }
 
-void vApplicationIdleHook(void)
+void vApplicationMinimalIdleHook(void)
 {
     rtos_printf("idle hook on tile %d core %d\n", THIS_XCORE_TILE, rtos_core_id_get());
     asm volatile("waiteu");

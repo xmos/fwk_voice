@@ -52,9 +52,14 @@ set(APP_SOURCES
     "src/platform/platform_init.c"
     "src/platform/platform_start.c"
     "src/platform/app_pll_ctrl.c"
-    "src/platform/aic3204.c"
+    "src/platform/aic3204/aic3204.c"
+    "src/platform/dac3101/dac3101.c"
 
     "src/app_control/app_control.c"
+    "src/app_control/ap_control_handlers.c"
+    "src/app_control/aec_control_handlers.c"
+    "src/app_control/stage1_control_handlers.c"
+    "src/app_control/stage2_control_handlers.c"
 
     "src/vfe_pipeline/audio_pipeline/audio_pipeline.c"
     "src/vfe_pipeline/vfe_pipeline.c"
@@ -67,7 +72,6 @@ set(APP_SOURCES
     "src/spi/spi_interface.c"
 
     "src/ww_model_runner/ww_model_runner.c"
-    "src/ww_model_runner/mat_mul.c"
 
     "src/gpio_test/gpio_test.c"
 )
@@ -104,8 +108,11 @@ if(USE_WW)
     )
     set(APP_SOURCES
         ${APP_SOURCES}
+#        "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa.cpp"
         "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa-xmos.cpp"
     )
+    message(STATUS "Using ${USE_WW} model runner")
+    include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
 target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")

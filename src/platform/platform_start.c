@@ -9,8 +9,15 @@
 #include "app_conf.h"
 #include "usb_support.h"
 #include "driver_instances.h"
-#include "aic3204.h"
 #include "xcore_device_memory.h"
+
+#if XVF3610_Q60A && !appconfI2C_CTRL_ENABLED
+#include "dac3101/dac3101.h"
+#define codec_init()  dac3101_init()
+#elif XCOREAI_EXPLORER
+#include "aic3204/aic3204.h"
+#define codec_init()  aic3204_init()
+#endif
 
 static void gpio_start(void)
 {
@@ -49,12 +56,37 @@ static void flash_start(void)
 #endif
 }
 
-static void i2c_start(void)
+static void i2c_master_start(void)
 {
+#ifdef codec_init
 #if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
     rtos_i2c_master_start(i2c_master_ctx);
 #endif
+#endif
+}
 
+static void audio_codec_start(void)
+{
+#ifdef codec_init
+#if appconfI2S_ENABLED
+    int ret;
+#if ON_TILE(I2C_TILE_NO)
+    ret = codec_init();
+
+    if (ret != 0) {
+        rtos_printf("DAC initialization failed\n");
+    }
+    rtos_intertile_tx(intertile_ctx, 0, &ret, sizeof(ret));
+#else
+    rtos_intertile_rx_len(intertile_ctx, 0, RTOS_OSAL_WAIT_FOREVER);
+    rtos_intertile_rx_data(intertile_ctx, &ret, sizeof(ret));
+#endif
+#endif
+#endif
+}
+
+static void i2c_slave_start(void)
+{
 #if appconfI2C_CTRL_ENABLED && ON_TILE(I2C_CTRL_TILE_NO)
     rtos_i2c_slave_start(i2c_slave_ctx,
                          device_control_i2c_ctx,
@@ -66,50 +98,6 @@ static void i2c_start(void)
                          appconfI2C_TASK_PRIORITY);
 #endif
 }
-
-#if 0
-RTOS_SPI_SLAVE_CALLBACK_ATTR
-void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data)
-{
-    static uint8_t tx_buf[32];
-    static uint8_t rx_buf[32];
-
-    rtos_printf("SPI SLAVE STARTING!\n");
-
-    for (int i = 0; i < 32; i++) {
-        tx_buf[i] = i | 0x80;
-    }
-
-    spi_slave_xfer_prepare(ctx, rx_buf, sizeof(rx_buf), tx_buf, sizeof(tx_buf));
-}
-
-RTOS_SPI_SLAVE_CALLBACK_ATTR
-void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data)
-{
-    uint8_t *tx_buf;
-    uint8_t *rx_buf;
-    size_t rx_len;
-    size_t tx_len;
-
-    if (spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0) == 0) {
-        rtos_printf("SPI slave xfer complete\n");
-        rtos_printf("%d bytes sent, %d bytes received\n", tx_len, rx_len);
-        rtos_printf("TX: ");
-        for (int i = 0; i < 32; i++) {
-            rtos_printf("%02x ", tx_buf[i]);
-        }
-        rtos_printf("\n");
-        rtos_printf("RX: ");
-        for (int i = 0; i < 32; i++) {
-            rtos_printf("%02x ", rx_buf[i]);
-        }
-        rtos_printf("\n");
-    }
-}
-#endif
-
-void spi_slave_start_cb(rtos_spi_slave_t *ctx, void *app_data);
-void spi_slave_xfer_done_cb(rtos_spi_slave_t *ctx, void *app_data);
 
 static void spi_start(void)
 {
@@ -129,15 +117,6 @@ static void spi_start(void)
                          (rtos_spi_slave_xfer_done_cb_t) spi_slave_xfer_done_cb,
                          appconfSPI_INTERRUPT_CORE,
                          appconfSPI_TASK_PRIORITY);
-#endif
-}
-
-static void audio_codec_start(void)
-{
-#if appconfI2S_ENABLED && ON_TILE(I2C_TILE_NO)
-    if (aic3204_init() != 0) {
-        rtos_printf("DAC initialization failed\n");
-    }
 #endif
 }
 
@@ -182,6 +161,14 @@ static void usb_start(void)
 {
 #if appconfUSB_ENABLED && ON_TILE(USB_TILE_NO)
     usb_manager_start(appconfUSB_MGR_TASK_PRIORITY);
+
+    /*
+     * Calling usb_manager_start() a second time starts two
+     * TinyUSB threads. This allows the USB audio endpoint to keep
+     * moving while slow device control requests are blocked.
+     * Likely not very safe and may not be necessary.
+     */
+    //usb_manager_start(appconfUSB_MGR_TASK_PRIORITY);
 #endif
 }
 
@@ -191,9 +178,10 @@ void platform_start(void)
 
     gpio_start();
     flash_start();
-    i2c_start();
-    spi_start();
+    i2c_master_start();
     audio_codec_start();
+    i2c_slave_start();
+    spi_start();
     mics_start();
     i2s_start();
     usb_start();
