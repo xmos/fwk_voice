@@ -194,6 +194,11 @@ void model_runner_manager(void *args)
     prlBinaryModelLen = ww_load_model_from_fs_to_sram();
     rtos_printf("Model size is %d bytes\n", prlBinaryModelLen);
 
+    if(prlBinaryModelLen == 0) {
+        rtos_printf("Model size is invalid\n");
+        while(1);
+    }
+
     /* load model */
     PryonLiteDecoderConfig config = PryonLiteDecoderConfig_Default;
     config.sizeofModel = prlBinaryModelLen;
