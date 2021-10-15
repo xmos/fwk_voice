@@ -17,7 +17,6 @@ include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
 
 ## Define project
 project(sw_avona)
-set(PROJECT_VERSION 0.10.0)
 
 ## Enable languages for project
 enable_language(CXX C ASM)
@@ -40,8 +39,8 @@ set(APP_COMPILER_FLAGS
     "-Wno-xcore-fptrgroup"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config.xscope"
     "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
+    ${APP_CONF_DEFINES}
 )
-list(APPEND APP_COMPILER_FLAGS ${APP_CONF_DEFINES})
 
 set(APP_SOURCES
     "src/main.c"
@@ -72,6 +71,7 @@ set(APP_SOURCES
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
+    ${XMOS_RTOS_PLATFORM_SOURCES}
 )
 
 set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FLAGS "-O3")
@@ -81,6 +81,8 @@ set(APP_INCLUDES
     "src/vfe_pipeline"
     "src/usb"
     "src/ww_model_runner"
+    ${XMOS_RTOS_PLATFORM_INCLUDES}
+    ${VFE_LIB_INCLUDES}
 )
 
 add_compile_definitions(
@@ -92,8 +94,6 @@ add_compile_definitions(
     CFG_TUSB_DEBUG=0
 )
 
-add_executable(${TARGET_NAME})
-
 if(USE_WW)
     add_compile_definitions(
         appconfWW_ENABLED=1
@@ -102,10 +102,7 @@ if(USE_WW)
     include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
-target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
+set(APP_LINK_LIBRARIES "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
 
-target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
-target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${VFE_LIB_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
-
-target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
-target_link_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
+set(RTOS_TILE_LIST 0 1)
+create_multitile_target(RTOS_TILE_LIST)
