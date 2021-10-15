@@ -13,9 +13,9 @@ All tests require Linux or MacOS.  Most tests run on either the Explorer Board o
 The following software applications are required.  If necessary, download and follow the installation instructions for each application.
 
 - `SoX <http://sox.sourceforge.net/>`_ 
-- `Docker <https://www.docker.com/>`_ (MacOS only)
+- `Docker <https://www.docker.com/>`_ (MacOS and Windows only)
 
-The tests require several firmware configurations.  TO build and install all those configurations, run the following command in the root of the Avona repository:
+The tests require several firmware configurations.  To build and install all those configurations, run the following command in the root of the Avona repository:
 
 .. code-block:: console
 
@@ -45,7 +45,7 @@ On Linux run:
     $ cd ${WW_PATH}
     $ ./x86/amazon_ww_filesim -m models/common/WR_250k.en-US.alexa.bin sample-wakeword/alexas.list
 
-On MacOS run:
+On MacOS or Windows run:
 
 .. code-block:: console
 
