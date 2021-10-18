@@ -104,9 +104,5 @@ if(USE_WW)
     include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
-message(WARNING "${APP_SOURCES}")
-message(WARNING "${APP_INCLUDES}")
-message(WARNING "${APP_LINK_LIBRARIES}")
-
 set(RTOS_TILE_LIST 0 1)
 create_multitile_target(RTOS_TILE_LIST)
