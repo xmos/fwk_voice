@@ -94,6 +94,8 @@ add_compile_definitions(
     CFG_TUSB_DEBUG=0
 )
 
+set(APP_LINK_LIBRARIES "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
+
 if(USE_WW)
     add_compile_definitions(
         appconfWW_ENABLED=1
@@ -102,7 +104,9 @@ if(USE_WW)
     include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
-set(APP_LINK_LIBRARIES "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
+message(WARNING "${APP_SOURCES}")
+message(WARNING "${APP_INCLUDES}")
+message(WARNING "${APP_LINK_LIBRARIES}")
 
 set(RTOS_TILE_LIST 0 1)
 create_multitile_target(RTOS_TILE_LIST)

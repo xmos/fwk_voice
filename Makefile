@@ -7,9 +7,6 @@ BOARD ?= XCORE-AI-EXPLORER
 WW ?= amazon
 APP_CONF_DEFINES ?=
 
-CMAKE_ARGS ?=
-CMAKE_ARGS += -DUSE_WW=$(WW) -DAPP_CONF_DEFINES=$(APP_CONF_DEFINES)
-
 # XE_BASE_TILE specifies the tile build that other tiles will be merged into
 # It defaults to 0 if not specified.
 XE_BASE_TILE = 0
@@ -18,6 +15,10 @@ XE_BASE_TILE = 0
 # If not specified they default to 'build' and 'bin' respectively.
 BUILD_DIR  = build
 OUTPUT_DIR = bin
+
+# Arguments for cmake call
+CMAKE_ARGS ?=
+CMAKE_ARGS += -DMULTITILE_BUILD=1 -DUSE_WW=$(WW) -DAPP_CONF_DEFINES=$(APP_CONF_DEFINES) -DBOARD=$(BOARD) -DXE_BASE_TILE=$(XE_BASE_TILE) -DOUTPUT_DIR=$(OUTPUT_DIR)
 
 # EXECUTABLE is used below for recipes
 # This value should not be modified
@@ -41,5 +42,5 @@ flash: $(EXECUTABLE)
 	cd filesystem_support && ./flash_image.sh
 
 $(EXECUTABLE) :
-	cmake -B $(BUILD_DIR) -DMULTITILE_BUILD=1 -DBOARD=$(BOARD) -DXE_BASE_TILE=$(XE_BASE_TILE) -DOUTPUT_DIR=$(OUTPUT_DIR)
+	cmake -B $(BUILD_DIR) $(CMAKE_ARGS)
 	cd $(BUILD_DIR) && make -j
