@@ -34,6 +34,7 @@ Run the following command to execute the test:
 
 .. code-block:: console
 
+    $ cd test
     $ ./test_wakeword_detection.sh -c 1 ../dist/sw_avona_TEST_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee test_wakeword_detection.log
 
 This generates the `test_wakeword_detection.log` log file.  Compare this file to the output from the Amazon Wakeword `filesim` utility.  You can run the `filesim` utility with the following command:
@@ -49,6 +50,7 @@ On MacOS or Windows run:
 
 .. code-block:: console
 
+    $ cd ${WW_PATH}
     $ docker pull ubuntu
     $ docker run --rm -v ${WW_PATH}:/ww_path -w /ww_path ubuntu ./x86/amazon_ww_filesim -m models/common/WR_250k.en-US.alexa.bin sample-wakeword/alexas.list
 
