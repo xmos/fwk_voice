@@ -4,7 +4,8 @@ uname=`uname`
 # Get the USB audio device name
 get_device_name() {
     if [[ "$uname" == 'Linux' ]]; then
-        echo "hw:CARD=Avona Voice Reference Design,DEV=0"
+        # echo "hw:CARD=Avona Voice Reference Design,DEV=0"
+        echo "hw:CARD=Design,DEV=0"
     elif [[ "$uname" == 'Darwin' ]]; then
         echo "Avona Voice Reference Design"
     else
@@ -17,6 +18,7 @@ get_device_name() {
 get_device_driver() {
     if [[ "$uname" == 'Linux' ]]; then
         echo "alsa"
+        # echo "pulseaudio"
     elif [[ "$uname" == 'Darwin' ]]; then
         echo "coreaudio"
     else
@@ -27,7 +29,7 @@ get_device_driver() {
 
 # Return the maximum xrun startup duration (in seconds)
 get_firmware_startup_duration() {
-    echo "12";
+    echo "20";
 }
 
 # Get the options for sox when playing a wav file

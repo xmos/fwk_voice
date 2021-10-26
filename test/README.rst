@@ -13,7 +13,25 @@ All tests require Linux or MacOS.  Most tests run on either the Explorer Board o
 The following software applications are required.  If necessary, download and follow the installation instructions for each application.
 
 - `SoX <http://sox.sourceforge.net/>`_ 
-- `Docker <https://www.docker.com/>`_ (MacOS and Windows only)
+- `Python 3 <https://www.python.org/downloads/>`_ (We recommend and test with Python 3.8)
+
+The following software applications are optional.
+
+- `Docker <https://www.docker.com/>`_
+
+Install the Python dependencies using the following commands:
+
+Install pip if needed:
+
+.. code-block:: console
+
+    $ python -m pip install --upgrade pip
+
+Then use pip to install the required modules.
+
+.. code-block:: console
+
+    $ pip install pytest
 
 The tests require several firmware configurations.  To build and install all those configurations, run the following command in the root of the Avona repository:
 
@@ -37,16 +55,15 @@ Run the following command to execute the test:
     $ cd test
     $ ./test_wakeword_detection.sh -c 1 ../dist/sw_avona_TEST_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee test_wakeword_detection.log
 
-This generates the `test_wakeword_detection.log` log file.  Compare this file to the output from the Amazon Wakeword `filesim` utility.  You can run the `filesim` utility with the following command:
+This generates the `test_wakeword_detection.log` log file.  
 
-On Linux run:
+To verify the test results, run:
 
 .. code-block:: console
 
-    $ cd ${WW_PATH}
-    $ ./x86/amazon_ww_filesim -m models/common/WR_250k.en-US.alexa.bin sample-wakeword/alexas.list
+    $ pytest -s test_wakeword_detection.py
 
-On MacOS or Windows run:
+To compare this file to the output from the Amazon Wakeword `filesim` utility.  You can run the `filesim` utility with the following command:
 
 .. code-block:: console
 

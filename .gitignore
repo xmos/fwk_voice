@@ -19,5 +19,9 @@ filesystem_support/fw-*
 filesystem_support/spanning-xn*
 filesystem_support/target-xn*
 
+# Python cruft
+**/*.pyc
+**/__pycache__/*
+
 # test cruft
-test/*.log
+**/test_*.log
