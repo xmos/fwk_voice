@@ -191,14 +191,14 @@ void model_runner_manager(void *args) {
   /* load model */
   PryonLiteDecoderConfig config = PryonLiteDecoderConfig_Default;
   config.sizeofModel = prlBinaryModelLen;
-  config.model = prlBinaryModelPtr;
+  config.model = prlBinaryModelData;
 
   // Query for the size of instance memory required by the decoder
   PryonLiteModelAttributes modelAttributes;
   PryonLiteError status = PryonLite_GetModelAttributes(
       config.model, config.sizeofModel, &modelAttributes);
 
-  rtos_printf("required decoder buf size %d bytes\n",
+  rtos_printf("Required decoder buf size %d bytes\n",
               modelAttributes.requiredDecoderMem);
   config.decoderMem = (char *)decoder_buf_ptr;
   config.sizeofDecoderMem = modelAttributes.requiredDecoderMem;
@@ -206,10 +206,10 @@ void model_runner_manager(void *args) {
   // initialize decoder
   PryonLiteSessionInfo sessionInfo;
 
-  config.detectThreshold = 500;              // default threshold
-  config.resultCallback = detectionCallback; // register detection handler
-  config.vadCallback = vadCallback;          // register VAD handler
-  config.useVad = 1;                         // enable voice activity detector
+  config.detectThreshold = 500;               // default threshold
+  config.resultCallback = detectionCallback;  // register detection handler
+  config.vadCallback = vadCallback;           // register VAD handler
+  config.useVad = 1;                          // enable voice activity detector
 
   status = PryonLiteDecoder_Initialize(&config, &sessionInfo, &sDecoder);
 

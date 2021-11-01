@@ -15,11 +15,10 @@ set(USE_DEVICE_MEMORY_SUPPORT TRUE)
 set(USE_LIB_XS3_MATH TRUE)
 
 ## Import XMOS configurations
-include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_rtos_platform.cmake")
+include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_platform.cmake")
 
 ## Define project
 project(sw_avona)
-set(PROJECT_VERSION 0.10.0)
 
 ## Enable languages for project
 enable_language(CXX C ASM)
@@ -42,8 +41,8 @@ set(APP_COMPILER_FLAGS
     "-Wno-xcore-fptrgroup"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config.xscope"
     "${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}.xn"
+    ${APP_CONF_DEFINES}
 )
-list(APPEND APP_COMPILER_FLAGS ${APP_CONF_DEFINES})
 
 set(APP_SOURCES
     "src/main.c"
@@ -74,6 +73,7 @@ set(APP_SOURCES
     "src/ww_model_runner/ww_model_runner.c"
 
     "src/gpio_test/gpio_test.c"
+    ${XMOS_RTOS_PLATFORM_SOURCES}
 )
 
 set_source_files_properties(src/usb/adaptive_rate_adjust.c PROPERTIES COMPILE_FLAGS "-O3")
@@ -83,6 +83,8 @@ set(APP_INCLUDES
     "src/vfe_pipeline"
     "src/usb"
     "src/ww_model_runner"
+    ${XMOS_RTOS_PLATFORM_INCLUDES}
+    ${VFE_LIB_INCLUDES}
 )
 
 add_compile_definitions(
@@ -94,31 +96,15 @@ add_compile_definitions(
     CFG_TUSB_DEBUG=0
 )
 
-add_executable(${TARGET_NAME})
+set(APP_LINK_LIBRARIES "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
 
 if(USE_WW)
-    list(APPEND APP_INCLUDES "$ENV{WW_PATH}/xs3a")
-#    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U.a")
-    target_link_libraries(${TARGET_NAME} "$ENV{WW_PATH}/xs3a/U/libpryon_lite-U-xmos.a")
     add_compile_definitions(
         appconfWW_ENABLED=1
-        WW_250K=1
-        WW_MODEL_IN_SRAM=0
-        USE_SWMEM=1
-    )
-    set(APP_SOURCES
-        ${APP_SOURCES}
-#        "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa.cpp"
-        "$ENV{WW_PATH}/models/common/WR_250k.en-US.alexa-xmos.cpp"
     )
     message(STATUS "Using ${USE_WW} model runner")
     include("${CMAKE_SOURCE_DIR}/src/ww_model_runner/${USE_WW}/model_runner.cmake")
 endif()
 
-target_link_libraries(${TARGET_NAME} "${CMAKE_SOURCE_DIR}/src/vfe_pipeline/vfe/libvfe.a")
-
-target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${XMOS_RTOS_PLATFORM_SOURCES})
-target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${VFE_LIB_INCLUDES} ${XMOS_RTOS_PLATFORM_INCLUDES})
-
-target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
-target_link_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
+set(RTOS_TILE_LIST 0 1)
+create_multitile_target(RTOS_TILE_LIST)
