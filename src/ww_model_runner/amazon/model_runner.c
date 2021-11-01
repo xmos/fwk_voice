@@ -191,7 +191,7 @@ void model_runner_manager(void *args) {
   /* load model */
   PryonLiteDecoderConfig config = PryonLiteDecoderConfig_Default;
   config.sizeofModel = prlBinaryModelLen;
-  config.model = prlBinaryModelData;
+  config.model = prlBinaryModelPtr;
 
   // Query for the size of instance memory required by the decoder
   PryonLiteModelAttributes modelAttributes;
