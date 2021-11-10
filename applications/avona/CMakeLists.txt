@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 
 # Disable in-source build.
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -13,7 +13,11 @@ set(USE_DEVICE_CONTROL TRUE)
 set(USE_TINYUSB TRUE)
 
 ## Import XMOS configurations
-include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_platform.cmake")
+if(DEFINED XCORE_SDK_PATH)
+    include("${XCORE_SDK_PATH}/tools/cmake_utils/xmos_platform.cmake")
+else()
+    include("$ENV{XCORE_SDK_PATH}/tools/cmake_utils/xmos_platform.cmake")
+endif()
 
 ## Define project
 project(sw_avona)
