@@ -8,13 +8,13 @@ This is the XMOS Avona voice reference design
 Supported Hardware
 ****************** 
 
-This example is supported on the XCORE-AI-EXPLORER board.
+This software is supported on the XCORE-AI-EXPLORER and XVF3610_Q60A boards.
 
 ***** 
 Setup
 ***** 
 
-This example requires the xcore_sdk and Amazon Wakeword.
+This software requires the xcore_sdk and Amazon Wakeword.
 
 Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
 
@@ -22,7 +22,7 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
 
     $ export XCORE_SDK_PATH=/path/to/sdk
 
-Set the environment variable WW_PATH to the root of the Amazon Wakeword.
+Set the environment variable WW_PATH to the root of the Amazon Wakeword deliverable.
 
 .. code-block:: console
 
@@ -33,7 +33,13 @@ Set the environment variable WW_PATH to the root of the Amazon Wakeword.
 Building the Firmware
 *********************
 
-Run make:
+Change to the avona application folder:
+
+.. code-block:: console
+
+    $ cd applications/avona
+
+Run make to build the firmware:
 
 .. code-block:: console
 
@@ -57,7 +63,7 @@ Note, MacOS users will need to install `dosfstools`.
 Running the Firmware
 ********************
 
-From the root folder of the example run:
+From the root folder of the application run:
 
 .. code-block:: console
 

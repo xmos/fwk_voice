@@ -53,7 +53,7 @@ Run the following command to execute the test:
 .. code-block:: console
 
     $ cd test
-    $ ./test_wakeword_detection.sh -c 1 ../dist/sw_avona_TEST_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee test_wakeword_detection.log
+    $ ./test_wakeword_detection.sh -c 1 ../applications/dist/sw_avona_TEST_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee test_wakeword_detection.log
 
 This generates the `test_wakeword_detection.log` log file.  
 
