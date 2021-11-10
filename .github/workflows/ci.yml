@@ -49,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: sw_avona_apps
-          path: ./dist
+          path: ./applications/dist
           retention-days: 5
 
   build_documentation:
@@ -65,12 +65,12 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona/doc -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="--keep-going"
+          docker run --user $(id -u) --rm -w /sw_avona/documents -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="--keep-going"
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
         with:
           name: sw_avona_docs
-          path: ./doc/_build/html
+          path: ./documents/_build/html
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
           retention-days: 5
