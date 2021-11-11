@@ -23,31 +23,25 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build_apps:
-    name: Build UA and INT configurations
+  build_documentation:
+    name: Build and package documentation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Avona
         uses: actions/checkout@v2
-
-      - name: Checkout SDK
-        uses: actions/checkout@v2
-        with:
-          repository: xmos/xcore_sdk
-          path: xcore_sdk
-          submodules: recursive
-          
-      - name: Pull xcore_sdk_builder container
-        run: |
-          docker pull ghcr.io/xmos/sdk_app_builder:develop 
       
-      - name: Build
+      - name: Pull doc_builder container
         run: |
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_app_builder:develop bash -l tools/ci/build_release_configs.sh
-
-      - name: Save firmware artifacts
+          docker pull ghcr.io/xmos/doc_builder:main 
+      
+      - name: Build documentation
+        run: |
+          docker run --rm -t -v ${{ github.workspace }}:/build -u "$(id -u):$(id -g)" -e REPO:/build ghcr.io/xmos/doc_builder:main
+      
+      - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: sw_avona_apps
-          path: ./applications/dist
+          name: sw_avona_docs
+          path: ./doc/_build/html
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
           retention-days: 5
