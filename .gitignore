@@ -25,3 +25,6 @@ filesystem_support/target-xn*
 
 # test cruft
 **/test_*.log
+
+# macOS cruft
+.DS_Store
