@@ -36,7 +36,7 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --rm -t -v ${{ github.workspace }}:/build -u "$(id -u):$(id -g)" -e REPO:/build ghcr.io/xmos/doc_builder:main
+          docker run --rm -t -v ${{ github.workspace }}:/build -u "$(id -u):$(id -g)" -e REPO:/build -e PDF=1 ghcr.io/xmos/doc_builder:main
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
