@@ -8,69 +8,80 @@ This is the XMOS Avona voice reference design
 Supported Hardware
 ****************** 
 
-This software is supported on the XCORE-AI-EXPLORER and XVF3610_Q60A boards.
+This example is supported on the XCORE-AI-EXPLORER board.
 
 ***** 
 Setup
 ***** 
 
-This software requires the xcore_sdk and Amazon Wakeword.
+This example requires the xcore_sdk and Amazon Wakeword.
 
-Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
+Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk and
+set the environment variable WW_PATH to the root of the Amazon Wakeword.
 
-.. code-block:: console
+.. tab:: Linux and MacOS
 
-    $ export XCORE_SDK_PATH=/path/to/sdk
+    .. code-block:: console
 
-Set the environment variable WW_PATH to the root of the Amazon Wakeword deliverable.
+        $ export XCORE_SDK_PATH=/path/to/sdk
+        $ export WW_PATH=/path/to/wakeword
+        
+.. tab:: Windows
 
-.. code-block:: console
-
-    $ export WW_PATH=/path/to/wakeword
+    .. code-block:: console
+    
+        > set XCORE_SDK_PATH=C:\path\to\sdk\
+        > set WW_PATH=C:\path\to\wakeword\
 
 
 *********************
 Building the Firmware
 *********************
 
-Change to the avona application folder:
+Run the following commands to build the sw_avona firmware:
 
-.. code-block:: console
+.. tab:: Linux and MacOS
 
-    $ cd applications/avona
+    .. code-block:: console
+    
+        $ cmake -B build -DMULTITILE_BUILD=1 -DUSE_WW=amazon -DBOARD=XCORE-AI-EXPLORER -DXE_BASE_TILE=0 -DOUTPUT_DIR=bin
+        $ cd build
+        $ make -j
+        
+.. tab:: Windows
 
-Run make to build the firmware:
-
-.. code-block:: console
-
-    $ make
+    .. code-block:: XTC Tools CMD prompt
+    
+        > cmake -G "NMake Makefiles" -B build -DMULTITILE_BUILD=1 -DUSE_WW=amazon -DBOARD=XCORE-AI-EXPLORER -DXE_BASE_TILE=0 -DOUTPUT_DIR=bin
+        > cd build
+        > nmake
 
 After building the firmware, create the filesystem including the wakeword models and flash the device with the following commands:
 
 Note, MacOS users will need to install `dosfstools`.
 
-.. code-block:: console
+.. tab:: MacOS
 
-    $ brew install dosfstools
+    .. code-block:: console
 
-.. code-block:: console
+        $ brew install dosfstools
+        
+.. tab:: Linux and MacOS
 
-    $ cd filesystem_support
-    $ ./flash_image.sh
+    .. code-block:: console
+
+        $ cd filesystem_support
+        $ ./flash_image.sh
 
 
 ********************
 Running the Firmware
 ********************
 
-From the root folder of the application run:
+From the root folder of the example run:
 
-.. code-block:: console
+.. tab:: Linux and MacOS
 
-    $ xrun --xscope bin/sw_avona.xe
+    .. code-block:: console
 
-Or
-
-.. code-block:: console
-
-    $ make run
+        $ xrun --xscope bin/sw_avona.xe
