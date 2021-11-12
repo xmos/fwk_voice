@@ -43,8 +43,14 @@ target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${DEVICE_CONTROL_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${DEVICE_CONTROL_INCLUDES})
 
 if (MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE /O2 /W4)
-    target_link_options(${TARGET_NAME} PRIVATE "")
+	# TODO: Currently building with default compile options
+	# These were originally here:
+    # target_compile_options(${TARGET_NAME} PRIVATE /O2 /W4)
+	
+	# These are Windows args used in app_xvf3610/host/dfu_control:
+	# target_compile_options(${TARGET_NAME} PUBLIC /RTC1 /nologo /W4 /WX- /O2 /EHa /_CRT_SECURE_NO_WARNINGS)
+    
+	target_link_options(${TARGET_NAME} PRIVATE "")
 elseif (CMAKE_COMPILER_IS_GNUCC)
     message(STATUS "Building with GCC")
     target_compile_options(${TARGET_NAME} PRIVATE -O2 -Wall)
