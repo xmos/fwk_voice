@@ -28,7 +28,7 @@ set the environment variable WW_PATH to the root of the Amazon Wakeword.
         
 .. tab:: Windows
 
-    .. code-block:: console
+    .. code-block:: XTC Tools CMD prompt
     
         > set XCORE_SDK_PATH=C:\path\to\sdk\
         > set WW_PATH=C:\path\to\wakeword\
