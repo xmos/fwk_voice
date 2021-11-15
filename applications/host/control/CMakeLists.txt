@@ -34,7 +34,12 @@ set(APP_SOURCES
 
 set(APP_INCLUDES "")
 
-include("$ENV{XCORE_SDK_PATH}/modules/rtos/sw_services/device_control/host/device_control_host.cmake")
+## Import XMOS configurations
+if(DEFINED XCORE_SDK_PATH)
+    include("${XCORE_SDK_PATH}/modules/rtos/sw_services/device_control/host/device_control_host.cmake")
+else()
+    include("$ENV{XCORE_SDK_PATH}/modules/rtos/sw_services/device_control/host/device_control_host.cmake")
+endif()
 
 add_executable(${TARGET_NAME})
 
