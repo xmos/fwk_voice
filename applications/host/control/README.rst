@@ -9,7 +9,7 @@ This is the XMOS Avona host control application.
 Setup
 ***** 
 
-This example requires the xcore_sdk and Amazon Wakeword.
+This application requires the xcore_sdk and Amazon Wakeword.
 
 Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk and
 
@@ -57,7 +57,7 @@ To build this application, run the following commands in the host/control/ direc
 Verify Installation
 *******************
 
-From the root folder of the example run:
+From the root folder of the application, run:
 
 .. tab:: Linux and MacOS
 
