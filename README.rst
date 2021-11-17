@@ -26,12 +26,12 @@ set the environment variable WW_PATH to the root of the Amazon Wakeword.
         $ export XCORE_SDK_PATH=/path/to/sdk
         $ export WW_PATH=/path/to/wakeword
         
-.. tab:: Windows
+.. tab:: Windows XTC Tools CMD prompt
 
-    .. code-block:: XTC Tools CMD prompt
+    .. code-block:: console
     
-        > set XCORE_SDK_PATH=C:\path\to\sdk\
-        > set WW_PATH=C:\path\to\wakeword\
+        $ set XCORE_SDK_PATH=C:\path\to\sdk\
+        $ set WW_PATH=C:\path\to\wakeword\
 
 
 *********************
@@ -48,13 +48,13 @@ Run the following commands to build the sw_avona firmware:
         $ cd build
         $ make -j
         
-.. tab:: Windows
+.. tab:: Windows XTC Tools CMD prompt
 
-    .. code-block:: XTC Tools CMD prompt
+    .. code-block:: console
     
-        > cmake -G "NMake Makefiles" -B build -DMULTITILE_BUILD=1 -DUSE_WW=amazon -DBOARD=XCORE-AI-EXPLORER -DXE_BASE_TILE=0 -DOUTPUT_DIR=bin
-        > cd build
-        > nmake
+        $ cmake -G "NMake Makefiles" -B build -DMULTITILE_BUILD=1 -DUSE_WW=amazon -DBOARD=XCORE-AI-EXPLORER -DXE_BASE_TILE=0 -DOUTPUT_DIR=bin
+        $ cd build
+        $ nmake
 
 After building the firmware, create the filesystem including the wakeword models and flash the device with the following commands:
 
@@ -79,8 +79,6 @@ Running the Firmware
 ********************
 
 From the root folder of the example run:
-
-.. tab:: Linux and MacOS
 
     .. code-block:: console
 
