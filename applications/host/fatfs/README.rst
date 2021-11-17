@@ -23,7 +23,7 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
 
     .. code-block:: console
     
-        > set XCORE_SDK_PATH=C:\path\to\sdk
+        $ set XCORE_SDK_PATH=C:\path\to\sdk
 
 
 ************************
@@ -46,9 +46,9 @@ Note: Windows users must run the x86 native tools command prompt from Visual Stu
 
     .. code-block:: console
     
-        > cmake -G "NMake Makefiles" -B build
-        > cd build
-        > nmake
+        $ cmake -G "NMake Makefiles" -B build
+        $ cd build
+        $ nmake
 
 
 *******************
@@ -67,4 +67,4 @@ To verify this application has built, ascend from the build/ directory to its pa
 
     .. code-block::console
     
-        > fatfs_mkimage --help
+        $ fatfs_mkimage --help
