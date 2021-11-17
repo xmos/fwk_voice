@@ -23,7 +23,7 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk and
 
     .. code-block:: console
     
-        > set XCORE_SDK_PATH=C:\path\to\sdk\
+        $ set XCORE_SDK_PATH=C:\path\to\sdk\
 
 LibUSB 1.0 is required for Linux. Install these packages:
 
@@ -48,9 +48,9 @@ To build this application, run the following commands in the host/control/ direc
 
     .. code-block:: console
     
-        > cmake -G "NMake Makefiles" -B build
-        > cd build
-        > nmake
+        $ cmake -G "NMake Makefiles" -B build
+        $ cd build
+        $ nmake
 
 
 *******************
@@ -69,4 +69,4 @@ From the root folder of the application, run:
 
     .. code-block:: console
     
-        > avona_control.exe --help
+        $ avona_control.exe --help
