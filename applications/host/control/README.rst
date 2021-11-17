@@ -19,9 +19,9 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk and
 
         $ export XCORE_SDK_PATH=/path/to/sdk
         
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block:: console
     
         > set XCORE_SDK_PATH=C:\path\to\sdk\
 
@@ -44,9 +44,9 @@ To build this application, run the following commands in the host/control/ direc
         $ cd build
         $ make -j
         
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block:: console
     
         > cmake -G "NMake Makefiles" -B build
         > cd build
@@ -65,8 +65,8 @@ From the root folder of the application, run:
 
         $ avona_control --help
         
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block:: console
     
         > avona_control.exe --help
