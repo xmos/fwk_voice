@@ -19,9 +19,9 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
 
         $ export XCORE_SDK_PATH=/path/to/sdk
         
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: command prompt
+    .. code-block:: console
     
         > set XCORE_SDK_PATH=C:\path\to\sdk
 
@@ -42,9 +42,9 @@ To build this application, run the following commands:
 
 Note: Windows users must run the x86 native tools command prompt from Visual Studio
 
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block:: console
     
         > cmake -G "NMake Makefiles" -B build
         > cd build
@@ -63,8 +63,8 @@ To verify this application has built, ascend from the build/ directory to its pa
 
         $ fatfs_mkimage.exe --help
         
-.. tab:: Windows
+.. tab:: Windows x86 native tools CMD prompt
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block::console
     
         > fatfs_mkimage --help
