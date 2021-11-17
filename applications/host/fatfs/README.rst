@@ -30,7 +30,7 @@ Set the environment variable XCORE_SDK_PATH to the root of the xcore_sdk.
 Building the Application
 ************************
 
-To build this application, run the following commands in the host/fatfs/ directory:
+To build this application, run the following commands:
 
 .. tab:: Linux and MacOS
 
@@ -55,7 +55,7 @@ Note: Windows users must run the x86 native tools command prompt from Visual Stu
 Verify Installation
 *******************
 
-From the build directory, run:
+To verify this application has built, ascend from the build/ directory to its parent and run:
 
 .. tab:: Linux and MacOS
 
