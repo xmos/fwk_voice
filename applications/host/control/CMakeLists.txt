@@ -47,7 +47,9 @@ target_link_libraries(${TARGET_NAME} ${DEVICE_CONTROL_LIBRARIES})
 target_sources(${TARGET_NAME} PRIVATE ${APP_SOURCES} ${DEVICE_CONTROL_SOURCES})
 target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${DEVICE_CONTROL_INCLUDES})
 
-if (MSVC)
+message(STATUS "Building with ${CMAKE_C_COMPILER_ID}")
+
+if (${CMAKE_C_COMPILER_ID} EQUAL "MSVC")
 	# TODO: Currently building with default compile options
 	# These were originally here:
     # target_compile_options(${TARGET_NAME} PRIVATE /O2 /W4)
@@ -56,11 +58,8 @@ if (MSVC)
 	# target_compile_options(${TARGET_NAME} PUBLIC /RTC1 /nologo /W4 /WX- /O2 /EHa /_CRT_SECURE_NO_WARNINGS)
     
 	target_link_options(${TARGET_NAME} PRIVATE "")
-elseif (CMAKE_COMPILER_IS_GNUCC)
-    message(STATUS "Building with GCC")
+else ()
     target_compile_options(${TARGET_NAME} PRIVATE -O2 -Wall)
     target_link_options(${TARGET_NAME} PRIVATE "")
-else ()
-    message(FATAL_ERROR "Unsupported compiler!")
 endif ()
 

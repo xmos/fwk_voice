@@ -6,6 +6,7 @@
 **/_build*/
 **/bin*/
 **/dist*/
+**/fatfs_mkimage
 
 # Build & debug cruft
 *.a
