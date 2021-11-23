@@ -29,9 +29,6 @@
 #include "profile.h"
 #endif
 
-#define IN_WAV_FILE_NAME    "input.wav"
-#define OUT_WAV_FILE_NAME   "output.wav"
-
 #define ARG_NOT_SPECIFIED (-1)
 typedef enum {
     Y_CHANNELS,
@@ -54,7 +51,10 @@ const char *valid_tokens_str[] = {"y_channels", "x_channels", "main_filter_phase
 #define MAX_ARGS_BUF_SIZE (1024)
 void parse_runtime_args(int *runtime_args_arr) {
     file_t args_file;
-    file_open(&args_file, "args.bin", "rb");
+    int ret = file_open(&args_file, "args.bin", "rb");
+    if(ret != 0) {
+        return;
+    }
     char readbuf[MAX_ARGS_BUF_SIZE];
 
     int args_file_size = get_file_size(&args_file);
@@ -85,7 +85,7 @@ void parse_runtime_args(int *runtime_args_arr) {
 }
 
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
-void aec_task() {
+void aec_task(const char *input_file_name, const char *output_file_name) {
     //check validity of compile time configuration
     assert(AEC_MAX_Y_CHANNELS <= AEC_LIB_MAX_Y_CHANNELS);
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
@@ -114,10 +114,14 @@ void aec_task() {
     
     //open files
     file_t input_file, output_file, H_hat_file, delay_file;
-    file_open(&input_file, IN_WAV_FILE_NAME, "rb");
-    file_open(&output_file, OUT_WAV_FILE_NAME, "wb");
-    file_open(&H_hat_file, "H_hat.bin", "wb");
-    file_open(&delay_file, "delay.bin", "wb");
+    int ret = file_open(&input_file, input_file_name, "rb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&output_file, output_file_name, "wb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&H_hat_file, "H_hat.bin", "wb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&delay_file, "delay.bin", "wb");
+    assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct, output_header_struct;
     unsigned input_header_size;
@@ -128,7 +132,7 @@ void aec_task() {
     file_seek(&input_file, input_header_size, SEEK_SET);
     if(input_header_struct.bit_depth != 32)
      {
-         printf("Error: unsupported wav bit depth (%d) for %s file. Only 32 supported\n", input_header_struct.bit_depth, IN_WAV_FILE_NAME);
+         printf("Error: unsupported wav bit depth (%d) for %s file. Only 32 supported\n", input_header_struct.bit_depth, input_file_name);
          _Exit(1);
      }
 
@@ -238,15 +242,23 @@ void main_tile1(chanend_t c_cross_tile)
 {
     //Do nothing
 }
+
+#define IN_WAV_FILE_NAME    "input.wav"
+#define OUT_WAV_FILE_NAME   "output.wav"
 void main_tile0(chanend_t c_cross_tile, chanend_t xscope_chan)
 {
 #if TEST_WAV_XSCOPE
     xscope_io_init(xscope_chan);
 #endif 
-    aec_task();
+    aec_task(IN_WAV_FILE_NAME, OUT_WAV_FILE_NAME);
 }
 #else //Linux build
-int main() {
-    aec_task();
+int main(int argc, char **argv) {
+    if(argc < 3) {
+        printf("Arguments missing. Expected: <input file name> <output file name>\n");
+        assert(0);
+    }
+    aec_task(argv[1], argv[2]);
+    return 0;
 }
 #endif

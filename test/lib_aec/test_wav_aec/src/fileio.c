@@ -1,22 +1,23 @@
 
 #include "fileio.h"
 
-void file_open(file_t *fp, const char* name, const char *mode) {
+int file_open(file_t *fp, const char* name, const char *mode) {
 #if TEST_WAV_XSCOPE
     fp->xscope_file = xscope_open_file(name, (char*)mode); 
 #else
     if(!strcmp(mode, "rb")) {
         fp->file = open(name, O_RDONLY);
-        assert((fp->file != -1) && "Invalid file specified");
+        if(fp->file == -1) {return -1;}
     }
     else if(!strcmp(mode, "wb")) {
         fp->file = open(name, O_WRONLY|O_CREAT, 0644);
-        assert((fp->file != -1) && "Invalid file specified");
+        if(fp->file == -1) {return -1;}
     }
     else {
         assert((0) && "invalid file open mode specified. Only 'rb' and 'wb' modes supported");
     }
 #endif
+    return 0;
 }
 
 void file_seek(file_t *fp, long int offset, int origin) {

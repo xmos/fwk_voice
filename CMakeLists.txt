@@ -7,6 +7,12 @@ endif()
 
 project(sw_avona)
 
+## With this hack, x86 builds are work on Linux and Darwin.
+if( NOT XCORE )
+    set(CMAKE_SYSTEM_NAME Linux)
+    set(CMAKE_SYSTEM_VERSION 0.0.1)
+endif()
+
 ## Set up the build options
 include(etc/build_options.cmake)
 

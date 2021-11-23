@@ -19,7 +19,7 @@ typedef union {
 }file_t;
 
 
-void file_open(file_t *fp, const char* name, const char *mode);
+int file_open(file_t *fp, const char* name, const char *mode);
 void file_read(file_t *fp, void *buf, size_t count);
 void file_write(file_t *fp, void *buf, size_t count);
 void file_seek(file_t *fp, long int offset, int origin);
