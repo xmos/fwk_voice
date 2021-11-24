@@ -23,6 +23,8 @@ target_include_directories( ${LIB_NAME} PUBLIC
     ${LIB_AEC_INCLUDES}
     ${LIB_XS3_MATH_PATH}/api )
 
+target_link_libraries(${LIB_NAME} lib_xs3_math)
+
 set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
                                                 OUTPUT_NAME ${LIB_NAME}
                                                 SUFFIX      ".a"        )
