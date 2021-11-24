@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && brew && linux'
+        label 'x86_64 && brew'
       }
       stages {
         stage('Get view') {
