@@ -7,14 +7,13 @@ set( AEC_PATH ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
 
 include(lib_aec.cmake)
 
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/libs/)
-
 ## Set library output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
 
 ## Deliverable is a static library
 add_library( ${LIB_NAME}  STATIC      ${LIB_AEC_SOURCES} )
 
+## Build lib_xs3_math
 #set(LIB_XS3_MATH_PATH ${CMAKE_BINARY_DIR}/deps/xcore_sdk/modules/lib_xs3_math/lib_xs3_math)  ## For fetching dependencies using cmake
 set(LIB_XS3_MATH_PATH ${CMAKE_SOURCE_DIR}/../lib_xs3_math/lib_xs3_math)
 add_subdirectory( ${LIB_XS3_MATH_PATH} ${CMAKE_CURRENT_BINARY_DIR}/libs/)
