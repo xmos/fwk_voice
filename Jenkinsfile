@@ -11,10 +11,10 @@ pipeline {
   }
   environment {
     REPO = 'sw_avona'
-    VIEW = 'sw_avona_develop'
+    VIEW = getViewName(REPO)
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
-                    || env.BRANCH_NAME == "main") ? 1 : 0}"""
+                    || env.BRANCH_NAME == 'main') ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && brew && macOS'
+        label 'x86_64 && brew'
       }
       stages {
         stage('Get view') {
