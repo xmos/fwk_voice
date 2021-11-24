@@ -56,11 +56,14 @@ pipeline {
                       }
                   }
                   sh "make -j4"
+                  sh 'rm CMakeCache.txt'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5"'
+                  sh "make -j4"
                 }
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py, build/**/test_wav_aec_c_app'
             }
           }
         }
