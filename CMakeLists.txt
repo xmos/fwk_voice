@@ -43,9 +43,15 @@ set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
 
+if (DEFINED ENV{XCORE_SDK_PATH})
+  set(XCORE_SDK_PATH "$ENV{XCORE_SDK_PATH}")
+else()
+  message(FATAL_ERROR "Environment variable XCORE_SDK_PATH must define the location of a copy of xcore_sdk")
+endif()
+
 ## Get build dependencies
-#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/deps)
-#include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/deps)
+include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
 
 ## Add libs and apps
 add_subdirectory( modules )

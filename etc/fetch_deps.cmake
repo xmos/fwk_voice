@@ -3,17 +3,6 @@ include(FetchContent)
 
 if ( ${BUILD_TESTS} )
   FetchContent_Declare(
-    xcore_sdk
-    GIT_REPOSITORY      git@github.com:xmos/xcore_sdk
-    GIT_TAG             origin/develop
-    GIT_SUBMODULES      modules/lib_xs3_math modules/lib_dsp
-    GIT_SHALLOW         TRUE
-    UPDATE_DISCONNECTED TRUE
-    SOURCE_DIR          ${CMAKE_BINARY_DIR}/deps/xcore_sdk
-  )
-  FetchContent_Populate(xcore_sdk)
-
-  FetchContent_Declare(
     audio_test_tools
     GIT_REPOSITORY      git@github.com:xmos/audio_test_tools
     GIT_TAG             v4.5.1
@@ -42,15 +31,4 @@ if ( ${BUILD_TESTS} )
     SOURCE_DIR          ${CMAKE_BINARY_DIR}/deps/xscope_fileio
   )
   FetchContent_Populate(xscope_fileio)
-else()
-  FetchContent_Declare(
-    xcore_sdk
-    GIT_REPOSITORY      git@github.com:xmos/xcore_sdk
-    GIT_TAG             origin/develop
-    GIT_SUBMODULES      modules/lib_xs3_math
-    GIT_SHALLOW         TRUE
-    UPDATE_DISCONNECTED TRUE
-    SOURCE_DIR          ${CMAKE_BINARY_DIR}/deps/xcore_sdk
-  )
-  FetchContent_Populate(xcore_sdk)
 endif()
