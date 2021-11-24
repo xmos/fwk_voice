@@ -3,6 +3,8 @@
 #ifndef WAV_UTILS_H
 #define WAV_UTILS_H
 
+#include <stdint.h>
+
 #define WAV_HEADER_BYTES 44
 
 typedef struct wav_header {
