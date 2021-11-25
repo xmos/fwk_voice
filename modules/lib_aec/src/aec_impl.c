@@ -195,8 +195,9 @@ void aec_calc_fd_frame_energy(
         const bfp_complex_s32_t *input)
 {
     int32_t DWORD_ALIGNED scratch_mem[AEC_PROC_FRAME_LENGTH/2 + 1];
+    assert(input->length <= AEC_PROC_FRAME_LENGTH/2 + 1);
     bfp_s32_t scratch;
-    bfp_s32_init(&scratch, scratch_mem, 0, AEC_PROC_FRAME_LENGTH/2 + 1, 0);
+    bfp_s32_init(&scratch, scratch_mem, 0, input->length, 0);
     bfp_complex_s32_squared_mag(&scratch, input);
 
     float_s64_t sum64 = bfp_s32_sum(&scratch);
