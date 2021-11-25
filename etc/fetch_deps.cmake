@@ -53,4 +53,8 @@ else()
     SOURCE_DIR          ${CMAKE_BINARY_DIR}/deps/xcore_sdk
   )
   FetchContent_Populate(xcore_sdk)
+<<<<<<< HEAD
 endif()
+=======
+endif()
+>>>>>>> c0ac639d25728453afd8b80a469d469972a0fdd0

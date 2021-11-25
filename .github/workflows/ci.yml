@@ -51,26 +51,3 @@ jobs:
           name: sw_avona_apps
           path: ./applications/dist
           retention-days: 5
-
-  build_documentation:
-    name: Build and package documentation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Avona
-        uses: actions/checkout@v2
-      
-      - name: Pull doc_builder container
-        run: |
-          docker pull ghcr.io/xmos/sdk_doc_builder:develop 
-      
-      - name: Build documentation
-        run: |
-          docker run --user $(id -u) --rm -w /sw_avona/documents -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_doc_builder:develop  make clean html linkcheck SPHINXOPTS="--keep-going"
-      
-      - name: Save documentation artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: sw_avona_docs
-          path: ./documents/_build/html
-          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
-          retention-days: 5

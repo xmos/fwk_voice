@@ -39,3 +39,4 @@ if( NOT ( DEFINED XCORE_TARGET ) )
 endif()
 
 message(STATUS "XCORE_TARGET is ${XCORE_TARGET}" )
+
