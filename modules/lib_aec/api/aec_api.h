@@ -10,6 +10,32 @@
 
 //AEC public API
 /// Initialise AEC
+/**
+ * @brief Initialise an AEC instance
+ *
+ * This API initializes the AEC for a given configuration.
+ * The configuration is specified in terms of
+ * number of mic signal (referred to as 'y' in the API) channels,
+ * number of far end audio signal (referred to as 'reference' or 'x' in the API) channels,
+ * number of phases in the main filter and
+ * number of phases in the shadow filter.
+ * An AEC instance is made of a main filter, the error computed from which is used for the AEC output
+ * and a shadow filter that is used for tracking AEC performance for a faster convergence to optimal performance.
+ *
+ * After a call to this API, AEC is set up to start processing frames 
+ *
+ *
+ * @param[inout]    main_state                  AEC state structure for holding main filter specific state
+ * @param[inout]    shadow_state                AEC state structure for holding shadow filter specific state
+ * @params[inout]   shared_state                shared_state structure for holding state that is common to main and shadow filter
+ * @param[inout]    main_mem_pool               Memory pool used by the main filter
+ * @param[inout]    shadow_mem_pool             Memory pool used by the shadow filter
+ * @param[out]      num_y_channels              Number of mic signal channels
+ * @param[out]      num_x_channels              Number of far end audio signal channels
+ * @param[out]      num_main_filter_phases      Number of phases in the main filter
+ * @param[out]      num_shadow_filter_phases    Number of phases in the shadow filter
+ *
+ */
 void aec_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
