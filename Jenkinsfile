@@ -191,9 +191,7 @@ pipeline {
       }//stages
       post {
         always {
-          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_enhancements/**/*.wav", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_spec/**/*", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
         }
