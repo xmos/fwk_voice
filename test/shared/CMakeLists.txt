@@ -1,3 +1,4 @@
+
 set( LIB_NAME test_shared )
 
 file( GLOB_RECURSE  SHARED_SOURCES_C   *.c  )

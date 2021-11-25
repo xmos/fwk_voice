@@ -1,5 +1,6 @@
+
 ## Target name
-set( LIB_NAME   meta_data  )
+set( LIB_NAME   lib_meta_data  )
 
 ## Export lib directory as variable
 set( META_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
@@ -14,10 +15,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
 ## Deliverable is a static library
 add_library( ${LIB_NAME}  STATIC      ${META_DATA_SOURCES} )
 
+## Build lib_xs3_math
+#set(LIB_XS3_MATH_PATH ${CMAKE_BINARY_DIR}/deps/xcore_sdk/modules/lib_xs3_math/lib_xs3_math)  ## For fetching dependencies using cmake
+set(LIB_XS3_MATH_PATH ${CMAKE_SOURCE_DIR}/../lib_xs3_math/lib_xs3_math)
+add_subdirectory( ${LIB_XS3_MATH_PATH} ${CMAKE_CURRENT_BINARY_DIR}/libs/)
+
 target_include_directories( ${LIB_NAME} PUBLIC   
     ${META_DATA_INCLUDES}
-    ${CMAKE_SOURCE_DIR}/../lib_xs3_math/lib_xs3_math/api
-    ${CMAKE_SOURCE_DIR}/../lib_xs3_math/lib_xs3_math/api/bfp )
+    ${LIB_XS3_MATH_PATH}/api
+    ${LIB_XS3_MATH_PATH}/api/bfp )
+
+target_link_libraries(${LIB_NAME} lib_xs3_math)
 
 set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
                                                 OUTPUT_NAME ${LIB_NAME}

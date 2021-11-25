@@ -2,13 +2,12 @@
 
 function( add_unity_to_target  target_name )
 
-set( UNITY_PATH ${CMAKE_BINARY_DIR}/unity )
+set( UNITY_PATH ${CMAKE_BINARY_DIR}/deps/Unity )
 
 unset(UNITY_SOURCES)
 list( APPEND UNITY_SOURCES
     "${UNITY_PATH}/src/unity.c"
     "${UNITY_PATH}/extras/fixture/src/unity_fixture.c"
-    "${UNITY_PATH}/extras/memory/src/unity_memory.c"
 )
 
 target_sources( ${target_name} PRIVATE ${UNITY_SOURCES} )

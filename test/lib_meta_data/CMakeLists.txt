@@ -9,7 +9,7 @@ list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
     lib_xs3_math
-    meta_data
+    lib_meta_data
     test_shared
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} 
 )
@@ -62,7 +62,7 @@ target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
 
 list( APPEND INCLUDES src 
-${CMAKE_SOURCE_DIR}/modules/meta_data/meta_data/api
+${CMAKE_SOURCE_DIR}/modules/lib_meta_data/lib_meta_data/api
 ${CMAKE_SOURCE_DIR}/test/meta_data/shared/pseudo_rand
 ${CMAKE_SOURCE_DIR}/test/meta_data/shared/testing )
 

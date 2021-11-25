@@ -1,3 +1,3 @@
 
 
-add_subdirectory( meta_data )
+add_subdirectory( lib_meta_data )
