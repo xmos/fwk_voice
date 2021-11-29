@@ -1,8 +1,6 @@
 ## App name
 set( APP_NAME  meta_data_tests )
 
-include( ${CMAKE_CURRENT_SOURCE_DIR}/../etc/Unity/Unity.cmake )
-
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
@@ -18,9 +16,29 @@ list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
 
 ## Sources
+
+# Unity
+set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
+file( GLOB UNITY_SOURCES  ${UNITY_PATH}/*.c 
+                          ${UNITY_PATH}/../extras/fixture/src/unity_fixture.c)
+
+# If "CONFIG" is given as an optional argument, tell Unity to include "unity_config.h"
+# (user should make sure unity_config.h is in the include path)
+if (CONFIG IN_LIST ARGN)
+  target_compile_definitions( ${target_name} PRIVATE "UNITY_INCLUDE_CONFIG_H")
+endif()
+
+if( XCORE )
+  list( APPEND  UNITY_FLAGS  -Wno-xcore-fptrgroup )
+endif()
+
+string(REPLACE ";" " " UNITY_FLAGS "${UNITY_FLAGS}")
+set_source_files_properties( ${UNITY_SOURCES} PROPERTIES  COMPILE_FLAGS  "${UNITY_FLAGS}" )
+
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 list( APPEND  SOURCES         ${SOURCES_C}     )
 list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
+list( APPEND  SOURCES ${UNITY_SOURCES} )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG ../etc/config.xscope ABSOLUTE)
@@ -38,7 +56,6 @@ list( APPEND  COMPILE_FLAGS_Linux   "" )
 list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} )
 
 list(APPEND   COMPILE_FLAGS ${TEST_DEFS} )
-
 
 ## Linker flags
 unset(LINKER_FLAGS)
@@ -64,7 +81,9 @@ target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 list( APPEND INCLUDES src 
 ${CMAKE_SOURCE_DIR}/modules/lib_meta_data/lib_meta_data/api
 ${CMAKE_SOURCE_DIR}/test/meta_data/shared/pseudo_rand
-${CMAKE_SOURCE_DIR}/test/meta_data/shared/testing )
+${CMAKE_SOURCE_DIR}/test/meta_data/shared/testing
+${UNITY_PATH} 
+${UNITY_PATH}/../extras/fixture/src)
 
 target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
 
@@ -82,4 +101,3 @@ if ( XCORE )
   )
 endif()
 
-add_unity_to_target( ${APP_NAME} CONFIG)
