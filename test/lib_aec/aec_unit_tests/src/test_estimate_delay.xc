@@ -9,33 +9,40 @@ extern "C"{
     #include "aec_api.h"
 }
 
+//Note this is larger than AEC_LIB_MAIN_FILTER_PHASES but AEC_LIB_MAX_Y_CHANNELS and AEC_LIB_MAX_X_CHANNELS are 2 so it works..
+//i.e. 30 <= 10 * 2 * 2
+#define NUM_PHASES_DELAY_EST    30
+#define PHASE_CMPLX_AIR_LEN     257
 
-/*
-typedef struct {
-    bfp_complex_s32_t Y_hat[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_complex_s32_t Error[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_complex_s32_t H_hat_1d[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES]; 
-    bfp_complex_s32_t X_fifo_1d[AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES];
-    bfp_complex_s32_t T[AEC_LIB_MAX_X_CHANNELS];
 
-    bfp_s32_t inv_X_energy[AEC_LIB_MAX_X_CHANNELS];
-    bfp_s32_t X_energy[AEC_LIB_MAX_X_CHANNELS];
-    bfp_s32_t output[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_s32_t overlap[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_s32_t y_hat[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_s32_t error[AEC_LIB_MAX_Y_CHANNELS];
+//From test_cal_fd_frame_energy
+extern void calc_fd_frame_energy_fp(double *output, dsp_complex_fp *input, int length);
 
-    float_s32_t mu[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS];
-    float_s32_t error_ema_energy[AEC_LIB_MAX_Y_CHANNELS];
-    float_s32_t overall_Error[AEC_LIB_MAX_Y_CHANNELS]; 
-    float_s32_t max_X_energy[AEC_LIB_MAX_X_CHANNELS]; 
-    float_s32_t delta_scale;
-    float_s32_t delta;
 
-    aec_shared_state_t *shared_state; //pointer to the state shared between shadow and main filter
-    unsigned num_phases;
-}aec_state_t;
-*/
+int aec_estimate_delay_fp(  dsp_complex_fp H_hat_1d[1][NUM_PHASES_DELAY_EST][PHASE_CMPLX_AIR_LEN], int32_t num_phases, int32_t len_phase, 
+                            double *sum_phase_powers, double phase_powers[NUM_PHASES_DELAY_EST], double *peak_phase_power, int32_t *peak_power_phase_index){
+
+    double peak_fd_power = 0.0;
+    *peak_power_phase_index = 0;
+    *sum_phase_powers = 0.0;
+
+    for(int ch=0; ch<1; ch++) { //estimate delay for the first y-channel
+        for(int ph=0; ph<num_phases; ph++) { //compute delay over 1 x-y pair phases
+            double phase_power;
+            calc_fd_frame_energy_fp(&phase_power, H_hat_1d[ch][ph], len_phase);
+            phase_powers[ph] = phase_power;
+            // printf("ph %d power %lf\n",ph, phase_power);
+            *sum_phase_powers += phase_power;
+            if(phase_power > peak_fd_power){
+                peak_fd_power = phase_power;
+                *peak_power_phase_index = ph;
+           }
+       }
+    }
+    *peak_phase_power = peak_fd_power;
+    // printf("peak_power_phase_index %d\n", *peak_power_phase_index);
+    return AEC_FRAME_ADVANCE * *peak_power_phase_index;
+}
 
 #undef DWORD_ALIGNED
 #define DWORD_ALIGNED [[aligned(8)]]
@@ -48,47 +55,60 @@ void test_delay_estimate() {
     aec_state_t DWORD_ALIGNED state;
     aec_shared_state_t DWORD_ALIGNED shared_state;
 
+    //FP version of phase coeffs
+    dsp_complex_fp H_hat_1d[1][NUM_PHASES_DELAY_EST][PHASE_CMPLX_AIR_LEN] = {{{{0.0}}}};
+
     const unsigned num_phases = 30;
     unsigned seed = 34575;
-
     unsigned ch = 0;
 
     //Populate selected phase with energy to see if we can read peak
     for(unsigned ph = 0; ph < num_phases; ph++){
         aec_init(&state, NULL, &shared_state, aec_memory_pool, NULL, 1, 1, num_phases, 0);
+        memset(H_hat_1d, 0, sizeof(H_hat_1d));
 
         unsigned length = state.H_hat_1d[ch][ph].length;
-        // printf("length: %d\n", length);
+        TEST_ASSERT_EQUAL_INT32_MESSAGE(length, PHASE_CMPLX_AIR_LEN, "Phase length assumption wrong");
 
+
+        state.H_hat_1d[ch][ph].exp = att_random_int32(seed) % 40; //Between +39 -39
         for(unsigned i = 0; i < length; i++){
-            state.H_hat_1d[ch][ph].data[i].re = att_random_uint32(seed);
-            state.H_hat_1d[ch][ph].data[i].im = att_random_uint32(seed);
-            state.H_hat_1d[ch][ph].exp = -10;
+            state.H_hat_1d[ch][ph].data[i].re = att_random_int32(seed);
+            state.H_hat_1d[ch][ph].data[i].im = att_random_int32(seed);
+
+            H_hat_1d[ch][ph][i].re = att_int32_to_double(state.H_hat_1d[ch][ph].data[i].re, state.H_hat_1d[ch][ph].exp);
+            H_hat_1d[ch][ph][i].im = att_int32_to_double(state.H_hat_1d[ch][ph].data[i].im, state.H_hat_1d[ch][ph].exp);
+
         }
         int measured_delay = aec_estimate_delay(&state);
+
+        double sum_phase_powers;
+        double phase_powers[NUM_PHASES_DELAY_EST];
+        double peak_phase_power;
+        int32_t peak_power_phase_index;
+        int measured_delay_fp = aec_estimate_delay_fp(H_hat_1d, NUM_PHASES_DELAY_EST, PHASE_CMPLX_AIR_LEN,
+                                    &sum_phase_powers, phase_powers, &peak_phase_power, &peak_power_phase_index);
+
         int actual_delay = ph * AEC_FRAME_ADVANCE;
         // printf("test_delay_estimate: %d (%d), fin\n", measured_delay, actual_delay);
-        TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay, actual_delay, "Delay estimate incorrect");
+
+        //Now check some things. First actual delay estimate vs
+        TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay, actual_delay, "DUT Delay estimate incorrect");
+        TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay_fp, actual_delay, "REF Delay estimate incorrect");
+
+        //Now check accuracy
+        double dut_peak_phase_power_fp = att_int32_to_double(state.shared_state->delay_estimator_params.peak_phase_power.mant, state.shared_state->delay_estimator_params.peak_phase_power.exp);
+        double dut_sum_phase_powers_fp = att_int32_to_double(state.shared_state->delay_estimator_params.sum_phase_powers.mant, state.shared_state->delay_estimator_params.sum_phase_powers.exp);
+
+        double sum_phase_powers_ratio = sum_phase_powers / dut_sum_phase_powers_fp;
+        double peak_phase_power_ratio = peak_phase_power / dut_peak_phase_power_fp;
+
+        // printf("exponent: %d\n", state.H_hat_1d[ch][ph].exp);
+        // printf("sum_phase_powers ref: %lf dut: %lf, ratio: %lf\n", sum_phase_powers, dut_sum_phase_powers_fp, sum_phase_powers_ratio);
+        // printf("peak_phase_power ref: %lf dut: %lf, ratio: %lf\n", peak_phase_power, dut_peak_phase_power_fp, peak_phase_power_ratio);
+
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, sum_phase_powers_ratio, "sum_phase_powers_ratio incorrect");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, peak_phase_power_ratio, "peak_phase_power_ratio incorrect");
     }
-    
-    // unsigned seed = 34575;
-    // for(int iter = 0; iter<(1<<12)/F; iter++) {
-    //     dut_in.exp = sext(att_random_int32(seed), 6);        
-    //     dut_in.hr = att_random_uint32(seed) % 4;
-    //     for(int i=0; i<TEST_LEN; i++) {
-    //         dut_in.data[i].re = att_random_int32(seed) >> dut_in.hr;
-    //         dut_in.data[i].im = att_random_int32(seed) >> dut_in.hr;
-
-    //     }
-    //     double ref_out;
-    //     calc_fd_frame_energy_fp(&ref_out, ref_in, TEST_LEN);
-    //     float_s32_t dut_out;
-    //     aec_calc_fd_frame_energy(&dut_out, &dut_in); //this only works for input size AEC_PROC_FRAME_LENGTH/2 + 1 since there is a static allocation of scratch memory of this size within the function
-
-    //     //printf("ref %f, dut %f\n",ref_out, att_int32_to_double(dut_out.mant, dut_out.exp));
-    //     int32_t ref = att_double_to_int32(ref_out, dut_out.exp);
-    //     int32_t dut = dut_out.mant;
-    //     TEST_ASSERT_INT32_WITHIN_MESSAGE(1<<2, ref, dut, "Output delta is too large");
-    // }
     }
 }

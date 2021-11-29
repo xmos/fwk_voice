@@ -115,6 +115,10 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating AEC runner" )
     
+    if (${testfile} MATCHES "test_estimate_delay.xc")
+        set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_calc_fd_frame_energy.xc)
+    endif()
+
     #########
     ## Add a build target
     add_executable( ${TESTNAME} ${testfile} ${RUNNER_FILE} ${SOURCES} )
