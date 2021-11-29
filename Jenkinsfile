@@ -105,6 +105,17 @@ pipeline {
             }
           }
         }
+        stage('Meta Data tests') {
+          steps {
+            dir("${REPO}/build/test/lib_meta_data") {
+              viewEnv() {
+                withVenv {
+                  sh "xrun --xscope --id 0 meta_data_tests.xe"
+                }
+              }
+            }
+          }
+        }
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
