@@ -584,7 +584,7 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     X_fifo[0].hr = X->hr;
     X_fifo[0].length = X->length;
     
-    //update sigma_xx
+    //update sigma_XX
     int32_t DWORD_ALIGNED sigma_scratch_mem[AEC_PROC_FRAME_LENGTH/2 + 1];
     bfp_s32_t scratch;
     bfp_s32_init(&scratch, sigma_scratch_mem, 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
