@@ -15,12 +15,11 @@ add_library( ${LIB_NAME}  STATIC      ${LIB_AEC_SOURCES} )
 
 ## Build lib_xs3_math
 #set(LIB_XS3_MATH_PATH ${CMAKE_BINARY_DIR}/deps/xcore_sdk/modules/lib_xs3_math/lib_xs3_math)  ## For fetching dependencies using cmake
-set(LIB_XS3_MATH_PATH ${CMAKE_SOURCE_DIR}/../lib_xs3_math/lib_xs3_math)
-add_subdirectory( ${LIB_XS3_MATH_PATH} ${CMAKE_CURRENT_BINARY_DIR}/libs/)
 
 target_include_directories( ${LIB_NAME} PUBLIC
     ${LIB_AEC_INCLUDES}
-    ${LIB_XS3_MATH_PATH}/api )
+    ${LIB_XS3_MATH_PATH}/api 
+    )
 
 target_link_libraries(${LIB_NAME} lib_xs3_math)
 

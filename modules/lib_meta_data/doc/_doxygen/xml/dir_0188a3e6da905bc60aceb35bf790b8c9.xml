@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.17">
+  <compounddef id="dir_0188a3e6da905bc60aceb35bf790b8c9" kind="dir">
+    <compoundname>/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api</compoundname>
+    <innerfile refid="meta__gen_8h">meta_gen.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/"/>
+  </compounddef>
+</doxygen>

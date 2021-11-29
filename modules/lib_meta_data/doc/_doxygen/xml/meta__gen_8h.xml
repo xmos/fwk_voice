@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.17">
+  <compounddef id="meta__gen_8h" kind="file" language="C++">
+    <compoundname>meta_gen.h</compoundname>
+    <includes local="no">xs3_math_types.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h</label>
+        <link refid="meta__gen_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>xs3_math_types.h</label>
+      </node>
+    </incdepgraph>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="meta__gen_8h_1a558d921a28537b8c74ce478c96033eb1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float_s32_t</type>
+        <definition>float_s32_t get_max_ref_energy</definition>
+        <argsstring>(int32_t *x[], unsigned frame_length, int NUM_CHAN)</argsstring>
+        <name>get_max_ref_energy</name>
+        <param>
+          <type>int32_t *</type>
+          <declname>x</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>frame_length</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>NUM_CHAN</declname>
+        </param>
+        <briefdescription>
+<para>Calculate the reference energy of the signal. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This API computes the dot product of each channel with itself to get the energy of the signal. Then compares energy of each channels to return the maximum energy float_s32_t value.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer array where each element points to the signal channel </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">frame_length</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Lenght of the signal frame </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">NUM_CHAN</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of channels</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Reference energy </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h" line="22" column="13" declfile="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h" declline="22" declcolumn="13"/>
+      </memberdef>
+      <memberdef kind="function" id="meta__gen_8h_1a89e644dacda8eeabecf319874bc56e6d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float_s32_t</type>
+        <definition>float_s32_t get_aec_corr_factor</definition>
+        <argsstring>(const int32_t *mic_data, const bfp_s32_t *y_hat)</argsstring>
+        <name>get_aec_corr_factor</name>
+        <param>
+          <type>const int32_t *</type>
+          <declname>mic_data</declname>
+        </param>
+        <param>
+          <type>const bfp_s32_t *</type>
+          <declname>y_hat</declname>
+        </param>
+        <briefdescription>
+<para>Calculate the AEC correlation factor. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Takes a part of both arrays to compute AEC correlation factor.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">mic_data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Mic data array </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">y_hat</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Filter output</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Correlation factor of the filter </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h" line="39" column="13" declfile="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h" declline="39" declcolumn="13"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">//<sp/>Copyright<sp/>2021<sp/>XMOS<sp/>LIMITED.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">//<sp/>This<sp/>Software<sp/>is<sp/>subject<sp/>to<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>XMOS<sp/>Public<sp/>Licence:<sp/>Version<sp/>1.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;xs3_math_types.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal">C_API</highlight></codeline>
+<codeline lineno="22"><highlight class="normal">float_s32_t<sp/><ref refid="meta__gen_8h_1a558d921a28537b8c74ce478c96033eb1" kindref="member">get_max_ref_energy</ref>(</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/>int32_t<sp/>*<sp/>x[],<sp/></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>frame_length,<sp/></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>NUM_CHAN);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal">C_API</highlight></codeline>
+<codeline lineno="39"><highlight class="normal">float_s32_t<sp/><ref refid="meta__gen_8h_1a89e644dacda8eeabecf319874bc56e6d" kindref="member">get_aec_corr_factor</ref>(</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int32_t<sp/>*<sp/>mic_data,<sp/></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>bfp_s32_t<sp/>*<sp/>y_hat);</highlight></codeline>
+    </programlisting>
+    <location file="/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api/meta_gen.h"/>
+  </compounddef>
+</doxygen>

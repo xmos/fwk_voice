@@ -1,3 +1,6 @@
+// Copyright 2021 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 #include <stdio.h>
 #include <stdint.h>
 #include <limits.h>
@@ -24,12 +27,12 @@ int comp_32_32(const float_s32_t a, const float_s32_t b){
 
 float_s32_t get_td_frame_energy(int32_t * x, unsigned frame_length){
     bfp_s32_t ch_arr;
-    float_s64_t pow_s64;
-    float_s32_t pow_s32;
+    float_s64_t en_s64;
+    float_s32_t en_s32;
     bfp_s32_init( &ch_arr, x, EXP, frame_length, 1);
-    pow_s64 = bfp_s32_energy(&ch_arr);
-    pow_s32 = float_s64_to_float_s32(pow_s64);
-    return pow_s32;
+    en_s64 = bfp_s32_energy(&ch_arr);
+    en_s32 = float_s64_to_float_s32(en_s64);
+    return en_s32;
 }
 
 float_s32_t get_max_ref_energy(int32_t * x[], unsigned frame_length, int NUM_CHAN){
@@ -43,7 +46,7 @@ float_s32_t get_max_ref_energy(int32_t * x[], unsigned frame_length, int NUM_CHA
     return max;
 }
 
-float_s32_t get_aec_corr_factor(int32_t * mic_data, const bfp_s32_t * y_hat){
+float_s32_t get_aec_corr_factor( const int32_t * mic_data, const bfp_s32_t * y_hat){
     const int FRAME_WINDOW = AEC_PROC_FRAME_LENGTH % AP_FRAME_ADVANCE;
     float_s64_t aec_corr_numerator = DSP_FLOAT_S32_ZERO, aec_corr_denom = DSP_FLOAT_S32_ZERO;
     int32_t scratch[AP_FRAME_ADVANCE - FRAME_WINDOW], scratch2[AP_FRAME_ADVANCE - FRAME_WINDOW];

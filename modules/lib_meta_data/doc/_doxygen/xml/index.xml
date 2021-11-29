@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.8.17">
+  <compound refid="meta__gen_8h" kind="file"><name>meta_gen.h</name>
+    <member refid="meta__gen_8h_1a558d921a28537b8c74ce478c96033eb1" kind="function"><name>get_max_ref_energy</name></member>
+    <member refid="meta__gen_8h_1a89e644dacda8eeabecf319874bc56e6d" kind="function"><name>get_aec_corr_factor</name></member>
+  </compound>
+  <compound refid="dir_0188a3e6da905bc60aceb35bf790b8c9" kind="dir"><name>/home/paveluvarov/sandboxes/sw_avona/modules/lib_meta_data/api</name>
+  </compound>
+</doxygenindex>
