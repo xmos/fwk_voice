@@ -25,6 +25,14 @@ int aec_estimate_delay (
     }
     state->shared_state->delay_estimator_params.peak_phase_power = peak_fd_power;
     state->shared_state->delay_estimator_params.peak_power_phase_index = peak_power_phase_index;
+
+    if(float_s32_gt(state->shared_state->delay_estimator_params.sum_phase_powers, double_to_float_s32(0.0))){
+        float_s32_t num_phases_s32 = {state->num_phases, 0};
+        state->shared_state->delay_estimator_params.peak_to_average_ratio = 
+                float_s32_div(float_s32_mul(peak_fd_power, num_phases_s32), state->shared_state->delay_estimator_params.sum_phase_powers);
+    }else{
+        state->shared_state->delay_estimator_params.peak_to_average_ratio = double_to_float_s32(1.0);
+    }
     //printf("peak_power_phase_index %d\n",peak_power_phase_index);
     return AEC_FRAME_ADVANCE * peak_power_phase_index;
 }

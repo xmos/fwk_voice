@@ -20,7 +20,8 @@ extern void calc_fd_frame_energy_fp(double *output, dsp_complex_fp *input, int l
 
 
 int aec_estimate_delay_fp(  dsp_complex_fp H_hat_1d[1][NUM_PHASES_DELAY_EST][PHASE_CMPLX_AIR_LEN], int32_t num_phases, int32_t len_phase, 
-                            double *sum_phase_powers, double phase_powers[NUM_PHASES_DELAY_EST], double *peak_phase_power, int32_t *peak_power_phase_index){
+                            double *sum_phase_powers, double phase_powers[NUM_PHASES_DELAY_EST], double *peak_to_average_ratio,
+                            double *peak_phase_power, int32_t *peak_power_phase_index){
 
     double peak_fd_power = 0.0;
     *peak_power_phase_index = 0;
@@ -40,6 +41,11 @@ int aec_estimate_delay_fp(  dsp_complex_fp H_hat_1d[1][NUM_PHASES_DELAY_EST][PHA
        }
     }
     *peak_phase_power = peak_fd_power;
+    if(*sum_phase_powers > 0){
+        *peak_to_average_ratio = (*peak_phase_power * num_phases) / *sum_phase_powers;
+    }else{
+        *peak_to_average_ratio = 1.0;
+    }
     // printf("peak_power_phase_index %d\n", *peak_power_phase_index);
     return AEC_FRAME_ADVANCE * *peak_power_phase_index;
 }
@@ -84,31 +90,59 @@ void test_delay_estimate() {
 
         double sum_phase_powers;
         double phase_powers[NUM_PHASES_DELAY_EST];
+        double peak_to_average_ratio;
         double peak_phase_power;
         int32_t peak_power_phase_index;
         int measured_delay_fp = aec_estimate_delay_fp(H_hat_1d, NUM_PHASES_DELAY_EST, PHASE_CMPLX_AIR_LEN,
-                                    &sum_phase_powers, phase_powers, &peak_phase_power, &peak_power_phase_index);
+                                    &sum_phase_powers, phase_powers, &peak_to_average_ratio, &peak_phase_power, &peak_power_phase_index);
 
         int actual_delay = ph * AEC_FRAME_ADVANCE;
         // printf("test_delay_estimate: %d (%d), fin\n", measured_delay, actual_delay);
 
-        //Now check some things. First actual delay estimate vs
+        //Now check some things. First actual delay estimate vs expected
         TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay, actual_delay, "DUT Delay estimate incorrect");
         TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay_fp, actual_delay, "REF Delay estimate incorrect");
 
         //Now check accuracy
         double dut_peak_phase_power_fp = att_int32_to_double(state.shared_state->delay_estimator_params.peak_phase_power.mant, state.shared_state->delay_estimator_params.peak_phase_power.exp);
         double dut_sum_phase_powers_fp = att_int32_to_double(state.shared_state->delay_estimator_params.sum_phase_powers.mant, state.shared_state->delay_estimator_params.sum_phase_powers.exp);
+        double dut_peak_to_average_ratio_fp = att_int32_to_double(state.shared_state->delay_estimator_params.peak_to_average_ratio.mant, state.shared_state->delay_estimator_params.peak_to_average_ratio.exp);
 
         double sum_phase_powers_ratio = sum_phase_powers / dut_sum_phase_powers_fp;
         double peak_phase_power_ratio = peak_phase_power / dut_peak_phase_power_fp;
+        double peak_to_average_ratio_ratio = peak_to_average_ratio / dut_peak_to_average_ratio_fp;
 
         // printf("exponent: %d\n", state.H_hat_1d[ch][ph].exp);
         // printf("sum_phase_powers ref: %lf dut: %lf, ratio: %lf\n", sum_phase_powers, dut_sum_phase_powers_fp, sum_phase_powers_ratio);
         // printf("peak_phase_power ref: %lf dut: %lf, ratio: %lf\n", peak_phase_power, dut_peak_phase_power_fp, peak_phase_power_ratio);
+        // printf("peak_to_average_ratio ref: %lf dut: %lf, ratio: %lf\n", peak_to_average_ratio, dut_peak_to_average_ratio_fp, peak_to_average_ratio_ratio);
 
-        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, sum_phase_powers_ratio, "sum_phase_powers_ratio incorrect");
-        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, peak_phase_power_ratio, "peak_phase_power_ratio incorrect");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, (float)sum_phase_powers_ratio, "sum_phase_powers_ratio incorrect");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, (float)peak_phase_power_ratio, "peak_phase_power_ratio incorrect");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, (float)peak_to_average_ratio_ratio, "peak_to_average_ratio_ratio incorrect");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, (float)NUM_PHASES_DELAY_EST, (float)dut_peak_to_average_ratio_fp, "peak_to_average_ratio_ratio incorrect");
     }
+
+    //Now try a few corner cases
+    
+    aec_init(&state, NULL, &shared_state, aec_memory_pool, NULL, 1, 1, num_phases, 0);
+    memset(H_hat_1d, 0, sizeof(H_hat_1d));
+
+    double sum_phase_powers;
+    double phase_powers[NUM_PHASES_DELAY_EST];
+    double peak_to_average_ratio;
+    double peak_phase_power;
+    int32_t peak_power_phase_index;
+    int measured_delay_fp = aec_estimate_delay_fp(H_hat_1d, NUM_PHASES_DELAY_EST, PHASE_CMPLX_AIR_LEN,
+                                &sum_phase_powers, phase_powers, &peak_to_average_ratio, &peak_phase_power, &peak_power_phase_index);
+    int measured_delay = aec_estimate_delay(&state);
+    double dut_peak_to_average_ratio_fp = att_int32_to_double(state.shared_state->delay_estimator_params.peak_to_average_ratio.mant, state.shared_state->delay_estimator_params.peak_to_average_ratio.exp);
+    printf("peak_to_average_ratio ref: %lf dut: %lf\n", peak_to_average_ratio, dut_peak_to_average_ratio_fp);
+
+    //Even though zero, should come out to 1 as no energy in H
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, (float)dut_peak_to_average_ratio_fp, "dut_peak_to_average_ratio_fp incorrect");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0, 1.0, (float)peak_to_average_ratio, "peak_to_average_ratio incorrect");
+
+
     }
 }
