@@ -208,44 +208,87 @@ void aec_calc_coherence(
         aec_state_t *state,
         unsigned ch);
 
-/// Update the 1d form of X-fifo pointers
-void aec_update_X_fifo_1d(
-        aec_state_t *state);
-
-
-
-/// Window error. Overlap add to create AEC output
+/**
+ * @brief Calculate AEC's output frame
+ *
+ * This function calculates the output of the AEC. It uses the time domain representation of AEC filter error to generate AEC output, which is a length AEC_FRAME_ADVANCE int32 vector
+ *
+ * @param[inout] state AEC state structure. state->output is updated
+ * @param[in] ch mic channel index for which to calculate AEC output
+ *
+ */
 void aec_create_output(
         aec_state_t *state,
         unsigned ch);
 
-/// Compare shadow and main filters and update filters if needed. Calculate mu
-void aec_compare_filters_and_calc_mu(
-        aec_state_t *main_state,
-        aec_state_t *shadow_state);
-
-/// Calculate inverse X-energy
+/**
+ * @brief Calculate inverse of reference (X) signal energy
+ *
+ * This function calculates the inverse of reference signal energy. Reference signal energy is the energy per sample of the reference signal spectrum, summed across all phases.
+ *
+ * The inverse is calculated differetly for main and shadow filters. For main filter, a time and frequency smoothed version of the energy is calculated before doing the inverse.
+ *
+ * @param[inout] state AEC state structure. state->inv_X_energy is updated
+ * @param[in] ch reference channel index for which to calculate inverse energy
+ * @param[in] is_shadow flag indicating filter type. 0: Main filter, 1: Shadow filter
+ */
 void aec_calc_inv_X_energy(
         aec_state_t *state,
         unsigned ch,
         unsigned is_shadow);
 
-/// Calculate T (mu * inv_X_energy * Error)
+/**
+ * @brief Compare shadow and main filter performance. Calculate the adaption step size mu.
+ *
+ * This function has 2 reponsibilities. 
+ * First, it compares the energies in input, shadow filter error, main filter error spectrums and makes an estimate of how well the shadow filter is performing wrt the main filter. Based on this it decides which filter is used and as a result, resets the filters or copies one filter into another.
+ * Second, it uses the coherence values calculated in aec_calc_coherence as well as information from filter comparison done in step 1 to calculate the adaption step size mu.
+ *
+ * @param[inout] main_state AEC state structure for the main filter
+ * @param[inout] shadow_state AEC state structure for the shadow filter
+ */
+void aec_compare_filters_and_calc_mu(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state);
+
+/**
+ * @brief Calculate the parameter 'T'
+ *
+ * This function calculates a parameter referred to as 'T' that is later used in the filter adaption step.
+ * T is a function of the adaption step size mu, inverse of the normalisation spectrum inv_X_energy and the filter error spectrum.
+ * 
+ * @param[inout] state AEC state structure
+ * @param[in] y_ch mic channel index
+ * @param[in] x_ch reference channel index
+ */
 void aec_compute_T(
         aec_state_t *state,
         unsigned y_ch,
         unsigned x_ch);
 
-/// Adapt H_hat
+/** @brief Update filter
+ *
+ * This function updates the filter. It uses the T values calculated in aec_compute_T() and the X FIFO to calculate the delta update that is applied to the filter.
+ *
+ * @param[inout] state AEC state structure
+ * @param[in] y_ch mic channel index
+ *
+ */
 void aec_filter_adapt(
         aec_state_t *state,
         unsigned y_ch);
+
+/// Update the 1d form of X-fifo pointers
+void aec_update_X_fifo_1d(
+        aec_state_t *state);
 
 /// Estimate delay
 int aec_estimate_delay (
         aec_state_t *state);
 
-//AEC level 2 API. Allows for bin or phase level parallelism
+//Untested API TODO add unit tests
+void aec_reset_filter(
+        aec_state_t *state);
 
 /// Calculate Error and Y_hat for a channel over a range of bins
 void aec_l2_calc_Error_and_Y_hat(
@@ -286,9 +329,5 @@ void aec_l2_bfp_s32_unify_exponent(
         int array_len,
         int desired_index,
         int min_headroom);
-
-//Untested API TODO add unit tests
-void aec_reset_filter(
-        aec_state_t *state);
 
 #endif
