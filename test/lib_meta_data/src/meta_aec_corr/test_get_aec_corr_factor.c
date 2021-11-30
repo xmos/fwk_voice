@@ -74,7 +74,7 @@ TEST(get_aec_corr_factor, case0){
 
     expected = fabs(numenator)/denominator;
 
-    double diff = 10 * expected - actual;
+    double diff = expected - actual;
     double error = fabs(diff/expected);
     double thresh = ldexp(1, -19);
 
