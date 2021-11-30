@@ -40,7 +40,7 @@ class UnityTestExecutable(pytest.Item):
         try:
             print("run xrun for executable ", self.fspath)
             with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-                test_output = subprocess.check_output(['xrun', '--io', '--adapter-id', adapter_id, self.fspath], text=True, stderr=subprocess.STDOUT)
+                test_output = subprocess.check_output(['xrun', '--xscope', '--io', '--adapter-id', adapter_id, self.fspath], text=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             # Unity exits non-zero if an assertion fails
             simulator_fail = True
