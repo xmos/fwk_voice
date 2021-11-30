@@ -110,7 +110,8 @@ pipeline {
             dir("${REPO}/build/test/lib_meta_data") {
               viewEnv() {
                 withVenv {
-                  sh "xrun --xscope --id 0 meta_data_tests.xe"
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
