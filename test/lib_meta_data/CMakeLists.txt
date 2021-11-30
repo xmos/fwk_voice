@@ -1,6 +1,14 @@
 ## App name
 set( APP_NAME  meta_data_tests )
 
+# Auto-generate schedule and top level config files
+if( NOT ${Python3_FOUND} )
+  message(FATAL_ERROR "Python3 not found for running . ") 
+endif()
+
+#copy conftest.py in the build directory since pytest_collect_file only collects tests from the directory tree where conftest.py is present
+configure_file( conftest.py conftest.py COPYONLY ) 
+
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
@@ -14,7 +22,6 @@ list( APPEND  DEP_LIBS
 
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
-
 ## Sources
 
 # Unity
@@ -26,10 +33,6 @@ file( GLOB UNITY_SOURCES  ${UNITY_PATH}/*.c
 # (user should make sure unity_config.h is in the include path)
 if (CONFIG IN_LIST ARGN)
   target_compile_definitions( ${target_name} PRIVATE "UNITY_INCLUDE_CONFIG_H")
-endif()
-
-if( XCORE )
-  list( APPEND  UNITY_FLAGS  -Wno-xcore-fptrgroup )
 endif()
 
 string(REPLACE ";" " " UNITY_FLAGS "${UNITY_FLAGS}")
