@@ -50,6 +50,10 @@ add_compile_options( ${COMPILE_FLAGS} )
 ## Add libs and apps
 add_subdirectory( modules )
 
+if ( ${BUILD_EXAMPLES} )
+    add_subdirectory( examples )
+endif()
+
 if ( ${BUILD_TESTS} )
   add_subdirectory( test )
 endif()
