@@ -22,22 +22,20 @@ void aec_process_frame(
     
     //Calculate time domain input exponential moving average energy
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_update_td_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+        aec_update_td_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch],
+                AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_update_td_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+        aec_update_td_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch],
+                AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
 
     //Calculate input spectrum
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_fft(
-                &main_state->shared_state->Y[ch],
-                &main_state->shared_state->y[ch]);
+        aec_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
     }
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_fft(
-                &main_state->shared_state->X[ch],
-                &main_state->shared_state->x[ch]);
+        aec_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
     }
 
     //Calculate X-FIFO energy for main and shadow filter
@@ -65,14 +63,14 @@ void aec_process_frame(
         aec_calc_Error_and_Y_hat(shadow_state, ch);
     }
     
-    //Calculate time domain error and estimated mic
+    //Calculate time domain error and estimated mic input
     for(int ch=0; ch<num_y_channels; ch++) {
         aec_ifft(&main_state->error[ch], &main_state->Error[ch]);
         aec_ifft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
         aec_ifft(&shadow_state->error[ch], &shadow_state->Error[ch]);
     }
 
-    //Calculate mic and estimated mic coherence (coh) and slow moving coherence (coh_slow)
+    //Calculate mic input and estimated mic input coherence (coh) and slow moving coherence (coh_slow)
     for(int ch=0; ch<num_y_channels; ch++) {
         aec_calc_coherence(main_state, ch);
     }
@@ -90,14 +88,9 @@ void aec_process_frame(
 
     //Compute error specturm for main and shadow filter
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_fft(
-                &main_state->Error[ch],
-                &main_state->error[ch]
-               );
+        aec_fft(&main_state->Error[ch], &main_state->error[ch]);
         
-        aec_fft(
-                &shadow_state->Error[ch],
-                &shadow_state->error[ch]
+        aec_fft(&shadow_state->Error[ch], &shadow_state->error[ch]
                );
     }
 
@@ -119,13 +112,13 @@ void aec_process_frame(
         aec_calc_inv_X_energy(shadow_state, ch, 1);
     }
 
-    //Adapt H_hat
     for(int ych=0; ych<num_y_channels; ych++) {
-        //There's only enough memory to store num_x_channels worth of T data and not num_y_channels*num_x_channels so the y_channels for loop cannot be run in parallel
+        //Compute T values
         for(int xch=0; xch<num_x_channels; xch++) {
             aec_compute_T(main_state, ych, xch);
             aec_compute_T(shadow_state, ych, xch);
         }
+        //Update filters
         aec_filter_adapt(main_state, ych);
         aec_filter_adapt(shadow_state, ych);
     }
