@@ -82,6 +82,7 @@ typedef struct {
     int32_t peak_power_phase_index;
     float_s32_t peak_phase_power;
     float_s32_t sum_phase_powers;
+    float_s32_t peak_to_average_ratio;
     float_s32_t phase_power[AEC_LIB_MAX_X_CHANNELS * AEC_LIB_MAX_PHASES];
 }delay_estimator_params_t;
 
