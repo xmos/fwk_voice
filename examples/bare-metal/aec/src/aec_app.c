@@ -25,7 +25,7 @@
 #include "wav_utils.h"
 
 
-extern void aec_testapp_process_frame(
+extern void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
@@ -117,7 +117,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
                 frame_x[ch][f] = input_read_buffer[i];
             }
         }        
-        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x);
+        aec_process_frame(&main_state, &shadow_state, frame_y, frame_x);
 
         for (unsigned ch=0;ch<AEC_MAX_Y_CHANNELS;ch++){
             for(unsigned i=0;i<AEC_FRAME_ADVANCE;i++){
@@ -139,17 +139,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 }
 
 
-#if !X86_BUILD
-#define IN_WAV_FILE_NAME    "input.wav"
-#define OUT_WAV_FILE_NAME   "output.wav"
-void main_tile0(chanend_t xscope_chan)
-{
-#if TEST_WAV_XSCOPE
-    xscope_io_init(xscope_chan);
-#endif 
-    aec_task(IN_WAV_FILE_NAME, OUT_WAV_FILE_NAME);
-}
-#else //Linux build
+#if X86_BUILD
 int main(int argc, char **argv) {
     if(argc < 3) {
         printf("Arguments missing. Expected: <input file name> <output file name>\n");

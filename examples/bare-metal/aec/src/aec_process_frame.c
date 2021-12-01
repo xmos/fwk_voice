@@ -9,7 +9,7 @@
 
 static unsigned X_energy_recalc_bin = 0;
 static int framenum = 0;
-void aec_testapp_process_frame(
+void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
