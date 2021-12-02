@@ -3,9 +3,6 @@
 
 ## The unit test apps
 
-#set(DEPS_ROOT ${CMAKE_BINARY_DIR}/deps)  ## For fetching dependencies using cmake
-set(DEPS_ROOT ${CMAKE_SOURCE_DIR}/..)
-
 add_subdirectory( test_wav_aec )
 if( XCORE )
   add_subdirectory( test_aec_enhancements )
