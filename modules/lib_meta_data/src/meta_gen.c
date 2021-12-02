@@ -15,16 +15,6 @@
 #define AP_FRAME_ADVANCE (240)
 #define AEC_PROC_FRAME_LENGTH (512)
 
-int comp_32_32(const float_s32_t a, const float_s32_t b){
-    if(a.exp > b.exp){
-        int v = b.mant >> (a.exp - b.exp);
-        return a.mant >= v;
-    } else {
-        int v = a.mant >> (b.exp - a.exp);
-        return v >= b.mant;
-    }
-}
-
 float_s32_t get_td_frame_energy(int32_t * x, unsigned frame_length){
     bfp_s32_t ch_arr;
     float_s64_t en_s64;
@@ -35,13 +25,13 @@ float_s32_t get_td_frame_energy(int32_t * x, unsigned frame_length){
     return en_s32;
 }
 
-float_s32_t get_max_ref_energy(int32_t * x[], unsigned frame_length, int NUM_CHAN){
+float_s32_t get_max_ref_energy(int32_t * x[], unsigned frame_length, int num_chan){
     float_s32_t current, max;
 
     max = get_td_frame_energy(x[0], frame_length);
-    for (unsigned s = 1; s < NUM_CHAN; s++){
+    for (unsigned s = 1; s < num_chan; s++){
         current = get_td_frame_energy(x[s], frame_length);
-        if(comp_32_32(current, max)){max = current;}
+        if(float_s32_gt(current, max)){max = current;}
     }
     return max;
 }

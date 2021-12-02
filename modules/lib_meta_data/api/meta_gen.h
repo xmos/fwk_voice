@@ -9,11 +9,12 @@
  * @brief Calculate the reference energy of the signal.
  * 
  * This API computes the dot product of each channel with itself to get the energy of the signal.
- * Then compares energy of each channels to return the maximum energy float_s32_t value.
+ * Then compares energy of each channel to return the maximum energy float_s32_t value.
+ * The output can be assumed to be in 1.31 format.
  * 
  * @param[in] x                     Pointer array where each element points to the signal channel
  * @param[in] frame_length          Lenght of the signal frame
- * @param[in] NUM_CHAN              Number of channels 
+ * @param[in] num_chan              Number of channels 
  * 
  * @returns Reference energy
  * 
@@ -22,16 +23,16 @@ C_API
 float_s32_t get_max_ref_energy(
     int32_t * x[], 
     unsigned frame_length, 
-    int NUM_CHAN);
+    int num_chan);
 
 
 /**
- * @brief Calculate the AEC correlation factor.
+ * @brief Calculates a correlation factor between mic and AEC estimate of the mic signal.
  * 
- * Takes a part of both arrays to compute AEC correlation factor.
+ * Uses both inputs to compute AEC correlation factor.
  * 
  * @param[in] mic_data              Mic data array
- * @param[in] y_hat                 Filter output
+ * @param[in] y_hat                 Estimated mic signal
  * 
  * @return Correlation factor of the filter 
  */
