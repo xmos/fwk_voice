@@ -238,10 +238,10 @@ void aec_calc_inv_X_energy(
         unsigned is_shadow);
 
 /**
- * @brief Compare shadow and main filter performance. Calculate the adaption step size mu.
+ * @brief Compare and update filters. Calculate the adaption step size mu.
  *
  * This function has 2 reponsibilities. 
- * First, it compares the energies in input, shadow filter error, main filter error spectrums and makes an estimate of how well the shadow filter is performing wrt the main filter. Based on this it decides which filter is used and as a result, resets the filters or copies one filter into another.
+ * First, it compares the energies in input, shadow filter error, main filter error spectrums and makes an estimate of how well the filters are performing. Based on this, it modifies the filter by either resetting the coefficients or copying one filter into another.
  * Second, it uses the coherence values calculated in aec_calc_coherence as well as information from filter comparison done in step 1 to calculate the adaption step size mu.
  *
  * @param[inout] main_state AEC state structure for the main filter
@@ -290,7 +290,8 @@ int aec_estimate_delay (
 void aec_reset_filter(
         aec_state_t *state);
 
-/// Calculate Error and Y_hat for a channel over a range of bins
+//TODO pending documentation and examples for L2 APIs
+//Calculate Error and Y_hat for a channel over a range of bins
 void aec_l2_calc_Error_and_Y_hat(
         bfp_complex_s32_t *Error,
         bfp_complex_s32_t *Y_hat,
@@ -303,14 +304,14 @@ void aec_l2_calc_Error_and_Y_hat(
         unsigned length,
         int32_t bypass_enabled);
 
-/// Adapt one phase or 2 consecutive phases of H_hat filter
+//Adapt one phase or 2 consecutive phases of H_hat filter
 void aec_l2_adapt_plus_fft_gc(
         bfp_complex_s32_t *H_hat_ph,
         const bfp_complex_s32_t *X_fifo_ph,
         const bfp_complex_s32_t *T_ph
         );
 
-/// Unify bfp_complex_s32_t chunks into a single exponent and headroom
+//Unify bfp_complex_s32_t chunks into a single exponent and headroom
 void aec_l2_bfp_complex_s32_unify_exponent(
         bfp_complex_s32_t *chunks,
         int *final_exp,
@@ -320,7 +321,7 @@ void aec_l2_bfp_complex_s32_unify_exponent(
         int desired_index,
         int min_headroom);
 
-/// Unify bfp_s32_t chunks into a single exponent and headroom
+//Unify bfp_s32_t chunks into a single exponent and headroom
 void aec_l2_bfp_s32_unify_exponent(
         bfp_s32_t *chunks,
         int *final_exp,
@@ -329,5 +330,4 @@ void aec_l2_bfp_s32_unify_exponent(
         int array_len,
         int desired_index,
         int min_headroom);
-
 #endif

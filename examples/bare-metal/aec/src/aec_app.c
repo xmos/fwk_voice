@@ -39,14 +39,10 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_SHADOW_FILTER_PHASES));
     
     //open files
-    file_t input_file, output_file, H_hat_file, delay_file;
+    file_t input_file, output_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     ret = file_open(&output_file, output_file_name, "wb");
-    assert((!ret) && "Failed to open file");
-    ret = file_open(&H_hat_file, "H_hat.bin", "wb");
-    assert((!ret) && "Failed to open file");
-    ret = file_open(&delay_file, "delay.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct, output_header_struct;
@@ -133,8 +129,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     }
     file_close(&input_file);
     file_close(&output_file);
-    file_close(&H_hat_file);
-    file_close(&delay_file);
     shutdown_session();
 }
 
