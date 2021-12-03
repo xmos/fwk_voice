@@ -1,23 +1,6 @@
 // Copyright 2018-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
-//Including fnctl.h (which is needed for the open() function if not using xscope fileio) gives the following error
-#if 0
-In file included from ../../src/wav_header.c:21:
-In file included from /Applications/XMOS_XTC_15.0.5/target/include/fcntl.h:1:
-In file included from /Applications/XMOS_XTC_15.0.5/target/include/sys/fcntl.h:24:
-In file included from /Applications/XMOS_XTC_15.0.5/target/include/sys/stat.h:9:
-/Applications/XMOS_XTC_15.0.5/target/include/time.h:47:19: error: redefinition of 'clock' as different kind of symbol
-clock_t    _EXFUN(clock,    (void));
-                  ^
-/Applications/XMOS_XTC_15.0.5/target/include/_ansi.h:75:30: note: expanded from macro '_EXFUN'
-#define _EXFUN(name, proto)             name proto
-                                        ^
-/Applications/XMOS_XTC_15.0.5/target/include/xs1_clock.h:39:18: note: previous definition is here
-typedef unsigned clock;
-#endif
-//#include <fcntl.h>
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdlib.h>
