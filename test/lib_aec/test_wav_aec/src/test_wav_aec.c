@@ -209,7 +209,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         prof(3, "end_aec_process_frame");
 
         prof(4, "start_aec_estimate_delay");
-        int delay = aec_estimate_delay(&main_state);
+        int delay = aec_estimate_delay(&main_state.shared_state->delay_estimator_params, main_state.H_hat_1d[0], main_state.num_phases); //Delay is estimated using 1 x-y pair
         prof(5, "end_aec_estimate_delay");
 
         char strbuf[100];
