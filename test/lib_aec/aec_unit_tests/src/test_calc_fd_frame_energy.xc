@@ -38,7 +38,7 @@ void test_calc_fd_frame_energy() {
         double ref_out;
         calc_fd_frame_energy_fp(&ref_out, ref_in, TEST_LEN);
         float_s32_t dut_out;
-        aec_calc_fd_frame_energy(&dut_out, &dut_in); //this only works for input size AEC_PROC_FRAME_LENGTH/2 + 1 since there is a static allocation of scratch memory of this size within the function
+        aec_calc_freq_domain_energy(&dut_out, &dut_in); //this only works for input size AEC_PROC_FRAME_LENGTH/2 + 1 since there is a static allocation of scratch memory of this size within the function
 
         //printf("ref %f, dut %f\n",ref_out, att_int32_to_double(dut_out.mant, dut_out.exp));
         int32_t ref = att_double_to_int32(ref_out, dut_out.exp);

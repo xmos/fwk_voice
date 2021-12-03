@@ -66,7 +66,7 @@ void aec_frame_init(
     }
 }
 
-void aec_update_td_ema_energy(
+void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
         unsigned start_offset,
@@ -84,7 +84,7 @@ void aec_update_td_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
 }
 
-void aec_fft(
+void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input)
 {
@@ -144,7 +144,7 @@ void aec_calc_Error_and_Y_hat(
     aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
 }
 
-void aec_ifft(
+void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input)
 {
@@ -176,7 +176,7 @@ void aec_calc_coherence(
     return;
 }
 
-void aec_create_output(
+void aec_calc_output(
         aec_state_t *state,
         unsigned ch)
 {
@@ -190,7 +190,7 @@ void aec_create_output(
     return;
 }
 
-void aec_calc_fd_frame_energy(
+void aec_calc_freq_domain_energy(
         float_s32_t *fd_energy,
         const bfp_complex_s32_t *input)
 {

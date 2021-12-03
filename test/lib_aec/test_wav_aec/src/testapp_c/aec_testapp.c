@@ -34,13 +34,13 @@ void update_td_ema_energy_task(par_tasks_and_channels_t* s, aec_state_t *state, 
         int is_active = s[i].is_active;
         if(is_active) {
             if(type == Y_EMA) {
-                aec_update_td_ema_energy(&state->shared_state->y_ema_energy[ch], &state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&state->shared_state->y_ema_energy[ch], &state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else if(type == X_EMA) {
-                aec_update_td_ema_energy(&state->shared_state->x_ema_energy[ch], &state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&state->shared_state->x_ema_energy[ch], &state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else if(type == ERROR_EMA) {
-                aec_update_td_ema_energy(&state->error_ema_energy[ch], &state->output[ch], 0, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&state->error_ema_energy[ch], &state->output[ch], 0, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else{assert(0);}
         }
@@ -55,23 +55,23 @@ void fft_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t 
         int is_active = s[i].is_active;
         if(is_active) {
             if(type == Y_FFT) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->shared_state->Y[ch],
                         &main_state->shared_state->y[ch]);
             }
             else if(type == X_FFT) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->shared_state->X[ch],
                         &main_state->shared_state->x[ch]);
             }
             else if((type==ERROR_FFT) && (task==0)) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->Error[ch],
                         &main_state->error[ch]
                         ); //error -> Error
             }
             else if((type==ERROR_FFT) && (task==1) && (shadow_state != NULL)){
-                aec_fft(
+                aec_forward_fft(
                         &shadow_state->Error[ch],
                         &shadow_state->error[ch]
                         ); //error_shad -> Error_shad
@@ -139,14 +139,14 @@ void ifft_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_ifft(&main_state->error[ch], &main_state->Error[ch]);
+                aec_inverse_fft(&main_state->error[ch], &main_state->Error[ch]);
             }
             else if(task == 1){
-                aec_ifft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
+                aec_inverse_fft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_ifft(&shadow_state->error[ch], &shadow_state->Error[ch]);
+                    aec_inverse_fft(&shadow_state->error[ch], &shadow_state->Error[ch]);
                 }
             }
         }
@@ -171,11 +171,11 @@ void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_create_output(main_state, ch);
+                aec_calc_output(main_state, ch);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_create_output(shadow_state, ch);
+                    aec_calc_output(shadow_state, ch);
                 }
             }
         }
@@ -191,14 +191,14 @@ void calc_fd_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state, a
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_calc_fd_frame_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
+                aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
             }
             else if(task == 1){
-                aec_calc_fd_frame_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_calc_fd_frame_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
+                    aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
                 }
             }
         }

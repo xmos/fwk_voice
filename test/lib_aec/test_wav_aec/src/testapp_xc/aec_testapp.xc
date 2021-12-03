@@ -32,7 +32,7 @@ void aec_testapp_process_frame(
             if(ch >= num_y_channels) continue;
             int is_active = sch.par_1_tasks_and_channels[t][i].is_active;
             if(is_active) {
-                aec_update_td_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
             }
         }
     }
@@ -42,7 +42,7 @@ void aec_testapp_process_frame(
             if(ch >= num_x_channels) continue;
             int is_active = sch.par_1_tasks_and_channels[t][i].is_active;
             if(is_active) {
-                aec_update_td_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
             }
         }
     }
@@ -52,7 +52,7 @@ void aec_testapp_process_frame(
             if(ch >= num_y_channels) continue;
             int is_active = sch.par_1_tasks_and_channels[t][i].is_active;
             if(is_active) {
-                aec_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
+                aec_forward_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
             }
         }
     }
@@ -62,7 +62,7 @@ void aec_testapp_process_frame(
             if(ch >= num_x_channels) continue;
             int is_active = sch.par_1_tasks_and_channels[t][i].is_active;
             if(is_active) {
-                aec_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
+                aec_forward_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
             }
         }
     }
@@ -132,14 +132,14 @@ void aec_testapp_process_frame(
             int is_active = sch.par_3_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_ifft(&main_state->error[ch], &main_state->Error[ch]);
+                    aec_inverse_fft(&main_state->error[ch], &main_state->Error[ch]);
                 }
                 else if(task == 1){
-                        aec_ifft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
+                        aec_inverse_fft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_ifft(&shadow_state->error[ch], &shadow_state->Error[ch]);
+                        aec_inverse_fft(&shadow_state->error[ch], &shadow_state->Error[ch]);
                     }
                 }
             }
@@ -167,11 +167,11 @@ void aec_testapp_process_frame(
             int is_active = sch.par_2_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_create_output((aec_state_t * unsafe)main_state, ch);
+                    aec_calc_output((aec_state_t * unsafe)main_state, ch);
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_create_output((aec_state_t * unsafe)shadow_state, ch);
+                        aec_calc_output((aec_state_t * unsafe)shadow_state, ch);
                     }
                 }
             }
@@ -185,7 +185,7 @@ void aec_testapp_process_frame(
             if(ch >= num_y_channels) continue;
             int is_active = sch.par_1_tasks_and_channels[t][i].is_active;
             if(is_active) {
-                aec_update_td_ema_energy(&main_state->error_ema_energy[ch], &main_state->output[ch], 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&main_state->error_ema_energy[ch], &main_state->output[ch], 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
             }
         }
     }
@@ -198,11 +198,11 @@ void aec_testapp_process_frame(
             int is_active = sch.par_2_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_fft(&main_state->Error[ch], &main_state->error[ch]); //error -> Error
+                    aec_forward_fft(&main_state->Error[ch], &main_state->error[ch]); //error -> Error
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_fft(&shadow_state->Error[ch], &shadow_state->error[ch]); //error_shad -> Error_shad
+                        aec_forward_fft(&shadow_state->Error[ch], &shadow_state->error[ch]); //error_shad -> Error_shad
                     }
                 }
             }
@@ -217,14 +217,14 @@ void aec_testapp_process_frame(
             int is_active = sch.par_3_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_calc_fd_frame_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
+                    aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
                 }
                 else if(task == 1){
-                        aec_calc_fd_frame_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+                        aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_calc_fd_frame_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
+                        aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
                     }
                 }
             }

@@ -15,15 +15,15 @@
  * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are passed in as input arguments.
  * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *
- * @param[inout]    main_state                  AEC state structure for holding main filter specific state
- * @param[inout]    shadow_state                AEC state structure for holding shadow filter specific state
- * @param[inout]   shared_state                Shared state structure for holding state that is common to main and shadow filter
- * @param[inout]    main_mem_pool               Memory pool containing main filter memory buffers
- * @param[inout]    shadow_mem_pool             Memory pool containing shadow filter memory buffers
- * @param[in]      num_y_channels              Number of mic input channels
- * @param[in]      num_x_channels              Number of reference input channels
- * @param[in]      num_main_filter_phases      Number of phases in the main filter
- * @param[in]      num_shadow_filter_phases    Number of phases in the shadow filter
+ * @param[inout] main_state               AEC state structure for holding main filter specific state
+ * @param[inout] shadow_state             AEC state structure for holding shadow filter specific state
+ * @param[inout] shared_state             Shared state structure for holding state that is common to main and shadow filter
+ * @param[inout] main_mem_pool            Memory pool containing main filter memory buffers
+ * @param[inout] shadow_mem_pool          Memory pool containing shadow filter memory buffers
+ * @param[in] num_y_channels              Number of mic input channels
+ * @param[in] num_x_channels              Number of reference input channels
+ * @param[in] num_main_filter_phases      Number of phases in the main filter
+ * @param[in] num_shadow_filter_phases    Number of phases in the shadow filter
  *
  * `main_state`, `shadow_state` and shared_state structures must start at double word aligned addresses.
  *
@@ -84,7 +84,7 @@ void aec_frame_init(
  * @param[out] fd_energy energy of the input spectrum
  * @param[in] input input spectrum BFP structure
  */
-void aec_calc_fd_frame_energy(
+void aec_calc_freq_domain_energy(
         float_s32_t *fd_energy,
         const bfp_complex_s32_t *input);
 
@@ -101,7 +101,7 @@ void aec_calc_fd_frame_energy(
  * @param[in] length        length over which to calculate EMA energy
  * @param[in] conf          AEC configuration parameters.
  */
-void aec_update_td_ema_energy(
+void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
         unsigned start_offset,
@@ -125,7 +125,7 @@ void aec_update_td_ema_energy(
  *
  * After this function `input->data` and `output->data` point to the same memory address.
  */
-void aec_fft(
+void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input);
 
@@ -143,7 +143,7 @@ void aec_fft(
  *
  *  After this function `input->data` and `output->data` point to the same memory address.
  */
-void aec_ifft(
+void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input
         );
@@ -221,7 +221,7 @@ void aec_calc_coherence(
  * @param[in] ch mic channel index for which to calculate output
  *
  */
-void aec_create_output(
+void aec_calc_output(
         aec_state_t *state,
         unsigned ch);
 

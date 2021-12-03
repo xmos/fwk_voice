@@ -22,20 +22,20 @@ void aec_process_frame(
     
     //Calculate time domain input exponential moving average energy
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_update_td_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch],
+        aec_calc_time_domain_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch],
                 AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_update_td_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch],
+        aec_calc_time_domain_ema_energy(&main_state->shared_state->x_ema_energy[ch], &main_state->shared_state->x[ch],
                 AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
 
     //Calculate input spectrum
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
+        aec_forward_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
     }
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
+        aec_forward_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
     }
 
     //Calculate X-FIFO energy for main and shadow filter
@@ -65,9 +65,9 @@ void aec_process_frame(
     
     //Calculate time domain error and estimated mic input
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_ifft(&main_state->error[ch], &main_state->Error[ch]);
-        aec_ifft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
-        aec_ifft(&shadow_state->error[ch], &shadow_state->Error[ch]);
+        aec_inverse_fft(&main_state->error[ch], &main_state->Error[ch]);
+        aec_inverse_fft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
+        aec_inverse_fft(&shadow_state->error[ch], &shadow_state->Error[ch]);
     }
 
     //Calculate mic input and estimated mic input coherence (coh) and slow moving coherence (coh_slow)
@@ -77,28 +77,28 @@ void aec_process_frame(
 
     //Calculate AEC output
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_create_output(main_state, ch);
-        aec_create_output(shadow_state, ch);
+        aec_calc_output(main_state, ch);
+        aec_calc_output(shadow_state, ch);
     }
 
     //calculate error EMA energy for main_state
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_update_td_ema_energy(&main_state->error_ema_energy[ch], &main_state->output[ch], 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+        aec_calc_time_domain_ema_energy(&main_state->error_ema_energy[ch], &main_state->output[ch], 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
 
     //Compute error specturm for main and shadow filter
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_fft(&main_state->Error[ch], &main_state->error[ch]);
+        aec_forward_fft(&main_state->Error[ch], &main_state->error[ch]);
         
-        aec_fft(&shadow_state->Error[ch], &shadow_state->error[ch]
+        aec_forward_fft(&shadow_state->Error[ch], &shadow_state->error[ch]
                );
     }
 
     //Calculate mic input spectrum and error spectrum energy
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_calc_fd_frame_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
-        aec_calc_fd_frame_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
-        aec_calc_fd_frame_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
+        aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
+        aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+        aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
     }
 
     //Compare and update filters. Calculate adaption step_size mu

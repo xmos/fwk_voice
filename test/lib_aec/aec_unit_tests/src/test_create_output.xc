@@ -22,7 +22,7 @@ static const double WOLA_window_fp[32] = {
         0.9444177243274616, 0.9641839665080363, 0.9797464868072486,
         0.9909643486313533, 0.9977359612865423,};
 
-void aec_create_output_fp(double *output, double *error, double *overlap) {
+void aec_calc_output_fp(double *output, double *error, double *overlap) {
     for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
         error[i] = 0.0;
     }
@@ -128,11 +128,11 @@ void test_create_output() {
             }
 
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
-                aec_create_output(state_ptr, ch);
+                aec_calc_output(state_ptr, ch);
             }
 
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
-                aec_create_output_fp(output_fp[ch], error_fp[ch], overlap_fp[ch]);
+                aec_calc_output_fp(output_fp[ch], error_fp[ch], overlap_fp[ch]);
             }
 
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
