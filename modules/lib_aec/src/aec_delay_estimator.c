@@ -8,7 +8,7 @@
 int aec_estimate_delay (
         aec_state_t *state)
 {
-    //Direct manipularion of mant/exp because double_to_float_s32(0.0) takes hundreds of cycles
+    //Direct manipulation of mant/exp because double_to_float_s32(0.0) takes hundreds of cycles
     const float_s32_t zero = {0, 0};
     const float_s32_t one = {1, 0};
 

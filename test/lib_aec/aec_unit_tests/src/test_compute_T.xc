@@ -11,7 +11,7 @@ extern "C"{
 
 #define NUM_BINS ((AEC_PROC_FRAME_LENGTH/2) + 1)
  
-void aec_compute_T_fp(
+void aec_calc_T_fp(
         dsp_complex_fp (*T)[AEC_MAX_X_CHANNELS][NUM_BINS],
         dsp_complex_fp (*Error)[NUM_BINS],
         double (*inv_X_energy)[NUM_BINS],
@@ -29,7 +29,7 @@ void aec_compute_T_fp(
     }
 }
 
-void test_compute_T() {
+void test_calc_T() {
     unsafe {
         unsigned num_y_channels = 2;
         unsigned num_x_channels = 2;
@@ -100,11 +100,11 @@ void test_compute_T() {
                 printf("mu = (exp: %d mant %d), %.15f\n", state_ptr->mu[1][0].exp, state_ptr->mu[1][0].mant, mu_fp[1][0]);
             }*/
 
-            aec_compute_T_fp(T_fp, Error_fp, inv_X_energy_fp, mu_fp, num_y_channels, num_x_channels);
+            aec_calc_T_fp(T_fp, Error_fp, inv_X_energy_fp, mu_fp, num_y_channels, num_x_channels);
 
             for(int ych=0; ych<num_y_channels; ych++) {
                 for(int xch=0; xch<num_x_channels; xch++) {
-                    aec_compute_T(state_ptr, ych, xch);
+                    aec_calc_T(state_ptr, ych, xch);
                 } 
                 //Since T memory will be overwritten when computing for next y-channel, do error checking now
                 for(int xch=0; xch<num_x_channels; xch++) {

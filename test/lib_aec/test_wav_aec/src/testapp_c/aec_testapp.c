@@ -89,11 +89,11 @@ void update_X_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state, 
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_update_total_X_energy(main_state, ch, recalc_bin);
+                aec_calc_X_fifo_energy(main_state, ch, recalc_bin);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_update_total_X_energy(shadow_state, ch, recalc_bin);
+                    aec_calc_X_fifo_energy(shadow_state, ch, recalc_bin);
                 }
             }
         }
@@ -213,11 +213,11 @@ void calc_inv_X_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_calc_inv_X_energy(main_state, ch, 0);
+                aec_calc_normalisation_spectrum(main_state, ch, 0);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_calc_inv_X_energy(shadow_state, ch, 1);
+                    aec_calc_normalisation_spectrum(shadow_state, ch, 1);
                 }
             }
         }
@@ -232,11 +232,11 @@ void calc_T_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_compute_T(main_state, ych, xch);
+                aec_calc_T(main_state, ych, xch);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_compute_T(shadow_state, ych, xch);
+                    aec_calc_T(shadow_state, ych, xch);
                 }
             }
         }

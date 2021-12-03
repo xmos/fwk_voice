@@ -75,11 +75,11 @@ void aec_testapp_process_frame(
             int is_active = sch.par_2_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_update_total_X_energy((aec_state_t * unsafe)main_state, ch, X_energy_recalc_bin);
+                    aec_calc_X_fifo_energy((aec_state_t * unsafe)main_state, ch, X_energy_recalc_bin);
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_update_total_X_energy((aec_state_t * unsafe)shadow_state, ch, X_energy_recalc_bin);
+                        aec_calc_X_fifo_energy((aec_state_t * unsafe)shadow_state, ch, X_energy_recalc_bin);
                     }
                 }
             }
@@ -242,11 +242,11 @@ void aec_testapp_process_frame(
             int is_active = sch.par_2_tasks_and_channels[t][i].is_active;
             if(is_active) {
                 if(task == 0) {
-                    aec_calc_inv_X_energy((aec_state_t * unsafe)main_state, ch, 0);
+                    aec_calc_normalisation_spectrum((aec_state_t * unsafe)main_state, ch, 0);
                 }
                 else {
                     if(shadow_state != NULL) {
-                        aec_calc_inv_X_energy((aec_state_t * unsafe)shadow_state, ch, 1);
+                        aec_calc_normalisation_spectrum((aec_state_t * unsafe)shadow_state, ch, 1);
                     }
                 }
             }
@@ -263,11 +263,11 @@ void aec_testapp_process_frame(
                 int is_active = sch.par_2_tasks_and_channels[t][i].is_active;
                 if(is_active) {
                     if(task == 0) {
-                        aec_compute_T((aec_state_t * unsafe)main_state, y_ch, x_ch);
+                        aec_calc_T((aec_state_t * unsafe)main_state, y_ch, x_ch);
                     }
                     else {
                         if(shadow_state != NULL) {
-                            aec_compute_T((aec_state_t * unsafe)shadow_state, y_ch, x_ch);
+                            aec_calc_T((aec_state_t * unsafe)shadow_state, y_ch, x_ch);
                         }
                     }
                 }

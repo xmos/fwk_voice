@@ -8,27 +8,26 @@
 #include "bfp_math.h"
 #include "xs3_math.h"
 
-//AEC public API
 /**
- * @brief Initialise AEC memory and data structures
+ * @brief Initialise AEC data structures
  *
  * This function initializes AEC data structures for a given configuration.
  * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are passed in as input arguments.
- * This function needs to be called at startup to initialise a new AEC and subsequently whenever the AEC configuration changes.
+ * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *
  * @param[inout]    main_state                  AEC state structure for holding main filter specific state
  * @param[inout]    shadow_state                AEC state structure for holding shadow filter specific state
- * @param[inout]   shared_state                shared_state structure for holding state that is common to main and shadow filter
+ * @param[inout]   shared_state                Shared state structure for holding state that is common to main and shadow filter
  * @param[inout]    main_mem_pool               Memory pool containing main filter memory buffers
  * @param[inout]    shadow_mem_pool             Memory pool containing shadow filter memory buffers
- * @param[in]      num_y_channels              Number of mic signal (also referred as `y` in the API) channels
- * @param[in]      num_x_channels              Number of far end audio signal (also referred to as `x` or `reference` in the API) channels
+ * @param[in]      num_y_channels              Number of mic input channels
+ * @param[in]      num_x_channels              Number of reference input channels
  * @param[in]      num_main_filter_phases      Number of phases in the main filter
  * @param[in]      num_shadow_filter_phases    Number of phases in the shadow filter
  *
- * main_state, shadow_state and shared_state structures must start at double word aligned addresses.
+ * `main_state`, `shadow_state` and shared_state structures must start at double word aligned addresses.
  *
- * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter processing. Refer to <test/lib_aec/shared_src/aec_memory_pool.h> when statically allocating memory pool or call aec_get_memory_pool_size() to get sizes in case of dynamic allocation.
+ * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter processing. Refer to <test/lib_aec/shared_src/aec_memory_pool.h> when statically allocating memory for the memory pool.
  *
  * main_mem_pool and shadow_mem_pool must also start at double word aligned addresses.
  *
@@ -78,31 +77,29 @@ void aec_frame_init(
         int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2]);
 
 /**
- * @brief Calculate energy of a frequency domain (FD) sequence.
+ * @brief Calculate energy in the spectrum
  *
- * This function calculates the energy of frequency domain data used in the AEC. Frequency domain data in AEC is in the form of complex int32 vectors of length AEC_PROC_FRAME_LENGTH/2 + 1
+ * This function calculates the energy of frequency domain data used in the AEC. Frequency domain data in AEC is in the form of complex 32bit vectors and energy is calculated as the squared magnitude of the input vector.
  *
- * It statically allocates scratch memory of type int32_t and length AEC_PROC_FRAME_LENGTH/2 + 1 to use for intermediate calculations.
- *
- * @param[out] fd_energy energy of the complex input vector 
- * @param[in] input BFP complex structure for the input
+ * @param[out] fd_energy energy of the input spectrum
+ * @param[in] input input spectrum BFP structure
  */
 void aec_calc_fd_frame_energy(
         float_s32_t *fd_energy,
         const bfp_complex_s32_t *input);
 
 /**
- * @brief Calculate exponential moving average (EMA) energy of a time domain (TD) sequence
+ * @brief Calculate exponential moving average (EMA) energy of a time domain (TD) vector
  *
- * This function calculates the EMA energy of time domain data used in the AEC. Time domain data is stored in AEC in the form of int32 vectors of length AEC_PROC_FRAME_LENGTH
+ * This function calculates the EMA energy of AEC time domain data which is in the form of real 32bit vectors.
  *
- * This function can be called to calculate the EMA energy of the entire vector or of its subsets. 
+ * This function can be called to calculate the EMA energy of subsets of the input vector as well. 
  *
- * @param[out] ema_energy   EMA energy of the input time domain data
- * @param[in] input         int32 BFP structure for the time domain data
- * @param[in] start_offset  offset in the input vector from where to start calculating ema energy
+ * @param[out] ema_energy   EMA energy of the input
+ * @param[in] input         time domain input BFP structure
+ * @param[in] start_offset  offset in the input vector from where to start calculating EMA energy
  * @param[in] length        length over which to calculate EMA energy
- * @param[in] conf          AEC configuration parameters. The EMA constant 'alpha' is read from here
+ * @param[in] conf          AEC configuration parameters.
  */
 void aec_update_td_ema_energy(
         float_s32_t *ema_energy,
@@ -112,39 +109,39 @@ void aec_update_td_ema_energy(
         const aec_config_params_t *conf);
 
 /**
- * @brief Calculate forward Discrete Fourier Transform (DFT) of AEC time domain sequence
+ * @brief Calculate spectrum of an input time domain vector.
  *
- * This function performs a AEC_PROC_FRAME_LENGTH point real DFT. 
- * The input to this function is a length AEC_PROC_FRAME_LENGTH int32 vector. 
- * The function outputs a AEC_PROC_FRAME_LENGTH/2+1 length, int32 complex vector. The AEC_PROC_FRAME_LENGTH/2+1 complex output values represent frequency domain samples from DC up to Nyquist.
+ * This function calculates the spectrum of a real 32bit time domain vector. It calculates an N point real DFT where N is the length of the input vector to output a complex N/2+1 length complex 32bit vector.
+ * The N/2+1 complex output values represent spectrum samples from DC up to the Nyquist frequency.
  *
- * The DFT calculation is done in-place. After this function call the input and output vectors point to the same memory.
+ * The DFT calculation is done in place. After this function call the input and output BFP structures `data` fields point to the same memory.
+ * Since DFT is calculated in place, use of the input BFP struct is undefined after this function.
  *
- * @param[out] output   complex int32 DFT input BFP structure
- * @param[in] input     int32 DFT output BFP structure
+ * @param[out] output    DFT output BFP structure
+ * @param[in] input     DFT input BFP structure
  *
- * To allow for inplace transform from N int32 values to N/2+1 complex int32 values, the input sequence should have 2 extra 32bit int32 samples worth of memory.
- * This means that input->data should point to a buffer of length input->length+2
+ * To allow for inplace transform from N real 32bit values to N/2+1 complex 32bit values, the input vector should have 2 extra real 32bit samples worth of memory.
+ * This means that `input->data` should point to a buffer of length `input->length`+2
  *
- * After this function input->data and output->data point to the same memory address.
+ * After this function `input->data` and `output->data` point to the same memory address.
  */
 void aec_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input);
 
 /**
- * @brief Calculate inverse Discrete Fourier Transform (DFT) of an AEC frequency domain sequence
+ * @brief Calculate inverse Discrete Fourier Transform (DFT) of an input spectrum
  *
- * This function calculates a AEC_PROC_FRAME_LENGTH point real inverse DFT.
- * The input to this function is a length AEC_PROC_FRAME_LENGTH/2+1 complex int32 vector which represents frequency domain data samples from DC upto Nyquist.
- * The function outputs a AEC_PROC_FRAME_LENGTH length int32 vector which represents time domain samples.
+ * This function calculates a N point inverse real DFT of a complex 32bit where N is 2*(length-1) where length is the length of the input vector.
+ * The output is a real 32bit vector of length N.
  *
- * The inverse DFT is performed in place. After this function the input and output vectors point to the same memory.
+ * The inverse DFT calculation is done in place. After this operation the input and the output BFP structures `data` fields point to the same memory.
+ * Since the calculation is done in place, use of input BFP struct after this function is undefined.
  *
- *  @param[out] output int32 inverse DFT output BFP structure
- *  @param[in] input complex int32 inverse DFT input BFP structure
+ *  @param[out] inverse DFT output BFP structure
+ *  @param[in] inverse DFT input BFP structure
  *
- *  After this function input->data and output->data point to the same memory address
+ *  After this function `input->data` and `output->data` point to the same memory address.
  */
 void aec_ifft(
         bfp_s32_t *output,
@@ -152,44 +149,49 @@ void aec_ifft(
         );
 
 /**
- * @brief Calculate total energy for a given channel of the X-fifo 
+ * @brief Calculate total energy of the X FIFO
  *
- * X is the frequency domain reprsentation of the far end audio input for the current frame.
- * X-fifo is a FIFO of the num_main_filter_phases most recent X frames
+ * `X FIFO` is a FIFO of the most recent `X` frames, where `X` is spectrum of one frame of reference input.
+ * There's a common X FIFO that is shared between main and shadow filters. It holds `num_main_filter_phases` most recent X frames and the shadow filter uses `num_shadow_filter_phases` most recent frames out of it.
  *
- * This function calculates the energy per X sample summed across all phases of the X-fifo
+ * This function calculates the energy per X sample index summed across the X FIFO phases.
+ * This function also calculates the maximum energy across all samples indices of the output energy vector 
  * 
- * @param[inout] state  AEC state. state->X_energy and state->shared_state->sum_X_energy is updated 
- * @param[in]    ch     channel index for which total energy is calculated 
- * @param[in]    recalc_bin The sample index for which to recalculate energy to eliminate quantisation errors
+ * @param[inout] state  AEC state. state->X_energy[ch] and state->max_X_energy[ch] are updated 
+ * @param[in]    ch     channel index for which energy calculations are done 
+ * @param[in]    recalc_bin The sample index for which energy is recalculated to eliminate quantisation errors
  * 
- * recalc_bin needs to keep cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2+1
+ * @note
+ * @parblock
+ * This function implements some speed optimisations which introduce quantisation error. To stop quantisation error build up, in every call of this function, energy for one sample index, which is specified in the `recalc_bin` argument, is recalculated without the optimisations. There are a total of AEC_PROC_FRAME_LENGTH/2+1 samples in the energy vector, so recalc_bin keeps cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2.
+ * @endparblock
  */
-void aec_update_total_X_energy(
+void aec_calc_X_fifo_energy(
         aec_state_t *state,
         unsigned ch,
         unsigned recalc_bin);
 
 /**
- * @brief Update X-FIFO with the latest X frame
+ * @brief Update X FIFO with the current X frame
  *
- * X-FIFO is a FIFO of the num_main_filter_phases most recent X frames. This function updates the X-FIFO by removing the oldest X frame and adding the current X frame to the FIFO. It also calculates sigmaXX which is the EMA of the total energy across all samples of the current X frame. 
+ * This function updates the X FIFO by removing the oldest X frame from it and adding the current X frame to it. 
+ * This function also calculates sigmaXX which is the exponential moving average of the current X frame energy
  *
- * @param[inout] state AEC state structure. state->shared_state->X_FIFO and state->shared_state->sigma_XX are updated.
- * @param[in] ch far end audio channel index for which to update X-FIFO
+ * @param[inout] state AEC state structure. state->shared_state->X_fifo[ch] and state->shared_state->sigma_XX[ch] are updated.
+ * @param[in] ch X channel index for which to update X FIFO
  */
 void aec_update_X_fifo_and_calc_sigmaXX(
         aec_state_t *state,
         unsigned ch);
 
 /**
- * @brief Calculate AEC filter Error and Y_hat
+ * @brief Calculate error spectrum and estimated mic signal spectrum 
  *
- * Y_hat is the frequency domain estimate of the far end audio present in the input microphone signal. Y_hat is calculated by convolving the X-FIFO with H_hat, where X-FIFO is a FIFO of 'num_phases' most recent X frames and H_hat is the estimated room response filter.
+ * This function calculates the error spectrum (`Error`) and estimated mic input spectrum (`Y_hat`)
+ * `Y_hat` is calculated as the sum of all phases of the adaptive filter multiplied by the respective phases of the reference input spectrum.
+ * Error is calculated by subtracting `Y_hat` from the mic input spectrum `Y`
  *
- * Error is the frequency domain representation of what is left what is left after far end echo is removed from the input microphone signal. It is computed by subtracting Y_hat from Y
- *
- * @param[inout] state AEC state structure. state->Error and state->Y_hat are updated
+ * @param[inout] state AEC state structure. state->Error[ch] and state->Y_hat[ch] are updated
  * @param[in] ch mic channel index for which to compute Error and Y_hat
  */
 void aec_calc_Error_and_Y_hat(
@@ -199,22 +201,24 @@ void aec_calc_Error_and_Y_hat(
 /**
  * @brief Calculate coherence
  *
- * This function calculates the average coherence between the time domain microphone signal (y) and time domain estimate of the far end echo present in the microphone signal (y-hat). It outputs two values, the exponential moving average coherence and the slow moving exponential moving average coherence.
+ * This function calculates the average coherence between mic input signal (`y`) and estimated mic signal (`y_hat`).
+ * A metric is calcuated using `y` and `y_hat` and the moving average (`coh`) and a slow moving average (`coh_slow`) of that metric is calculated.
+ * The coherence values are used to distinguish between situations when filter adaption should continue or freeze and update mu accordingly.
  *
- * @param[inout] state AEC state structure. state->shared_state->coh_mu_state[ch].coh and state->shared_state->coh_mu_state[ch].coh_slow are updated
- * @param[in] ch mic channel index for which to calculate coherence
+ * @param[inout] state AEC state structure. `state->shared_state->coh_mu_state[ch].coh` and `state->shared_state->coh_mu_state[ch].coh_slow` are updated
+ * @param[in] ch mic channel index for which to calculate average coherence
  */
 void aec_calc_coherence(
         aec_state_t *state,
         unsigned ch);
 
 /**
- * @brief Calculate AEC's output frame
+ * @brief Calculate AEC filter output signal
  *
- * This function calculates the output of the AEC. It uses the time domain representation of AEC filter error to generate AEC output, which is a length AEC_FRAME_ADVANCE int32 vector
+ * This function calculates the output of the AEC filter. `output` is calculated by windowing the `error` signal and performing an overlap add with previous frame output samples to smooth discontinuities in the output as the filter adapts.
  *
- * @param[inout] state AEC state structure. state->output is updated
- * @param[in] ch mic channel index for which to calculate AEC output
+ * @param[inout] state AEC state structure. `state->output[ch]` is updated
+ * @param[in] ch mic channel index for which to calculate output
  *
  */
 void aec_create_output(
@@ -222,17 +226,18 @@ void aec_create_output(
         unsigned ch);
 
 /**
- * @brief Calculate inverse of reference (X) signal energy
+ * @brief Calculate normalisation specturm
  *
- * This function calculates the inverse of reference signal energy. Reference signal energy is the energy per sample of the reference signal spectrum, summed across all phases.
+ * This function calculates the normalisation spectrum of the reference input signal. This normalised spectrum is later used during filter adaption to scale the adaption to the size of the input signal.
+ * The normalisation spectrum is calculated as a time and frequency smoothed energy of the reference input spectrum.
  *
- * The inverse is calculated differetly for main and shadow filters. For main filter, a time and frequency smoothed version of the energy is calculated before doing the inverse.
+ * The normalisation spectrum is calculated differetly for main and shadow filter, so a flag indicating whether this calculation is being done for the main or shadow filter is passed as an input to the function
  *
- * @param[inout] state AEC state structure. state->inv_X_energy is updated
- * @param[in] ch reference channel index for which to calculate inverse energy
+ * @param[inout] state AEC state structure. state->inv_X_energy[ch] is updated
+ * @param[in] ch reference channel index for which to calculate normalisation spectrum
  * @param[in] is_shadow flag indicating filter type. 0: Main filter, 1: Shadow filter
  */
-void aec_calc_inv_X_energy(
+void aec_calc_normalisation_spectrum(
         aec_state_t *state,
         unsigned ch,
         unsigned is_shadow);
@@ -241,7 +246,7 @@ void aec_calc_inv_X_energy(
  * @brief Compare and update filters. Calculate the adaption step size mu.
  *
  * This function has 2 reponsibilities. 
- * First, it compares the energies in input, shadow filter error, main filter error spectrums and makes an estimate of how well the filters are performing. Based on this, it modifies the filter by either resetting the coefficients or copying one filter into another.
+ * First, it compares the energies in the error spectrums of the main and shadow filter with each other and with the mic input spectum energy, and makes an estimate of how well the filters are performing. Based on this, it optionally modifies the filters by either resetting the filter coefficients or copying one filter into another.
  * Second, it uses the coherence values calculated in aec_calc_coherence as well as information from filter comparison done in step 1 to calculate the adaption step size mu.
  *
  * @param[inout] main_state AEC state structure for the main filter
@@ -252,25 +257,26 @@ void aec_compare_filters_and_calc_mu(
         aec_state_t *shadow_state);
 
 /**
- * @brief Calculate the parameter 'T'
+ * @brief Calculate the parameter `T`
  *
- * This function calculates a parameter referred to as 'T' that is later used in the filter adaption step.
- * T is a function of the adaption step size mu, inverse of the normalisation spectrum inv_X_energy and the filter error spectrum.
+ * This function calculates a parameter referred to as `T` that is later used to scale the reference input spectrum in the filter update step.
+ * `T` is a function of the adaption step size `mu`, normalisation spectrum `inv_X_energy` and the filter error spectrum `Error`.
  * 
- * @param[inout] state AEC state structure
+ * @param[inout] state AEC state structure. `state->T[x_ch]` is updated
  * @param[in] y_ch mic channel index
  * @param[in] x_ch reference channel index
  */
-void aec_compute_T(
+void aec_calc_T(
         aec_state_t *state,
         unsigned y_ch,
         unsigned x_ch);
 
 /** @brief Update filter
  *
- * This function updates the filter. It uses the T values calculated in aec_compute_T() and the X FIFO to calculate the delta update that is applied to the filter.
+ * This function updates the adaptive filter spectrum (`H_hat'). It calculates the delta update that is applied to the filter by scaling the X FIFO with the T values computed in `aec_compute_T()` and applies the delta update to `H_hat`.
+ * A gradient contraint FFT is then applied to constrain the length of each phase of the filter to avoid wrapping when calculating `y_hat`
  *
- * @param[inout] state AEC state structure
+ * @param[inout] state AEC state structure. `state->H_hat_1d[y_ch]` is updated
  * @param[in] y_ch mic channel index
  *
  */
@@ -278,16 +284,20 @@ void aec_filter_adapt(
         aec_state_t *state,
         unsigned y_ch);
 
-/// Update the 1d form of X-fifo pointers
+/** @brief Update the X FIFO alternate BFP structure
+ *
+ * The X FIFO BFP structure is maintained in 2 forms - as a 2 dimensional [x_channels][num_phases] and as a [x_channels * num_phases] 1 dimensional array.
+ * This is done in order to optimally access the X FIFO as needed in different functions.
+ * After the X FIFO is updated with the current X frame, this function is called in order to copy the 2 dimensional BFP structure into it's 1 dimensional counterpart.
+ *
+ * @param[inout] state AEC state structure. `state->X_fifo_1d` is updated
+ *
+ */
 void aec_update_X_fifo_1d(
         aec_state_t *state);
 
 /// Estimate delay
 int aec_estimate_delay (
-        aec_state_t *state);
-
-//Untested API TODO add unit tests
-void aec_reset_filter(
         aec_state_t *state);
 
 //TODO pending documentation and examples for L2 APIs
@@ -304,7 +314,7 @@ void aec_l2_calc_Error_and_Y_hat(
         unsigned length,
         int32_t bypass_enabled);
 
-//Adapt one phase or 2 consecutive phases of H_hat filter
+//Adapt one phase of the adaptive filter
 void aec_l2_adapt_plus_fft_gc(
         bfp_complex_s32_t *H_hat_ph,
         const bfp_complex_s32_t *X_fifo_ph,

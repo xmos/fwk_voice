@@ -40,8 +40,8 @@ void aec_process_frame(
 
     //Calculate X-FIFO energy for main and shadow filter
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_update_total_X_energy(main_state, ch, X_energy_recalc_bin);
-        aec_update_total_X_energy(shadow_state, ch, X_energy_recalc_bin);
+        aec_calc_X_fifo_energy(main_state, ch, X_energy_recalc_bin);
+        aec_calc_X_fifo_energy(shadow_state, ch, X_energy_recalc_bin);
     }
     X_energy_recalc_bin += 1;
     if(X_energy_recalc_bin == (AEC_PROC_FRAME_LENGTH/2) + 1) {
@@ -108,15 +108,15 @@ void aec_process_frame(
 
     //calculate normalised reference input spectrum
     for(int ch=0; ch<num_x_channels; ch++) {
-        aec_calc_inv_X_energy(main_state, ch, 0);
-        aec_calc_inv_X_energy(shadow_state, ch, 1);
+        aec_calc_normalisation_spectrum(main_state, ch, 0);
+        aec_calc_normalisation_spectrum(shadow_state, ch, 1);
     }
 
     for(int ych=0; ych<num_y_channels; ych++) {
         //Compute T values
         for(int xch=0; xch<num_x_channels; xch++) {
-            aec_compute_T(main_state, ych, xch);
-            aec_compute_T(shadow_state, ych, xch);
+            aec_calc_T(main_state, ych, xch);
+            aec_calc_T(shadow_state, ych, xch);
         }
         //Update filters
         aec_filter_adapt(main_state, ych);
