@@ -135,7 +135,7 @@ typedef struct {
 typedef struct {
     bfp_complex_s32_t Y_hat[AEC_LIB_MAX_Y_CHANNELS];
     bfp_complex_s32_t Error[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_complex_s32_t H_hat_1d[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES]; //TODO change name to just H_hat 
+    bfp_complex_s32_t H_hat[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES];
     bfp_complex_s32_t X_fifo_1d[AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES];
     bfp_complex_s32_t T[AEC_LIB_MAX_X_CHANNELS];
 

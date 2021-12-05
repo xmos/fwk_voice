@@ -166,7 +166,7 @@ void aec_process_frame(
     /* At this point we're ready to check how well the filters are performing and update them if needed.
      * 
      * main_state->shared_state->shadow_filter_params are updated to indicate the current state of filter comparison algorithm.
-     * main_state->H_hat_1d, main_state->Error, shadow_state->H_hat_1d, shadow_state->Error are optionally updated depending on the update needed.
+     * main_state->H_hat, main_state->Error, shadow_state->H_hat, shadow_state->Error are optionally updated depending on the update needed.
      *
      * After the filter comparison and update step, the adaption step size mu is calculated for main and shadow filter.
      * main_state->mu and shadow_state->mu are updated.
@@ -197,10 +197,10 @@ void aec_process_frame(
         }
         // Update filters
         
-        // Update main_state->H_hat_1d
+        // Update main_state->H_hat
         aec_filter_adapt(main_state, ych);
 
-        // Update shadow_state->H_hat_1d
+        // Update shadow_state->H_hat
         aec_filter_adapt(shadow_state, ych);
     }
     framenum++; 

@@ -31,7 +31,7 @@ void aec_priv_main_init(
     //H_hat
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         for(unsigned ph=0; ph<(num_x_channels * num_phases); ph++) {
-            bfp_complex_s32_init(&state->H_hat_1d[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+            bfp_complex_s32_init(&state->H_hat[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
             available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(complex_s32_t)); 
         }
     }
@@ -136,7 +136,7 @@ void aec_priv_shadow_init(
     //H_hat
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         for(unsigned ph=0; ph<(num_x_channels * num_phases); ph++) {
-            bfp_complex_s32_init(&state->H_hat_1d[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+            bfp_complex_s32_init(&state->H_hat[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
             available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(complex_s32_t)); 
         }
     }
@@ -280,7 +280,7 @@ void aec_priv_compare_filters(
         if(float_s32_gt(shadow_state->overall_Error[ch], shared_state->overall_Y[ch]) && shadow_params->shadow_reset_count[ch] >= 0)
         {
             shadow_params->shadow_flag[ch] = ERROR;
-            aec_priv_reset_filter(shadow_state->H_hat_1d[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+            aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
             //Y -> shadow Error
             aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
             shadow_state->overall_Error[ch] = shared_state->overall_Y[ch];
@@ -297,7 +297,7 @@ void aec_priv_compare_filters(
             //shadow Error -> Error
             aec_priv_bfp_complex_s32_copy(&main_state->Error[ch], &shadow_state->Error[ch]);
             //shadow filter -> main filter
-            aec_priv_copy_filter(main_state->H_hat_1d[ch], shadow_state->H_hat_1d[ch], main_state->shared_state->num_x_channels, main_state->num_phases, shadow_state->num_phases);
+            aec_priv_copy_filter(main_state->H_hat[ch], shadow_state->H_hat[ch], main_state->shared_state->num_x_channels, main_state->num_phases, shadow_state->num_phases);
         }
         else if(float_s32_gte(shadow_sigma_thresh_x_Ov_Error, shadow_state->overall_Error[ch]))
         {
@@ -320,7 +320,7 @@ void aec_priv_compare_filters(
             if(shadow_params->shadow_reset_count[ch] > shadow_conf->shadow_zero_thresh) {
                 //# if shadow filter has been reset several times in a row, reset to zeros
                 shadow_params->shadow_flag[ch] = ZERO;
-                aec_priv_reset_filter(shadow_state->H_hat_1d[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+                aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
                 aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
                 //# give the zeroed filter time to reconverge (or redeconverge)
                 shadow_params->shadow_reset_count[ch] = -(int)shadow_conf->shadow_reset_timer;
@@ -328,7 +328,7 @@ void aec_priv_compare_filters(
             else {
                 //debug_printf("Frame %d, main -> shadow filter copy.\n",frame_counter);
                 //# otherwise copy the main filter to the shadow filter
-                aec_priv_copy_filter(shadow_state->H_hat_1d[ch], main_state->H_hat_1d[ch], main_state->shared_state->num_x_channels, shadow_state->num_phases, main_state->num_phases);
+                aec_priv_copy_filter(shadow_state->H_hat[ch], main_state->H_hat[ch], main_state->shared_state->num_x_channels, shadow_state->num_phases, main_state->num_phases);
                 aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &main_state->Error[ch]);
                 shadow_params->shadow_flag[ch] = RESET;
             }

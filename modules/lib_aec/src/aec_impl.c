@@ -141,7 +141,7 @@ void aec_calc_Error_and_Y_hat(
     bfp_complex_s32_t *Y_hat_ptr = &state->Y_hat[ch];
     bfp_complex_s32_t *Error_ptr = &state->Error[ch];
     int32_t bypass_enabled = state->shared_state->config_params.aec_core_conf.bypass;
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
+    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
 }
 
 void aec_inverse_fft(
@@ -232,7 +232,7 @@ void aec_filter_adapt(
     }
     bfp_complex_s32_t *T_ptr = &state->T[0];
 
-    aec_priv_filter_adapt(state->H_hat_1d[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
+    aec_priv_filter_adapt(state->H_hat[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
 }
 
 void aec_calc_T(

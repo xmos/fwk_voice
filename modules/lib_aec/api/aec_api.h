@@ -276,7 +276,7 @@ void aec_calc_T(
  * This function updates the adaptive filter spectrum (`H_hat'). It calculates the delta update that is applied to the filter by scaling the X FIFO with the T values computed in `aec_compute_T()` and applies the delta update to `H_hat`.
  * A gradient contraint FFT is then applied to constrain the length of each phase of the filter to avoid wrapping when calculating `y_hat`
  *
- * @param[inout] state AEC state structure. `state->H_hat_1d[y_ch]` is updated
+ * @param[inout] state AEC state structure. `state->H_hat[y_ch]` is updated
  * @param[in] y_ch mic channel index
  *
  */

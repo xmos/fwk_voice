@@ -19,7 +19,7 @@ int aec_estimate_delay (
     for(int ch=0; ch<1; ch++) { //estimate delay for the first y-channel
         for(int ph=0; ph<state->num_phases; ph++) { //compute delay over 1 x-y pair phases
             float_s32_t phase_power;
-            aec_calc_freq_domain_energy(&phase_power, &state->H_hat_1d[ch][ph]);
+            aec_calc_freq_domain_energy(&phase_power, &state->H_hat[ch][ph]);
             state->shared_state->delay_estimator_params.phase_power[ph] = phase_power;
             state->shared_state->delay_estimator_params.sum_phase_powers = float_s32_add(state->shared_state->delay_estimator_params.sum_phase_powers, phase_power);
             if(float_s32_gt(phase_power, peak_fd_power)) {
