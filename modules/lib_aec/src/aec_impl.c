@@ -81,6 +81,7 @@ void aec_frame_init(
         memcpy(main_state->output[ch].data, &main_state->shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
         main_state->output[ch].exp = main_state->shared_state->y[ch].exp;
         main_state->output[ch].hr = main_state->shared_state->y[ch].hr;
+        
     }
     
     //Initialise T
@@ -88,7 +89,7 @@ void aec_frame_init(
     //So T calculation cannot be parallelised across Y channels
     //Reuse X memory for calculating T
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_complex_s32_init(&main_state->T[ch], (complex_s32_t*)&x_data[ch][0], 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+        bfp_complex_s32_init(&main_state->T[ch], (complex_s32_t*)&main_state->shared_state->x[ch].data[0], 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
     }
 
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
