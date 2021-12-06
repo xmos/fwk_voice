@@ -104,7 +104,7 @@ void test_calc_coherence() {
         double y_fp[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH], y_hat_fp[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH];
         double coh_fp[AEC_MAX_Y_CHANNELS], coh_slow_fp[AEC_MAX_Y_CHANNELS];
         
-        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         unsigned seed = 10;
         int32_t max_diff = 0; 
         for(int iter=0; iter<(1<<12)/F; iter++) {

@@ -101,7 +101,7 @@ void test_create_output() {
         unsigned seed = 2;
         //Generate error data
         for(unsigned iter=0; iter<(1<<12)/F; iter++) {
-            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
             aec_frame_init(&state, &shadow_state, &new_frame[0], &new_frame[AEC_MAX_Y_CHANNELS]);
             int is_main_filter = att_random_uint32(seed) % 2;
             aec_state_t *state_ptr;

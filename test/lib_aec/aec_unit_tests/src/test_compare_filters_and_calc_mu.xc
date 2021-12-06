@@ -579,7 +579,7 @@ void test_compare_filters_and_calc_mu() {
                 shadow_filter_phases);
         
         unsigned seed = 35788;
-        int32_t new_frame[TEST_NUM_Y + TEST_NUM_X][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t new_frame[TEST_NUM_Y + TEST_NUM_X][AEC_FRAME_ADVANCE];
         unsigned max_diff_coh_mu = 0; 
         for(int iter=0; iter<(1<<11)/F; iter++) {
             //every 200 frames set bypass

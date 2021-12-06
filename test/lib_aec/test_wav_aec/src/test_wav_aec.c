@@ -155,11 +155,11 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
     file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
 
-    int32_t input_read_buffer[AEC_PROC_FRAME_LENGTH*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
+    int32_t input_read_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
     int32_t output_write_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS)];
 
-    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
-    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start AEC
@@ -183,10 +183,10 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * AEC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
-        file_read (&input_file, (uint8_t*)&input_read_buffer[(AEC_PROC_FRAME_LENGTH-AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS+AEC_MAX_Y_CHANNELS)], bytes_per_frame* AEC_FRAME_ADVANCE);
+        file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AEC_FRAME_ADVANCE);
         memset(frame_y, 0, sizeof(frame_y));
         memset(frame_x, 0, sizeof(frame_x));
-        for(unsigned f=0; f<AEC_PROC_FRAME_LENGTH; f++){
+        for(unsigned f=0; f<AEC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
                 unsigned i =(f * (AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS)) + ch;
                 frame_y[ch][f] = input_read_buffer[i];
@@ -224,9 +224,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AEC_FRAME_ADVANCE * AEC_MAX_Y_CHANNELS);
 
-        for(unsigned i=0;i<(AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS);i++){
-            input_read_buffer[i] = input_read_buffer[i + AEC_FRAME_ADVANCE*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)];
-        }
         print_prof(0,6,b+1);
     }
     file_close(&input_file);

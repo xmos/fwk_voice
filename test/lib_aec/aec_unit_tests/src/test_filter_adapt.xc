@@ -87,7 +87,7 @@ void test_aec_filter_adapt() {
     unsigned seed=578335;
     unsigned max_diff = 0.0;
     for(int itt=0; itt<(100)/F; itt++) {
-        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         unsigned is_main = att_random_uint32(seed) % 2;
         aec_state_t *state_ptr;
         if(is_main) {
