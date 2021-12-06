@@ -27,6 +27,27 @@ void aec_priv_main_init(
     state->shared_state->num_x_channels = num_x_channels;
     //Initialise number of phases
     state->num_phases = num_phases;
+
+    //y
+    for(unsigned ch=0; ch<num_y_channels; ch++) {
+        bfp_s32_init(&state->shared_state->y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH+2), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t));
+    }
+    //x
+    for(unsigned ch=0; ch<num_x_channels; ch++) {
+        bfp_s32_init(&state->shared_state->x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH+2), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t));
+    }
+    //prev_y
+    for(unsigned ch=0; ch<num_y_channels; ch++) {
+        bfp_s32_init(&state->shared_state->prev_y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+    }
+    //prev_x
+    for(unsigned ch=0; ch<num_x_channels; ch++) {
+        bfp_s32_init(&state->shared_state->prev_x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+    }
     
     //H_hat
     for(unsigned ch=0; ch<num_y_channels; ch++) {

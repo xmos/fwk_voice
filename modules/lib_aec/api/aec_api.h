@@ -73,8 +73,8 @@ void aec_init(
 void aec_frame_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2]);
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 /**
  * @brief Calculate energy in the spectrum

@@ -25,17 +25,57 @@ void aec_init(
 void aec_frame_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2])
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE])
 {
     unsigned num_y_channels = main_state->shared_state->num_y_channels;
     unsigned num_x_channels = main_state->shared_state->num_x_channels;
+
+    // y frame 
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&main_state->shared_state->y[ch], &y_data[ch][0], -31, AEC_PROC_FRAME_LENGTH, 1);
+        /* Create 512 samples frame */
+        // Copy previous y samples
+        memcpy(main_state->shared_state->y[ch].data, main_state->shared_state->prev_y[ch].data, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Copy current y samples
+        memcpy(&main_state->shared_state->y[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &y_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->y[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->y[ch]);
+
+        /* Update previous samples */
+        // Copy the last 32 samples to the beginning
+        memcpy(main_state->shared_state->prev_y[ch].data, &main_state->shared_state->prev_y[ch].data[AEC_FRAME_ADVANCE], (AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))*sizeof(int32_t));
+        // Copy current frame to previous
+        memcpy(&main_state->shared_state->prev_y[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &y_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->prev_y[ch]);
+        // Update exp just in case
+        main_state->shared_state->prev_y[ch].exp = -31;
     }
+    // x frame 
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_s32_init(&main_state->shared_state->x[ch], &x_data[ch][0], -31, AEC_PROC_FRAME_LENGTH, 1);
+        /* Create 512 samples frame */
+        // Copy previous x samples
+        memcpy(main_state->shared_state->x[ch].data, main_state->shared_state->prev_x[ch].data, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Copy current x samples
+        memcpy(&main_state->shared_state->x[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &x_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->x[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->x[ch]);
+
+        /* Update previous samples */
+        // Copy the last 32 samples to the beginning
+        memcpy(main_state->shared_state->prev_x[ch].data, &main_state->shared_state->prev_x[ch].data[AEC_FRAME_ADVANCE], (AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))*sizeof(int32_t));
+        // Copy current frame to previous
+        memcpy(&main_state->shared_state->prev_x[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &x_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->prev_x[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
+
     //Keep a copy of y[240:480] in output which can later be used in calculate coherence, since original y will get overwritten by inplace error computation
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         memcpy(main_state->output[ch].data, &main_state->shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
