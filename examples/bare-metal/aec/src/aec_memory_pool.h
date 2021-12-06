@@ -6,6 +6,10 @@
 #include "aec_config.h"
 //Memory pool definition
 typedef struct {
+    int32_t mic_input_frame[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t ref_input_frame[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t mic_prev_samples[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE]; //272 samples history
+    int32_t ref_prev_samples[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE]; //272 samples history
     complex_s32_t phase_pool_H_hat_X_fifo[((AEC_MAX_Y_CHANNELS*AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES) + (AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES)) * (AEC_PROC_FRAME_LENGTH/2 + 1)];
     complex_s32_t Error[AEC_MAX_Y_CHANNELS][(AEC_PROC_FRAME_LENGTH/2) + 1];
     complex_s32_t Y_hat[AEC_MAX_Y_CHANNELS][(AEC_PROC_FRAME_LENGTH/2) + 1];
