@@ -81,7 +81,6 @@ void aec_frame_init(
         memcpy(main_state->output[ch].data, &main_state->shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
         main_state->output[ch].exp = main_state->shared_state->y[ch].exp;
         main_state->output[ch].hr = main_state->shared_state->y[ch].hr;
-        
     }
     
     //Initialise T
