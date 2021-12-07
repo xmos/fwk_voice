@@ -120,7 +120,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         /* Resuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output
          */
-        aec_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+        aec_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, NULL);
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AEC_MAX_Y_CHANNELS;ch++){

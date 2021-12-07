@@ -714,23 +714,25 @@ void aec_priv_create_output(
     error->hr = min_hr;
     
     //copy error to output
-    memcpy(output->data, &error->data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
-    output->length = AEC_FRAME_ADVANCE;
-    output->exp = error->exp;
-    output->hr = error->hr;
+    if(output->data != NULL) {
+        memcpy(output->data, &error->data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        output->length = AEC_FRAME_ADVANCE;
+        output->exp = error->exp;
+        output->hr = error->hr;
 
-    //overlap add
-    //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
-    bfp_s32_init(&chunks[0], &output->data[0], output->exp, 32, 0);
-    chunks[0].hr = output->hr;
-    bfp_s32_init(&chunks[1], &output->data[32], output->exp, 240-32, 0);
-    chunks[1].hr = output->hr;
-    
-    //Add previous frame's overlap to first 32 samples of output
-    bfp_s32_add(&chunks[0], &chunks[0], overlap);
-    bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
-    bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
-    output->hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
+        //overlap add
+        //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
+        bfp_s32_init(&chunks[0], &output->data[0], output->exp, 32, 0);
+        chunks[0].hr = output->hr;
+        bfp_s32_init(&chunks[1], &output->data[32], output->exp, 240-32, 0);
+        chunks[1].hr = output->hr;
+
+        //Add previous frame's overlap to first 32 samples of output
+        bfp_s32_add(&chunks[0], &chunks[0], overlap);
+        bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
+        bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
+        output->hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
+    }
     
     //update overlap
     memcpy(overlap->data, &error->data[480], 32*sizeof(int32_t));
