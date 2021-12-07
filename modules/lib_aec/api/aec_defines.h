@@ -144,7 +144,6 @@ typedef struct {
 
     bfp_s32_t inv_X_energy[AEC_LIB_MAX_X_CHANNELS];
     bfp_s32_t X_energy[AEC_LIB_MAX_X_CHANNELS];
-    bfp_s32_t output[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t overlap[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t y_hat[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t error[AEC_LIB_MAX_Y_CHANNELS];

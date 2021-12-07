@@ -126,9 +126,9 @@ void test_create_output() {
                     error_fp[ch][i] = att_int32_to_double(error_ptr->data[i], error_ptr->exp);
                 }
             }
-
+            int32_t output[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
-                aec_calc_output(state_ptr, ch);
+                aec_calc_output(state_ptr, &output[ch], ch);
             }
 
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
@@ -144,7 +144,7 @@ void test_create_output() {
 
                 //check output
                 for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-                    check_error(output_fp[ch][i], state_ptr->output[ch].data[i], state_ptr->output[ch].exp, 0.0000002, pow(10, -8), ch, iter, "error wrong");
+                    check_error(output_fp[ch][i], output[ch][i], -31, 0.0000002, pow(10, -8), ch, iter, "error wrong");
                 }
 
                 //check overlap

@@ -184,8 +184,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         long input_location =  wav_get_frame_start(&input_header_struct, b * AEC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AEC_FRAME_ADVANCE);
-        memset(frame_y, 0, sizeof(frame_y));
-        memset(frame_x, 0, sizeof(frame_x));
         for(unsigned f=0; f<AEC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
                 unsigned i =(f * (AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS)) + ch;
@@ -205,7 +203,11 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
             }
         }
         prof(2, "start_aec_process_frame");
-        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x);
+        // Call AEC functions to process AEC_FRAME_ADVANCE new samples of data
+        /* Resuse mic data memory for main filter output
+         * Reuse ref data memory for shadow filter output
+         */ 
+        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
         prof(3, "end_aec_process_frame");
 
         prof(4, "start_aec_estimate_delay");
@@ -218,7 +220,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
         for (unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
             for(unsigned i=0;i<AEC_FRAME_ADVANCE;i++){
-                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = main_state.output[ch].data[i];
+                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = frame_y[ch][i];
             }
         }
 

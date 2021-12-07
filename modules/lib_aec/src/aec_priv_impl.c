@@ -90,11 +90,6 @@ void aec_priv_main_init(
         available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(int32_t)); 
     }
 
-    //Initialise output
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->output[ch], (int32_t*)available_mem_start, 0, AEC_FRAME_ADVANCE, 0);
-        available_mem_start += (AEC_FRAME_ADVANCE*sizeof(int32_t)); 
-    }
     //overlap
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         bfp_s32_init(&state->overlap[ch], (int32_t*)available_mem_start, -1024, 32, 0);
@@ -188,11 +183,6 @@ void aec_priv_shadow_init(
         available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(int32_t)); 
     }
 
-    //Initialise output
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->output[ch], (int32_t*)available_mem_start, 0, AEC_FRAME_ADVANCE, 0);
-        available_mem_start += (AEC_FRAME_ADVANCE*sizeof(int32_t)); 
-    }
     //overlap
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         bfp_s32_init(&state->overlap[ch], (int32_t*)available_mem_start, -1024, 32, 0);
@@ -740,7 +730,7 @@ void aec_priv_create_output(
     bfp_s32_add(&chunks[0], &chunks[0], overlap);
     bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
     bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
-    output->exp = (chunks[0].exp < chunks[1].exp) ? chunks[0].exp : chunks[1].exp;
+    output->hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
     
     //update overlap
     memcpy(overlap->data, &error->data[480], 32*sizeof(int32_t));

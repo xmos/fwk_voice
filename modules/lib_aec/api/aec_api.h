@@ -223,6 +223,7 @@ void aec_calc_coherence(
  */
 void aec_calc_output(
         aec_state_t *state,
+        int32_t (*output)[AEC_FRAME_ADVANCE],
         unsigned ch);
 
 /**

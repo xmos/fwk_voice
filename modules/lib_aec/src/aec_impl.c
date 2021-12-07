@@ -76,13 +76,6 @@ void aec_frame_init(
         bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
 
-    //Keep a copy of y[240:480] in output which can later be used in calculate coherence, since original y will get overwritten by inplace error computation
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        memcpy(main_state->output[ch].data, &main_state->shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
-        main_state->output[ch].exp = main_state->shared_state->y[ch].exp;
-        main_state->output[ch].hr = main_state->shared_state->y[ch].hr;
-    }
-    
     //Initialise T
     //At the moment, there's only enough memory for storing num_x_channels and not num_y_channels*num_x_channels worth of T.
     //So T calculation cannot be parallelised across Y channels
@@ -211,19 +204,28 @@ void aec_calc_coherence(
     bfp_s32_t y_hat_subset;
     bfp_s32_init(&y_hat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE, 0);
     y_hat_subset.hr = state->y_hat[ch].hr;
-    //y[240:480] has already been copied to state->output in aec_frame_init() since y memory stores Y now, so use state->output instead of y
-    aec_priv_calc_coherence(coh_mu_state_ptr, &state->output[ch], &y_hat_subset, &state->shared_state->config_params);
+
+    //y[240:480] is prev_y[0:240]. Create a temporary bfp_s32_t to point to prev_y[0:240]
+    bfp_s32_t temp;
+    bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 0);
+    temp.hr = state->shared_state->prev_y[ch].hr;
+
+    aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
     return;
 }
 
 void aec_calc_output(
         aec_state_t *state,
+        int32_t (*output)[AEC_FRAME_ADVANCE],
         unsigned ch)
 {
     if(state == NULL) {
         return;
     }
-    bfp_s32_t *output_ptr = &state->output[ch];
+
+    bfp_s32_t output_struct;
+    bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+    bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
     aec_priv_create_output(output_ptr, overlap_ptr, error_ptr, &state->shared_state->config_params);
