@@ -6,6 +6,7 @@
 **/_build*/
 **/bin*/
 **/dist*/
+**/fatfs_mkimage
 
 # Build & debug cruft
 *.a
@@ -25,3 +26,6 @@ filesystem_support/target-xn*
 
 # test cruft
 **/test_*.log
+
+# macOS cruft
+.DS_Store

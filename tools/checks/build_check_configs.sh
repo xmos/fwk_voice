@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-DISTDIR=dist
+AVONA_DIR=applications/avona
+DIST_DIR=applications/dist
 
-mkdir -p ${DISTDIR}
+mkdir -p ${DIST_DIR}
 
 echo '******************************************************'
 echo '* Building USB Mics configuration'

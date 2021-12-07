@@ -24,7 +24,7 @@ CMAKE_ARGS += -DMULTITILE_BUILD=1 -DUSE_WW=$(WW) -DAPP_CONF_DEFINES=$(APP_CONF_D
 # This value should not be modified
 EXECUTABLE = $(OUTPUT_DIR)/$(PROJECT_NAME).xe
 
-.PHONY: all clean distclean run
+.PHONY: all clean distclean run $(EXECUTABLE)
 
 all: $(EXECUTABLE)
 
