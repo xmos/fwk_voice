@@ -1,14 +1,14 @@
-====================
-Avona Hardware Tests
-====================
+=====================
+Avona Hardware Checks
+=====================
 
-This document describes the hardware tests for the Avona Voice Reference Design.  
+This document describes the hardware checks for the Avona Voice Reference Design.  
 
 *************
 Prerequisites
 *************
 
-All tests require Linux or MacOS.  Most tests run on either the Explorer Board or the Avona reference design evaluation kit.
+All checks require Linux or MacOS.  Most tests run on either the Explorer Board or the Avona reference design evaluation kit.
 
 The following software applications are required.  If necessary, download and follow the installation instructions for each application.
 
@@ -33,31 +33,31 @@ Then use pip to install the required modules.
 
     $ pip install pytest
 
-The tests require several firmware configurations.  To build and install all those configurations, run the following command in the root of the Avona repository:
+The checks require several firmware configurations.  To build and install all those configurations, run the following command in the root of the Avona repository:
 
 .. code-block:: console
 
-    $ ./test/build_test_configs.sh
+    $ ./tools/checks/build_check_configs.sh
 
-*****
-Tests
-*****
+******
+Checks
+******
 
 Wakeword Detection
 ==================
 
-The wakeword detection test verifies the ability of the Avona reference design to correctly detect wakewords.  It is currently only supported on the Explorer board and this test assumes you have set the WW_PATH environment variable to point to the the Amazon WakeWord library.
+The wakeword detection check verifies the ability of the Avona reference design to correctly detect wakewords.  It is currently only supported on the Explorer board and this test assumes you have set the WW_PATH environment variable to point to the the Amazon WakeWord library.
 
-Run the following command to execute the test:
+Run the following command to execute the check:
 
 .. code-block:: console
 
-    $ cd test
-    $ ./test_wakeword_detection.sh -c 1 ../applications/dist/sw_avona_TEST_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee test_wakeword_detection.log
+    $ cd tools/checks
+    $ ./check_wakeword_detection.sh -c 1 ../../dist/sw_avona_CHECK_USB_MICS.xe ${WW_PATH}/sample-wakeword/alexas.list | tee check_wakeword_detection.log
 
-This generates the `test_wakeword_detection.log` log file.  
+This generates the `check_wakeword_detection.log` log file.  
 
-To verify the test results, run:
+To verify the results, run:
 
 .. code-block:: console
 

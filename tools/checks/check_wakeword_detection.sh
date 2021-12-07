@@ -5,17 +5,17 @@ source helpers.sh
 
 help()
 {
-   echo "Voice reference design wakeword detection test"
+   echo "Voice reference design wakeword detection check"
    echo
    echo "Syntax:"
-   echo "test_wakeword_detection.sh [-c|h] <firmware.xe> <list_file>"
+   echo "check_wakeword_detection.sh [-c|h] <firmware.xe> <list_file>"
    echo 
    echo "Options:"
    echo "h     Print this Help."
    echo "c     Number of channels in input wavs"
    echo
    echo "Example that saves output to a log file:"
-   echo "   $ test_wakeword_detection.sh -c 1 <firmware.xe> <list_file> | tee test_wakeword_detection.log"
+   echo "   $ check_wakeword_detection.sh -c 1 <firmware.xe> <list_file> | tee check_wakeword_detection.log"
    echo 
    
 }
@@ -53,7 +53,7 @@ sleep $(get_firmware_startup_duration)
 
 # play the input wav files
 for WAV_FILE in $WAV_LIST; do
-    echo "Wakeword Test: $WAV_FILE"
+    echo "Wakeword Check: $WAV_FILE"
     sox $WAV_DIR/$WAV_FILE $SOX_PLAY_OPTS -t wav - $REMIX_PATTERN | sox -t wav - -t $DEVICE_DRIVER "$DEVICE_NAME"
     sleep 2
 done
