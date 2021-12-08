@@ -224,7 +224,12 @@ void aec_calc_output(
     }
 
     bfp_s32_t output_struct;
-    bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+    if(output != NULL) {
+        bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+    }
+    else {
+        bfp_s32_init(&output_struct, NULL, -31, AEC_FRAME_ADVANCE, 0);
+    }
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
