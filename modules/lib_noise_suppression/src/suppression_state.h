@@ -7,106 +7,64 @@
 
 typedef struct {
 
-    //TODO these should be in a union
-    ns_state_t ns[SUP_Y_CHANNELS];
-    //uint64_t alignment_padding_1;
+    bfp_s32_t S;
+    bfp_s32_t S_min;
+    bfp_s32_t S_tmp;
+    bfp_s32_t p;
+    bfp_s32_t alpha_d_title;
+    bfp_s32_t lambda_hat;
+    bfp_s32_t bin_gain;
 
-    // For preventing divide by zero, may be at most SIGMA_MAX
-    // Used for x/(max(x*x, sigma)
-    int32_t sigma[SUP_X_CHANNELS];
-    int sigma_exp[SUP_X_CHANNELS];
+    int32_t data_S [SUP_PROC_FRAME_BINS];
+    int32_t data_S_min [SUP_PROC_FRAME_BINS];
+    int32_t data_S_tmp [SUP_PROC_FRAME_BINS];
+    int32_t data_p [SUP_PROC_FRAME_BINS];
+    int32_t data_adt [SUP_PROC_FRAME_BINS];
+    int32_t data_lambda_hat [SUP_PROC_FRAME_BINS];
+    int32_t data_bin_gain [SUP_PROC_FRAME_BINS];
 
-    //vtb_ch_pair_t overlap[SUP_Y_CHANNEL_PAIRS][SUP_FRAME_ADVANCE];
+    bfp_s32_t prev_frame;
+    bfp_s32_t overlap;
 
-    //should these be properties of the respective states?
+    int32_t data_prev_frame [SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE];
+    int32_t data_ovelap [SUP_FRAME_ADVANCE];
 
-    int noise_suppression_enabled;
+    float_s32_t delta;
+    float_s32_t noise_floor;
+    float_s32_t alpha_gain;
+    float_s32_t alpha_d;
+    float_s32_t alpha_s;
+    float_s32_t alpha_p;
 
-    int bypass;
-} suppression_state_t0;
-
-typedef struct {
-
-    ///////////////////////////////////NOISE SUPPRESSION////////////////////////
-
-    bfp_s32_t * S, * S_min, * S_tmp, * p;
-    bfp_s32_t * alpha_d_title, * lambda_hat, * bin_gain, * prev_frame;
-
-    int32_t reset_period, delta_q24, noise_floor, alpha_gain;
-    int32_t alpha_d, alpha_s, alpha_p;
+    unsigned reset_period;
     unsigned reset_counter;
 
-    /////////////////////////////////GENERAL///////////////////////////////////
-
-    //uint64_t alignment_padding_1;
-
-    // For preventing divide by zero, may be at most SIGMA_MAX
-    // Used for x/(max(x*x, sigma)
-    //int32_t sigma[SUP_X_CHANNELS];
-    //int sigma_exp[SUP_X_CHANNELS];
-
-    //vtb_ch_pair_t overlap[SUP_Y_CHANNEL_PAIRS][SUP_FRAME_ADVANCE];
-
-    //should these be properties of the respective states?
-
-    int noise_suppression_enabled;
-
-    /////////////////////////////CONTROL/////////////////////////
-    int bypass;
 } suppression_state_t;
-
-enum {
-    SUP_NS_DISABLED = 0,
-    SUP_NS_MCRA_ENABLED = 1,
-};
-
-
-unsigned sup_clz(uint32_t *d, unsigned length);
-
-/*
- * length is the length of abs_d which is 1 more than D
- */
-void sup_abs_channel(uint32_t * abs_d, dsp_complex_t * D, unsigned length);
-
 
 /*
  * Y is a complex array of length length-1
  * new_mag is a complex array of length length
  * original_mag is a complex array of length length
  */
-void sup_rescale_vector(dsp_complex_t * Y, uint32_t * new_mag,
-        uint32_t * original_mag, unsigned length);
+void sup_rescale_vector(bfp_complex_s32_t * Y, 
+                        bfp_s32_t * new_mag,
+                        bfp_s32_t * orig_mag);
 
-void sup_rescale(dsp_complex_t &Y, uint32_t new_mag, uint32_t original_mag);
-
-void sup_rescale_asm(dsp_complex_t &Y, uint32_t new_mag, uint32_t original_mag);
+//void sup_rescale(dsp_complex_t &Y, uint32_t new_mag, uint32_t original_mag);
 
 /*
  * window is an array of q1_31 of length (window_length/2) it is applied symmetrically to the frame
  * from sample 0 (oldest) to (window_length/2 - 1) then zeros are applied to the end of the frame.
  */
-void sup_apply_window(vtb_ch_pair_t * frame, const unsigned frame_length,
-        const q1_31 * window, const unsigned window_length, int re_shr, int im_shr);
+void sup_apply_window(bfp_s32_t * input, 
+                    const int32_t * window, 
+                    const int32_t * rev_window, 
+                    const unsigned frame_length, 
+                    const unsigned window_length);
 
-void sup_form_output_pair(vtb_ch_pair_t * output,
-        vtb_ch_pair_t * input,
-        vtb_ch_pair_t * overlap, unsigned frame_advance);
+void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap);
 
-//unsigned sup_normalise_bfp(uint32_t * d, unsigned length, int & exponent);
-
-//void sup_get_hr(vtb_ch_pair_t * d, unsigned length, unsigned &hr_re, unsigned &hr_im);
-
-int sup_a_lte_sqrt_b(uint32_t a, int a_exp, uint32_t b, int b_exp);
-
-/*
- * the max value of d can be UINT_MAX/sqrt(2)
- * therefore delta can be at most 1257966796
- */
-int sup_inv_abs_X(uint32_t * inv_d, uint32_t * d, int d_exp, unsigned d_length, uint32_t delta, int delta_exp);
-
-void ns_init_state(ns_state_t * state);
-
-void ns_process_frame(uint32_t abs_Y[SUP_PROC_FRAME_BINS], int &Y_exp, ns_state_t &state);
+void ns_process_frame(bfp_s32_t * abs_Y, suppression_state_t * state);
 
 
 //#include "suppression_control.h"

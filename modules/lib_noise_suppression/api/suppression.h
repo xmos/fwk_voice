@@ -30,9 +30,6 @@
 #define INT_EXP -31
 #endif
 
-#ifndef SUP_X_CHANNELS
-#error SUP_X_CHANNELS has not been set
-#endif
 
 #ifndef SUP_Y_CHANNELS
 #error SUP_Y_CHANNELS has not been set
@@ -47,18 +44,11 @@
 #endif
 
 #define SUP_SQRT_HANN_LUT           sqrt_hanning_480
-#define SUP_OUTPUT_X_CHANNELS        (0)    //Enable outputting of X channels
 
-#define SUP_PROC_FRAME_LENGTH      (1<<SUP_PROC_FRAME_LENGTH_LOG2)
+#define SUP_PROC_FRAME_LENGTH      (1<<SUP_PROC_FRAME_LENGTH_LOG2) ////////////////2^9 = 512
 #define SUP_PROC_FRAME_BINS_LOG2   (SUP_PROC_FRAME_LENGTH_LOG2 - 1)
-#define SUP_PROC_FRAME_BINS        (1<<SUP_PROC_FRAME_BINS_LOG2)
+#define SUP_PROC_FRAME_BINS        (1<<SUP_PROC_FRAME_BINS_LOG2)///////////////////////2^8 = 256
 
-#define SUP_INPUT_CHANNELS          (SUP_X_CHANNELS + SUP_Y_CHANNELS)
-#define SUP_OUTPUT_CHANNELS         (SUP_OUTPUT_X_CHANNELS*SUP_X_CHANNELS + SUP_Y_CHANNELS)
-#define SUP_OUTPUT_CHANNEL_PAIRS    ((SUP_OUTPUT_CHANNELS+1)/2)
-#define SUP_INPUT_CHANNEL_PAIRS     ((SUP_INPUT_CHANNELS+1)/2)
-#define SUP_Y_CHANNEL_PAIRS         ((SUP_Y_CHANNELS+1)/2)
-#define SUP_X_CHANNEL_PAIRS         ((SUP_X_CHANNELS+1)/2)
 
 #if  SUP_PROC_FRAME_LENGTH_LOG2 == 6
 #define SUP_FFT_SINE_LUT dsp_sine_64
@@ -115,7 +105,7 @@ void ns_init_state(ns_state_t * state);/////////////////////////////////////////
  *
  * \param[in] ms           Reset period in milliseconds
  */
-void sup_set_noise_reset_period_ms(suppression_state_t * state, int32_t ms); ///// NOT FOUND///
+void sup_set_noise_reset_period_ms(suppression_state_t * state, int32_t ms);
 
 /** Function that sets the alpha-value used in the recursive avarage of the
  * noise value. A fraction alpha is of the old value is combined with a
@@ -127,7 +117,7 @@ void sup_set_noise_reset_period_ms(suppression_state_t * state, int32_t ms); ///
  *
  * \param[in] alpha_d      Fraction, typically close to 1.0 (0xFFFFFFFF)
  */
-void sup_set_noise_alpha_d(suppression_state_t * state, int32_t alpha_d);/////////////////////////////////////////////////////////////
+void sup_set_noise_alpha_d(suppression_state_t * state, float_s32_t alpha_d);/////////////////////////////////////////////////////////////
 
 /** Function that sets the alpha-value used in the recursive avarage ....
  * ........ A fraction alpha is of the old value is combined with a
@@ -139,7 +129,7 @@ void sup_set_noise_alpha_d(suppression_state_t * state, int32_t alpha_d);///////
  *
  * \param[in] alpha_s      Fraction, typically close to 1.0 (0xFFFFFFFF)
  */
-void sup_set_noise_alpha_s(suppression_state_t * state, int32_t alpha_s);////////////////////////////////////////////////////////////////
+void sup_set_noise_alpha_s(suppression_state_t * state, float_s32_t alpha_s);////////////////////////////////////////////////////////////////
 
 /** Function that sets the alpha-value used in the recursive avarage ....
  * ........ A fraction alpha is of the old value is combined with a
@@ -151,7 +141,7 @@ void sup_set_noise_alpha_s(suppression_state_t * state, int32_t alpha_s);///////
  *
  * \param[in] alpha_p      Fraction, typically close to 1.0 (0xFFFFFFFF)
  */
-void sup_set_noise_alpha_p(suppression_state_t * state, int32_t alpha_p);////////////////////////////////////////////////////////////////
+void sup_set_noise_alpha_p(suppression_state_t * state, float_s32_t alpha_p);////////////////////////////////////////////////////////////////
 
 /** Function that sets the threshold for the noise suppressor to decide on
  * whether the current signal contains voice or not.
@@ -160,7 +150,7 @@ void sup_set_noise_alpha_p(suppression_state_t * state, int32_t alpha_p);///////
  *
  * \param[in] delta        The voice threshold represented in 8.24 format.
  */
-void sup_set_noise_delta(suppression_state_t * state, int32_t delta); ////////////////////////////////////////////////////////////////
+void sup_set_noise_delta(suppression_state_t * state, float_s32_t delta); ////////////////////////////////////////////////////////////////
 
 /** Function that sets the noise floor in db for a noise suppressor
  *
@@ -168,7 +158,7 @@ void sup_set_noise_delta(suppression_state_t * state, int32_t delta); //////////
  *
  * \param[in] db           Noise floor on a linear scale, i.e. 0.5 would be -6dB.
  */
-void sup_set_noise_floor(suppression_state_t * state, int32_t noise_floor);////////////////////////////////////////////////////////////////////////////////
+void sup_set_noise_floor(suppression_state_t * state, float_s32_t noise_floor);////////////////////////////////////////////////////////////////////////////////
 
 /** Function that resets the noise suppressor. Does not affect
  * any parameters that have been set, such as enable, alphas etc.
@@ -177,14 +167,6 @@ void sup_set_noise_floor(suppression_state_t * state, int32_t noise_floor);/////
  */
 void sup_reset_noise_suppression(suppression_state_t * sup);///////////////////////////////////////////////////////////////////////////////
 
-
-/** Function that sets the enable flag of the noise suppressor.
- *
- * \param[in,out] sup      Suppressor state, initialised
- *
- * \param[in] enable       1 if suppresor should be enabled, 0 otherwise
- */
-void sup_set_noise_suppression_enable(suppression_state_t * sup, int enable);/////////////////////////////////////////////////////////////
 
 
 /** Function that initialises the suppression state.
@@ -213,45 +195,13 @@ void sup_set_noise_suppression_enable(suppression_state_t * sup, int enable);///
 void sup_init_state(suppression_state_t * state);
 
 
-/** Function that resets the echo suppressor. Does not affect
- * any parameters that have been set, such as enable, mu etc.
- *
- * \param[in,out] sup      Suppressor state, initialised
- */
-void sup_reset_echo_suppression(suppression_state_t * sup);
-
-/** Function that suppresses residual echoes and noise in a frame
+/** Function that suppresses residual noise in a frame
  *
  * 
  */
-void sup_process_frame(bfp_s32_t * input, 
-                        suppression_state_t * state, 
-                        bfp_s32_t * output)
+void sup_process_frame(suppression_state_t * state,
+                        int32_t (*output)[SUP_FRAME_ADVANCE],
+                        const int32_t (*input)[SUP_FRAME_ADVANCE]);
 
-/** Function that sets the enable flag of the echo suppressor.
- *
- * \param[in,out] sup      Suppressor state, initialised
- *
- * \param[in] enable       1 if suppresor should be enabled, 0 otherwise
- */
-void sup_set_echo_suppression_enable(suppression_state_t * sup, int enable);
-
-/** Function that sets the maximum suppression of the echo suppressor.
- *
- * \param[in,out] sup      Suppressor state, initialised
- *
- * \param[in] db           Suppression in db - set to 0 to not suppress,
- *                         or to a negative value to suppress. Setting this
- *                         value beyond -10 causes artefacts
- */
-void sup_set_echo_suppression_db(suppression_state_t * sup, int db);
-
-/** Function that sets the learning rate of the echo suppressor
- *
- * \param[in,out] sup      Suppressor state, initialised
- *
- * \param[in] mu           learning rate.
- */
-void sup_set_echo_suppression_mu(suppression_state_t * sup, int mu_24_8);
 
 #endif
