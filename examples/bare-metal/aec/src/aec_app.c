@@ -101,7 +101,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);
 
     for(unsigned b=0;b<block_count;b++){
-        //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * AEC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AEC_FRAME_ADVANCE);

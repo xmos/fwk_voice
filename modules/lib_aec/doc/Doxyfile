@@ -808,7 +808,9 @@ WARN_NO_PARAMDOC       = NO
 
 # If the WARN_AS_ERROR tag is set to YES then doxygen will immediately stop when
 # a warning is encountered.
-# The default value is: NO.
+#The default value is: NO.
+#TODO Consider setting this to YES to flag documentation errors once we have the
+#documentation ready for release.
 
 WARN_AS_ERROR          = NO
 

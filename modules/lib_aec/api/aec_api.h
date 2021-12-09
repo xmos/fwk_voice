@@ -112,7 +112,7 @@ void aec_calc_time_domain_ema_energy(
         const aec_config_params_t *conf);
 
 /**
- * @brief Calculate spectrum of an input time domain vector.
+ * @brief Calculate Discrete Fourier Transform (DFT) spectrum of an input time domain vector.
  *
  * This function calculates the spectrum of a real 32bit time domain vector. It calculates an N point real DFT where N is the length of the input vector to output a complex N/2+1 length complex 32bit vector.
  * The N/2+1 complex output values represent spectrum samples from DC up to the Nyquist frequency.

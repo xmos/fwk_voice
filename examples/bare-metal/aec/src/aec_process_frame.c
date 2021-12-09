@@ -25,7 +25,7 @@ void aec_process_frame(
     // Initialise some other BFP structures that need to be initialised at the beginning of each frame
     aec_frame_init(main_state, shadow_state, y_data, x_data);
     
-    // Calculate Exponential moving average energy of the mic and reference input. 
+    // Calculate Exponential moving average (EMA) energy of the mic and reference input.
     for(int ch=0; ch<num_y_channels; ch++) {
         aec_calc_time_domain_ema_energy(&main_state->shared_state->y_ema_energy[ch], &main_state->shared_state->y[ch],
                 AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
@@ -102,15 +102,15 @@ void aec_process_frame(
 
     // Calculate error spectrum and estimated mic spectrum for main and shadow adaptive filters
     for(int ch=0; ch<num_y_channels; ch++) {
-        //main_state->Error[ch] and main_state->Y_hat[ch] are updated
+        // main_state->Error[ch] and main_state->Y_hat[ch] are updated
         aec_calc_Error_and_Y_hat(main_state, ch);
 
-        //shadow_state->Error[ch] and shadow_state->Y_hat[ch] are updated
+        // shadow_state->Error[ch] and shadow_state->Y_hat[ch] are updated
         aec_calc_Error_and_Y_hat(shadow_state, ch);
     }
     
     // Calculate time domain error and time domain estimated mic input from their spectrums calculated in the previous step.
-    /* The time domain estimated mic_input (y_hat) is used to calculate the average coherence between y and y_hat is aec_calc_coherence.
+    /* The time domain estimated mic_input (y_hat) is used to calculate the average coherence between y and y_hat in aec_calc_coherence.
      * Only the estimated mic input calculated using the main filter is needed for coherence calculation, so the y_hat calculation is
      * done only for main filter.
      */
@@ -122,7 +122,7 @@ void aec_process_frame(
 
     // Calculate average coherence and average slow moving coherence between mic and estimated mic time domain signals
     for(int ch=0; ch<num_y_channels; ch++) {
-        //main_state->shared_state->coh_mu_state[ch].coh and main_state->shared_state->coh_mu_state[ch].coh_slow are updated
+        // main_state->shared_state->coh_mu_state[ch].coh and main_state->shared_state->coh_mu_state[ch].coh_slow are updated
         aec_calc_coherence(main_state, ch);
     }
 
@@ -155,10 +155,10 @@ void aec_process_frame(
     // Convert shadow and main filters error back to frequency domain since subsequent AEC functions will use the error spectrum.
     // The error spectrum is later used to compute T values which are then used while updating the adaptive filter.
     for(int ch=0; ch<num_y_channels; ch++) {
-        //main_state->Error[ch] is updated
+        // main_state->Error[ch] is updated
         aec_forward_fft(&main_state->Error[ch], &main_state->error[ch]);
         
-        //shadow_state->Error[ch] is updated
+        // shadow_state->Error[ch] is updated
         aec_forward_fft(&shadow_state->Error[ch], &shadow_state->error[ch]
                );
     }
@@ -166,13 +166,13 @@ void aec_process_frame(
     // Calculate energies of mic input and error spectrum of main and shadow filters.
     // These energy values are later used in aec_compare_filters_and_calc_mu() to estimate how well the filters are performing.
     for(int ch=0; ch<num_y_channels; ch++) {
-        //main_state->overall_Error[ch] is updated
+        // main_state->overall_Error[ch] is updated
         aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
         
-        //shadow_state->overall_Error[ch] is updated
+        // shadow_state->overall_Error[ch] is updated
         aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
         
-        //main_state->shared_state->overall_Y[ch] is updated
+        // main_state->shared_state->overall_Y[ch] is updated
         aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
     }
 
@@ -192,10 +192,10 @@ void aec_process_frame(
     // Calculate smoothed reference FIFO energy that is later used to scale the X FIFO in the filter update step.
     // This calculation is done differently for main and shadow filters, so a flag indicating filter type is specified as one of the input arguments.
     for(int ch=0; ch<num_x_channels; ch++) {
-        //main_state->inv_X_energy[ch] is updated.
+        // main_state->inv_X_energy[ch] is updated.
         aec_calc_normalisation_spectrum(main_state, ch, 0);
 
-        //shadow_state->inv_X_energy[ch] is updated.
+        // shadow_state->inv_X_energy[ch] is updated.
         aec_calc_normalisation_spectrum(shadow_state, ch, 1);
     }
 
@@ -203,10 +203,10 @@ void aec_process_frame(
         // Compute T values.
         // T is a function of state->mu, state->Error and state->inv_X_energy.
         for(int xch=0; xch<num_x_channels; xch++) {
-            //main_state->T[ch] is updated
+            // main_state->T[ch] is updated
             aec_calc_T(main_state, ych, xch);
 
-            //shadow_state->T[ch] is updated
+            // shadow_state->T[ch] is updated
             aec_calc_T(shadow_state, ych, xch);
         }
         // Update filters
