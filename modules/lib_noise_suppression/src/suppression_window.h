@@ -3,10 +3,9 @@
 #ifndef SUPPRESSION_WINDOW_H_
 #define SUPPRESSION_WINDOW_H_
 #include <stdint.h>
-#define SUPPRESSION_WINDOW_LENGTH (480)
+#include <suppression_conf.h>
 
-int32_t sqrt_hanning_480[240];
-int32_t rev_wind[240];
+int32_t sqrt_hanning_480[SUPPRESSION_WINDOW_LENGTH / 2];
 
 void fill_rev_wind(int32_t * rev_wind, int32_t * wind, const unsigned length);
 
