@@ -66,7 +66,7 @@ void aec_frame_init(
     }
 }
 
-void aec_update_td_ema_energy(
+void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
         unsigned start_offset,
@@ -84,7 +84,7 @@ void aec_update_td_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
 }
 
-void aec_fft(
+void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input)
 {
@@ -101,7 +101,7 @@ void aec_fft(
 
 //per x-channel
 //API: calculate X-energy (per x-channel)
-void aec_update_total_X_energy(
+void aec_calc_X_fifo_energy(
         aec_state_t *state,
         unsigned ch,
         unsigned recalc_bin) 
@@ -124,7 +124,7 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     bfp_s32_t *sigma_XX_ptr = &state->shared_state->sigma_XX[ch];
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     uint32_t sigma_xx_shift = state->shared_state->config_params.aec_core_conf.sigma_xx_shift;
-    float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_update_total_X_energy
+    float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
     return;
 }
@@ -141,10 +141,10 @@ void aec_calc_Error_and_Y_hat(
     bfp_complex_s32_t *Y_hat_ptr = &state->Y_hat[ch];
     bfp_complex_s32_t *Error_ptr = &state->Error[ch];
     int32_t bypass_enabled = state->shared_state->config_params.aec_core_conf.bypass;
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
+    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
 }
 
-void aec_ifft(
+void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input)
 {
@@ -176,7 +176,7 @@ void aec_calc_coherence(
     return;
 }
 
-void aec_create_output(
+void aec_calc_output(
         aec_state_t *state,
         unsigned ch)
 {
@@ -190,20 +190,21 @@ void aec_create_output(
     return;
 }
 
-void aec_calc_fd_frame_energy(
+void aec_calc_freq_domain_energy(
         float_s32_t *fd_energy,
         const bfp_complex_s32_t *input)
 {
     int32_t DWORD_ALIGNED scratch_mem[AEC_PROC_FRAME_LENGTH/2 + 1];
+    assert(input->length <= AEC_PROC_FRAME_LENGTH/2 + 1);
     bfp_s32_t scratch;
-    bfp_s32_init(&scratch, scratch_mem, 0, AEC_PROC_FRAME_LENGTH/2 + 1, 0);
+    bfp_s32_init(&scratch, scratch_mem, 0, input->length, 0);
     bfp_complex_s32_squared_mag(&scratch, input);
 
     float_s64_t sum64 = bfp_s32_sum(&scratch);
     *fd_energy = float_s64_to_float_s32(sum64);
 }
 
-void aec_calc_inv_X_energy(
+void aec_calc_normalisation_spectrum(
         aec_state_t *state,
         unsigned ch,
         unsigned is_shadow)
@@ -231,10 +232,10 @@ void aec_filter_adapt(
     }
     bfp_complex_s32_t *T_ptr = &state->T[0];
 
-    aec_priv_filter_adapt(state->H_hat_1d[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
+    aec_priv_filter_adapt(state->H_hat[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
 }
 
-void aec_compute_T(
+void aec_calc_T(
         aec_state_t *state,
         unsigned y_ch,
         unsigned x_ch)
@@ -295,14 +296,6 @@ void aec_update_X_fifo_1d(
             state->X_fifo_1d[count] = state->shared_state->X_fifo[ch][ph];
             count += 1;
         }
-    }
-}
-
-void aec_reset_filter(
-        aec_state_t *state)
-{
-    for(int ch=0; ch<state->shared_state->num_y_channels; ch++) {
-        aec_priv_reset_filter(state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases);
     }
 }
 

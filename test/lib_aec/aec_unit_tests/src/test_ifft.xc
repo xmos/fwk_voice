@@ -11,7 +11,7 @@ extern "C"{
 
 double sine_lut_ifft[AEC_PROC_FRAME_LENGTH / 4 + 1];
 //In-place N-pt complex IFFT
-void aec_ifft_fp(complex_double_t *input, int length) {
+void aec_inverse_fft_fp(complex_double_t *input, int length) {
     att_bit_reverse     ((dsp_complex_fp *)input, length);
     att_inverse_fft     ((dsp_complex_fp *)input, length, sine_lut_ifft);
 }
@@ -85,7 +85,7 @@ void test_ifft() {
             //DUT IFFT
             for(int ch=0; ch<num_y_channels; ch++) {
                 //printf("addr in: 0x%08x, addr out: 0x%08x\n",&ifft_in[ch].data[0], &ifft_out[ch].data[0]);
-                aec_ifft(&ifft_out[ch], &ifft_in[ch]);
+                aec_inverse_fft(&ifft_out[ch], &ifft_in[ch]);
             }
             /* N-pt complex freq domain data ->N-pt complex IFFT-> N-pt complex time domain data.
              * However the input freq domain is made to be symmetric around Nyquist in a way such that
@@ -95,7 +95,7 @@ void test_ifft() {
 
             for(int ch=0; ch<num_y_channels; ch++) {
                 //printf("addr in: 0x%08x, addr out: 0x%08x\n",&ifft_in[ch].data[0], &ifft_out[ch].data[0]);
-                aec_ifft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
+                aec_inverse_fft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
             }
 
             //Compare results

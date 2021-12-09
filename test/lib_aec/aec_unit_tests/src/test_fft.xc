@@ -11,7 +11,7 @@ extern "C"{
 
 double sine_lut[AEC_PROC_FRAME_LENGTH / 4 + 1];
 //In-place N point complex FFT
-void aec_fft_fp(complex_double_t *input, int length) {
+void aec_forward_fft_fp(complex_double_t *input, int length) {
     att_bit_reverse((dsp_complex_fp*)input, length);
     att_forward_fft((dsp_complex_fp*)input, length, sine_lut);
 }
@@ -92,11 +92,11 @@ void test_fft() {
             }
             //DUT FFT
             for(int ch=0; ch<num_channels; ch++) {
-                aec_fft(&fft_out[ch], &fft_in[ch]);
+                aec_forward_fft(&fft_out[ch], &fft_in[ch]);
             }
             //Ref FFT
             for(int ch=0; ch<num_channels; ch++) {
-                aec_fft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
+                aec_forward_fft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
             }
             //Compare first (N/2+1) complex values
             for(int ch=0; ch<num_channels; ch++) {
