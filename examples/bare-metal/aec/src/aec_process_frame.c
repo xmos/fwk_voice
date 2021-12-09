@@ -130,8 +130,8 @@ void aec_process_frame(
     for(int ch=0; ch<num_y_channels; ch++) {
         aec_calc_output(main_state, &output_main[ch], ch);
         /* Application can choose to not generate AEC shadow filter output by passing NULL as output_shadow argument.
-         * Note that aec_calc_output() will still need to be called since this function also windows the error signal will need to be
-         * done for shadow filter even when output is not generated
+         * Note that aec_calc_output() will still need to be called since this function also windows the error signal
+         * which is needed for shadow filter even when output is not generated
          */
         if(output_shadow != NULL) {           
             aec_calc_output(shadow_state, &output_shadow[ch], ch);
