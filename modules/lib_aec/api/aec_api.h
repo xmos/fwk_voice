@@ -59,22 +59,25 @@ void aec_init(
 /**
  * @brief Initialise AEC data structures for processing a new frame
  *
- * This function is called as the first thing when a new frame needs to be processed. It initialises AEC data structures with the new frame.
- * AEC works on input frame made of mic and reference channels of time domain data of length AEC_PROC_FRAME_LENGTH.
- * For processing a length AEC_PROC_FRAME_LENGTH AEC frame, application needs to allocate 2 extra samples worth of memory as part of the input memory.
- * This is required since AEC FFT transform is calculated in place and computing a real AEC_PROC_FRAME_LENGTH point FFT generates AEC_PROC_FRAME_LENGTH/2 + 1 point complex
- * output. The 2 extra samples of memory in the time domain input is used to store the Nyquist bin of the FFT output.
+ * This is the first function that is called when a new frame is available for processing.
+ * It takes the new samples as input and combines the new samples and previous frame's history to create a processing block on which further processing happens.
+ * It also initialises some data structures that need to be initialised at the beginning of a frame.
  *
  * @param[inout] main_state main filter state
  * @param[inout] shadow_state shadow filter state
- * @param[in] y_data mic signal
- * @param[in] x_data far end audio signal
+ * @param[in] y_data pointer to mic input buffer
+ * @param[in] x_data pointer to reference input buffer
+ *
+ * @note
+ * @parblock
+ * y_data and x_data buffers memory is free to be reused after this function call.
+ * @endparblock
  */
 void aec_frame_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2]);
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 /**
  * @brief Calculate energy in the spectrum
@@ -215,14 +218,17 @@ void aec_calc_coherence(
 /**
  * @brief Calculate AEC filter output signal
  *
- * This function calculates the output of the AEC filter. `output` is calculated by windowing the `error` signal and performing an overlap add with previous frame output samples to smooth discontinuities in the output as the filter adapts.
+ * This function is responsible for windowing the filter `error` signal and creating AEC filter output that can be propagated to downstream stages.
+ * `output` is calculated by overlapping and adding current frame's windowed error signal with the previous frame windowed error. This is done to smooth discontinuities in the output as the filter adapts.
  *
- * @param[inout] state AEC state structure. `state->output[ch]` is updated
+ * @param[inout] state AEC state structure. `state->error[ch]`
+ * @param[out] output pointer to the output buffer
  * @param[in] ch mic channel index for which to calculate output
  *
  */
 void aec_calc_output(
         aec_state_t *state,
+        int32_t (*output)[AEC_FRAME_ADVANCE],
         unsigned ch);
 
 /**

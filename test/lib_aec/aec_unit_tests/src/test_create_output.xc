@@ -101,7 +101,7 @@ void test_create_output() {
         unsigned seed = 2;
         //Generate error data
         for(unsigned iter=0; iter<(1<<12)/F; iter++) {
-            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
             aec_frame_init(&state, &shadow_state, &new_frame[0], &new_frame[AEC_MAX_Y_CHANNELS]);
             int is_main_filter = att_random_uint32(seed) % 2;
             aec_state_t *state_ptr;
@@ -126,9 +126,9 @@ void test_create_output() {
                     error_fp[ch][i] = att_int32_to_double(error_ptr->data[i], error_ptr->exp);
                 }
             }
-
+            int32_t output[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
-                aec_calc_output(state_ptr, ch);
+                aec_calc_output(state_ptr, &output[ch], ch);
             }
 
             for(int ch=0; ch<state_ptr->shared_state->num_y_channels; ch++) {
@@ -144,7 +144,7 @@ void test_create_output() {
 
                 //check output
                 for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-                    check_error(output_fp[ch][i], state_ptr->output[ch].data[i], state_ptr->output[ch].exp, 0.0000002, pow(10, -8), ch, iter, "error wrong");
+                    check_error(output_fp[ch][i], output[ch][i], -31, 0.0000002, pow(10, -8), ch, iter, "error wrong");
                 }
 
                 //check overlap

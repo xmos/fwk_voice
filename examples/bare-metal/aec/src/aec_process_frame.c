@@ -12,8 +12,10 @@ static int framenum = 0;
 void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2])
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE])
 {
     // Read number of mic and reference channels. These are specified as part of the configuration when aec_init() is called.
     int num_y_channels = main_state->shared_state->num_y_channels; //Number of mic channels
@@ -126,8 +128,17 @@ void aec_process_frame(
 
     // Calculate AEC filter time domain output. This is the output sent to downstream pipeline stages
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_calc_output(main_state, ch);
-        aec_calc_output(shadow_state, ch);
+        aec_calc_output(main_state, &output_main[ch], ch);
+        /* Application can choose to not generate AEC shadow filter output by passing NULL as output_shadow argument.
+         * Note that aec_calc_output() will still need to be called since this function also windows the error signal
+         * which is needed for shadow filter even when output is not generated
+         */
+        if(output_shadow != NULL) {           
+            aec_calc_output(shadow_state, &output_shadow[ch], ch);
+        }
+        else {
+            aec_calc_output(shadow_state, NULL, ch);
+        }
     }
 
     // Calculate exponential moving average of main_filter time domain error.
@@ -135,7 +146,10 @@ void aec_process_frame(
      * so not calling this function to calculate shadow filter error EMA energy.
      */
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_calc_time_domain_ema_energy(&main_state->error_ema_energy[ch], &main_state->output[ch], 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
+        //create a bfp_s32_t structure to point to output array
+        bfp_s32_t temp;
+        bfp_s32_init(&temp, &output_main[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        aec_calc_time_domain_ema_energy(&main_state->error_ema_energy[ch], &temp, 0, AEC_FRAME_ADVANCE, &main_state->shared_state->config_params);
     }
 
     // Convert shadow and main filters error back to frequency domain since subsequent AEC functions will use the error spectrum.

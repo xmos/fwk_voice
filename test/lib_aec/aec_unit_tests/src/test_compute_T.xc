@@ -51,7 +51,7 @@ void test_calc_T() {
         unsigned seed = 45;
         double max_diff_percentage = 0.0;
         for(int iter=0; iter<(1<<11)/F; iter++) {
-            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+            int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
             aec_frame_init(&state, &shadow_state, &new_frame[0], &new_frame[AEC_MAX_Y_CHANNELS]);
             aec_state_t *state_ptr;
             int is_main_filter = att_random_uint32(seed) % 2;

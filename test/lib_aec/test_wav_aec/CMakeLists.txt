@@ -105,21 +105,8 @@ string(REPLACE ";" " " LINKER_FLAGS_STR "${LINKER_FLAGS}")
 set_target_properties( ${C_APP_EXECUTABLE} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
 
 if ( XCORE )
-  ## XC test app
-  set( XC_APP_EXECUTABLE ${APP_NAME}_xc_app )
-  add_executable( ${XC_APP_EXECUTABLE} ${SOURCES} ${SOURCES_XC_APP} )
-  target_include_directories( ${XC_APP_EXECUTABLE} PRIVATE ${INCLUDES} )
-  target_link_libraries( ${XC_APP_EXECUTABLE} ${DEP_LIBS})
-  target_compile_options( ${XC_APP_EXECUTABLE} PRIVATE ${COMPILE_FLAGS} )
-  set_target_properties( ${XC_APP_EXECUTABLE} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
-
   set_target_properties( ${C_APP_EXECUTABLE} PROPERTIES
       SUFFIX ".xe"
       LINK_DEPENDS  ${XSCOPE_CONFIG}
       )
-
-  set_target_properties( ${XC_APP_EXECUTABLE} PROPERTIES
-      SUFFIX ".xe"
-      LINK_DEPENDS  ${XSCOPE_CONFIG}
-  )
 endif()
