@@ -1,15 +1,5 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#if !X86_BUILD
-#ifdef __XC__
-    #define chanend_t chanend
-#else
-    #include <xcore/chanend.h>
-#endif
-#include <platform.h>
-#include <print.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +60,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     unsigned frame_count = wav_get_num_frames(&input_header_struct);
     // Calculate number of frames in the wav file
     unsigned block_count = frame_count / AEC_FRAME_ADVANCE;
-    //printf("num frames = %d\n",block_count);
     wav_form_header(&output_header_struct,
             input_header_struct.audio_format,
             AEC_MAX_Y_CHANNELS,
@@ -80,7 +69,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
     file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
 
-    int32_t input_read_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0}; //Array for storing intereaved input read from wav file
+    int32_t input_read_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0}; // Array for storing interleaved input read from wav file
     int32_t output_write_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS)];
 
     int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
@@ -116,7 +105,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
             }
         }
         // Call AEC functions to process AEC_FRAME_ADVANCE new samples of data
-        /* Resuse mic data memory for main filter output
+        /* Reuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output.
          */
         aec_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
