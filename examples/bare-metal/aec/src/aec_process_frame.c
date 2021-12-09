@@ -37,7 +37,7 @@ void aec_process_frame(
 
     // Calculate mic input spectrum for all num_y_channels of mic input
     for(int ch=0; ch<num_y_channels; ch++) {
-        aec_forward_fft(&main_state->shared_state->Y[10], &main_state->shared_state->y[ch]);
+        aec_forward_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
     }
     // Calculate reference input spectrum for all num_x_channels of reference input
     for(int ch=0; ch<num_x_channels; ch++) {
