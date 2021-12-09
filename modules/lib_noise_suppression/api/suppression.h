@@ -4,78 +4,18 @@
 #ifndef SUPPRESSION_H_
 #define SUPPRESSION_H_
 
-
-//#ifdef __suppression_conf_h_exists__
-#include "suppression_conf.h"
-//#endif
-
-/*
- * SUP_DEBUG            Will enable all self checking, it will make it
- *                      MUCH slower however.
- * SUP_DEBUG_PRINT      Will enable printing of internal state to be
- *                      compared to higher models.
- * SUP_WARNING_PRINT    This enables warnings (events that might be bad
- *                      but not catastrophic).
- */
-#ifndef SUP_DEBUG
-#define SUP_DEBUG 0
-#endif
-#ifndef SUP_DEBUG_PRINT
-#define SUP_DEBUG_PRINT 0
-#endif
-#ifndef SUP_WARNING_PRINT
-#define SUP_WARNING_PRINT 0
-#endif
-#ifndef INT_EXP
-#define INT_EXP -31
-#endif
-
-
-#ifndef SUP_Y_CHANNELS
-#error SUP_Y_CHANNELS has not been set
-#endif
-
-#ifndef SUP_FRAME_ADVANCE
-#error SUP_FRAME_ADVANCE has not been set
-#endif
-
-#ifndef SUP_PROC_FRAME_LENGTH_LOG2
-#error SUP_PROC_FRAME_LENGTH_LOG2 has not been set
-#endif
-
-#define SUP_SQRT_HANN_LUT           sqrt_hanning_480
-
-#define SUP_PROC_FRAME_LENGTH      (1<<SUP_PROC_FRAME_LENGTH_LOG2) ////////////////2^9 = 512
-#define SUP_PROC_FRAME_BINS_LOG2   (SUP_PROC_FRAME_LENGTH_LOG2 - 1)
-#define SUP_PROC_FRAME_BINS        (1<<SUP_PROC_FRAME_BINS_LOG2)///////////////////////2^8 = 256
-
-
-#if  SUP_PROC_FRAME_LENGTH_LOG2 == 6
-#define SUP_FFT_SINE_LUT dsp_sine_64
-#define SUP_FFT_SINE_LUT_HALF dsp_sine_32
-#elif  SUP_PROC_FRAME_LENGTH_LOG2 == 7
-#define SUP_FFT_SINE_LUT dsp_sine_128
-#define SUP_FFT_SINE_LUT_HALF dsp_sine_64
-#elif  SUP_PROC_FRAME_LENGTH_LOG2 == 8
-#define SUP_FFT_SINE_LUT dsp_sine_256
-#define SUP_FFT_SINE_LUT_HALF dsp_sine_128
-#elif  SUP_PROC_FRAME_LENGTH_LOG2 == 9
-#define SUP_FFT_SINE_LUT dsp_sine_512
-#define SUP_FFT_SINE_LUT_HALF dsp_sine_256
-#elif  SUP_PROC_FRAME_LENGTH_LOG2 == 10
-#define SUP_FFT_SINE_LUT dsp_sine_1024
-#define SUP_FFT_SINE_LUT_HALF dsp_sine_512
-#endif
-
 /////////////////////////// noise suppression stuff ///////////////////////////
 
-#include "sup_noise_state.h"
+//#include <suppression_conf.h>
 #include "suppression_state.h"
+//#include <suppression_window.h>
+
+//#define SUP_SQRT_HANN_LUT           sqrt_hanning_480
 
 //void sup_test_task(chanend c_input, chanend c_output, chanend ?c_control);
 
 
-void sup_dump_parameters(suppression_state_t * state);
+//void sup_dump_parameters(suppression_state_t * state);
 
 /** Function that initialises the noise suppresion state.
  * It initialises the a noise suppressor with the following settings:
@@ -97,7 +37,7 @@ void sup_dump_parameters(suppression_state_t * state);
  *                         this is then passed to the other functions to be
  *                         updated
  */
-void ns_init_state(ns_state_t * state);//////////////////////////////////////////////////////////////////////////
+
 
 /** Function that sets the reset period in ms for a noise suppressor
  *
@@ -200,8 +140,8 @@ void sup_init_state(suppression_state_t * state);
  * 
  */
 void sup_process_frame(suppression_state_t * state,
-                        int32_t (*output)[SUP_FRAME_ADVANCE],
-                        const int32_t (*input)[SUP_FRAME_ADVANCE]);
+                        int32_t output [SUP_FRAME_ADVANCE],
+                        const int32_t input[SUP_FRAME_ADVANCE]);
 
 
 #endif

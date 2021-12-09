@@ -1,10 +1,9 @@
 // Copyright 2018-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdint.h>
+#include <suppression_window.h>
 
-int32_t rev_wind[] = {0};
-
-const int32_t sqrt_hanning_480[] = {
+int32_t sqrt_hanning_480[SUPPRESSION_WINDOW_LENGTH / 2] = {
 	13996827, 27993059, 41988102, 55981362, 69972243, 83960152, 97944494, 111924676, 
 	125900102, 139870180, 153834316, 167791917, 181742389, 195685141, 209619580, 223545114, 
 	237461151, 251367100, 265262371, 279146373, 293018516, 306878212, 320724870, 334557904, 
