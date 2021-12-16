@@ -125,6 +125,18 @@ pipeline {
             }
           }
         }
+        stage('Noise Suppression ns_unit_tests') {
+          steps {
+            dir("${REPO}/build/test/lib_noise_supression/ns_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('Meta Data tests') {
           steps {
             dir("${REPO}/build/test/lib_meta_data") {

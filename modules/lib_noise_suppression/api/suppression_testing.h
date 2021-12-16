@@ -47,3 +47,5 @@ int ns_update_and_test_reset(suppression_state_t * state);
 
 void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, 
                                 suppression_state_t * state);
+
+void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main);
