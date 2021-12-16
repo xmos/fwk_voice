@@ -1,4 +1,4 @@
-// Copyright 2017-2021 XMOS LIMITED.
+// Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdint.h>
 #include <limits.h>
@@ -6,6 +6,7 @@
 #include <xs3_math.h>
 #include <bfp_init.h>
 #include <bfp_s32.h>
+#include <stdio.h>
 
 //#include <suppression.h>
 #include <suppression_state.h>
@@ -22,8 +23,8 @@ void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main){
 
     bfp_s32_use_exponent(A, main->exp);
     bfp_s32_use_exponent(B, main->exp);
-    int min_hr = (A->hr < B->hr) ? A->hr : B->hr;
-    min_hr = (min_hr < main->hr) ? min_hr : main->hr;
+    int min_hr = (A->hr <= B->hr) ? A->hr : B->hr;
+    min_hr = (min_hr <= main->hr) ? min_hr : main->hr;
     A->hr = min_hr;
     B->hr = min_hr;
 }
@@ -33,7 +34,7 @@ void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main){
 void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
 
     for (int v = 0; v < dst->length; v++){
-        dst->data[v] = (src1->data[v] < src2->data[v]) ? src1->data[v] : src2->data[v];
+        dst->data[v] = (src1->data[v] <= src2->data[v]) ? src1->data[v] : src2->data[v];
     }
 }
 
@@ -59,20 +60,26 @@ void ns_update_S(bfp_s32_t * abs_Y,
 void ns_update_p(suppression_state_t * state){
 
     bfp_s32_t tmp;
-    int32_t scratch [SUP_PROC_FRAME_BINS] = {0};
+    float_s32_t t;
+    int32_t scratch [SUP_PROC_FRAME_BINS];
+    int32_t one_zero [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&tmp, scratch, INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_inverse(&tmp, &state->S_min);
     bfp_s32_mul(&tmp, &tmp, &state->S);
 
-    for(int v = 0; v > SUP_PROC_FRAME_BINS; v++){
-        float_s32_t t;
-        t.mant = tmp.data[v]<<tmp.hr;
+    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
+        t.mant = tmp.data[v];
         t.exp = tmp.exp;
-        tmp.data[v] = (float_s32_gt(t, state->delta)); ////////////////////////////TODO: review
+        one_zero[v] = INT_MAX * float_s32_gt(t, state->delta);
     }
+
     tmp.exp = INT_EXP;
     tmp.hr = 0;
-    bfp_s32_scale(&tmp, &tmp, float_s32_sub(float_to_float_s32(1.0), state->alpha_p));
+    tmp.data = &one_zero[0];
+
+    t = float_s32_sub(float_to_float_s32(1.0), state->alpha_p);
+
+    bfp_s32_scale(&tmp, &tmp, t);
 
     bfp_s32_scale(&state->p, &state->p, state->alpha_p);
     bfp_s32_add(&state->p, &state->p, &tmp);
@@ -81,23 +88,42 @@ void ns_update_p(suppression_state_t * state){
 //    alpha_d_tilde = alpha_d + (1.0 - alpha_d) * p
 void ns_update_alpha_d_tilde(suppression_state_t * state){
     bfp_s32_t tmp;
-    int32_t scratch [SUP_PROC_FRAME_BINS] = {0};
-    bfp_s32_init(&tmp, scratch, INT_EXP, SUP_PROC_FRAME_BINS, 0);
+    float_s32_t t;
+    int32_t scratch [SUP_PROC_FRAME_BINS];
+    
+    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
+        scratch[v] = state->p.data[v];
+    }
+    //tmp.exp = state->p.exp;
+    //tmp.hr = state->p.hr;
 
-    bfp_s32_scale(&tmp, &state->p, float_s32_sub(float_to_float_s32(1.0), state->alpha_d));
+    bfp_s32_init(&tmp, scratch, state->p.exp, state->p.length, 0);
+
+    t = float_s32_sub(float_to_float_s32(1.0), state->alpha_d);
+
+    bfp_s32_scale(&tmp, &tmp, t);
+
     bfp_s32_add_scalar(&state->alpha_d_tilde, &tmp, state->alpha_d);
 }
 
 //    lambda_hat = alpha_d_tilde[i]*lambda_hat + (1.0 - alpha_d_tilde)*np.square(np.absolute(Y))
 void ns_update_lambda_hat(bfp_s32_t * abs_Y, suppression_state_t * state){
     bfp_s32_t tmp1, tmp2;
-    int32_t scratch1 [SUP_PROC_FRAME_BINS] = {0};
+    int32_t scratch1 [SUP_PROC_FRAME_BINS];
     int32_t scratch2 [SUP_PROC_FRAME_BINS] = {0};
     bfp_s32_init(&tmp1, scratch1, INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_init(&tmp2, scratch2, INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     bfp_s32_mul(&tmp1, abs_Y, abs_Y);
-    bfp_s32_add_scalar(&tmp2, &state->alpha_d_tilde, float_to_float_s32(-1.0));
+
+    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
+        scratch2[v] = state->alpha_d_tilde.data[v];
+    }
+    tmp2.exp = state->alpha_d_tilde.exp;
+
+    bfp_s32_scale(&tmp2, &tmp2, float_to_float_s32(- 1.0));
+
+    bfp_s32_add_scalar(&tmp2, &tmp2, float_to_float_s32(1.0));
     bfp_s32_mul(&tmp1, &tmp1, &tmp2);
     bfp_s32_mul(&state->lambda_hat, &state->lambda_hat, &state->alpha_d_tilde);
     bfp_s32_add(&state->lambda_hat, &state->lambda_hat, &tmp1);
@@ -138,25 +164,32 @@ const int32_t LUT[LUT_SIZE] = {
 
 void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, suppression_state_t * state){
     bfp_s32_t sqrt_lambda, tmp, comp;
-    int32_t scratch1 [SUP_PROC_FRAME_BINS] = {0};
-    int32_t scratch2 [SUP_PROC_FRAME_BINS] = {0};
+    int32_t scratch1 [SUP_PROC_FRAME_BINS];
+    int32_t scratch2 [SUP_PROC_FRAME_BINS];
+    float_s32_t t;
+    int32_t t_data;
     bfp_s32_init(&sqrt_lambda, scratch1, INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_init(&tmp, scratch2, INT_EXP, SUP_PROC_FRAME_BINS, 0);
-    bfp_s32_sqrt(&sqrt_lambda, &state->lambda_hat);
+
+    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
+        sqrt_lambda.data[v] = state->lambda_hat.data[v];
+    }
+    sqrt_lambda.exp = state->lambda_hat.exp;
+
+    //bfp_s32_sqrt(&sqrt_lambda, &state->lambda_hat);
+    bfp_s32_sqrt(&sqrt_lambda, &sqrt_lambda);
+
     bfp_s32_scale(&sqrt_lambda, &sqrt_lambda, float_to_float_s32(0.25));
 
     bfp_s32_inverse(&tmp, &sqrt_lambda);
     bfp_s32_mul(&tmp, &tmp, abs_Y);
 
-    float_s32_t t = bfp_s32_min(&tmp);
-    comp.length = 1;
-    comp.hr = 0;
-    comp.flags = 0;
-    comp.exp = t.exp;
-    comp.data[0] = t.mant;
+    t = bfp_s32_min(&tmp);
+    t_data = t.mant;
+    bfp_s32_init(&comp, &t_data, INT_EXP, 1, 0);
     bfp_s32_use_exponent(&comp, 0);
 
-    int32_t index = (comp.data[0] > (LUT_SIZE - 1)) ? comp.data[0] : (LUT_SIZE - 1);
+    int32_t index = (comp.data[0] < (LUT_SIZE - 1)) ? comp.data[0] : (LUT_SIZE - 1);
     t.mant = LUT[index];
     t.exp = INT_EXP;
 
