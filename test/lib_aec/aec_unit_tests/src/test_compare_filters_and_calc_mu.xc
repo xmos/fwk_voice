@@ -579,7 +579,7 @@ void test_compare_filters_and_calc_mu() {
                 shadow_filter_phases);
         
         unsigned seed = 35788;
-        int32_t new_frame[TEST_NUM_Y + TEST_NUM_X][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t new_frame[TEST_NUM_Y + TEST_NUM_X][AEC_FRAME_ADVANCE];
         unsigned max_diff_coh_mu = 0; 
         for(int iter=0; iter<(1<<11)/F; iter++) {
             //every 200 frames set bypass
@@ -603,25 +603,25 @@ void test_compare_filters_and_calc_mu() {
                 for(int ph=0; ph<num_x_channels*main_state.num_phases; ph++) {
                     int xch = ph/main_state.num_phases;
                     int ph_xch = (main_state.num_phases == 1) ? 0 : ph % main_state.num_phases;
-                    main_state.H_hat_1d[ych][ph].exp = sext(att_random_int32(seed), 6);
-                    main_state.H_hat_1d[ych][ph].hr = att_random_uint32(seed) % 3;
+                    main_state.H_hat[ych][ph].exp = sext(att_random_int32(seed), 6);
+                    main_state.H_hat[ych][ph].hr = att_random_uint32(seed) % 3;
                     for(int i=0; i<NUM_BINS; i++) {
-                        main_state.H_hat_1d[ych][ph].data[i].re = att_random_int32(seed) >> main_state.H_hat_1d[ych][ph].hr;
-                        main_state.H_hat_1d[ych][ph].data[i].im = att_random_int32(seed) >> main_state.H_hat_1d[ych][ph].hr;
-                        params_fp->H_hat[ych][xch][ph_xch][i].re = att_int32_to_double(main_state.H_hat_1d[ych][ph].data[i].re, main_state.H_hat_1d[ych][ph].exp);
-                        params_fp->H_hat[ych][xch][ph_xch][i].im = att_int32_to_double(main_state.H_hat_1d[ych][ph].data[i].im, main_state.H_hat_1d[ych][ph].exp);
+                        main_state.H_hat[ych][ph].data[i].re = att_random_int32(seed) >> main_state.H_hat[ych][ph].hr;
+                        main_state.H_hat[ych][ph].data[i].im = att_random_int32(seed) >> main_state.H_hat[ych][ph].hr;
+                        params_fp->H_hat[ych][xch][ph_xch][i].re = att_int32_to_double(main_state.H_hat[ych][ph].data[i].re, main_state.H_hat[ych][ph].exp);
+                        params_fp->H_hat[ych][xch][ph_xch][i].im = att_int32_to_double(main_state.H_hat[ych][ph].data[i].im, main_state.H_hat[ych][ph].exp);
                     }
                 }
                 for(int ph=0; ph<num_x_channels*shadow_state.num_phases; ph++) {
                     int xch = ph/shadow_state.num_phases;
                     int ph_xch = (shadow_state.num_phases == 1) ? 0 : ph % shadow_state.num_phases; //phase within the given xch
-                    shadow_state.H_hat_1d[ych][ph].exp = sext(att_random_int32(seed), 6);
-                    shadow_state.H_hat_1d[ych][ph].hr = att_random_uint32(seed) % 3;
+                    shadow_state.H_hat[ych][ph].exp = sext(att_random_int32(seed), 6);
+                    shadow_state.H_hat[ych][ph].hr = att_random_uint32(seed) % 3;
                     for(int i=0; i<NUM_BINS; i++) {
-                        shadow_state.H_hat_1d[ych][ph].data[i].re = att_random_int32(seed) >> shadow_state.H_hat_1d[ych][ph].hr;
-                        shadow_state.H_hat_1d[ych][ph].data[i].im = att_random_int32(seed) >> shadow_state.H_hat_1d[ych][ph].hr;
-                        params_fp->H_hat_shadow[ych][xch][ph_xch][i].re = att_int32_to_double(shadow_state.H_hat_1d[ych][ph].data[i].re, shadow_state.H_hat_1d[ych][ph].exp);
-                        params_fp->H_hat_shadow[ych][xch][ph_xch][i].im = att_int32_to_double(shadow_state.H_hat_1d[ych][ph].data[i].im, shadow_state.H_hat_1d[ych][ph].exp);
+                        shadow_state.H_hat[ych][ph].data[i].re = att_random_int32(seed) >> shadow_state.H_hat[ych][ph].hr;
+                        shadow_state.H_hat[ych][ph].data[i].im = att_random_int32(seed) >> shadow_state.H_hat[ych][ph].hr;
+                        params_fp->H_hat_shadow[ych][xch][ph_xch][i].re = att_int32_to_double(shadow_state.H_hat[ych][ph].data[i].re, shadow_state.H_hat[ych][ph].exp);
+                        params_fp->H_hat_shadow[ych][xch][ph_xch][i].im = att_int32_to_double(shadow_state.H_hat[ych][ph].data[i].im, shadow_state.H_hat[ych][ph].exp);
                     }
                 }
                 //Error, Error_shadow, Y
@@ -787,12 +787,12 @@ void test_compare_filters_and_calc_mu() {
                 //Compare H_hat and H_hat_shadow
                 for(int xch=0; xch<num_x_channels; xch++) {
                     for(int ph=0; ph<main_state.num_phases; ph++) {
-                        unsigned diff_H_hat = att_bfp_vector_int32((int32_t*)&main_state.H_hat_1d[ych][xch*main_state.num_phases + ph].data[0], main_state.H_hat_1d[ych][xch*main_state.num_phases + ph].exp, (double*)&params_fp->H_hat[ych][xch][ph][0], 0, 2*NUM_BINS);
+                        unsigned diff_H_hat = att_bfp_vector_int32((int32_t*)&main_state.H_hat[ych][xch*main_state.num_phases + ph].data[0], main_state.H_hat[ych][xch*main_state.num_phases + ph].exp, (double*)&params_fp->H_hat[ych][xch][ph][0], 0, 2*NUM_BINS);
                         if(diff_H_hat > 0){printf("iter %d, ych %d, xch %d, ph %d, shadow_flag %d. diff_H_hat %d too large\n",iter, ych, xch, ph, params_fp->shadow_flag[ych], diff_H_hat); assert(0);}
                     }
                     
                     for(int ph=0; ph<shadow_state.num_phases; ph++) {
-                        unsigned diff_H_hat_shadow = att_bfp_vector_int32((int32_t*)&shadow_state.H_hat_1d[ych][xch*shadow_state.num_phases + ph].data[0], shadow_state.H_hat_1d[ych][xch*shadow_state.num_phases + ph].exp, (double*)&params_fp->H_hat_shadow[ych][xch][ph][0], 0, 2*NUM_BINS);
+                        unsigned diff_H_hat_shadow = att_bfp_vector_int32((int32_t*)&shadow_state.H_hat[ych][xch*shadow_state.num_phases + ph].data[0], shadow_state.H_hat[ych][xch*shadow_state.num_phases + ph].exp, (double*)&params_fp->H_hat_shadow[ych][xch][ph][0], 0, 2*NUM_BINS);
                         if(diff_H_hat_shadow > 0){printf("iter %d, ych %d, xch %d, ph %d, shadow_flag %d. diff_H_hat_shadow %d too large\n",iter, ych, xch, ph, params_fp->shadow_flag[ych], diff_H_hat_shadow); assert(0);}
                     }
                 }

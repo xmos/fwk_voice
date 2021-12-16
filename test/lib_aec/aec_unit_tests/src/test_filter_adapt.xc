@@ -87,7 +87,7 @@ void test_aec_filter_adapt() {
     unsigned seed=578335;
     unsigned max_diff = 0.0;
     for(int itt=0; itt<(100)/F; itt++) {
-        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         unsigned is_main = att_random_uint32(seed) % 2;
         aec_state_t *state_ptr;
         if(is_main) {
@@ -102,18 +102,18 @@ void test_aec_filter_adapt() {
         //Generate H_hat
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int ph=0; ph<num_x_channels*state_ptr->num_phases; ph++) {
-                state_ptr->H_hat_1d[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->H_hat_1d[ch][ph].hr = att_random_uint32(seed) % 5;
+                state_ptr->H_hat[ch][ph].exp = sext(att_random_int32(seed), 6);
+                state_ptr->H_hat[ch][ph].hr = att_random_uint32(seed) % 5;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->H_hat_1d[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat_1d[ch][ph].hr;
-                    state_ptr->H_hat_1d[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat_1d[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
 
-                    H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].re, state_ptr->H_hat_1d[ch][ph].exp);
-                    H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].im, state_ptr->H_hat_1d[ch][ph].exp);
+                    H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                    H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                 }
                 //DC and Nyquist bin imaginary=0
-                state_ptr->H_hat_1d[ch][ph].data[0].im = 0;
-                state_ptr->H_hat_1d[ch][ph].data[NUM_BINS-1].im = 0;
+                state_ptr->H_hat[ch][ph].data[0].im = 0;
+                state_ptr->H_hat[ch][ph].data[NUM_BINS-1].im = 0;
                 H_hat_fp[ch][ph][0].im = 0.0;
                 H_hat_fp[ch][ph][NUM_BINS-1].im = 0.0;
             }
@@ -190,7 +190,7 @@ void test_aec_filter_adapt() {
                             remaining_phases -= num_phases;
                         }
                         for(int ph=start_phase; ph<start_phase+num_phases; ph++) {
-                            aec_l2_adapt_plus_fft_gc(&state_ptr->H_hat_1d[ch][ph], &state_ptr->X_fifo_1d[ph], &state_ptr->T[ph/state_ptr->num_phases]);
+                            aec_l2_adapt_plus_fft_gc(&state_ptr->H_hat[ch][ph], &state_ptr->X_fifo_1d[ph], &state_ptr->T[ph/state_ptr->num_phases]);
                         }
                         start_phase += num_phases;
                     }
@@ -201,8 +201,8 @@ void test_aec_filter_adapt() {
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int p=0; p<num_x_channels*state_ptr->num_phases; p++) {
                 unsigned diff = att_bfp_vector_int32(
-                        (int32_t*)&state_ptr->H_hat_1d[ch][p].data[0],
-                        state_ptr->H_hat_1d[ch][p].exp,
+                        (int32_t*)&state_ptr->H_hat[ch][p].data[0],
+                        state_ptr->H_hat[ch][p].exp,
                         (double*)&H_hat_fp[ch][p][0],
                         0,
                         (AEC_PROC_FRAME_LENGTH/2+1)*2);

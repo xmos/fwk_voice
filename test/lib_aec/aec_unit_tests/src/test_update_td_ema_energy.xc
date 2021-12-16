@@ -72,7 +72,7 @@ void test_update_td_ema_energy() {
         //dut updates ema inplace
         aec_config_params_t cfg;
         cfg.aec_core_conf.ema_alpha_q30 = alpha_q30;
-        aec_update_td_ema_energy(&dut_ema, &dut, start_offset, length, &cfg); 
+        aec_calc_time_domain_ema_energy(&dut_ema, &dut, start_offset, length, &cfg); 
 
         //printf("ref %f, dut %f\n",ref, att_int32_to_double(dut_ema.mant, dut_ema.exp));
         int dut = dut_ema.mant;

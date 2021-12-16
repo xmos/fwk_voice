@@ -28,5 +28,4 @@ typedef struct {
     int32_t inv_X_energy[AEC_MAX_X_CHANNELS][(AEC_PROC_FRAME_LENGTH/2)+1];
     int32_t overlap[AEC_MAX_Y_CHANNELS][UNUSED_TAPS_PER_PHASE*2];
 }aec_shadow_filt_memory_pool_t;
-
 #endif

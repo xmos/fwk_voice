@@ -104,7 +104,7 @@ void test_calc_coherence() {
         double y_fp[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH], y_hat_fp[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH];
         double coh_fp[AEC_MAX_Y_CHANNELS], coh_slow_fp[AEC_MAX_Y_CHANNELS];
         
-        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         unsigned seed = 10;
         int32_t max_diff = 0; 
         for(int iter=0; iter<(1<<12)/F; iter++) {
@@ -131,11 +131,11 @@ void test_calc_coherence() {
                 }
             }
 
-            //since state.shared_state->y is being initialised with a new frame after calling aec_frame_init(), we need to do the memcpy of y[240:480] to state->output again for the purpose of this test
+            //since state.shared_state->y is being initialised with a new frame after calling aec_frame_init(), we need to update state->shared_state->prev_y again since that's where y[240:480] is read from in aec_calc_coherence()
             for(int ch=0; ch<num_y_channels; ch++) {
-                memcpy(state.output[ch].data, &state.shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
-                state.output[ch].exp = state.shared_state->y[ch].exp;
-                state.output[ch].hr = state.shared_state->y[ch].hr;
+                memcpy(state.shared_state->prev_y[ch].data, &state.shared_state->y[ch].data[AEC_FRAME_ADVANCE], (AEC_PROC_FRAME_LENGTH-AEC_FRAME_ADVANCE)*sizeof(int32_t));
+                state.shared_state->prev_y[ch].exp = state.shared_state->y[ch].exp;
+                state.shared_state->prev_y[ch].hr = state.shared_state->y[ch].hr;
             }
 
 

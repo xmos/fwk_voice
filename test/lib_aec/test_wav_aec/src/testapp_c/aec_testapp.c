@@ -13,34 +13,40 @@ enum e_fft {Y_FFT, X_FFT, ERROR_FFT};
 
 #if AEC_THREAD_COUNT > 1
 #include <xcore/parallel.h>
-DECLARE_JOB(update_td_ema_energy_task, (par_tasks_and_channels_t*, aec_state_t *, int, int, enum e_td_ema));
+DECLARE_JOB(update_td_ema_energy_task, (par_tasks_and_channels_t*, aec_state_t *, int32_t*, int, int, enum e_td_ema));
 DECLARE_JOB(fft_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int, enum e_fft));
 DECLARE_JOB(update_X_energy_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int, int));
 DECLARE_JOB(update_X_fifo_task, (par_tasks_and_channels_t*, aec_state_t*, int, int));
 DECLARE_JOB(calc_Error_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
 DECLARE_JOB(ifft_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
 DECLARE_JOB(calc_coh_task, (par_tasks_and_channels_t*, aec_state_t*, int, int));
-DECLARE_JOB(calc_output_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
+//DECLARE_JOB is not allowing passing a pointer to array, int32_t(*)[AEC_FRAME_ADVANCE] 
+DECLARE_JOB(calc_output_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int32_t*, int32_t*, int, int));
 DECLARE_JOB(calc_fd_energy_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
 DECLARE_JOB(calc_inv_X_energy_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
 DECLARE_JOB(calc_T_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int, int));
 DECLARE_JOB(filter_adapt_task, (par_tasks_t*, aec_state_t*, aec_state_t*, int, int));
 #endif
 
-void update_td_ema_energy_task(par_tasks_and_channels_t* s, aec_state_t *state, int passes, int channels, enum e_td_ema type) {
+void update_td_ema_energy_task(par_tasks_and_channels_t* s, aec_state_t *state, int32_t *output, int passes, int channels, enum e_td_ema type) {
     for(int i=0; i<passes; i++) {
         int ch = s[i].channel;
         if(ch >= channels) continue;
         int is_active = s[i].is_active;
         if(is_active) {
             if(type == Y_EMA) {
-                aec_update_td_ema_energy(&state->shared_state->y_ema_energy[ch], &state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&state->shared_state->y_ema_energy[ch], &state->shared_state->y[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else if(type == X_EMA) {
-                aec_update_td_ema_energy(&state->shared_state->x_ema_energy[ch], &state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                aec_calc_time_domain_ema_energy(&state->shared_state->x_ema_energy[ch], &state->shared_state->x[ch], AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else if(type == ERROR_EMA) {
-                aec_update_td_ema_energy(&state->error_ema_energy[ch], &state->output[ch], 0, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
+                int32_t (*ptr)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output;
+                //create a bfp_s32_t structure to point to output array
+                bfp_s32_t temp;
+                bfp_s32_init(&temp, &ptr[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+                
+                aec_calc_time_domain_ema_energy(&state->error_ema_energy[ch], &temp, 0, AEC_FRAME_ADVANCE, &state->shared_state->config_params);
             }
             else{assert(0);}
         }
@@ -55,23 +61,23 @@ void fft_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t 
         int is_active = s[i].is_active;
         if(is_active) {
             if(type == Y_FFT) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->shared_state->Y[ch],
                         &main_state->shared_state->y[ch]);
             }
             else if(type == X_FFT) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->shared_state->X[ch],
                         &main_state->shared_state->x[ch]);
             }
             else if((type==ERROR_FFT) && (task==0)) {
-                aec_fft(
+                aec_forward_fft(
                         &main_state->Error[ch],
                         &main_state->error[ch]
                         ); //error -> Error
             }
             else if((type==ERROR_FFT) && (task==1) && (shadow_state != NULL)){
-                aec_fft(
+                aec_forward_fft(
                         &shadow_state->Error[ch],
                         &shadow_state->error[ch]
                         ); //error_shad -> Error_shad
@@ -89,11 +95,11 @@ void update_X_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state, 
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_update_total_X_energy(main_state, ch, recalc_bin);
+                aec_calc_X_fifo_energy(main_state, ch, recalc_bin);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_update_total_X_energy(shadow_state, ch, recalc_bin);
+                    aec_calc_X_fifo_energy(shadow_state, ch, recalc_bin);
                 }
             }
         }
@@ -139,14 +145,14 @@ void ifft_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_ifft(&main_state->error[ch], &main_state->Error[ch]);
+                aec_inverse_fft(&main_state->error[ch], &main_state->Error[ch]);
             }
             else if(task == 1){
-                aec_ifft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
+                aec_inverse_fft(&main_state->y_hat[ch], &main_state->Y_hat[ch]);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_ifft(&shadow_state->error[ch], &shadow_state->Error[ch]);
+                    aec_inverse_fft(&shadow_state->error[ch], &shadow_state->Error[ch]);
                 }
             }
         }
@@ -163,7 +169,7 @@ void calc_coh_task(par_tasks_and_channels_t *s, aec_state_t *state, int passes, 
     }
 }
 
-void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t *shadow_state, int passes, int channels) {
+void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state_t *shadow_state, int32_t *output_main, int32_t *output_shadow, int passes, int channels) {
     for(int i=0; i<passes; i++) {
         int task = s[i].task;
         int ch = s[i].channel;
@@ -171,11 +177,13 @@ void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_create_output(main_state, ch);
+                int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_main;
+                aec_calc_output(main_state, &tmp[ch], ch);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_create_output(shadow_state, ch);
+                    int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_shadow;
+                    aec_calc_output(shadow_state, &tmp[ch], ch);
                 }
             }
         }
@@ -191,14 +199,14 @@ void calc_fd_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state, a
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_calc_fd_frame_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
+                aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
             }
             else if(task == 1){
-                aec_calc_fd_frame_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_calc_fd_frame_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
+                    aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
                 }
             }
         }
@@ -213,11 +221,11 @@ void calc_inv_X_energy_task(par_tasks_and_channels_t *s, aec_state_t *main_state
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_calc_inv_X_energy(main_state, ch, 0);
+                aec_calc_normalisation_spectrum(main_state, ch, 0);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_calc_inv_X_energy(shadow_state, ch, 1);
+                    aec_calc_normalisation_spectrum(shadow_state, ch, 1);
                 }
             }
         }
@@ -232,11 +240,11 @@ void calc_T_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_state
         int is_active = s[i].is_active;
         if(is_active) {
             if(task == 0) {
-                aec_compute_T(main_state, ych, xch);
+                aec_calc_T(main_state, ych, xch);
             }
             else {
                 if(shadow_state != NULL) {
-                    aec_compute_T(shadow_state, ych, xch);
+                    aec_calc_T(shadow_state, ych, xch);
                 }
             }
         }
@@ -271,8 +279,10 @@ static int framenum = 0;
 void aec_testapp_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2])
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE])    
 {
     int num_x_channels = main_state->shared_state->num_x_channels;
     int num_y_channels = main_state->shared_state->num_y_channels;
@@ -281,20 +291,20 @@ void aec_testapp_process_frame(
 
     ///calculate input td ema energy
 #if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA);
+    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA);
 #else
     PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA))
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA))
         );
 #endif
 
 #if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA);
+    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA);
 #else
     PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA))
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA))
         );
 #endif
 
@@ -377,21 +387,21 @@ void aec_testapp_process_frame(
 
     //Window error. Calculate output
 #if AEC_THREAD_COUNT == 1
-    calc_output_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
+    calc_output_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
 #else
     PAR_JOBS(
-        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
         );
 #endif
 
     //calculate error_ema_energy for main state
 #if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA);
+    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA);
 #else
     PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA))
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA))
         );
 #endif
 

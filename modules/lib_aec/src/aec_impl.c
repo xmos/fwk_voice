@@ -25,30 +25,63 @@ void aec_init(
 void aec_frame_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_PROC_FRAME_LENGTH+2],
-        int32_t (*x_data)[AEC_PROC_FRAME_LENGTH+2])
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE])
 {
     unsigned num_y_channels = main_state->shared_state->num_y_channels;
     unsigned num_x_channels = main_state->shared_state->num_x_channels;
+
+    // y frame 
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&main_state->shared_state->y[ch], &y_data[ch][0], -31, AEC_PROC_FRAME_LENGTH, 1);
+        /* Create 512 samples frame */
+        // Copy previous y samples
+        memcpy(main_state->shared_state->y[ch].data, main_state->shared_state->prev_y[ch].data, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Copy current y samples
+        memcpy(&main_state->shared_state->y[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &y_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->y[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->y[ch]);
+
+        /* Update previous samples */
+        // Copy the last 32 samples to the beginning
+        memcpy(main_state->shared_state->prev_y[ch].data, &main_state->shared_state->prev_y[ch].data[AEC_FRAME_ADVANCE], (AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))*sizeof(int32_t));
+        // Copy current frame to previous
+        memcpy(&main_state->shared_state->prev_y[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &y_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->prev_y[ch]);
+        // Update exp just in case
+        main_state->shared_state->prev_y[ch].exp = -31;
     }
+    // x frame 
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_s32_init(&main_state->shared_state->x[ch], &x_data[ch][0], -31, AEC_PROC_FRAME_LENGTH, 1);
+        /* Create 512 samples frame */
+        // Copy previous x samples
+        memcpy(main_state->shared_state->x[ch].data, main_state->shared_state->prev_x[ch].data, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Copy current x samples
+        memcpy(&main_state->shared_state->x[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &x_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->x[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->x[ch]);
+
+        /* Update previous samples */
+        // Copy the last 32 samples to the beginning
+        memcpy(main_state->shared_state->prev_x[ch].data, &main_state->shared_state->prev_x[ch].data[AEC_FRAME_ADVANCE], (AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))*sizeof(int32_t));
+        // Copy current frame to previous
+        memcpy(&main_state->shared_state->prev_x[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &x_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        // Update exp just in case
+        main_state->shared_state->prev_x[ch].exp = -31;
+        // Update headroom
+        bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
-    //Keep a copy of y[240:480] in output which can later be used in calculate coherence, since original y will get overwritten by inplace error computation
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        memcpy(main_state->output[ch].data, &main_state->shared_state->y[ch].data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
-        main_state->output[ch].exp = main_state->shared_state->y[ch].exp;
-        main_state->output[ch].hr = main_state->shared_state->y[ch].hr;
-    }
-    
+
     //Initialise T
     //At the moment, there's only enough memory for storing num_x_channels and not num_y_channels*num_x_channels worth of T.
     //So T calculation cannot be parallelised across Y channels
     //Reuse X memory for calculating T
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_complex_s32_init(&main_state->T[ch], (complex_s32_t*)&x_data[ch][0], 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+        bfp_complex_s32_init(&main_state->T[ch], (complex_s32_t*)&main_state->shared_state->x[ch].data[0], 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
     }
 
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
@@ -66,7 +99,7 @@ void aec_frame_init(
     }
 }
 
-void aec_update_td_ema_energy(
+void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
         unsigned start_offset,
@@ -84,7 +117,7 @@ void aec_update_td_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
 }
 
-void aec_fft(
+void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input)
 {
@@ -101,7 +134,7 @@ void aec_fft(
 
 //per x-channel
 //API: calculate X-energy (per x-channel)
-void aec_update_total_X_energy(
+void aec_calc_X_fifo_energy(
         aec_state_t *state,
         unsigned ch,
         unsigned recalc_bin) 
@@ -124,7 +157,7 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     bfp_s32_t *sigma_XX_ptr = &state->shared_state->sigma_XX[ch];
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     uint32_t sigma_xx_shift = state->shared_state->config_params.aec_core_conf.sigma_xx_shift;
-    float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_update_total_X_energy
+    float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
     return;
 }
@@ -141,10 +174,10 @@ void aec_calc_Error_and_Y_hat(
     bfp_complex_s32_t *Y_hat_ptr = &state->Y_hat[ch];
     bfp_complex_s32_t *Error_ptr = &state->Error[ch];
     int32_t bypass_enabled = state->shared_state->config_params.aec_core_conf.bypass;
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
+    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
 }
 
-void aec_ifft(
+void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input)
 {
@@ -171,39 +204,54 @@ void aec_calc_coherence(
     bfp_s32_t y_hat_subset;
     bfp_s32_init(&y_hat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE, 0);
     y_hat_subset.hr = state->y_hat[ch].hr;
-    //y[240:480] has already been copied to state->output in aec_frame_init() since y memory stores Y now, so use state->output instead of y
-    aec_priv_calc_coherence(coh_mu_state_ptr, &state->output[ch], &y_hat_subset, &state->shared_state->config_params);
+
+    //y[240:480] is prev_y[0:240]. Create a temporary bfp_s32_t to point to prev_y[0:240]
+    bfp_s32_t temp;
+    bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 0);
+    temp.hr = state->shared_state->prev_y[ch].hr;
+
+    aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
     return;
 }
 
-void aec_create_output(
+void aec_calc_output(
         aec_state_t *state,
+        int32_t (*output)[AEC_FRAME_ADVANCE],
         unsigned ch)
 {
     if(state == NULL) {
         return;
     }
-    bfp_s32_t *output_ptr = &state->output[ch];
+
+    bfp_s32_t output_struct;
+    if(output != NULL) {
+        bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+    }
+    else {
+        bfp_s32_init(&output_struct, NULL, -31, AEC_FRAME_ADVANCE, 0);
+    }
+    bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
     aec_priv_create_output(output_ptr, overlap_ptr, error_ptr, &state->shared_state->config_params);
     return;
 }
 
-void aec_calc_fd_frame_energy(
+void aec_calc_freq_domain_energy(
         float_s32_t *fd_energy,
         const bfp_complex_s32_t *input)
 {
     int32_t DWORD_ALIGNED scratch_mem[AEC_PROC_FRAME_LENGTH/2 + 1];
+    assert(input->length <= AEC_PROC_FRAME_LENGTH/2 + 1);
     bfp_s32_t scratch;
-    bfp_s32_init(&scratch, scratch_mem, 0, AEC_PROC_FRAME_LENGTH/2 + 1, 0);
+    bfp_s32_init(&scratch, scratch_mem, 0, input->length, 0);
     bfp_complex_s32_squared_mag(&scratch, input);
 
     float_s64_t sum64 = bfp_s32_sum(&scratch);
     *fd_energy = float_s64_to_float_s32(sum64);
 }
 
-void aec_calc_inv_X_energy(
+void aec_calc_normalisation_spectrum(
         aec_state_t *state,
         unsigned ch,
         unsigned is_shadow)
@@ -231,10 +279,10 @@ void aec_filter_adapt(
     }
     bfp_complex_s32_t *T_ptr = &state->T[0];
 
-    aec_priv_filter_adapt(state->H_hat_1d[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
+    aec_priv_filter_adapt(state->H_hat[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
 }
 
-void aec_compute_T(
+void aec_calc_T(
         aec_state_t *state,
         unsigned y_ch,
         unsigned x_ch)
@@ -295,14 +343,6 @@ void aec_update_X_fifo_1d(
             state->X_fifo_1d[count] = state->shared_state->X_fifo[ch][ph];
             count += 1;
         }
-    }
-}
-
-void aec_reset_filter(
-        aec_state_t *state)
-{
-    for(int ch=0; ch<state->shared_state->num_y_channels; ch++) {
-        aec_priv_reset_filter(state->H_hat_1d[ch], state->shared_state->num_x_channels, state->num_phases);
     }
 }
 

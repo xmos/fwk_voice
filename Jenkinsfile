@@ -117,6 +117,18 @@ pipeline {
             }
           }
         }
+        stage('Examples') {
+          steps {
+            dir("${REPO}/examples/bare-metal/aec") {
+              viewEnv() {
+                withVenv {
+                  sh "python run_xcoreai.py ../../../build/examples/bare-metal/aec/bin/aec_example.xe"
+
+                }
+              }
+            }
+          }
+        }
         stage('Meta Data tests') {
           steps {
             dir("${REPO}/build/test/lib_meta_data") {

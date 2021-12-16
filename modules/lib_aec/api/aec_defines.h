@@ -113,11 +113,14 @@ typedef struct {
 typedef struct {
     bfp_complex_s32_t X_fifo[AEC_LIB_MAX_X_CHANNELS][AEC_LIB_MAX_PHASES]; //TODO add comment about AEC_LIB_MAX_PHASES instead of AEC_LIB_MAIN_FILTER_PHASES
     bfp_complex_s32_t X[AEC_LIB_MAX_X_CHANNELS];
-    bfp_complex_s32_t Y[AEC_LIB_MAX_Y_CHANNELS]; //Not shared between shadow and main since Error is computed inplace
+    bfp_complex_s32_t Y[AEC_LIB_MAX_Y_CHANNELS];
 
     bfp_s32_t y[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t x[AEC_LIB_MAX_X_CHANNELS];
-    bfp_s32_t sigma_XX[AEC_LIB_MAX_X_CHANNELS]; //Have a copy for shadow filter though not needed for a cleaner aec_calc_inv_X_energy API
+    bfp_s32_t prev_y[AEC_LIB_MAX_Y_CHANNELS];
+    bfp_s32_t prev_x[AEC_LIB_MAX_X_CHANNELS];
+
+    bfp_s32_t sigma_XX[AEC_LIB_MAX_X_CHANNELS];
 
     float_s32_t y_ema_energy[AEC_LIB_MAX_Y_CHANNELS];
     float_s32_t x_ema_energy[AEC_LIB_MAX_X_CHANNELS];
@@ -135,13 +138,12 @@ typedef struct {
 typedef struct {
     bfp_complex_s32_t Y_hat[AEC_LIB_MAX_Y_CHANNELS];
     bfp_complex_s32_t Error[AEC_LIB_MAX_Y_CHANNELS];
-    bfp_complex_s32_t H_hat_1d[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES]; 
+    bfp_complex_s32_t H_hat[AEC_LIB_MAX_Y_CHANNELS][AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES];
     bfp_complex_s32_t X_fifo_1d[AEC_LIB_MAX_X_CHANNELS*AEC_LIB_MAX_PHASES];
     bfp_complex_s32_t T[AEC_LIB_MAX_X_CHANNELS];
 
     bfp_s32_t inv_X_energy[AEC_LIB_MAX_X_CHANNELS];
     bfp_s32_t X_energy[AEC_LIB_MAX_X_CHANNELS];
-    bfp_s32_t output[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t overlap[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t y_hat[AEC_LIB_MAX_Y_CHANNELS];
     bfp_s32_t error[AEC_LIB_MAX_Y_CHANNELS];

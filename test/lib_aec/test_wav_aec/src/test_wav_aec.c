@@ -155,11 +155,11 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
     file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
 
-    int32_t input_read_buffer[AEC_PROC_FRAME_LENGTH*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
+    int32_t input_read_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
     int32_t output_write_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS)];
 
-    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
-    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start AEC
@@ -183,10 +183,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * AEC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
-        file_read (&input_file, (uint8_t*)&input_read_buffer[(AEC_PROC_FRAME_LENGTH-AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS+AEC_MAX_Y_CHANNELS)], bytes_per_frame* AEC_FRAME_ADVANCE);
-        memset(frame_y, 0, sizeof(frame_y));
-        memset(frame_x, 0, sizeof(frame_x));
-        for(unsigned f=0; f<AEC_PROC_FRAME_LENGTH; f++){
+        file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AEC_FRAME_ADVANCE);
+        for(unsigned f=0; f<AEC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
                 unsigned i =(f * (AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS)) + ch;
                 frame_y[ch][f] = input_read_buffer[i];
@@ -205,11 +203,15 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
             }
         }
         prof(2, "start_aec_process_frame");
-        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x);
+        // Call AEC functions to process AEC_FRAME_ADVANCE new samples of data
+        /* Resuse mic data memory for main filter output
+         * Reuse ref data memory for shadow filter output
+         */ 
+        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
         prof(3, "end_aec_process_frame");
 
         prof(4, "start_aec_estimate_delay");
-        int delay = aec_estimate_delay(&main_state);
+        int delay = aec_estimate_delay(&main_state.shared_state->delay_estimator_params, main_state.H_hat[0], main_state.num_phases); //Delay is estimated using 1 x-y pair
         prof(5, "end_aec_estimate_delay");
 
         char strbuf[100];
@@ -218,15 +220,12 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
         for (unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
             for(unsigned i=0;i<AEC_FRAME_ADVANCE;i++){
-                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = main_state.output[ch].data[i];
+                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = frame_y[ch][i];
             }
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AEC_FRAME_ADVANCE * AEC_MAX_Y_CHANNELS);
 
-        for(unsigned i=0;i<(AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS);i++){
-            input_read_buffer[i] = input_read_buffer[i + AEC_FRAME_ADVANCE*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)];
-        }
         print_prof(0,6,b+1);
     }
     file_close(&input_file);

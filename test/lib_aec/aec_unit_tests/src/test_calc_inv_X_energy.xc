@@ -74,7 +74,7 @@ static void vect_smooth(double *output, double *scratch, const double *norm_deno
     }
 }
 
-void aec_calc_inv_X_energy_fp(double *inv_X_energy, double *X_energy, double *sigma_XX, double gamma_log2, double delta, int is_shadow) {
+void aec_calc_normalisation_spectrum_fp(double *inv_X_energy, double *X_energy, double *sigma_XX, double gamma_log2, double delta, int is_shadow) {
     double norm_denom[NUM_BINS], scratch[NUM_BINS];
     double gamma = pow(2.0, gamma_log2);
     double taps[5] = {0.5, 1, 1, 1, 0.5};
@@ -97,7 +97,7 @@ void aec_calc_inv_X_energy_fp(double *inv_X_energy, double *X_energy, double *si
     }
 }
 
-void test_aec_calc_inv_X_energy() {
+void test_aec_calc_normalisation_spectrum() {
     unsafe {
         unsigned num_y_channels = 1;
         unsigned num_x_channels = 2;
@@ -147,10 +147,10 @@ void test_aec_calc_inv_X_energy() {
 
                 double delta_fp = att_int32_to_double(state_ptr->delta.mant, state_ptr->delta.exp);
                 for(int ch=0; ch<num_x_channels; ch++) {
-                    aec_calc_inv_X_energy_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 6, delta_fp, is_shadow);
+                    aec_calc_normalisation_spectrum_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 6, delta_fp, is_shadow);
                 }
                 for(int ch=0; ch<num_x_channels; ch++) {
-                    aec_calc_inv_X_energy(state_ptr, ch, is_shadow);
+                    aec_calc_normalisation_spectrum(state_ptr, ch, is_shadow);
                 }
             }
             for(int ch=0; ch<num_x_channels; ch++) {
