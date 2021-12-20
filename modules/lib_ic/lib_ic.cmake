@@ -1,9 +1,9 @@
 ## Source files
-file( GLOB_RECURSE    LIB_AEC_C_SOURCES       src/*.c )
+file( GLOB_RECURSE    LIB_IC_C_SOURCES       src/*.c )
 
-## set LIB_AEC_INCLUDES & LIB_AEC_SOURCES
-set( LIB_AEC_INCLUDES     "${CMAKE_CURRENT_LIST_DIR}/api"           )
+## set LIB_IC_INCLUDES & LIB_IC_SOURCES
+set( LIB_IC_INCLUDES     "${CMAKE_CURRENT_LIST_DIR}/api"           )
 
-unset(LIB_AEC_SOURCES)
-list( APPEND  LIB_AEC_SOURCES   ${LIB_AEC_C_SOURCES}    )
+unset(LIB_IC_SOURCES)
+list( APPEND  LIB_IC_SOURCES   ${LIB_IC_C_SOURCES}    )
 

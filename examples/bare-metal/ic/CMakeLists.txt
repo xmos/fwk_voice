@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  aec_example )
+set( APP_NAME  ic_example )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -9,8 +9,9 @@ endif()
 list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
 
-list( APPEND  DEP_LIBS        
-    lib_aec 
+list( APPEND  DEP_LIBS     
+    lib_ic
+    lib_aec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 

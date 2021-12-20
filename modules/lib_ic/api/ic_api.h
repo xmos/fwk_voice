@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "dsp.h"
 #include "xs3_math.h"
 #include "bfp_math.h"
 #include "ic_state.h"
