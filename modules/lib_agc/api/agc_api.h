@@ -4,7 +4,7 @@
 #define AGC_API_H
 
 #include <xs3_math.h>
-#include <agc_init.h>
+#include <agc_profiles.h>
 
 // Length of the frame of data on which the AGC will operate
 #define AGC_FRAME_ADVANCE 240u
@@ -29,9 +29,9 @@ typedef struct {
     float_s32_t lc_gamma_dec;
     float_s32_t lc_far_delta;
     float_s32_t lc_near_delta;
-    float_s32_t lc_near_delta_far_act;
+    float_s32_t lc_near_delta_far_active;
     float_s32_t lc_gain_max;
-    float_s32_t lc_gain_dt;
+    float_s32_t lc_gain_double_talk;
     float_s32_t lc_gain_silence;
     float_s32_t lc_gain_min;
 } agc_config_t;

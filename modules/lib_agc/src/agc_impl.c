@@ -177,7 +177,7 @@ void agc_process_frame(agc_state_t *agc,
             }
         }
 
-        float_s32_t delta = (agc->lc_t_far > 0) ? agc->config.lc_near_delta_far_act : agc->config.lc_near_delta;
+        float_s32_t delta = (agc->lc_t_far > 0) ? agc->config.lc_near_delta_far_active : agc->config.lc_near_delta;
 
         if (float_s32_gt(agc->lc_near_power_est, float_s32_mul(delta, agc->lc_near_bg_power_est))) {
             if (agc->lc_t_far == 0 || (agc->lc_t_far > 0 &&
@@ -208,7 +208,7 @@ void agc_process_frame(agc_state_t *agc,
             lc_target_gain = agc->config.lc_gain_min;
         } else {
             // Double talk
-            lc_target_gain = agc->config.lc_gain_dt;
+            lc_target_gain = agc->config.lc_gain_double_talk;
         }
 
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {

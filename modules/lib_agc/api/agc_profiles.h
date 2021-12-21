@@ -1,11 +1,11 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#ifndef AGC_INIT_H
-#define AGC_INIT_H
+#ifndef AGC_PROFILES_H
+#define AGC_PROFILES_H
 
 #include <xs3_math.h>
 
-#define AGC_INITIALISER_ASR (agc_config_t){ \
+#define AGC_PROFILE_ASR (agc_config_t){ \
     .adapt = 1, \
     .adapt_on_vad = 1, \
     .soft_clipping = 1, \
@@ -25,14 +25,14 @@
     .lc_gamma_dec = float_to_float_s32(0), \
     .lc_far_delta = float_to_float_s32(0), \
     .lc_near_delta = float_to_float_s32(0), \
-    .lc_near_delta_far_act = float_to_float_s32(0), \
+    .lc_near_delta_far_active = float_to_float_s32(0), \
     .lc_gain_max = float_to_float_s32(0), \
-    .lc_gain_dt = float_to_float_s32(0), \
+    .lc_gain_double_talk = float_to_float_s32(0), \
     .lc_gain_silence = float_to_float_s32(0), \
     .lc_gain_min = float_to_float_s32(0), \
     }
 
-#define AGC_INITIALISER_COMMS (agc_config_t){ \
+#define AGC_PROFILE_COMMS (agc_config_t){ \
     .adapt = 1, \
     .adapt_on_vad = 1, \
     .soft_clipping = 1, \
@@ -52,14 +52,14 @@
     .lc_gamma_dec = float_to_float_s32(0.995), \
     .lc_far_delta = float_to_float_s32(300), \
     .lc_near_delta = float_to_float_s32(50), \
-    .lc_near_delta_far_act = float_to_float_s32(100), \
+    .lc_near_delta_far_active = float_to_float_s32(100), \
     .lc_gain_max = float_to_float_s32(1), \
-    .lc_gain_dt = float_to_float_s32(0.9), \
+    .lc_gain_double_talk = float_to_float_s32(0.9), \
     .lc_gain_silence = float_to_float_s32(0.1), \
     .lc_gain_min = float_to_float_s32(0.022387), \
     }
 
-#define AGC_INITIALISER_FIXED_GAIN (agc_config_t){ \
+#define AGC_PROFILE_FIXED_GAIN (agc_config_t){ \
     .adapt = 0, \
     .adapt_on_vad = 0, \
     .soft_clipping = 0, \
@@ -79,9 +79,9 @@
     .lc_gamma_dec = float_to_float_s32(0), \
     .lc_far_delta = float_to_float_s32(0), \
     .lc_near_delta = float_to_float_s32(0), \
-    .lc_near_delta_far_act = float_to_float_s32(0), \
+    .lc_near_delta_far_active = float_to_float_s32(0), \
     .lc_gain_max = float_to_float_s32(0), \
-    .lc_gain_dt = float_to_float_s32(0), \
+    .lc_gain_double_talk = float_to_float_s32(0), \
     .lc_gain_silence = float_to_float_s32(0), \
     .lc_gain_min = float_to_float_s32(0), \
     }
