@@ -90,7 +90,6 @@ void ic_init(ic_state_t *state){
     state->config_params.core_conf.sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
     state->config_params.core_conf.gamma_log2 = IC_INIT_GAMMA_LOG2;
     state->config_params.core_conf.ema_alpha_q30 = IC_INIT_EMA_ALPHA_Q30;
-    state->config_params.core_conf.delta_adaption_force_on = IC_INIT_DELTA_ADAPTION_FORCE_ON;
     state->config_params.core_conf.delta_min = IC_INIT_DELTA_MIN;
     state->config_params.core_conf.bypass = 0;
     state->config_params.core_conf.coeff_index = 0;

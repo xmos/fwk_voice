@@ -15,7 +15,6 @@
 #define IC_INIT_SIGMA_XX_SHIFT                      11
 #define IC_INIT_GAMMA_LOG2                          2 //From XC IC
 // #define IC_INIT_GAMMA_LOG2                          6 //From AEC
-#define IC_INIT_DELTA_ADAPTION_FORCE_ON             double_to_float_s32(0.01562499999) // From AEC
 #define IC_INIT_DELTA_MIN                           double_to_float_s32((double)1e-20)
 // #define IC_INIT_DELTA                               double_to_float_s32(0.00007) //XC
 #define IC_INIT_DELTA                               double_to_float_s32(0.000000007450581) //Python

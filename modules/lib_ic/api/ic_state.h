@@ -7,7 +7,6 @@
 
 typedef struct {
     uint8_t bypass;
-    float_s32_t delta_adaption_force_on;
     float_s32_t delta_min;
     int32_t gamma_log2;
     uint32_t sigma_xx_shift;
@@ -51,7 +50,6 @@ typedef struct {
     int32_t vad_data_window[IC_FRAME_LENGTH];
     unsigned vad_counter;
 
-    //TODO add H_hat leakage to code
     float_s32_t leakage_alpha;
     //TODO
     float_s32_t force_adaption_mu;
