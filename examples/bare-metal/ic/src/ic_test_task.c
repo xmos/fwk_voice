@@ -154,7 +154,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         /* Resuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output
          */ 
-        ic_process_frame(&state,  frame_y, frame_x, 0, output);
+        ic_process_frame(&state,  frame_y, frame_x, 255, output);
         prof(3, "end_ic_process_frame");
 
         // char strbuf[100];

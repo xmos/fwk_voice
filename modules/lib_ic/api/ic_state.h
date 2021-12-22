@@ -7,7 +7,6 @@
 
 typedef struct {
     uint8_t bypass;
-    float_s32_t delta_min;
     int32_t gamma_log2;
     uint32_t sigma_xx_shift;
     uint32_t coeff_index;

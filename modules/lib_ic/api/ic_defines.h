@@ -13,21 +13,26 @@
 
 //User modifiable parameters
 #define IC_INIT_SIGMA_XX_SHIFT                      11
-#define IC_INIT_GAMMA_LOG2                          2 //From XC IC
-// #define IC_INIT_GAMMA_LOG2                          6 //From AEC
+// #define IC_INIT_GAMMA_LOG2                          2 //From XC IC
+#define IC_INIT_GAMMA_LOG2                          6 //From AEC
+// #define IC_INIT_GAMMA_LOG2                          1 //From Pyhton IC (2^1 = 2.0)
+
 #define IC_INIT_DELTA_MIN                           double_to_float_s32((double)1e-20)
-// #define IC_INIT_DELTA                               double_to_float_s32(0.00007) //XC
-#define IC_INIT_DELTA                               double_to_float_s32(0.000000007450581) //Python
+#define IC_INIT_DELTA                               double_to_float_s32(0.00007) //XC
+// #define IC_INIT_DELTA                               double_to_float_s32(0.000000007450581) //Python
 #define IC_INIT_LEAKAGE_ALPHA                       double_to_float_s32(1.0)
-#define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.98)
-#define IC_FORCE_ADAPTION_MU                        double_to_float_s32(0.369566)
+#define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.98) //lambda in Python model.
+// #define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.9995117188) //Pyhton
 #define IC_FILTER_PHASES                            (10)
+
+
+#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0
+#define IC_FORCE_ADAPTION_MU                        double_to_float_s32(0.369566)
 #define IC_INIT_SMOOTHED_VOICE_CHANCE               double_to_float_s32(0.999999999999999)
 #define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         double_to_float_s32(0.99)
 #define IC_INIT_ENERGY_ALPHA                        double_to_float_s32(0.999)
 #define IC_INIT_ENERGY_ALPHA0                       double_to_float_s32(0.98)
 #define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  double_to_float_s32(0.995)
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0
 
 //Fixed paramaters - do not edit
 #define IC_Y_CHANNELS (1)

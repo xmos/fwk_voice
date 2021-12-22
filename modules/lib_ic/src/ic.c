@@ -15,7 +15,6 @@ void ic_init(ic_state_t *state){
         for(unsigned ph=0; ph<(IC_X_CHANNELS * IC_FILTER_PHASES); ph++) {
             bfp_complex_s32_init(&state->H_hat_bfp[ch][ph], state->H_hat[ch][ph], -1024, IC_FD_FRAME_LENGTH, 0);
             printf("H_hat ph(%u) len: %u\n", ph, state->H_hat_bfp[ch][ph].length);
-
         }
     }
     //X_fifo
@@ -64,7 +63,6 @@ void ic_init(ic_state_t *state){
         bfp_s32_init(&state->prev_y_bfp[ch], state->y_prev_samples[ch], -1024, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, 0);
     }
 
-
     //X, note in-place with x
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_s32_init(&state->x_bfp[ch], state->x[ch], -1024, IC_FRAME_LENGTH, 0);
@@ -83,14 +81,11 @@ void ic_init(ic_state_t *state){
         state->x_ema_energy[ch].exp = -1024;
     }
     //fractional regularisation scalefactor
-    // state->delta = double_to_float_s32((double)1e-5);
     state->delta = IC_INIT_DELTA;
-
 
     state->config_params.core_conf.sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
     state->config_params.core_conf.gamma_log2 = IC_INIT_GAMMA_LOG2;
     state->config_params.core_conf.ema_alpha_q30 = IC_INIT_EMA_ALPHA_Q30;
-    state->config_params.core_conf.delta_min = IC_INIT_DELTA_MIN;
     state->config_params.core_conf.bypass = 0;
     state->config_params.core_conf.coeff_index = 0;
 
