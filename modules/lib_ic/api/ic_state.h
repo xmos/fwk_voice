@@ -50,8 +50,6 @@ typedef struct {
     unsigned vad_counter;
 
     float_s32_t leakage_alpha;
-    //TODO
-    float_s32_t force_adaption_mu;
 
     //This defines the ratio of the output to input at which the filter will reset.
     //A good rule is it should be above 2.0

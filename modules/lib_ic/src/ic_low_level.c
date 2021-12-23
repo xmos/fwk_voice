@@ -280,7 +280,7 @@ void ic_update_vad_history(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE], 
 }
 
 
-void ic_adaption_controller(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE], uint8_t vad){
+void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
 
@@ -334,10 +334,10 @@ void ic_adaption_controller(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE],
 
     if(float_s32_gte(fast_ratio, one)){
         state->ic_adaption_controller_state.leakage_alpha = state->ic_adaption_controller_state.instability_recovery_leakage_alpha;
-        state->ic_adaption_controller_state.force_adaption_mu = zero;
+        mu = zero;
     } else {
         state->ic_adaption_controller_state.leakage_alpha = one;
-        state->ic_adaption_controller_state.force_adaption_mu = mu;
+        mu = mu;
     }
     printf("mu: %f\n", ldexp(mu.mant, mu.exp));
 
@@ -349,7 +349,7 @@ void ic_adaption_controller(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE],
     } 
 }
 
-//TBD these are not used in lib_aec so not needed here?
+//TODO these are not used in lib_aec so not needed here?
 
 // /// Unify bfp_complex_s32_t chunks into a single exponent and headroom
 // void ic_l2_bfp_complex_s32_unify_exponent(

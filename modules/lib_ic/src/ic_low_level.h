@@ -21,7 +21,6 @@ void ic_update_vad_history(
 //Sets IC mu and leakage depending on VAD probability
 void ic_adaption_controller(
         ic_state_t *state, 
-        int32_t output[IC_FRAME_ADVANCE],
         uint8_t vad);
 
 /// Adapt H_hat
