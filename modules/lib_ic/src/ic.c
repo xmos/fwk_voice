@@ -149,10 +149,19 @@ void ic_process_frame(
     printf("y_ema_energy: %f\n", ldexp(state->y_ema_energy[0].mant, state->y_ema_energy[0].exp));
     printf("x_ema_energy: %f\n", ldexp(state->x_ema_energy[0].mant, state->x_ema_energy[0].exp));
 
+
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_fft(&state->Y_bfp[ch], &state->y_bfp[ch]);
     }
     printf("ic_fft\n");
+
+
+    for(int i=0; i<257; i++) {
+        // printf("Y_data: %.12f + %.12fj\n", ldexp( state->Y_bfp[0].data[i].re, state->Y_bfp[0].exp), ldexp( state->Y_bfp[0].data[i].im, state->Y_bfp[0].exp));
+
+        // printf("y: %.12f\n", ldexp( state->y_bfp[0].data[i], state->y_bfp[0].exp));
+        }
+    printf("\n\n");
 
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
@@ -186,6 +195,10 @@ void ic_process_frame(
     }
     printf("ic_calc_Error_and_Y_hat\n");
 
+        for(int i=0; i<257; i++) {
+        printf("Error: %.12f + %.12fj\n", ldexp( state->Error_bfp[0].data[i].re, state->Error_bfp[0].exp), ldexp( state->Error_bfp[0].data[i].im, state->Error_bfp[0].exp));
+        }
+
     //IFFT Error and Y_hat
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
@@ -204,7 +217,7 @@ void ic_process_frame(
     printf("ic_update_vad_history\n");
 
     //Calculate leakage and mu for adaption
-    ic_adaption_controller(state, output, vad);
+    ic_adaption_controller(state, vad);
     printf("ic_adaption_controller\n");
 
     //calculate error_ema_energy for main state
@@ -237,11 +250,14 @@ void ic_process_frame(
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             ic_compute_T(state, ych, xch);
 
-            // printf("T: ");
-            // for(int i=0; i<state->T[xch].length; i++) {
-            //     printf("%.12f + %.12fj, ", ldexp( state->T[xch].data[i].re, state->T[xch].exp), ldexp( state->T[xch].data[i].im, state->T[xch].exp));
-            //     }
-            // printf("\n\n");
+            // for(int i=0; i<state->T_bfp[xch].length; i++) {
+            for(int i=0; i<10; i++) {
+                // printf("T:     %.12f + %.12fj\n", ldexp( state->T_bfp[xch].data[i].re, state->T_bfp[xch].exp), ldexp( state->T_bfp[xch].data[i].im, state->T_bfp[xch].exp));
+                // printf("Inv_x: %.12f\n", ldexp( state->inv_X_energy_bfp[xch].data[i], state->inv_X_energy_bfp[xch].exp));
+                printf("error: %.12f\n", ldexp( state->error_bfp[ych].data[i], state->error_bfp[ych].exp));
+                // printf("mu: %.12f\n", ldexp( state->mu[ych][xch].mant, state->mu[ych][xch].exp));
+                }
+            printf("\n\n");
 
 
         }

@@ -6,22 +6,6 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
-void ic_priv_init_config_params(ic_config_params_t *config_params)
-{
-    //TODO profile double_to_float_s32() calls
-    //aec_core_config_params_t
-    ic_core_config_params_t *core_conf = &config_params->core_conf;
-    core_conf->sigma_xx_shift = 11;
-    core_conf->ema_alpha_q30 = Q1_30(0.98);
-    core_conf->gamma_log2 = 6;
-    core_conf->delta_adaption_force_on.mant = (unsigned)UINT_MAX >> 1;
-    core_conf->delta_adaption_force_on.exp = -32 - 6 + 1; //extra +1 to account for shr of 1 to the mant in order to store it as a signed number
-    core_conf->delta_min = double_to_float_s32((double)1e-20);
-    core_conf->bypass = 0;
-    core_conf->coeff_index = 0;
-}
-
 
 /// Sets up IC for processing a new frame
 void ic_frame_init(
@@ -151,7 +135,7 @@ void ic_update_X_fifo_and_calc_sigmaXX(
     bfp_s32_t *sigma_XX_ptr = &state->sigma_XX_bfp[ch];
     bfp_complex_s32_t *X_ptr = &state->X_bfp[ch];
     uint32_t sigma_xx_shift = state->config_params.core_conf.sigma_xx_shift;
-    float_s32_t *sum_X_energy_ptr = &state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
+    float_s32_t *sum_X_energy_ptr = &state->sum_X_energy[ch];
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->X_fifo_bfp[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, IC_FILTER_PHASES, sigma_xx_shift);
 
 }
