@@ -13,6 +13,8 @@ void ic_adaption_controller_fp(
         double voice_chance_alpha,
         double input_energy,
         double output_energy,
+        double input_energy0,
+        double output_energy0,
         double out_to_in_ratio_limit,
         int enable_filter_instability_recovery,
         int *reset
@@ -64,82 +66,102 @@ void ic_adaption_controller_fp(
     }
 }
 
-
-void ic_apply_leakage_fp(
-    dsp_complex_fp H_hat_fp[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH],
-     double alpha){
-
-    for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
-        for(int bin=0; bin<IC_FD_FRAME_LENGTH; bin++){
-            H_hat_fp[0][ph][bin].re *= alpha;
-            H_hat_fp[0][ph][bin].im *= alpha;
-        }
-    }
-}
- 
-
-void test_apply_leakage() {
-    ic_state_t state;
-    ic_init(&state);
-
-    dsp_complex_fp H_hat_fp[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH] = {{{0}}};
-    double alpha_fp = 0;
-    
-    unsigned seed = 45;
+int check_parms_equal(char *str, double ref_fp, float_s32_t dut){
+    double dut_fp = att_int32_to_double(dut.mant, dut.exp);
+    double diff = (ref_fp - dut_fp);
     double max_diff_percentage = 0.0;
 
+
+    if(diff < 0.0) diff = -diff;
+    double diff_percentage = (diff / (ref_fp < 0.0 ? -ref_fp : ref_fp)) * 100;
+    if(diff_percentage > max_diff_percentage) max_diff_percentage = diff_percentage;
+    if(diff > 0.0002*(ref_fp < 0.0 ? -ref_fp : ref_fp) + pow(10, -8))
+    {
+        printf("%s fail: iter %d, ych %d, ph %d, bin %d\n", str, iter, ych, ph, i);
+        assert(0);
+    }
+}
+
+int filter_is_reset(bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES]){
+    int is_reset = 1;
+    for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
+        if(H_hat_bfp[0][ph].exp != -1024) is_reset = 0;
+        if(H_hat_bfp[0][ph].hr != 31) is_reset = 0;
+        for(int i=0; i<IC_FD_FRAME_LENGTH;i++){
+            if(H_hat_bfp[0][ph].data[i] != 0) is_reset = 0;
+        }
+    }
+    return is_reset;
+}
+
+void test_adaption_controller() {
+    ic_state_t state;
+    ic_init(&state);
+    ic_adaption_controller_state_t *st = &state.ic_adaption_controller_state;
+
+    unsigned seed = 45;
+
+    double smoothed_voice_chance_fp = 0.0;
+    double voice_chance_alpha_fp = 0.99;
+    double out_to_in_ratio_limit_fp = 2.0;
+    int enable_filter_instability_recovery = 0;
+    int reset = 0;
+    double instability_recovery_leakage_alpha_fp = 0.995;
+    double leakage_alpha_fp = 1.0;
+    double mu_fp = 0.34;
+
+    st->smoothed_voice_chance = double_to_float_s32(smoothed_voice_chance_fp);
+    st->voice_chance_alpha = double_to_float_s32(voice_chance_alpha_fp);
+    st->out_to_in_ratio_limit = double_to_float_s32(out_to_in_ratio_limit_fp);
+    st->instability_recovery_leakage_alpha = double_to_float_s32(instability_recovery_leakage_alpha_fp);
+    st->leakage_alpha = double_to_float_s32(leakage_alpha_fp);
+    st->mu = double_to_float_s32(mu_fp);
+
     for(int iter=0; iter<(1<<11)/F; iter++) {
- 
-        for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-            for(int ph=0; ph<IC_FILTER_PHASES*IC_X_CHANNELS;ph++){
-                state.H_hat_bfp[ch][ph].exp = sext(att_random_int32(seed), 3) - 31;
-                state.H_hat_bfp[ch][ph].hr = att_random_uint32(seed) % 3;                
-                for(int i=0; i<IC_FD_FRAME_LENGTH; i++) {
-                    state.H_hat_bfp[ch][ph].data[i].re = att_random_int32(seed) >> state.H_hat_bfp[ch][ph].hr;
-                    state.H_hat_bfp[ch][ph].data[i].im = att_random_int32(seed) >> state.H_hat_bfp[ch][ph].hr;
 
-                    H_hat_fp[ch][ph][i].re = att_int32_to_double(state.H_hat_bfp[ch][ph].data[i].re, state.H_hat_bfp[ch][ph].exp);
-                    H_hat_fp[ch][ph][i].im = att_int32_to_double(state.H_hat_bfp[ch][ph].data[i].im, state.H_hat_bfp[ch][ph].exp);
-                }
+        const int exp_mod = 5;
+        st->input_energy.mant = att_random_uint32(seed);
+        st->input_energy.exp = att_random_uint32(seed) % exp_mod;
+        st->output_energy.mant = att_random_uint32(seed);
+        st->output_energy.exp = att_random_uint32(seed) % exp_mod;
+        st->input_energy0.mant = att_random_uint32(seed);
+        st->input_energy0.exp = att_random_uint32(seed) % exp_mod;
+        st->output_energy0.mant = att_random_uint32(seed);
+        st->output_energy0.exp = att_random_uint32(seed) % exp_mod;
+
+        double input_energy = att_int32_to_double(st->input_energy.mant, st->input_energy.exp);
+        double output_energy = att_int32_to_double(st->output_energy.mant, st->output_energy.exp);
+        double input_energy0 = att_int32_to_double(st->input_energy0.mant, st->input_energy0.exp);
+        double output_energy0 = att_int32_to_double(st->output_energy0.mant, st->output_energy0.exp);
+
+        uint8_t vad = att_random_uint32(seed) % 256;
+
+        ic_adaption_controller(&state, vad);
+
+        ic_adaption_controller_fp(
+            vad,
+            &smoothed_voice_chance_fp,
+            voice_chance_alpha_fp,
+            input_energy_fp,
+            output_energy_fp,
+            input_energy0_fp,
+            output_energy0_fp,
+            out_to_in_ratio_limit_fp,
+            enable_filter_instability_recovery,
+            &has_reset
+            instability_recovery_leakage_alpha_fp,
+            &leakage_alpha_fp,
+            &mu_fp);
+
+        check_parms_equal("smoothed_voice_chance", smoothed_voice_chance_fp, st->smoothed_voice_chance);
+        check_parms_equal("mu", mu_fp, state.mu[0][0]);
+        check_parms_equal("leakage_alpha", leakage_alpha_fp, st->leakage_alpha);
+      
+
+        if(iter == 20){
+            enable_filter_instability_recovery = 1;
+            st->enable_filter_instability_recovery = 1;
         }
-        //initialise leakage
-        for(int ych=0; ych<num_y_channels; ych++) {
-            state.ic_adaption_controller_state.leakage_alpha.mant = att_random_uint32(seed) >> 1;//Positive 0 - INT_MAX
-            state.ic_adaption_controller_state.leakage_alpha.exp = -31;
-            alpha_fp = att_int32_to_double(state.ic_adaption_controller_state.leakage_alpha.mant, state.ic_adaption_controller_state.leakage_alpha.exp)
-        }
 
-        for(int ych=0; ych<num_y_channels; ych++) {
-            ic_apply_leakage(state, ych);
-            ic_apply_leakage_fp(H_hat_fp, alpha_fp)
-
-            //Since T memory will be overwritten when computing for next y-channel, do error checking now
-            for(int ph=0; ph<IC_FILTER_PHASES*IC_X_CHANNELS; ph++) {
-                for(int i=0; i<IC_FD_FRAME_LENGTH; i++) {
-                    for(int c=0; c<2; c++){
-                        double ref_fp = 0;
-                        double dut_fp = 0;
-                        if(c==0){
-                            ref_fp = H_hat_fp[ych][ph][i].re;
-                            dut_fp = att_int32_to_double(state.H_hat_bfp[ych][ph].data[i].re, state.H_hat_bfp[ych][ph].exp);
-
-                        }else{
-                            ref_fp = H_hat_fp[ych][ph][i].im;
-                            dut_fp = att_int32_to_double(state.H_hat_bfp[ych][ph].data[i].im, state.H_hat_bfp[ych][ph].exp);
-
-                        }
-                        double diff = (ref_fp - dut_fp);
-                        if(diff < 0.0) diff = -diff;
-                        double diff_percentage = (diff / (ref_fp < 0.0 ? -ref_fp : ref_fp)) * 100;
-                        if(diff_percentage > max_diff_percentage) max_diff_percentage = diff_percentage;
-                        if(diff > 0.0002*(ref_fp < 0.0 ? -ref_fp : ref_fp) + pow(10, -8))
-                        {
-                            printf("%s fail: iter %d, ych %d, ph %d, bin %d\n",c==0 ? "Re" : "Im", iter, ych, ph, i);
-                            assert(0);
-                        }
-                    }
-                }
-            }
-        }
     }
 }
