@@ -104,7 +104,7 @@ void ic_init(ic_state_t *state){
     state->ic_adaption_controller_state.input_energy0 = double_to_float_s32(0.0);
     state->ic_adaption_controller_state.output_energy0 = double_to_float_s32(0.0);
 
-    state->ic_adaption_controller_state.out_to_in_ratio_limit = double_to_float_s32(1.0);
+    state->ic_adaption_controller_state.out_to_in_ratio_limit = IC_INIT_INSTABILITY_RATIO_LIMIT;
     state->ic_adaption_controller_state.enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
     state->ic_adaption_controller_state.instability_recovery_leakage_alpha = IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA;
 

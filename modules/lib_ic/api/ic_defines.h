@@ -29,6 +29,7 @@
 
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0
+#define IC_INIT_INSTABILITY_RATIO_LIMIT             double_to_float_s32(2.0)
 #define IC_INIT_SMOOTHED_VOICE_CHANCE               double_to_float_s32(0.999999999999999)
 #define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         double_to_float_s32(0.99)
 #define IC_INIT_ENERGY_ALPHA                        double_to_float_s32(0.999)
