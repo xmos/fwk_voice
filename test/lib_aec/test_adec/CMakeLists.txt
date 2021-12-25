@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  test_wav_aec )
+set( APP_NAME  test_wav_adec )
 
 # Auto-generate schedule and top level config files
 
