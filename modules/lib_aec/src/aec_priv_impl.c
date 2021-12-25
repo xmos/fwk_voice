@@ -278,6 +278,7 @@ void aec_priv_compare_filters(
     }
     for(unsigned ch=0; ch<main_state->shared_state->num_y_channels; ch++) {
         main_state->shared_state->overall_Y[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
+        //printf("Ov_Error_shad = %f, Ov_Error = %f, Ov_input = %f\n", float_s32_to_double(shadow_state->overall_Error[ch]), float_s32_to_double(main_state->overall_Error[ch]), float_s32_to_double(shared_state->overall_Y[ch]));
         float_s32_t shadow_copy_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_copy_thresh, main_state->overall_Error[ch]);
         float_s32_t shadow_sigma_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_sigma_thresh, main_state->overall_Error[ch]);
         float_s32_t shadow_reset_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_reset_thresh, main_state->overall_Error[ch]);
@@ -508,6 +509,12 @@ void aec_priv_calc_coherence_mu(
             }
         }
     }
+    /*for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
+      for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+        printf("mu[%d][%d] = %f\n",y_ch, x_ch, float_s32_to_double(coh_mu_state[y_ch].coh_mu[x_ch]));
+        
+      }
+    }*/
 }
 
 void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
@@ -779,7 +786,11 @@ void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t sigma_times_gamma;
         bfp_s32_init(&sigma_times_gamma, sigma_XX->data, sigma_XX->exp+gamma_log2, sigma_XX->length, 0);
         sigma_times_gamma.hr = sigma_XX->hr;
-        bfp_s32_add(&norm_denom, &sigma_times_gamma, X_energy);
+        //TODO 3610 AEC calculates norm_denom as normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma 
+        //instead of normDenom = self.X_energy[:,k] + self.sigma_xx*gamma and ADEC tests pass only with the former.
+        bfp_s32_t temp = *X_energy;
+        temp.exp = temp.exp+1;
+        bfp_s32_add(&norm_denom, &sigma_times_gamma, &temp);
 
         //self.taps = [0.5, 1, 1, 1, 0.5] 
         fixed_s32_t taps_q30[5] = {0x20000000, 0x40000000, 0x40000000, 0x40000000, 0x20000000};
@@ -840,6 +851,21 @@ void aec_priv_compute_T(
     //followed by T = T * mu
     bfp_complex_s32_real_mul(T, Error, inv_X_energy);
     bfp_complex_s32_real_scale(T, T, mu);
+    /*for(int i=0; i<5; i++) {
+      int j = i+200;
+      float_s32_t re, im;
+      re.mant = T->data[j].re;
+      re.exp = T->exp;
+      im.mant = T->data[j].im;
+      im.exp = T->exp;
+
+      float_s32_t inv;
+      inv.mant = inv_X_energy->data[j];
+      inv.exp = inv_X_energy->exp;
+
+      printf("T[%d] = %f, %f\n", j, float_s32_to_double(re), float_s32_to_double(im));
+      printf("Inv_X_energy[%d] = %f\n",j, float_s32_to_double(inv));
+    }*/
 
     //bfp_complex_s32_real_scale(T, Error, mu);
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
