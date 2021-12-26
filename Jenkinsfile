@@ -107,10 +107,10 @@ pipeline {
         }
         stage('Examples') {
           steps {
-            dir("${REPO}/examples/bare-metal/aec") {
+            dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python run_xcoreai.py ../../../build/examples/bare-metal/aec/bin/aec_example.xe"
+                  sh "python run_xcoreai.py ../../../build/examples/bare-metal/aec/bin/aec_1_thread_example.xe"
                 }
               }
             }
