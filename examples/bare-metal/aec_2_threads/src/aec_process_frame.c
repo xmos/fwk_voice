@@ -11,7 +11,6 @@
 enum e_td_ema {Y_EMA, X_EMA, ERROR_EMA};
 enum e_fft {Y_FFT, X_FFT, ERROR_FFT};
 
-#if AEC_THREAD_COUNT > 1
 #include <xcore/parallel.h>
 DECLARE_JOB(update_td_ema_energy_task, (par_tasks_and_channels_t*, aec_state_t *, int32_t*, int, int, enum e_td_ema));
 DECLARE_JOB(fft_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int, enum e_fft));
@@ -26,7 +25,134 @@ DECLARE_JOB(calc_fd_energy_task, (par_tasks_and_channels_t*, aec_state_t*, aec_s
 DECLARE_JOB(calc_inv_X_energy_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int));
 DECLARE_JOB(calc_T_task, (par_tasks_and_channels_t*, aec_state_t*, aec_state_t*, int, int, int));
 DECLARE_JOB(filter_adapt_task, (par_tasks_t*, aec_state_t*, aec_state_t*, int, int));
-#endif
+
+extern schedule_t sch;
+static unsigned X_energy_recalc_bin = 0;
+static int framenum = 0;
+void aec_process_frame(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE])    
+{
+    int num_x_channels = main_state->shared_state->num_x_channels;
+    int num_y_channels = main_state->shared_state->num_y_channels;
+
+    aec_frame_init(main_state, shadow_state, y_data, x_data);
+
+    ///calculate input td ema energy
+    PAR_JOBS(
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA))
+        );
+
+    PAR_JOBS(
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA))
+        );
+
+    ///Input FFT
+    PAR_JOBS(
+        PJOB(fft_task, (sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT)),
+        PJOB(fft_task, (sch.par_1_tasks_and_channels[1], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT))
+        );
+
+    PAR_JOBS(
+        PJOB(fft_task, (sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT)),
+        PJOB(fft_task, (sch.par_1_tasks_and_channels[1], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT))
+        );
+
+    //Update X_energy
+    PAR_JOBS(
+        PJOB(update_X_energy_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin)),
+        PJOB(update_X_energy_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin))
+        );
+
+    X_energy_recalc_bin += 1;
+    if(X_energy_recalc_bin == (AEC_PROC_FRAME_LENGTH/2) + 1) {
+        X_energy_recalc_bin = 0;
+    }
+
+    //update X_fifo with the new X and calcualate sigma_XX
+    PAR_JOBS(
+        PJOB(update_X_fifo_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels)),
+        PJOB(update_X_fifo_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels))
+        );
+
+    //Update the 1 dimensional bfp structs that are also used to access X_fifo
+    aec_update_X_fifo_1d(main_state);
+    aec_update_X_fifo_1d(shadow_state);
+
+    //calculate Error and Y_hat
+    PAR_JOBS(
+        PJOB(calc_Error_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(calc_Error_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        );
+    
+    //IFFT Error and Y_hat
+    PAR_JOBS(
+        PJOB(ifft_task, (sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(ifft_task, (sch.par_3_tasks_and_channels[1], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        );
+
+    //calculate coh and coh_slow 
+    PAR_JOBS(
+        PJOB(calc_coh_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(calc_coh_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        );
+
+    //Window error. Calculate output
+    PAR_JOBS(
+        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        );
+
+    //calculate error_ema_energy for main state
+    PAR_JOBS(
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)),
+        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA))
+        );
+
+    //error -> Error FFT
+    PAR_JOBS(
+        PJOB(fft_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT)),
+        PJOB(fft_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT))
+            );
+
+    //calculate overall_Error and overall_Y
+    PAR_JOBS(
+        PJOB(calc_fd_energy_task, (sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
+        PJOB(calc_fd_energy_task, (sch.par_3_tasks_and_channels[1], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels))
+        );
+
+    //compare and update filters
+    aec_compare_filters_and_calc_mu(
+            main_state,
+            shadow_state);
+
+    //calculate inv_X_energy
+    PAR_JOBS(
+        PJOB(calc_inv_X_energy_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels)),
+        PJOB(calc_inv_X_energy_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels))
+        );
+
+    //Adapt H_hat
+    for(int ych=0; ych<num_y_channels; ych++) {
+        //There's only enough memory to store num_x_channels worth of T data and not num_y_channels*num_x_channels so the y_channels for loop cannot be run in parallel
+        PAR_JOBS(
+            PJOB(calc_T_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych)),
+            PJOB(calc_T_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych))
+            );
+
+        PAR_JOBS(
+            PJOB(filter_adapt_task, (sch.par_2_tasks[0], main_state, shadow_state, AEC_2_TASKS_PASSES, ych)),
+            PJOB(filter_adapt_task, (sch.par_2_tasks[1], main_state, shadow_state, AEC_2_TASKS_PASSES, ych))
+            );
+    }
+    framenum++; 
+}
 
 void update_td_ema_energy_task(par_tasks_and_channels_t* s, aec_state_t *state, int32_t *output, int passes, int channels, enum e_td_ema type) {
     for(int i=0; i<passes; i++) {
@@ -267,199 +393,4 @@ void filter_adapt_task(par_tasks_t *s, aec_state_t *main_state, aec_state_t *sha
             }
         }
     }
-}
-
-#if AEC_THREAD_COUNT < 1 || AEC_THREAD_COUNT > 2
-#error "C app only build for AEC_THREAD_COUNT range [1, 2]"
-#endif
-
-extern schedule_t sch;
-static unsigned X_energy_recalc_bin = 0;
-static int framenum = 0;
-void aec_process_frame(
-        aec_state_t *main_state,
-        aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
-        int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE])    
-{
-    int num_x_channels = main_state->shared_state->num_x_channels;
-    int num_y_channels = main_state->shared_state->num_y_channels;
-
-    aec_frame_init(main_state, shadow_state, y_data, x_data);
-
-    ///calculate input td ema energy
-#if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA);
-#else
-    PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA))
-        );
-#endif
-
-#if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA);
-#else
-    PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA))
-        );
-#endif
-
-#if AEC_THREAD_COUNT == 1
-    fft_task(sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT);
-#else
-    ///Input FFT
-    PAR_JOBS(
-        PJOB(fft_task, (sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT)),
-        PJOB(fft_task, (sch.par_1_tasks_and_channels[1], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT))
-        );
-#endif
-
-#if AEC_THREAD_COUNT == 1
-    fft_task(sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT);
-#else
-    PAR_JOBS(
-        PJOB(fft_task, (sch.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT)),
-        PJOB(fft_task, (sch.par_1_tasks_and_channels[1], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT))
-        );
-#endif
-
-    //Update X_energy
-#if AEC_THREAD_COUNT == 1
-    update_X_energy_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin);
-#else
-    PAR_JOBS(
-        PJOB(update_X_energy_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin)),
-        PJOB(update_X_energy_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin))
-        );
-#endif
-    X_energy_recalc_bin += 1;
-    if(X_energy_recalc_bin == (AEC_PROC_FRAME_LENGTH/2) + 1) {
-        X_energy_recalc_bin = 0;
-    }
-
-    //update X_fifo with the new X and calcualate sigma_XX
-#if AEC_THREAD_COUNT == 1
-    update_X_fifo_task(sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels);
-#else
-    PAR_JOBS(
-        PJOB(update_X_fifo_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels)),
-        PJOB(update_X_fifo_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels))
-        );
-#endif
-
-    //Update the 1 dimensional bfp structs that are also used to access X_fifo
-    aec_update_X_fifo_1d(main_state);
-    aec_update_X_fifo_1d(shadow_state);
-
-    //calculate Error and Y_hat
-#if AEC_THREAD_COUNT == 1
-    calc_Error_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
-#else
-    PAR_JOBS(
-        PJOB(calc_Error_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(calc_Error_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
-        );
-#endif
-    
-    //IFFT Error and Y_hat
-#if AEC_THREAD_COUNT == 1
-    ifft_task(sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels);
-#else
-    PAR_JOBS(
-        PJOB(ifft_task, (sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(ifft_task, (sch.par_3_tasks_and_channels[1], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels))
-        );
-#endif
-
-    //calculate coh and coh_slow 
-#if AEC_THREAD_COUNT == 1
-    calc_coh_task(sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels);
-#else
-    PAR_JOBS(
-        PJOB(calc_coh_task, (sch.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(calc_coh_task, (sch.par_1_tasks_and_channels[1], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels))
-        );
-#endif
-
-    //Window error. Calculate output
-#if AEC_THREAD_COUNT == 1
-    calc_output_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
-#else
-    PAR_JOBS(
-        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(calc_output_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels))
-        );
-#endif
-
-    //calculate error_ema_energy for main state
-#if AEC_THREAD_COUNT == 1
-    update_td_ema_energy_task(sch.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA);
-#else
-    PAR_JOBS(
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)),
-        PJOB(update_td_ema_energy_task, (sch.par_1_tasks_and_channels[1], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA))
-        );
-#endif
-
-    //error -> Error FFT
-#if AEC_THREAD_COUNT == 1
-    fft_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT);
-#else
-    PAR_JOBS(
-        PJOB(fft_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT)),
-        PJOB(fft_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT))
-            );
-#endif
-
-    //calculate overall_Error and overall_Y
-#if AEC_THREAD_COUNT == 1
-    calc_fd_energy_task(sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels);
-#else
-    PAR_JOBS(
-        PJOB(calc_fd_energy_task, (sch.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)),
-        PJOB(calc_fd_energy_task, (sch.par_3_tasks_and_channels[1], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels))
-        );
-#endif
-
-    //compare and update filters
-    aec_compare_filters_and_calc_mu(
-            main_state,
-            shadow_state);
-
-    //calculate inv_X_energy
-#if AEC_THREAD_COUNT == 1
-    calc_inv_X_energy_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels);
-#else
-    PAR_JOBS(
-        PJOB(calc_inv_X_energy_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels)),
-        PJOB(calc_inv_X_energy_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels))
-        );
-#endif
-
-    //Adapt H_hat
-    for(int ych=0; ych<num_y_channels; ych++) {
-        //There's only enough memory to store num_x_channels worth of T data and not num_y_channels*num_x_channels so the y_channels for loop cannot be run in parallel
-#if AEC_THREAD_COUNT == 1
-        calc_T_task(sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych);
-#else
-        PAR_JOBS(
-            PJOB(calc_T_task, (sch.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych)),
-            PJOB(calc_T_task, (sch.par_2_tasks_and_channels[1], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych))
-            );
-#endif
-
-#if AEC_THREAD_COUNT == 1
-        filter_adapt_task(sch.par_2_tasks[0], main_state, shadow_state, AEC_2_TASKS_PASSES, ych);
-#else
-        PAR_JOBS(
-            PJOB(filter_adapt_task, (sch.par_2_tasks[0], main_state, shadow_state, AEC_2_TASKS_PASSES, ych)),
-            PJOB(filter_adapt_task, (sch.par_2_tasks[1], main_state, shadow_state, AEC_2_TASKS_PASSES, ych))
-            );
-#endif
-    }
-    framenum++; 
 }
