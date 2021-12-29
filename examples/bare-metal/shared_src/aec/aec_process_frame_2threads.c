@@ -10,8 +10,8 @@
 
 /* This is a bare-metal example of processing one frame of data through the AEC pipeline stage. This example
  * demonstrates distributing AEC functions across 2 cores in parallel using lib_xcore PAR functionality.
- * Task distribution scheme is defined in aec_task_distribution.c and it's data type task_distribution_t is documented
- * in aec_task_distribution.h.
+ * Task distribution across cores is done using the scheme defined in aec_task_distribution.h and
+ * aec_task_distribution.c
  */
 enum e_td_ema {Y_EMA, X_EMA, ERROR_EMA};
 enum e_fft {Y_FFT, X_FFT, ERROR_FFT};
