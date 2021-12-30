@@ -17,8 +17,7 @@ Repository Structure
 
 * `lib_aec/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/>`_ - The actual ``lib_aec`` library directory.
 
-  * `api/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/api/>`_ - Headers containing the public API for
-  * ``lib_aec``.
+  * `api/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/api/>`_ - Headers containing the public API for ``lib_aec``.
   * `doc/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/doc/>`_ - Library documentation source (for non-embedded documentation) and build directory.
   * `src/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/src/>`_ - Library source code.
 
@@ -26,8 +25,7 @@ Repository Structure
 Requirements
 ------------
 
-``lib_aec`` is included as part of the ``sw_avona`` github repository and doesn't have any any additional requirements
-than the ``sw_avona`` repo.
+``lib_aec`` is included as part of the `sw_avona/ <https://github.com/xmos/sw_avona/tree/develop/>`_ github repository and doesn't have any any additional requirements.
 
 API Structure
 -------------
@@ -51,7 +49,7 @@ This API is still a work in progess and will be fully supported in the future.
 Getting and Building
 ####################
 
-This repo is got and built as part of the parent `sw_avona/ <https://github.com/xmos/sw_avona/tree/develop/>` repo clone and build.
+This repo is got and built as part of the parent `sw_avona/ <https://github.com/xmos/sw_avona/tree/develop/>`_ repo clone and build.
 
 
 
