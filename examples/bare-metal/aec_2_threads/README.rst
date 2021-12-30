@@ -20,4 +20,4 @@ example application using the XCORE-AI-EXPLORER board as a target:
     cd ../../../build
     make aec_2_threads_example
     cd ../examples/bare-metal/aec_2_threads_example
-    python run_xcoreai.py
+    python run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe
