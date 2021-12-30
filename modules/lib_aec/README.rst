@@ -27,7 +27,7 @@ Requirements
 
 ``lib_aec`` is included as part of the `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ github repository
 and all requirements for cloning and building ``sw_avona`` apply. ``lib_aec`` is compiled as a static library as part of
-overall ``sw_avona`` build. It depends on `lib_xs3_math/
+overall ``sw_avona`` build. It depends on `lib_xs3_math
 <https://github.com/xmos/sw_avona/tree/develop/modules/lib_xs3_math/>`_. 
 
 API Structure
