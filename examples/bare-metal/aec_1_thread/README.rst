@@ -21,3 +21,10 @@ example application using the XCORE-AI-EXPLORER board as a target:
     make aec_1_thread_example
     cd ../examples/bare-metal/aec_1_thread
     python run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread_example.xe
+
+Output
+------
+
+The output file output.wav is generated in the directory where the run_xcoreai.py is run. View output.wav and input.wav 
+in Audacity to compare the echo cancelled output against the microphone input.
+
