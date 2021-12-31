@@ -28,8 +28,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     // Ensure configuration is a subset of the maximum configuration the library supports
     assert(AEC_MAX_Y_CHANNELS <= AEC_LIB_MAX_Y_CHANNELS);
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_MAIN_FILTER_PHASES));
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_SHADOW_FILTER_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     
     file_t input_file, output_file;
     // Open input wav file containing mic and ref channels of input data
