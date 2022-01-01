@@ -1,13 +1,13 @@
 ## App name
 set( APP_NAME  test_wav_aec )
 
-# Auto-generate schedule and top level config files
+# Auto-generate task distribution scheme and top level config files
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
 endif()
 
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_schedule.py )
+set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_task_distribution_scheme.py )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
@@ -24,7 +24,7 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC schedule and top level config" )
+COMMENT "Generating AEC task distribution and top level config" )
 
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
