@@ -118,6 +118,8 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe"
+                  // Make sure 1 thread and 2 threads output is bitexact
+                  sh "diff output.wav ../aec_1_thread/output.wav"
                 }
               }
             }
