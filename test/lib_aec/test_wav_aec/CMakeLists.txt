@@ -9,8 +9,8 @@ endif()
 
 set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_schedule.py )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
-set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_schedule.c )
-set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_schedule.h ${AUTOGEN_DIR}/aec_config.h)
+set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
+set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
 message(STATUS "${APP_NAME} build config:  ${TEST_WAV_AEC_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )

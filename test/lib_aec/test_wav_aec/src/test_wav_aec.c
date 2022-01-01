@@ -17,7 +17,7 @@
 #include <limits.h>
 
 #include "aec_config.h"
-#include "aec_schedule.h"
+#include "aec_task_distribution.h"
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_testapp.h"

@@ -17,8 +17,8 @@ foreach( BUILD_CONFIG ${TEST_AEC_PROFILE_BUILD_CONFIG} )
     
     ## Generate schedule for given config
     set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen_${CONFIG_STR} )
-    set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_schedule.c )
-    set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_schedule.h ${AUTOGEN_DIR}/aec_config.h)
+    set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
+    set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
     set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
     unset( GEN_SCHEDULE_SCRIPT_ARGS)
     list( APPEND GEN_SCHEDULE_SCRIPT_ARGS --out-dir ${AUTOGEN_DIR})
