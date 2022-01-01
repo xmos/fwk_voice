@@ -20,7 +20,8 @@ present to build and run this example application using the XCORE-AI-EXPLORER bo
     
     cd ../../../build
     make aec_2_threads_example
-    python run_xcoreai.py bin/aec_2_threads_example.xe
+    cd ../examples/bare-metal/aec_2_threads
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe
 
 Output
 ------

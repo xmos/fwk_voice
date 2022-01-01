@@ -14,10 +14,6 @@ list( APPEND  DEP_LIBS
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
-# Copy run_xcoreai.py and input.wav to the build directory so that example can be run from there as well
-configure_file( run_xcoreai.py run_xcoreai.py COPYONLY )
-configure_file( input.wav input.wav COPYONLY )
-
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
