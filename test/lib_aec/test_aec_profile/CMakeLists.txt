@@ -48,14 +48,19 @@ foreach( BUILD_CONFIG ${TEST_AEC_PROFILE_BUILD_CONFIG} )
     file( GLOB SOURCES_PROF  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
     file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.c )
     file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.xc )
-    file( GLOB SOURCES_C_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/testapp_c/*.c )
+if ( XCORE )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
+else()
+    ## Only 1 thread process_frame() builds for x86
+    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
+endif()
     file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
     file( GLOB_RECURSE AUDIO_TEST_TOOLS_SOURCES ${DEPS_ROOT}/audio_test_tools/audio_test_tools/src/burners.S )
     
     unset( SOURCES )
-    list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${SOURCES_PROF} ${AUTOGEN_SOURCES})
+    list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${SOURCES_PROF} ${AUTOGEN_SOURCES})
     unset( INCLUDES )
-    list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${AUTOGEN_DIR})
+    list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${AUTOGEN_DIR})
 
     # set( XSCOPE_CONFIG config.xscope )
     get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
@@ -84,7 +89,7 @@ foreach( BUILD_CONFIG ${TEST_AEC_PROFILE_BUILD_CONFIG} )
 
     ## 1 thread executable
     set ( EXEC ${APP_NAME}_${CONFIG_STR} )
-    add_executable( ${EXEC} ${SOURCES} ${SOURCES_C_APP} )
+    add_executable( ${EXEC} ${SOURCES} )
 
     target_include_directories( ${EXEC} PRIVATE ${INCLUDES} ${AUTOGEN_DIR})
 

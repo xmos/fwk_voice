@@ -33,7 +33,7 @@ DECLARE_JOB(filter_adapt_task, (par_tasks_t*, aec_state_t*, aec_state_t*, int, i
 extern task_distribution_t tdist;
 static unsigned X_energy_recalc_bin = 0;
 static int framenum = 0;
-void aec_process_frame(
+void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],

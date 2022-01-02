@@ -20,7 +20,7 @@
 #include "aec_task_distribution.h"
 #include "aec_defines.h"
 #include "aec_api.h"
-#include "aec_testapp.h"
+#include "aec_memory_pool.h"
 #include "fileio.h"
 #include "wav_utils.h"
 #include "dump_H_hat.h"
@@ -28,6 +28,22 @@
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif
+
+extern void aec_process_frame_1thread(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+
+extern void aec_process_frame_2threads(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
 
 #define ARG_NOT_SPECIFIED (-1)
 typedef enum {
@@ -46,7 +62,6 @@ int runtime_args[NUM_RUNTIME_ARGS];
 //valid_tokens_str entries and runtime_args_indexes_t need to maintain the same order so that when a runtime argument token string matches index 'i' string in valid_tokens_str, the corresponding
 //value can be updated in runtime_args[i]
 const char *valid_tokens_str[] = {"y_channels", "x_channels", "main_filter_phases", "shadow_filter_phases", "adaption_mode", "force_adaption_mu", "stop_adapting"}; //TODO autogenerate from runtime_args_indexes_t
-
 
 #define MAX_ARGS_BUF_SIZE (1024)
 void parse_runtime_args(int *runtime_args_arr) {
@@ -207,7 +222,13 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         /* Resuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output
          */ 
-        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+#if (AEC_THREAD_COUNT == 1)
+        aec_process_frame_1thread(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+#elif (AEC_THREAD_COUNT == 2)
+        aec_process_frame_2threads(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+#else
+        #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
+#endif
         prof(3, "end_aec_process_frame");
 
         prof(4, "start_aec_estimate_delay");

@@ -15,7 +15,7 @@
 #include "wav_utils.h"
 
 
-extern void aec_process_frame(
+extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
@@ -108,7 +108,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         /* Reuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output.
          */
-        aec_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+        aec_process_frame_1thread(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AEC_MAX_Y_CHANNELS;ch++){

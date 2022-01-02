@@ -41,19 +41,24 @@ list( APPEND TEST_AUTOGEN_INCLUDES ${AUTOGEN_INCLUDES} )
 ## Sources
 file( GLOB SOURCES_C  src/*.c )
 file( GLOB SOURCES_XC src/*.xc )
-file( GLOB SOURCES_C_APP  src/testapp_c/*.c )
-file( GLOB SOURCES_XC_APP  src/testapp_xc/*.xc )
+if ( XCORE )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
+else()
+    ## Only 1 thread process_frame() builds for x86
+    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
+endif()
+
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C}  ${AUTOGEN_SOURCES} )
+list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${AUTOGEN_SOURCES} )
 unset( SOURCES_XCORE )
 list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} )
+list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
@@ -90,22 +95,20 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set( C_APP_EXECUTABLE ${APP_NAME}_c_app )
+add_executable( ${APP_NAME} ${SOURCES} ${SOURCES_C_APP} )
 
-add_executable( ${C_APP_EXECUTABLE} ${SOURCES} ${SOURCES_C_APP} )
+target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
 
-target_include_directories( ${C_APP_EXECUTABLE} PRIVATE ${INCLUDES} )
+target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
-target_link_libraries( ${C_APP_EXECUTABLE} ${DEP_LIBS})
-
-target_compile_options( ${C_APP_EXECUTABLE} PRIVATE ${COMPILE_FLAGS} )
+target_compile_options( ${APP_NAME} PRIVATE ${COMPILE_FLAGS} )
 
 #(because otherwise the set_target_properties command fails)
 string(REPLACE ";" " " LINKER_FLAGS_STR "${LINKER_FLAGS}")
-set_target_properties( ${C_APP_EXECUTABLE} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
+set_target_properties( ${APP_NAME} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
 
 if ( XCORE )
-  set_target_properties( ${C_APP_EXECUTABLE} PROPERTIES
+  set_target_properties( ${APP_NAME} PROPERTIES
       SUFFIX ".xe"
       LINK_DEPENDS  ${XSCOPE_CONFIG}
       )

@@ -11,7 +11,7 @@
  */
 static unsigned X_energy_recalc_bin = 0;
 static int framenum = 0;
-void aec_process_frame(
+void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
