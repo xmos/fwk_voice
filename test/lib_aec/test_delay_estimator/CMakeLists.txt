@@ -1,16 +1,16 @@
 ## App name
 set( APP_NAME  test_delay_estimator )
 
-# Auto-generate schedule and top level config files
+# Auto-generate task distribution scheme and top level config files
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
 endif()
 
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_schedule.py )
+set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_task_distribution_scheme.py )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
-set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_schedule.c )
-set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_schedule.h ${AUTOGEN_DIR}/aec_config.h)
+set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
+set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
 message(STATUS "${APP_NAME} aec build config:  ${TEST_DELAY_ESTIMATOR_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
@@ -24,7 +24,7 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC schedule and top level config" )
+COMMENT "Generating AEC task distribution and top level config" )
 
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
@@ -40,12 +40,17 @@ list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 ## Sources
 file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.c )
 file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.xc )
-file( GLOB SOURCES_C_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/testapp_c/*.c )
+if ( XCORE )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
+else()
+    ## Only 1 thread process_frame() builds for x86
+    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
+endif()
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 file( GLOB_RECURSE AUDIO_TEST_TOOLS_SOURCES ${DEPS_ROOT}/audio_test_tools/audio_test_tools/src/burners.S )
 
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${AUTOGEN_SOURCES} )
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
+list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${AUTOGEN_SOURCES} )
+list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
@@ -73,7 +78,7 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 #########
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-add_executable( ${APP_NAME} ${SOURCES} ${SOURCES_C_APP} )
+add_executable( ${APP_NAME} ${SOURCES} )
 
 target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
 

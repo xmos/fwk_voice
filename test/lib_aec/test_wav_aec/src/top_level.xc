@@ -4,7 +4,7 @@
 #include <xs1.h>
 #include <xscope.h>
 #include <stdlib.h>
-#include "aec_schedule.h"
+#include "aec_task_distribution.h"
 #ifdef __XC__
 #define chanend_t chanend
 #else

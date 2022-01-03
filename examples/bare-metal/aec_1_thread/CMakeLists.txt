@@ -1,30 +1,9 @@
 ## App name
-set( APP_NAME  test_wav_aec )
-
-# Auto-generate task distribution scheme and top level config files
+set( APP_NAME  aec_1_thread_example )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
 endif()
-
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_task_distribution_scheme.py )
-set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
-set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
-set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
-
-message(STATUS "${APP_NAME} build config:  ${TEST_WAV_AEC_BUILD_CONFIG}" )
-set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
-
-unset(GEN_SCHEDULE_SCRIPT_ARGS) 
-list(APPEND GEN_SCHEDULE_SCRIPT_ARGS --out-dir ${AUTOGEN_DIR})
-list(APPEND GEN_SCHEDULE_SCRIPT_ARGS --config ${TEST_WAV_AEC_BUILD_CONFIG})
-
-file(MAKE_DIRECTORY ${AUTOGEN_DIR})
-
-add_custom_command(
-OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
-COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC task distribution and top level config" )
 
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
@@ -35,30 +14,24 @@ list( APPEND  DEP_LIBS
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
-list( APPEND TEST_AUTOGEN_SOURCES ${AUTOGEN_SOURCES} )
-list( APPEND TEST_AUTOGEN_INCLUDES ${AUTOGEN_INCLUDES} )
-
 ## Sources
-file( GLOB SOURCES_C  src/*.c )
+file( GLOB_RECURSE SOURCES_C  src/*.c )
+file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
+file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_1thread.c )
+unset( SOURCES_SHARED )
+list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
 file( GLOB SOURCES_XC src/*.xc )
-if ( XCORE )
-    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
-else()
-    ## Only 1 thread process_frame() builds for x86
-    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
-endif()
-
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${AUTOGEN_SOURCES} )
+list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_SHARED})
 unset( SOURCES_XCORE )
 list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} )
+list( APPEND  INCLUDES src ../shared_src/file_utils ../shared_src/aec )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )

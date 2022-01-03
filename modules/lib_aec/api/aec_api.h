@@ -41,6 +41,8 @@
         uint8_t DWORD_ALIGNED aec_shadow_mem[sizeof(aec_shadow_filt_memory_pool_t)];
         unsigned y_chans = 2, x_chans = 2;
         unsigned main_phases = 10, shadow_phases = 10;
+        // There is one main and one shadow filter per x-y channel pair, so for this example there will be 4 main and 4
+        // shadow filters. Each main filter will have 10 phases and each shadow filter will have 5 phases.
         aec_init(&main_state, &shadow_state, &shared_state, aec_mem, aec_shadow_mem, y_chans, x_chans, main_phases, shadow_phases);
  * @endcode
  */
