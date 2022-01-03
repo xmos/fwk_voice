@@ -7,16 +7,27 @@
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_delay_estimator_control.h"
-    extern void aec_process_frame(
+
+#include "aec_config.h"
+#include "aec_task_distribution.h"
+
+extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
         int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+
+extern void aec_process_frame_2threads(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+
 #include "ap_stage_a_state.h"
-
-
 
 // After aec_init, these values are overwritten to modify convergence behaviour
 //https://github.com/xmos/lib_aec/pull/190
@@ -205,7 +216,14 @@ void ap_stage_a(ap_stage_a_state *state,
     //printf("frame %d\n",framenum);
     int32_t aec_output_main[2][240];
     int32_t aec_output_shadow[2][240];
-    aec_process_frame(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+
+#if (AEC_THREAD_COUNT == 1)
+        aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+#elif (AEC_THREAD_COUNT == 2)
+        aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+#else
+        #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
+#endif
 
     int delay_estimate = aec_estimate_delay(
             &state->aec_main_state.shared_state->delay_estimator_params,
