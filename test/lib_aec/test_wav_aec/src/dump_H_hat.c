@@ -1,7 +1,7 @@
 // Copyright 2017-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "aec_defines.h"
+#include "aec_state.h"
 
 #include <stdio.h>
 #include <math.h>

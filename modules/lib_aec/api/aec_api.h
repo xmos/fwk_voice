@@ -7,12 +7,21 @@
 #include <string.h>
 #include "bfp_math.h"
 #include "xs3_math.h"
+#include "aec_state.h"
+
+/**
+ * @page page_aec_api_h aec_api.h
+ * 
+ * lib_aec public functions API.
+ */
 
 /**
  * @brief Initialise AEC data structures
  *
  * This function initializes AEC data structures for a given configuration.
- * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are passed in as input arguments.
+ * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are
+ * passed in as input arguments. More details about top level AEC configuration are in @ref aec_introduction.
+ *
  * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *
  * @param[inout] main_state               AEC state structure for holding main filter specific state
@@ -27,7 +36,11 @@
  *
  * `main_state`, `shadow_state` and shared_state structures must start at double word aligned addresses.
  *
- * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter processing. Refer to <test/lib_aec/shared_src/aec_memory_pool.h> when statically allocating memory for the memory pool.
+ * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter
+ * processing.  AEC state aec_state_t and shared state aec_shared_state_t structures contain only the BFP data
+ * strcutures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
+ * memory pool main and shadow filters memory pool. An example memory pool structure is present in aec_memory_pool_t and
+ * aec_shadow_filt_memory_pool_t.
  *
  * main_mem_pool and shadow_mem_pool must also start at double word aligned addresses.
  *
@@ -168,7 +181,7 @@ void aec_inverse_fft(
  * 
  * @note
  * @parblock
- * This function implements some speed optimisations which introduce quantisation error. To stop quantisation error build up, in every call of this function, energy for one sample index, which is specified in the `recalc_bin` argument, is recalculated without the optimisations. There are a total of AEC_PROC_FRAME_LENGTH/2+1 samples in the energy vector, so recalc_bin keeps cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2.
+ * This function implements some speed optimisations which introduce quantisation error. To stop quantisation error build up, in every call of this function, energy for one sample index, which is specified in the `recalc_bin` argument, is recalculated without the optimisations. There are a total of AEC_FD_FRAME_LENGTH samples in the energy vector, so recalc_bin keeps cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2.
  * @endparblock
  */
 void aec_calc_X_fifo_energy(
