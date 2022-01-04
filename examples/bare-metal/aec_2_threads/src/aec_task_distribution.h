@@ -2,12 +2,12 @@
 #define aec_task_distribution_h_
 
 /**
- * @brief This header defines the data structures used when distributing tasks across threads.
+ * @page This header defines the data structures used when distributing tasks across threads.
  *
  * The task distribution scheme distributes tasks across threads for 2 scenarios.
- *      1. Distribute multiple unique tasks across multiple threads. Eg. for a 3 tasks, 2 threads configuration,
+ *      1. Distribute multiple unique tasks across multiple threads. For example, for a 3 tasks, 2 threads configuration,
  *         distribute [task0, task1, task2] across [Thread0, Thread1].
- *      2. Distribute multiple (task, channel) pairs across multiple threads. Eg. for a 3 tasks, 2 channels, 2 threads
+ *      2. Distribute multiple (task, channel) pairs across multiple threads. For example. for a 3 tasks, 2 channels, 2 threads
  *      configuration, distribute [(task0, ch0), (task0, ch1), (task1, ch0), (task1, ch1), (task2, ch0), (task2,
  *      ch1)] across [Thread0, Thread1].
  *      Number of channels used when defining the (task, channel) pair is fixed to max(`AEC_MAX_Y_CHANNELS`,
