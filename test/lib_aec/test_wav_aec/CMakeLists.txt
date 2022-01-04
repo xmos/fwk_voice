@@ -47,18 +47,18 @@ else()
     ## Only 1 thread process_frame() builds for x86
     file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
 endif()
-
+file( GLOB SOURCES_FILE_UTILS ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils/*.c ) 
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${AUTOGEN_SOURCES} )
+list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${SOURCES_FILE_UTILS} ${AUTOGEN_SOURCES} )
 unset( SOURCES_XCORE )
 list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} )
+list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils ${AUTOGEN_DIR} )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
