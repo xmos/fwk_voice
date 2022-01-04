@@ -147,9 +147,8 @@ typedef struct {
 /**
  * @brief AEC shared state structure.
  *
- * Data structures holding AEC persistant state that is common between main filter and shadow filter. The aec_state_t
- * instances for main and shadow filter both point to the common aec_shared_state_t structure in
- * aec_state_t::shared_state.
+ * Data structures holding AEC persistant state that is common between main filter and shadow filter.
+ * aec_state_t::shared_state for both main and shadow filter point to the common aec_shared_t structure.
  */
 typedef struct {
     /** BFP array pointing to the reference input spectrum phases. The term \b phase refers to the spectrum data for a
