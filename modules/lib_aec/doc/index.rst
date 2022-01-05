@@ -14,7 +14,7 @@ Introduction
    :caption: Contents:
     
    src/getting_started
-   src/overview
+   src/notes
    src/examples
 
    src/reference/index

@@ -30,9 +30,12 @@ $(DOXYGEN_OUTPUT_DIR)/index.xml: Doxyfile
 	mkdir -p $(DOXYGEN_OUTPUT)
 	doxygen
 
+%.rst: %.md
+	pandoc --from=markdown+tex_math_double_backslash --to=rst --output=$@ $<
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile $(DOXYGEN_OUTPUT_DIR)/index.xml
+html: Makefile $(DOXYGEN_OUTPUT_DIR)/index.xml src/notes.rst
 	$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 livehtml:
