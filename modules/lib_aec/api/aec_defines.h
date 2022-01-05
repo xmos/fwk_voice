@@ -7,7 +7,12 @@
  * @page page_aec_defines_h aec_defines.h
  * 
  * This header contains lib_aec public defines 
+ *
+ * @ingroup aec_header_file
  */
+/**
+ * @defgroup aec_defines   AEC #define constants
+ */ 
 
 /** @brief Maximum number of microphone input channels supported in the library.
  * Microphone input to the AEC refers to the input from the device's microphones from which AEC removes the echo
@@ -19,6 +24,8 @@
  * The `num_y_channels` passed into aec_init() call should be less than or equal to AEC_LIB_MAX_Y_CHANNELS.
  * This define is only used for defining data structures in the aec_state. The library code implementation uses only the
  * num_y_channels aec is initialised for in the aec_init() call.  
+ *
+ * @ingroup aec_defines
  */
 #define AEC_LIB_MAX_Y_CHANNELS (2)
 
@@ -32,20 +39,30 @@
  * The `num_x_channels` passed into aec_init() call should be less than or equal to AEC_LIB_MAX_X_CHANNELS.
  * This define is only used for defining data structures in the aec_state. The library code implementation uses only the
  * num_x_channels aec is initialised for in the aec_init() call.  
+ *
+ * @ingroup aec_defines
  */
 #define AEC_LIB_MAX_X_CHANNELS (2)
 
 /** @brief AEC frame size
  * This is the number of samples of new data that the AEC works on every frame. 240 samples at 16kHz is 15msec. Every
  * frame, the echo canceller takes in 15msec of mic and reference data and generates 15msec of echo cancelled output.
+ *
+ * @ingroup aec_defines
  */
 #define AEC_FRAME_ADVANCE (240)
 
-/** Time domain samples block length used internally in AEC's block LMS algorithm*/
+/** Time domain samples block length used internally in AEC's block LMS algorithm
+ *
+ * @ingroup aec_defines
+ */
 #define AEC_PROC_FRAME_LENGTH (512)
 
 /** Number of bins of spectrum data computed when doing a DFT of a AEC_PROC_FRAME_LENGTH length time domain vector. The
- * AEC_FD_FRAME_LENGTH spectrum values represent the bins from DC to Nyquist.*/   
+ * AEC_FD_FRAME_LENGTH spectrum values represent the bins from DC to Nyquist.
+ *
+ * @ingroup aec_defines
+ */   
 #define AEC_FD_FRAME_LENGTH ((AEC_PROC_FRAME_LENGTH / 2) + 1)
 
 /** @brief Maximum total number of phases supported in the AEC library 
@@ -61,10 +78,15 @@
  *
  * This define is only used when defining data structures within the AEC state structure. The AEC algorithm
  * implementation uses the num_main_filter_phases and num_shadow_filter_phases values that are passed into aec_init().
+ *
+ * @ingroup aec_defines
  */
 #define AEC_LIB_MAX_PHASES (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * 10)
 
-/** Overlap data length*/
+/** Overlap data length
+ *
+ * @ingroup aec_defines
+ */
 #define UNUSED_TAPS_PER_PHASE (16)
 
 

@@ -1,0 +1,20 @@
+/* 
+
+dl.c.function, 
+dl.c.struct, 
+dl.c.type, 
+dl.c.enum {
+  border-bottom: 2px solid #000;
+  margin-bottom: 1em;
+}
+
+*/
+
+dl.c.function, 
+dl.c.struct, 
+dl.c.macro, 
+dl.c.type, 
+dl.c.enum,
+div.docutils.container {
+  background: #f8f8f8;
+} 

@@ -12,15 +12,27 @@
 /**
  * @page page_aec_state_h aec_state.h
  * 
- * This header contains definitions for the state structure used in lib_aec.
+ * This header contains definitions for data structures and enums used in lib_aec.
+ *
+ * @ingroup aec_header_file
  */
 
+/**
+ * @defgroup aec_types   AEC Data Structure and Enum Definitions
+ */ 
+
+/**
+ * @ingroup aec_types
+ */
 typedef enum {
     AEC_ADAPTION_AUTO, ///< Compute filter adaption config every frame
     AEC_ADAPTION_FORCE_ON, ///< Filter adaption always ON
     AEC_ADAPTION_FORCE_OFF, ///< Filter adaption always OFF
 } aec_adaption_e;
 
+/**
+ * @ingroup aec_types
+ */
 typedef enum {
     LOW_REF = -4,    ///< Not much reference so no point in acting on AEC filter logic
     ERROR = -3,      ///< something has gone wrong, zero shadow filter
@@ -31,6 +43,9 @@ typedef enum {
     COPY = 2,        ///< shadow filter much better, copy to main
 }shadow_state_e;
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     /** Update rate of `coh`.*/
     float_s32_t coh_alpha;
@@ -57,6 +72,9 @@ typedef struct {
     int32_t force_adaption_mu_q30;
 } coherence_mu_config_params_t;
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     /** threshold for resetting sigma_XX.*/
     float_s32_t shadow_sigma_thresh;
@@ -77,6 +95,9 @@ typedef struct {
     int32_t shadow_reset_timer;
 }shadow_filt_config_params_t;
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     /** bypass AEC flag.*/
     int bypass;
@@ -95,7 +116,10 @@ typedef struct {
     fixed_s32_t ema_alpha_q30;
 }aec_core_config_params_t;
 
-/** Hanning window structure used in the windowing operation done to remove discontinuities from the filter error*/
+/** Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
+ *
+ * @ingroup aec_types
+ */
 typedef struct{
     int32_t window_mem[32];
     int32_t window_flpd_mem[32];
@@ -107,6 +131,7 @@ typedef struct{
  * @brief AEC control parameters.
  *
  * This structure contains control parameters that the user can modify at run time.
+ * @ingroup aec_types
  */
 typedef struct {
     /** Coherence mu related control params.*/
@@ -119,6 +144,9 @@ typedef struct {
     aec_window_t aec_window;
 }aec_config_params_t;
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     float_s32_t coh; ///< Moving average coherence
     float_s32_t coh_slow; ///< Slow moving average coherence
@@ -129,12 +157,18 @@ typedef struct {
 }coherence_mu_params_t;
 
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     int32_t shadow_flag[AEC_LIB_MAX_Y_CHANNELS]; ///< shadow_state_e enum indicating shadow filter status
     int shadow_reset_count[AEC_LIB_MAX_Y_CHANNELS]; ///< counter for tracking shadow filter resets
     int shadow_better_count[AEC_LIB_MAX_Y_CHANNELS]; ///< counter for tracking shadow filter copy to main filter
 }shadow_filter_params_t;
 
+/**
+ * @ingroup aec_types
+ */
 typedef struct {
     int32_t peak_power_phase_index; ///< H_hat phase index with the maximum energy
     float_s32_t peak_phase_power; ///< Maximum energy across all H_hat phases
@@ -149,7 +183,10 @@ typedef struct {
  *
  * Data structures holding AEC persistant state that is common between main filter and shadow filter.
  * aec_state_t::shared_state for both main and shadow filter point to the common aec_shared_t structure.
+ *
+ * @ingroup aec_types
  */
+ //! [aec_shared_state_t]
 typedef struct {
     /** BFP array pointing to the reference input spectrum phases. The term \b phase refers to the spectrum data for a
      * frame. Multiple phases means multiple frames of data.
@@ -233,13 +270,17 @@ typedef struct {
      * aec_init() gets called with.*/
     unsigned num_x_channels;
 }aec_shared_state_t;
+//! [aec_shared_state_t]
 
 /**
  * @brief AEC state structure.
  *
  * Data structures holding AEC persistant state. There are 2 instances of aec_state_t maintained within AEC; one for
  * main filter and one for shadow filter specific state.
+ *
+ * @ingroup aec_types
  */
+//! [aec_state_t]
 typedef struct {
     /** BFP array pointing to estimated mic signal spectrum. The Y_data data values are stored as length
      * AEC_FD_FRAME_LENGTH, complex 32bit array per y channel.*/
@@ -326,5 +367,6 @@ typedef struct {
      * for, passed in aec_init() call.*/
     unsigned num_phases; 
 }aec_state_t;
+//! [aec_state_t]
 
 #endif
