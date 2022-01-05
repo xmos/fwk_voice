@@ -6,7 +6,8 @@ Overview
 
 ``lib_aec`` is a library which provides functions that can be put together to perform Automatic Echo Cancellation (AEC)
 on input mic data using the input reference data to model the room echo characteristics. ``lib_aec`` library functions
-make use of functionality provided in ``lib_xs3_math`` to perform DSP operations.
+make use of functionality provided in ``lib_xs3_math`` to perform DSP operations. For more details refer to
+:ref:`aec_overview`.
 
 Repository Structure
 --------------------
