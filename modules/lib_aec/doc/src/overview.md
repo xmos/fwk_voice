@@ -1,9 +1,4 @@
 
-Notes for lib_aec                         {#notes}
-======================
-
-### &nbsp;
-
 ### AEC Overview ###              {#aec_overview}
 
 The lib_aec library provides functions that can be put together to perform Automatic Echo Cancellation on input
