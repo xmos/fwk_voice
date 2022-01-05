@@ -13,9 +13,13 @@
 void ic_init(ic_state_t *state);
 
 //Some nice doxygen comments
-void ic_process_frame(ic_state_t *state,
+void ic_filter(ic_state_t *state,
                       int32_t y_data[IC_FRAME_ADVANCE],
                       int32_t x_data[IC_FRAME_ADVANCE],
+                      int32_t output[IC_FRAME_ADVANCE]);
+
+//Some nice doxygen comments
+void ic_adapt(ic_state_t *state,
                       uint8_t vad,
                       int32_t output[IC_FRAME_ADVANCE]);
 

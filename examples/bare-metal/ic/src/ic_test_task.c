@@ -149,13 +149,21 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         //         main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_OFF;
         //     }
         // }
-        prof(2, "start_ic_process_frame");
+        prof(2, "start_ic_filter");
         // Call IC functions to process IC_FRAME_ADVANCE new samples of data
         /* Resuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output
          */ 
-        ic_process_frame(&state,  frame_y, frame_x, 255, output);
-        prof(3, "end_ic_process_frame");
+        ic_filter(&state,  frame_y, frame_x, output);
+        prof(3, "end_ic_filter");
+
+        prof(4, "start_vad_estimate");
+        uint8_t vad = 255;
+        prof(5, "end_vad_estimate");
+
+        prof(6, "start_ic_adapt");
+        ic_adapt(&state, vad, output);
+        prof(7, "end_ic_adapt");
 
         // char strbuf[100];
         // sprintf(strbuf, "%d\n", delay);

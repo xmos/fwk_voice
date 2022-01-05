@@ -110,20 +110,18 @@ void ic_init(ic_state_t *state){
 
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
-            mu[ych][xch] = IC_INIT_MU;
+            state->mu[ych][xch] = IC_INIT_MU;
         }
     }
-
 
     //Initialise ic config params
     // ic_priv_init_config_params(&state->config_params);
 }
 
-void ic_process_frame(
+void ic_filter(
         ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE],
         int32_t x_data[IC_FRAME_ADVANCE],
-        uint8_t vad,
         int32_t output[IC_FRAME_ADVANCE])
 {
 
@@ -211,6 +209,14 @@ void ic_process_frame(
         ic_create_output(state, output, ch);
     }
     printf("ic_create_output\n");
+}
+
+
+void ic_adapt(
+        ic_state_t *state,
+        uint8_t vad,
+        int32_t output[IC_FRAME_ADVANCE]){
+
 
     //Process vad input
     ic_update_vad_history(state, output, &vad);
@@ -273,5 +279,4 @@ void ic_process_frame(
         ic_apply_leakage(state, ych);
         printf("ic_apply_leakage\n");
     }
-
 }

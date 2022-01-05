@@ -321,7 +321,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         mu = zero;
     } else {
         state->ic_adaption_controller_state.leakage_alpha = one;
-        mu = mu;
+        // mu = mu;
     }
     printf("mu: %f\n", ldexp(mu.mant, mu.exp));
 
