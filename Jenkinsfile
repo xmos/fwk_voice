@@ -144,7 +144,7 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
                   }
