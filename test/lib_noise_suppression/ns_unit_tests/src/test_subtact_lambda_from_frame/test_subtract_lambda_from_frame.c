@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <xs3_math.h>
 #include <bfp_init.h>
+#include <bfp_s32.h>
 #include <math.h>
 
 #include <suppression.h>
@@ -63,7 +64,7 @@ TEST(ns_subtract_lambda_from_frame, case0){
 
     for(int i = 0; i < 100; i++){
 
-        suppression_state_t state;
+        sup_state_t state;
         sup_init_state(&state);
 
         float_s32_t t;
@@ -97,8 +98,9 @@ TEST(ns_subtract_lambda_from_frame, case0){
         }
 
         bfp_s32_t abs_Y_bfp;
-        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 1);
         state.lambda_hat.data = &lambda_int[0];
+        bfp_s32_headroom(&state.lambda_hat);
 
         ns_subtract_lambda_from_frame(&abs_Y_bfp, &state);
 
@@ -120,7 +122,7 @@ TEST(ns_subtract_lambda_from_frame, case0){
         }
 
         double rel_error = fabs(abs_diff/(expected[id] + ldexp(1, -40)));
-        double thresh = ldexp(1, -27);
+        double thresh = ldexp(1, -28);
         TEST_ASSERT(rel_error < thresh);
     }
 }

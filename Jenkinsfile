@@ -168,12 +168,9 @@ pipeline {
             }
           }
         }
-<<<<<<< HEAD
-        stage('IC ic_unit_tests') {
-=======
-        stage('Noise Suppression ns_unit_tests') {
+        stage('NS performance tests') {
           steps {
-            dir("${REPO}/build/test/lib_noise_supression/ns_unit_tests") {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -183,8 +180,31 @@ pipeline {
             }
           }
         }
-        stage('Meta Data tests') {
->>>>>>> adding ns_unit_tests
+        stage('NS sup_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS ns_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
               viewEnv() {

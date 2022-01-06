@@ -8,9 +8,7 @@
 #include <bfp_s32.h>
 #include <stdio.h>
 
-//#include <suppression.h>
 #include <suppression_state.h>
-//#include <suppression_conf.h>
 #include <suppression_ns.h>
 #include <suppression_testing.h>
 
@@ -36,11 +34,12 @@ void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
     for (int v = 0; v < dst->length; v++){
         dst->data[v] = (src1->data[v] <= src2->data[v]) ? src1->data[v] : src2->data[v];
     }
+    bfp_s32_headroom(dst);
 }
 
 //S = alpha_s*S + (1.0-alpha_s)*(abs(Y)**2)
 void ns_update_S(bfp_s32_t * abs_Y,
-        suppression_state_t *state){
+        sup_state_t *state){
     int32_t scratch[SUP_PROC_FRAME_BINS];
     bfp_s32_t tmp;
     bfp_s32_init(&tmp, scratch, INT_MAX, state->S.length, 0);
@@ -57,7 +56,7 @@ void ns_update_S(bfp_s32_t * abs_Y,
 //    S_r = S/S_min
 //    I = S_r > delta
 //    p = alpha_p * p + (1.0 - alpha_p) * I
-void ns_update_p(suppression_state_t * state){
+void ns_update_p(sup_state_t * state){
 
     bfp_s32_t tmp;
     float_s32_t t;
@@ -74,8 +73,8 @@ void ns_update_p(suppression_state_t * state){
     }
 
     tmp.exp = INT_EXP;
-    tmp.hr = 0;
     tmp.data = &one_zero[0];
+    tmp.hr = bfp_s32_headroom(&tmp);
 
     t = float_s32_sub(float_to_float_s32(1.0), state->alpha_p);
 
@@ -86,42 +85,31 @@ void ns_update_p(suppression_state_t * state){
 }
 
 //    alpha_d_tilde = alpha_d + (1.0 - alpha_d) * p
-void ns_update_alpha_d_tilde(suppression_state_t * state){
+void ns_update_alpha_d_tilde(sup_state_t * state){
     bfp_s32_t tmp;
     float_s32_t t;
     int32_t scratch [SUP_PROC_FRAME_BINS];
-    
-    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-        scratch[v] = state->p.data[v];
-    }
-    //tmp.exp = state->p.exp;
-    //tmp.hr = state->p.hr;
 
     bfp_s32_init(&tmp, scratch, state->p.exp, state->p.length, 0);
 
     t = float_s32_sub(float_to_float_s32(1.0), state->alpha_d);
 
-    bfp_s32_scale(&tmp, &tmp, t);
+    bfp_s32_scale(&tmp, &state->p, t);
 
     bfp_s32_add_scalar(&state->alpha_d_tilde, &tmp, state->alpha_d);
 }
 
 //    lambda_hat = alpha_d_tilde[i]*lambda_hat + (1.0 - alpha_d_tilde)*np.square(np.absolute(Y))
-void ns_update_lambda_hat(bfp_s32_t * abs_Y, suppression_state_t * state){
+void ns_update_lambda_hat(bfp_s32_t * abs_Y, sup_state_t * state){
     bfp_s32_t tmp1, tmp2;
     int32_t scratch1 [SUP_PROC_FRAME_BINS];
-    int32_t scratch2 [SUP_PROC_FRAME_BINS] = {0};
+    int32_t scratch2 [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&tmp1, scratch1, INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_init(&tmp2, scratch2, INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     bfp_s32_mul(&tmp1, abs_Y, abs_Y);
 
-    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-        scratch2[v] = state->alpha_d_tilde.data[v];
-    }
-    tmp2.exp = state->alpha_d_tilde.exp;
-
-    bfp_s32_scale(&tmp2, &tmp2, float_to_float_s32(- 1.0));
+    bfp_s32_scale(&tmp2, &state->alpha_d_tilde, float_to_float_s32(- 1.0));
 
     bfp_s32_add_scalar(&tmp2, &tmp2, float_to_float_s32(1.0));
     bfp_s32_mul(&tmp1, &tmp1, &tmp2);
@@ -129,7 +117,7 @@ void ns_update_lambda_hat(bfp_s32_t * abs_Y, suppression_state_t * state){
     bfp_s32_add(&state->lambda_hat, &state->lambda_hat, &tmp1);
 }
 
-int ns_update_and_test_reset(suppression_state_t * state){
+int ns_update_and_test_reset(sup_state_t * state){
     unsigned count = state->reset_counter;
     count += SUP_FRAME_ADVANCE;
     if(count > state->reset_period){
@@ -162,7 +150,7 @@ const int32_t LUT[LUT_SIZE] = {
 31952,  24786,  19227,  14914,  
 };
 
-void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, suppression_state_t * state){
+void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, sup_state_t * state){
     bfp_s32_t sqrt_lambda, tmp, comp;
     int32_t scratch1 [SUP_PROC_FRAME_BINS];
     int32_t scratch2 [SUP_PROC_FRAME_BINS];
@@ -171,13 +159,7 @@ void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, suppression_state_t * stat
     bfp_s32_init(&sqrt_lambda, scratch1, INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_init(&tmp, scratch2, INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
-    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-        sqrt_lambda.data[v] = state->lambda_hat.data[v];
-    }
-    sqrt_lambda.exp = state->lambda_hat.exp;
-
-    //bfp_s32_sqrt(&sqrt_lambda, &state->lambda_hat);
-    bfp_s32_sqrt(&sqrt_lambda, &sqrt_lambda);
+    bfp_s32_sqrt(&sqrt_lambda, &state->lambda_hat);
 
     bfp_s32_scale(&sqrt_lambda, &sqrt_lambda, float_to_float_s32(0.25));
 
@@ -186,7 +168,7 @@ void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, suppression_state_t * stat
 
     t = bfp_s32_min(&tmp);
     t_data = t.mant;
-    bfp_s32_init(&comp, &t_data, INT_EXP, 1, 0);
+    bfp_s32_init(&comp, &t_data, t.exp, 1, 1);
     bfp_s32_use_exponent(&comp, 0);
 
     int32_t index = (comp.data[0] < (LUT_SIZE - 1)) ? comp.data[0] : (LUT_SIZE - 1);
@@ -204,7 +186,7 @@ void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, suppression_state_t * stat
  * Y_exp is the exponent of abs_Y
  *
  */
-void ns_process_frame(bfp_s32_t * abs_Y, suppression_state_t * state){
+void ns_process_frame(bfp_s32_t * abs_Y, sup_state_t * state){
 
     ns_update_S(abs_Y, state);
 

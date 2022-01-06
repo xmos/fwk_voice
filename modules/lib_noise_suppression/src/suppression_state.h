@@ -1,12 +1,10 @@
-// Copyright 2018-2021 XMOS LIMITED.
+// Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef SUP_STATE_H
 #define SUP_STATE_H
 
 #include <suppression_conf.h>
-//#include <suppression_window.h>
-
-//#define SUP_SQRT_HANN_LUT           sqrt_hanning_480
+#include <xs3_math_types.h>
 
 typedef struct {
 
@@ -42,8 +40,6 @@ typedef struct {
     unsigned reset_period;
     unsigned reset_counter;
 
-} suppression_state_t;
-
-//#include "suppression_control.h"
+} sup_state_t;
 
 #endif

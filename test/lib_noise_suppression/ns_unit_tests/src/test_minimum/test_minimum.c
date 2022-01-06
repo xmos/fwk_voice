@@ -56,15 +56,13 @@ TEST(ns_minimum, case0){
             S_tmp_fl.exp = INT_EXP + 2;
             S_tmp_db[v] = float_s32_to_double(S_tmp_fl);
 
-            S_min_int[v] = 0;
-
             if (S_tmp_db[v] < S_db[v]){expected[v] = S_tmp_db[v];}
             else{expected[v] = S_db[v];}
         }
 
         bfp_s32_t S_bfp, S_tmp_bfp, S_min_bfp;
-        bfp_s32_init(&S_bfp, S_int, INT_EXP, SUP_PROC_FRAME_BINS, 0);
-        bfp_s32_init(&S_tmp_bfp, S_tmp_int, INT_EXP + 2, SUP_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&S_bfp, S_int, INT_EXP, SUP_PROC_FRAME_BINS, 1);
+        bfp_s32_init(&S_tmp_bfp, S_tmp_int, INT_EXP + 2, SUP_PROC_FRAME_BINS, 1);
         bfp_s32_init(&S_min_bfp, S_min_int, INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
         ns_adjust_exp(&S_min_bfp, &S_tmp_bfp, &S_bfp);
@@ -88,7 +86,7 @@ TEST(ns_minimum, case0){
         }
 
         double rel_error = fabs(abs_diff/expected[id]);
-        double thresh = ldexp(1, -28);
+        double thresh = ldexp(1, -30);
         TEST_ASSERT(rel_error < thresh);
     }
 }

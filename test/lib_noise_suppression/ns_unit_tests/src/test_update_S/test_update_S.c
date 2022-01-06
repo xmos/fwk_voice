@@ -43,7 +43,7 @@ TEST(ns_update_S, case0){
 
     for(int i = 0; i < 100; i++){
 
-        suppression_state_t state;
+        sup_state_t state;
         sup_init_state(&state);
         alpha_s_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
         alpha_s_fl.exp = EXP;
@@ -62,7 +62,7 @@ TEST(ns_update_S, case0){
         }
 
         bfp_s32_t abs_Y_bfp;
-        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 1);
 
         ns_update_S(&abs_Y_bfp, &state);
 

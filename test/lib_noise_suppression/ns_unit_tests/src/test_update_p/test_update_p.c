@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <xs3_math.h>
 #include <bfp_init.h>
+#include <bfp_s32.h>
 
 #include <suppression.h>
 #include <suppression_testing.h>
@@ -50,7 +51,7 @@ TEST(ns_update_p, case0){
 
     for(int i = 0; i < 100; i++){
 
-        suppression_state_t state;
+        sup_state_t state;
         sup_init_state(&state);
         
         alpha_p_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
@@ -86,7 +87,9 @@ TEST(ns_update_p, case0){
         }
 
         state.S.data = &S_int[0];
+        bfp_s32_headroom(&state.S);
         state.S_min.data = &S_min_int[0];
+        bfp_s32_headroom(&state.S_min);
 
         ns_update_p(&state);
 

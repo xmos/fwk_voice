@@ -1,4 +1,7 @@
-
+// Copyright 2021 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
+#ifndef suppression_test_h_
+#define suppression_test_h_
 
 #include <suppression_state.h>
 #include <xs3_math_types.h>
@@ -8,8 +11,6 @@
  * new_mag is a complex array of length length
  * original_mag is a complex array of length length
  */
-
-//void sup_rescale(dsp_complex_t &Y, uint32_t new_mag, uint32_t original_mag);
 void sup_rescale_vector(bfp_complex_s32_t * Y,
                         bfp_s32_t * new_mag,
                         bfp_s32_t * orig_mag);
@@ -30,22 +31,24 @@ void sup_apply_window(bfp_s32_t * input,
 void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap);
 
 void ns_update_S(bfp_s32_t * abs_Y,
-        suppression_state_t * state);
+        sup_state_t * state);
 
 void ns_minimum(bfp_s32_t * dst,
                 bfp_s32_t * src1, 
                 bfp_s32_t * src2);
 
-void ns_update_p(suppression_state_t * state);
+void ns_update_p(sup_state_t * state);
 
-void ns_update_alpha_d_tilde(suppression_state_t * state);
+void ns_update_alpha_d_tilde(sup_state_t * state);
 
 void ns_update_lambda_hat(bfp_s32_t * abs_Y, 
-                        suppression_state_t * state);
+                        sup_state_t * state);
 
-int ns_update_and_test_reset(suppression_state_t * state);
+int ns_update_and_test_reset(sup_state_t * state);
 
 void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, 
-                                suppression_state_t * state);
+                                sup_state_t * state);
 
 void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main);
+
+#endif
