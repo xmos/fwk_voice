@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "aec_defines.h"
 #include "aec_api.h"
 
 #include "aec_config.h"

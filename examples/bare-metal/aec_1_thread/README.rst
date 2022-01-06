@@ -12,8 +12,8 @@ Echo cancelled version of the mic input is generated as the AEC output and writt
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the current directory where this README is
-present to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+After configuring the CMake project, the following commands can be used from the
+`sw_avona/examples/bare-metal/aec_1_thread` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     
@@ -25,6 +25,6 @@ present to build and run this example application using the XCORE-AI-EXPLORER bo
 Output
 ------
 
-The output file output.wav is generated in the directory where run_xcoreai.py is run. View output.wav and input.wav 
+The output file output.wav is generated in the `sw_avona/examples/bare-metal/aec_1_thread` directory. View output.wav and input.wav 
 in Audacity to compare the echo cancelled output against the microphone input.
 

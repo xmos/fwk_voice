@@ -7,12 +7,28 @@
 #include <string.h>
 #include "bfp_math.h"
 #include "xs3_math.h"
+#include "aec_state.h"
+
+/**
+ * @page page_aec_api_h aec_api.h
+ * 
+ * lib_aec public functions API.
+ *
+ * @ingroup aec_header_file
+ */
+
+/**
+ * @defgroup aec_func     High Level API Functions
+ * @defgroup aec_low_level_func   Low Level API Functions (STILL WIP)
+ */ 
 
 /**
  * @brief Initialise AEC data structures
  *
  * This function initializes AEC data structures for a given configuration.
- * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are passed in as input arguments.
+ * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are
+ * passed in as input arguments. More details about top level AEC configuration are in @ref aec_overview.
+ *
  * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *
  * @param[inout] main_state               AEC state structure for holding main filter specific state
@@ -27,7 +43,11 @@
  *
  * `main_state`, `shadow_state` and shared_state structures must start at double word aligned addresses.
  *
- * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter processing. Refer to <test/lib_aec/shared_src/aec_memory_pool.h> when statically allocating memory for the memory pool.
+ * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter
+ * processing.  AEC state aec_state_t and shared state aec_shared_state_t structures contain only the BFP data
+ * strcutures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
+ * memory pool main and shadow filters memory pool. An example memory pool structure is present in aec_memory_pool_t and
+ * aec_shadow_filt_memory_pool_t.
  *
  * main_mem_pool and shadow_mem_pool must also start at double word aligned addresses.
  *
@@ -45,6 +65,8 @@
         // shadow filters. Each main filter will have 10 phases and each shadow filter will have 5 phases.
         aec_init(&main_state, &shadow_state, &shared_state, aec_mem, aec_shadow_mem, y_chans, x_chans, main_phases, shadow_phases);
  * @endcode
+ *
+ * @ingroup aec_func
  */
 void aec_init(
         aec_state_t *main_state,
@@ -74,6 +96,8 @@ void aec_init(
  * @parblock
  * y_data and x_data buffers memory is free to be reused after this function call.
  * @endparblock
+ *
+ * @ingroup aec_func
  */
 void aec_frame_init(
         aec_state_t *main_state,
@@ -88,6 +112,8 @@ void aec_frame_init(
  *
  * @param[out] fd_energy energy of the input spectrum
  * @param[in] input input spectrum BFP structure
+ *
+ * @ingroup aec_func
  */
 void aec_calc_freq_domain_energy(
         float_s32_t *fd_energy,
@@ -105,6 +131,8 @@ void aec_calc_freq_domain_energy(
  * @param[in] start_offset  offset in the input vector from where to start calculating EMA energy
  * @param[in] length        length over which to calculate EMA energy
  * @param[in] conf          AEC configuration parameters.
+ *
+ * @ingroup aec_func
  */
 void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
@@ -129,6 +157,8 @@ void aec_calc_time_domain_ema_energy(
  * This means that `input->data` should point to a buffer of length `input->length`+2
  *
  * After this function `input->data` and `output->data` point to the same memory address.
+ *
+ * @ingroup aec_func
  */
 void aec_forward_fft(
         bfp_complex_s32_t *output,
@@ -147,6 +177,8 @@ void aec_forward_fft(
  *  @param[in] input inverse DFT input BFP structure
  *
  *  After this function `input->data` and `output->data` point to the same memory address.
+ *
+ * @ingroup aec_func
  */
 void aec_inverse_fft(
         bfp_s32_t *output,
@@ -168,8 +200,10 @@ void aec_inverse_fft(
  * 
  * @note
  * @parblock
- * This function implements some speed optimisations which introduce quantisation error. To stop quantisation error build up, in every call of this function, energy for one sample index, which is specified in the `recalc_bin` argument, is recalculated without the optimisations. There are a total of AEC_PROC_FRAME_LENGTH/2+1 samples in the energy vector, so recalc_bin keeps cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2.
+ * This function implements some speed optimisations which introduce quantisation error. To stop quantisation error build up, in every call of this function, energy for one sample index, which is specified in the `recalc_bin` argument, is recalculated without the optimisations. There are a total of AEC_FD_FRAME_LENGTH samples in the energy vector, so recalc_bin keeps cycling through indexes 0 to AEC_PROC_FRAME_LENGTH/2.
  * @endparblock
+ *
+ * @ingroup aec_func
  */
 void aec_calc_X_fifo_energy(
         aec_state_t *state,
@@ -184,6 +218,8 @@ void aec_calc_X_fifo_energy(
  *
  * @param[inout] state AEC state structure. state->shared_state->X_fifo[ch] and state->shared_state->sigma_XX[ch] are updated.
  * @param[in] ch X channel index for which to update X FIFO
+ *
+ * @ingroup aec_func
  */
 void aec_update_X_fifo_and_calc_sigmaXX(
         aec_state_t *state,
@@ -198,6 +234,8 @@ void aec_update_X_fifo_and_calc_sigmaXX(
  *
  * @param[inout] state AEC state structure. state->Error[ch] and state->Y_hat[ch] are updated
  * @param[in] ch mic channel index for which to compute Error and Y_hat
+ *
+ * @ingroup aec_func
  */
 void aec_calc_Error_and_Y_hat(
         aec_state_t *state,
@@ -212,6 +250,8 @@ void aec_calc_Error_and_Y_hat(
  *
  * @param[inout] state AEC state structure. `state->shared_state->coh_mu_state[ch].coh` and `state->shared_state->coh_mu_state[ch].coh_slow` are updated
  * @param[in] ch mic channel index for which to calculate average coherence
+ *
+ * @ingroup aec_func
  */
 void aec_calc_coherence(
         aec_state_t *state,
@@ -226,6 +266,8 @@ void aec_calc_coherence(
  * @param[inout] state AEC state structure. `state->error[ch]`
  * @param[out] output pointer to the output buffer
  * @param[in] ch mic channel index for which to calculate output
+ *
+ * @ingroup aec_func
  *
  */
 void aec_calc_output(
@@ -244,6 +286,8 @@ void aec_calc_output(
  * @param[inout] state AEC state structure. state->inv_X_energy[ch] is updated
  * @param[in] ch reference channel index for which to calculate normalisation spectrum
  * @param[in] is_shadow flag indicating filter type. 0: Main filter, 1: Shadow filter
+ *
+ * @ingroup aec_func
  */
 void aec_calc_normalisation_spectrum(
         aec_state_t *state,
@@ -259,6 +303,8 @@ void aec_calc_normalisation_spectrum(
  *
  * @param[inout] main_state AEC state structure for the main filter
  * @param[inout] shadow_state AEC state structure for the shadow filter
+ *
+ * @ingroup aec_func
  */
 void aec_compare_filters_and_calc_mu(
         aec_state_t *main_state,
@@ -273,6 +319,8 @@ void aec_compare_filters_and_calc_mu(
  * @param[inout] state AEC state structure. `state->T[x_ch]` is updated
  * @param[in] y_ch mic channel index
  * @param[in] x_ch reference channel index
+ *
+ * @ingroup aec_func
  */
 void aec_calc_T(
         aec_state_t *state,
@@ -287,6 +335,8 @@ void aec_calc_T(
  * @param[inout] state AEC state structure. `state->H_hat[y_ch]` is updated
  * @param[in] y_ch mic channel index
  *
+ * @ingroup aec_func
+ *
  */
 void aec_filter_adapt(
         aec_state_t *state,
@@ -299,6 +349,8 @@ void aec_filter_adapt(
  * After the X FIFO is updated with the current X frame, this function is called in order to copy the 2 dimensional BFP structure into it's 1 dimensional counterpart.
  *
  * @param[inout] state AEC state structure. `state->X_fifo_1d` is updated
+ *
+ * @ingroup aec_func
  *
  */
 void aec_update_X_fifo_1d(
@@ -315,7 +367,11 @@ int aec_estimate_delay (
 
 
 //TODO pending documentation and examples for L2 APIs
-//Calculate Error and Y_hat for a channel over a range of bins
+/**
+ * @brief Calculate Error and Y_hat for a channel over a range of bins.
+ *
+ * @ingroup aec_low_level_func
+ */
 void aec_l2_calc_Error_and_Y_hat(
         bfp_complex_s32_t *Error,
         bfp_complex_s32_t *Y_hat,
@@ -328,14 +384,22 @@ void aec_l2_calc_Error_and_Y_hat(
         unsigned length,
         int32_t bypass_enabled);
 
-//Adapt one phase of the adaptive filter
+/**
+ * @brief Adapt one phase of the adaptive filter
+ *
+ * @ingroup aec_low_level_func
+ */
 void aec_l2_adapt_plus_fft_gc(
         bfp_complex_s32_t *H_hat_ph,
         const bfp_complex_s32_t *X_fifo_ph,
         const bfp_complex_s32_t *T_ph
         );
 
-//Unify bfp_complex_s32_t chunks into a single exponent and headroom
+/**
+ * @brief Unify bfp_complex_s32_t chunks into a single exponent and headroom
+ *
+ * @ingroup aec_low_level_func
+ */
 void aec_l2_bfp_complex_s32_unify_exponent(
         bfp_complex_s32_t *chunks,
         int *final_exp,
@@ -345,7 +409,11 @@ void aec_l2_bfp_complex_s32_unify_exponent(
         int desired_index,
         int min_headroom);
 
-//Unify bfp_s32_t chunks into a single exponent and headroom
+/**
+ * @brief Unify bfp_s32_t chunks into a single exponent and headroom
+ *
+ * @ingroup aec_low_level_func
+ */
 void aec_l2_bfp_s32_unify_exponent(
         bfp_s32_t *chunks,
         int *final_exp,
