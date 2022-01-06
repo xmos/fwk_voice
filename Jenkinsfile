@@ -137,13 +137,13 @@ pipeline {
             }
           }
         }
-        stage('Delay Estimator Controller Tests') {
+        stage('ADEC tests') {
           steps {
             dir("${REPO}/test/lib_aec/test_adec") {
-              withEnv(["SENSORY_PATH=${env.WORKSPACE}/${REPO}"]) {
-                withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
-                  withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                    viewEnv() {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
                       sh "pytest -n 1 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
@@ -152,7 +152,7 @@ pipeline {
               }
             }
           }
-        }        
+        }
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
