@@ -36,7 +36,7 @@ typedef enum {
 } adec_pk_ave_valid_t;
 
 typedef struct {
-    uint32_t delay_samples;
+    int32_t delay_samples;
     ap_stage_a_delay_direction delay_direction;
 }delay_t;
 

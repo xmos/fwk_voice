@@ -23,7 +23,7 @@ typedef struct {
     int32_t delay_buffer[2][MAX_DELAY_SAMPLES];
     // index of the value for the samples to be stored in the buffer
     uint32_t curr_idx;
-    uint32_t delay_samples;
+    int32_t delay_samples;
 } delay_state_t;
 
 typedef struct {
