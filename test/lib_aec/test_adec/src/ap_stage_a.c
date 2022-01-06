@@ -42,9 +42,10 @@ void delay_buffer_init(delay_state_t *state, int default_delay_samples) {
 
 void get_delayed_sample(delay_state_t *delay_state, int32_t *sample, int32_t ch) {
     delay_state->delay_buffer[ch][delay_state->curr_idx[ch]] = *sample;
+    int32_t abs_delay_samples = (delay_state->delay_samples < 0) ? -delay_state->delay_samples : delay_state->delay_samples;
     // Send back the samples with the correct delay
     uint32_t delay_idx = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - delay_state->delay_samples)
+            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - abs_delay_samples)
             % MAX_DELAY_SAMPLES
             );
     *sample = delay_state->delay_buffer[ch][delay_idx];
@@ -56,27 +57,22 @@ static inline void get_delayed_frame(
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         delay_state_t *delay_state,
-        uint32_t *delay_change_mute_counter,
-        ap_stage_a_delay_direction delay_direction)
+        int32_t *delay_change_mute_counter)
 {    
     for(int i=0; i<AP_FRAME_ADVANCE; i++) {
         for(int ch=0; ch<2; ch++) {
-            if (delay_direction == AP_STAGE_A_DELAY_REF) {
-                /*  in case of positive delay:
-                    transmit the last reference samples and
-                    receive the delayed samples */
-                get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
-                if(*delay_change_mute_counter){
-                    input_x_data[ch][i] = 0;
-                }
-            } else if (delay_direction == AP_STAGE_A_DELAY_MIC) {
-                /*  in case of negative delay:
-                    copy the mic samples,
-                    transmit the last mic samples and
-                    receive the delayed samples */
+            if (delay_state->delay_samples > 0) {
+                /* Requested Mic delay +ve => delay mic*/
                 get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
                 if(*delay_change_mute_counter){
                     input_y_data[ch][i] = 0;
+                }
+            }
+            else if (delay_state->delay_samples < 0) {
+                /* Requested Mic delay negative => advance mic which can't be done => delay reference*/
+                get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
+                if(*delay_change_mute_counter){
+                    input_x_data[ch][i] = 0;
                 }
             }
         }
@@ -147,9 +143,8 @@ void ap_stage_a_init(ap_stage_a_state *state) {
     state->wait_for_initial_adec = INITIAL_DELAY_ESTIMATION;
 
     // Initialise default delay values
-    state->stage_a_delay.delay_samples = 0;
-    state->stage_a_delay.delay_direction = DEFAULT_DELAY_DIRECTION;
-    delay_buffer_init(&state->delay_state, state->stage_a_delay.delay_samples);
+    state->stage_a_delay.mic_delay_samples = 0; //Initialize requested mic delay to 0
+    delay_buffer_init(&state->delay_state, state->stage_a_delay.mic_delay_samples);
     memset(&state->adec_output, 0, sizeof(adec_output_t));
 
     state->delay_conf.num_x_channels = 1;
@@ -175,14 +170,13 @@ void ap_stage_a(ap_stage_a_state *state,
 {
     unsigned rx_elapsed;
     // Rx mic and ref audio
-    uint32_t *delay_change_mute_counter_ptr = &state->delay_change_mute_counter;
+    int32_t *delay_change_mute_counter_ptr = &state->delay_change_mute_counter;
     delay_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y_data,
             input_x_data,
             delay_state_ptr,
-            delay_change_mute_counter_ptr,
-            state->stage_a_delay.delay_direction
+            delay_change_mute_counter_ptr
             );
 
     if (state->adec_output.delay_estimator_enabled && !state->delay_estimator_enabled) {
@@ -269,15 +263,13 @@ void ap_stage_a(ap_stage_a_state *state,
 
     if(state->adec_output.mode_change_request == ADEC_MODE_CHANGE_REQUESTED){
         //TODO not a good idea having 2 copies of delay. Change later
-        state->stage_a_delay.delay_samples = state->adec_output.delay.delay_samples;
-        state->stage_a_delay.delay_direction = state->adec_output.delay.delay_direction;
+        state->stage_a_delay.mic_delay_samples = state->adec_output.delay.mic_delay_samples;
         state->wait_for_initial_adec = 0;
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
-        state->delay_change_mute_counter = state->stage_a_delay.delay_samples;
-        state->delay_state.delay_samples = state->stage_a_delay.delay_samples;
+        state->delay_change_mute_counter = (state->stage_a_delay.mic_delay_samples < 0) ? -state->stage_a_delay.mic_delay_samples : state->stage_a_delay.mic_delay_samples;
+        state->delay_state.delay_samples = state->stage_a_delay.mic_delay_samples;
 
-        printf("AP Setting %s(%d) delay to: %d\n", 
-                (state->stage_a_delay.delay_direction == AP_STAGE_A_DELAY_MIC)?"MIC":"REF", state->stage_a_delay.delay_direction, state->stage_a_delay.delay_samples);
+        printf("AP Setting MIC delay to: %d\n", state->stage_a_delay.mic_delay_samples);
     }
     if (state->delay_estimator_enabled) {
         // Send the current frame unprocessed

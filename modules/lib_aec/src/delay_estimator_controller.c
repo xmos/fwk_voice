@@ -34,6 +34,13 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
   }
 }
 
+/* Delay samples refer to mic samples delay.
+ * +ve delay value. Mic is early so delay mic. This means the echo seen in mic input is not seen on reference input yet.
+ * This is the really bad case.
+ * -ve delay value means mic is late so advance mic. Obviously, can't advance in time, so we delay reference instead.
+ * Mic late means the echo seen in mic input is present in one of the (ph>0) phases of X_fifo. So the filter peak is not
+ * at H_hat[0] and we're wasting some of the tail length.
+ */
 void aec_delay_estimator_controller_init(adec_state_t *adec_state){
   adec_state->enabled = 1; //TODO
   adec_state->manual_dec_cycle_trigger = 0; //TODO
@@ -53,7 +60,7 @@ void aec_delay_estimator_controller_init(adec_state_t *adec_state){
 
   adec_state->mode = ADEC_NORMAL_AEC_MODE;
   adec_state->gated_milliseconds_since_mode_change = 0;
-  adec_state->last_measured_delay = (DEFAULT_DELAY_DIRECTION==AP_STAGE_A_DELAY_MIC)?DEFAULT_DELAY_SAMPLES:(-DEFAULT_DELAY_SAMPLES);
+  adec_state->last_measured_delay = 0;
 
   for (int i = 0; i < ADEC_PEAK_LINREG_HISTORY_SIZE; i++){
     adec_state->peak_power_history[i] = double_to_float_s32(0.0);
@@ -69,28 +76,27 @@ void aec_delay_estimator_controller_init(adec_state_t *adec_state){
 }
 
 //Used for tests (provides global copy available on same tile for logging purposes). Read by test_wav_ap.xc in test firmware
-int32_t debug_set_delay = (DEFAULT_DELAY_DIRECTION==AP_STAGE_A_DELAY_REF)?DEFAULT_DELAY_SAMPLES:(-DEFAULT_DELAY_SAMPLES);
+int32_t debug_set_delay = 0;
 
 //Work out what we should send to the delay register from a signed input. Accounts for the margin to ensure mics always after ref
-void set_delay_params_from_signed_delay(int32_t measured_delay, uint32_t *delay_samples, ap_stage_a_delay_direction *delay_direction){
-    //If we see a MIC delay (+ve measured delay), we want to delay AEC by LESS than this to leave some headroom
+void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples){
+    //If we see a MIC delay (+ve measured delay), we want to delay Reference by LESS than this to leave some headroom
     //If we see a REF delay (-ve measured delay), we want to delay MIC by MORE than this to leave some headroom
     int32_t measured_delay_compensated = measured_delay - ADEC_DE_DELAY_HEADROOM_SAMPS;
 
-    //We have a compensated measured mic delay, so we need to delay the reference
-    if (measured_delay_compensated > 0){
-        *delay_samples = measured_delay_compensated;
-        *delay_direction = AP_STAGE_A_DELAY_REF;
-    }
-    //We have measured a ref delay, so delay mics
-    else{
-        *delay_samples = -measured_delay_compensated;
-        *delay_direction = AP_STAGE_A_DELAY_MIC;
-    }
-    if (*delay_samples >= MAX_DELAY_SAMPLES){
+    //Set the requested mic delay to -ve of the measured delay in order to compensate the effect of delay measured in the system
+    *mic_delay_samples = -measured_delay_compensated;
+    //Make sure we don't exceed the delay buffer size
+
+    if (*mic_delay_samples >= MAX_DELAY_SAMPLES){
         int32_t actual_delay = MAX_DELAY_SAMPLES - 1; //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
-        printf("**Warning - too large a delay requested (%d), setting to %d\n", *delay_samples, actual_delay);
-        *delay_samples = actual_delay;
+        printf("**Warning - too large a delay requested (%d), setting to %d\n", *mic_delay_samples, actual_delay);
+        *mic_delay_samples = actual_delay;
+    }
+    else if(*mic_delay_samples <= -(MAX_DELAY_SAMPLES)) {
+        int32_t actual_delay = -(MAX_DELAY_SAMPLES - 1); //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
+        printf("**Warning - too large a delay requested (%d), setting to %d\n", *mic_delay_samples, actual_delay);
+        *mic_delay_samples = actual_delay;
     }
 
     //Write to debug copy of var for logging purposes during simulations
@@ -370,12 +376,11 @@ void aec_delay_estimator_controller(
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += de_output->delay_estimate;
           printf("AEC MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.delay_samples, &adec_output->delay.delay_direction);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.mic_delay_samples);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
           state->mode = state->mode; //Same mode (no change)
 
-          int32_t delay = (adec_output->delay.delay_direction == AP_STAGE_A_DELAY_MIC) ? -((int32_t)adec_output->delay.delay_samples) : adec_output->delay.delay_samples; 
           //printf("Mode Change requested 1\n");          
           adec_output->mode_change_request = ADEC_MODE_CHANGE_REQUESTED; //But we want to reset AEC even though we are staying in the same mode
         }
@@ -421,8 +426,7 @@ void aec_delay_estimator_controller(
 
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
               //But first we need to set the delay value so we can see forwards/backwards, see configure_delay.py
-              adec_output->delay.delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
-              adec_output->delay.delay_direction = AP_STAGE_A_DELAY_MIC; //(AP_STAGE_A_DELAY_MIC is 1)
+              adec_output->delay.mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
               adec_output->delay_estimator_enabled = 1;
 
               state->mode = ADEC_DELAY_ESTIMATOR_MODE;
@@ -454,7 +458,7 @@ void aec_delay_estimator_controller(
           printf("DE MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(de_output->peak_to_average_ratio), vtb_denormalise_and_saturate_u32(de_output->peak_to_average_ratio, -10));
 
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.delay_samples, &adec_output->delay.delay_direction);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.mic_delay_samples);
 
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled = 0;
@@ -463,7 +467,6 @@ void aec_delay_estimator_controller(
           //printf("Mode Change requested 3\n");
            
           adec_output->mode_change_request = ADEC_MODE_CHANGE_REQUESTED;
-          int32_t delay = (adec_output->delay.delay_direction == AP_STAGE_A_DELAY_MIC) ? -((int32_t)adec_output->delay.delay_samples) : adec_output->delay.delay_samples; 
         }
       break;
 

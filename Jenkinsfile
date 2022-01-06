@@ -137,6 +137,22 @@ pipeline {
             }
           }
         }
+        stage('Delay Estimator Controller Tests') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_adec") {
+              withEnv(["SENSORY_PATH=${env.WORKSPACE}/${REPO}"]) {
+                withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                  withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                    viewEnv() {
+                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }        
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {

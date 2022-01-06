@@ -53,7 +53,7 @@ typedef struct {
     aec_conf_t delay_conf;
     aec_conf_t run_conf_alt_arch;
     unsigned delay_estimator_enabled;
-    uint32_t delay_change_mute_counter;
+    int32_t delay_change_mute_counter;
     int wait_for_initial_adec;
     uint64_t alignment;
 } ap_stage_a_state;

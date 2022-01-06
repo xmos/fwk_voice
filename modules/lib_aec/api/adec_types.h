@@ -13,14 +13,6 @@ extern "C" {
 #include "aec_delay_estimator_control_parameters.h"
 
 typedef enum {
-    AP_STAGE_A_DELAY_REF,
-    AP_STAGE_A_DELAY_MIC,
-} ap_stage_a_delay_direction;
-
-#define DEFAULT_DELAY_SAMPLES       ( 0 )
-#define DEFAULT_DELAY_DIRECTION     ( AP_STAGE_A_DELAY_REF )
-
-typedef enum {
     ADEC_NORMAL_AEC_MODE,
     ADEC_DELAY_ESTIMATOR_MODE,
 } adec_mode_t;
@@ -36,8 +28,7 @@ typedef enum {
 } adec_pk_ave_valid_t;
 
 typedef struct {
-    int32_t delay_samples;
-    ap_stage_a_delay_direction delay_direction;
+    int32_t mic_delay_samples; //Delay requested to be applied to the input to compensate for measured delay
 }delay_t;
 
 typedef struct {
