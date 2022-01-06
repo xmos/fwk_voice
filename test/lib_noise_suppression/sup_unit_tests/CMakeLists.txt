@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  nup_unit_tests )
+set( APP_NAME  sup_unit_tests )
 
 # Auto-generate schedule and top level config files
 if( NOT ${Python3_FOUND} )
@@ -83,6 +83,7 @@ target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
 list( APPEND INCLUDES src 
 ${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/api
+${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/src
 ${UNITY_PATH} 
 ${UNITY_PATH}/../extras/fixture/src)
 

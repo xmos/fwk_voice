@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <xs3_math.h>
 #include <bfp_init.h>
+#include <bfp_s32.h>
 
 #include <suppression.h>
 #include <suppression_testing.h>
@@ -42,7 +43,7 @@ TEST(ns_update_lambda_hat, case0){
 
     for(int i = 0; i < 100; i++){
 
-        suppression_state_t state;
+        sup_state_t state;
         sup_init_state(&state);
 
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
@@ -61,8 +62,9 @@ TEST(ns_update_lambda_hat, case0){
         }
 
         bfp_s32_t abs_Y_bfp;
-        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&abs_Y_bfp, abs_Y_int, EXP, SUP_PROC_FRAME_BINS, 1);
         state.alpha_d_tilde.data = &adt_int[0];
+        bfp_s32_headroom(&state.alpha_d_tilde);
 
         ns_update_lambda_hat(&abs_Y_bfp, &state);
 
