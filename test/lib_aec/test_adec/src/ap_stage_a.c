@@ -36,22 +36,21 @@ const fixed_s32_t fixed_mu_delay_est_mode = (int)(0.4 * (1<<30)); //TODO this wi
 
 void delay_buffer_init(delay_state_t *state, int default_delay_samples) {
     memset(state->delay_buffer, 0, sizeof(state->delay_buffer));
-    state->curr_idx = 0;
+    memset(&state->curr_idx[0], 0, sizeof(state->curr_idx));
     state->delay_samples = default_delay_samples;
 }
 
-void get_delayed_sample(delay_state_t *delay_state, int32_t *sample_ch0, int32_t *sample_ch1) {
-    delay_state->delay_buffer[0][delay_state->curr_idx] = *sample_ch0;
-    delay_state->delay_buffer[1][delay_state->curr_idx] = *sample_ch1;
+void get_delayed_sample(delay_state_t *delay_state, int32_t *sample, int32_t ch) {
+    delay_state->delay_buffer[ch][delay_state->curr_idx[ch]] = *sample;
     // Send back the samples with the correct delay
     uint32_t delay_idx = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx - delay_state->delay_samples)
+            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - delay_state->delay_samples)
             % MAX_DELAY_SAMPLES
             );
-    *sample_ch0 = delay_state->delay_buffer[0][delay_idx];
-    *sample_ch1 = delay_state->delay_buffer[1][delay_idx];
-    delay_state->curr_idx = (delay_state->curr_idx + 1) % MAX_DELAY_SAMPLES;
+    *sample = delay_state->delay_buffer[ch][delay_idx];
+    delay_state->curr_idx[ch] = (delay_state->curr_idx[ch] + 1) % MAX_DELAY_SAMPLES;
 }
+
 
 static inline void get_delayed_frame(
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
@@ -61,23 +60,21 @@ static inline void get_delayed_frame(
         ap_stage_a_delay_direction delay_direction)
 {    
     for(int i=0; i<AP_FRAME_ADVANCE; i++) {
-        if (delay_direction == AP_STAGE_A_DELAY_REF) {
-            /*  in case of positive delay:
-                transmit the last reference samples and
-                receive the delayed samples */
-            get_delayed_sample(delay_state, &input_x_data[0][i], &input_x_data[1][i]);
-            for(int ch=0; ch<2; ch++) {
+        for(int ch=0; ch<2; ch++) {
+            if (delay_direction == AP_STAGE_A_DELAY_REF) {
+                /*  in case of positive delay:
+                    transmit the last reference samples and
+                    receive the delayed samples */
+                get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
                 if(*delay_change_mute_counter){
                     input_x_data[ch][i] = 0;
                 }
-            }
-        } else if (delay_direction == AP_STAGE_A_DELAY_MIC) {
-            /*  in case of negative delay:
-                copy the mic samples,
-                transmit the last mic samples and
-                receive the delayed samples */
-            get_delayed_sample(delay_state, &input_y_data[0][i], &input_y_data[1][i]);
-            for(int ch=0; ch<2; ch++) {
+            } else if (delay_direction == AP_STAGE_A_DELAY_MIC) {
+                /*  in case of negative delay:
+                    copy the mic samples,
+                    transmit the last mic samples and
+                    receive the delayed samples */
+                get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
                 if(*delay_change_mute_counter){
                     input_y_data[ch][i] = 0;
                 }
