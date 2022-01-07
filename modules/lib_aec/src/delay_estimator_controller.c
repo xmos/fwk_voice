@@ -283,7 +283,7 @@ typedef enum {
 void aec_delay_estimator_controller(
     adec_state_t *state,
     adec_output_t *adec_output, 
-    const delay_estimator_output_t *de_output,
+    const de_to_adec_t *de_output,
     const aec_to_adec_t *aec_to_adec,
     unsigned far_end_active,
     unsigned num_frames_since_last_call
@@ -350,7 +350,15 @@ void aec_delay_estimator_controller(
   }
 
   //Work out erle in log2
-  fixed_s32_t log2erle_q24 = float_to_frac_bits(aec_to_adec->erle_ratio);
+  float_s32_t erle_ratio;
+  float_s32_t denom = aec_to_adec->error_ema_energy_ch0;
+  if(denom.mant != 0) {
+      erle_ratio = float_s32_div(aec_to_adec->y_ema_energy_ch0, denom);
+  }
+  else {
+      erle_ratio = double_to_float_s32(1.0);
+  }
+  fixed_s32_t log2erle_q24 = float_to_frac_bits(erle_ratio);
 
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):

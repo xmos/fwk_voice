@@ -40,10 +40,11 @@ typedef struct {
     float_s32_t peak_phase_power;
     float_s32_t  peak_to_average_ratio;
     uint32_t delay_estimate;
-}delay_estimator_output_t;
+}de_to_adec_t;
 
 typedef struct {
-    float_s32_t erle_ratio;
+    float_s32_t y_ema_energy_ch0;
+    float_s32_t error_ema_energy_ch0;
     int shadow_flag;
 }aec_to_adec_t;
 

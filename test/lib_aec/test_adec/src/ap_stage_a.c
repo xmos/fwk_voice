@@ -228,7 +228,7 @@ void ap_stage_a(ap_stage_a_state *state,
 
     //Convert to de to adec input format
     delay_estimator_params_t *de_params = (delay_estimator_params_t *)&state->aec_main_state.shared_state->delay_estimator_params;
-    delay_estimator_output_t de_to_adec;
+    de_to_adec_t de_to_adec;
     de_to_adec.delay_estimate = delay_estimate;
     de_to_adec.peak_power_phase_index = de_params->peak_power_phase_index;
     //peak_phase_power
@@ -237,15 +237,8 @@ void ap_stage_a(ap_stage_a_state *state,
     de_to_adec.peak_to_average_ratio = de_params->peak_to_average_ratio;
     //erle_ratio
     aec_to_adec_t aec_to_adec;
-    float_s32_t eps = double_to_float_s32((double)1e-100);
-    //float_s32_t denom = float_s32_add( state->aec_main_state.error_ema_energy[0], eps);
-    float_s32_t denom = state->aec_main_state.error_ema_energy[0];
-    if(denom.mant != 0) {
-        aec_to_adec.erle_ratio = float_s32_div(state->aec_main_state.shared_state->y_ema_energy[0], denom);
-    }
-    else {
-        aec_to_adec.erle_ratio = double_to_float_s32(1.0);
-    }
+    aec_to_adec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
+    aec_to_adec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
     aec_to_adec.shadow_flag = state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0];
     //printf("erle_ratio %f, shadow_flag %d\n", ldexp(((double)(uint32_t)aec_to_adec.erle_ratio.m), aec_to_adec.erle_ratio.e), state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
     framenum++;
