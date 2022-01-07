@@ -103,32 +103,6 @@ void sup_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value)
     bfp_s32_set(a, value, INT_EXP);
 }
 
-void fft(bfp_complex_s32_t *output, bfp_s32_t *input)
-{
-    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
-    //This is done to avoid having to call bfp_s32_init() on the input every frame
-    int32_t len = input->length; 
-    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
-    
-    memcpy(output, temp, sizeof(bfp_complex_s32_t));
-    bfp_fft_unpack_mono(output);
-    input->length = len;
-    return;
-}
-
-void ifft(bfp_s32_t *output, bfp_complex_s32_t *input)
-{
-    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
-    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
-    int32_t len = input->length;
-    bfp_fft_pack_mono(input);
-    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
-    memcpy(output, temp, sizeof(bfp_s32_t));
-
-    input->length = len;
-    return;
-}
-
 void sup_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev){
 
     memcpy(current->data, prev->data, (SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE) * sizeof(int32_t));
@@ -177,11 +151,11 @@ void sup_init_state(sup_state_t * state){
     bfp_s32_init(&state->rev_wind, state->data_rev_wind, INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
     
     state->reset_period = (unsigned)(16000.0 * 0.15);
-    state->alpha_d = double_to_float_s32((double) 0.95);
-    state->alpha_s = double_to_float_s32((double) 0.8);
-    state->alpha_p = double_to_float_s32((double) 0.2);
-    state->noise_floor = double_to_float_s32((double) 0.1258925412); // -18dB
-    state->delta = double_to_float_s32(1.5);
+    state->alpha_d = float_to_float_s32(0.95);
+    state->alpha_s = float_to_float_s32(0.8);
+    state->alpha_p = float_to_float_s32(0.2);
+    state->noise_floor = float_to_float_s32(0.1258925412); // -18dB
+    state->delta = float_to_float_s32(1.5);
 }
 
 void sup_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_window, const unsigned frame_length, const unsigned window_length){
@@ -248,9 +222,7 @@ void sup_process_frame(sup_state_t * state,
     
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
-    bfp_complex_s32_t curr_fft, *tmp1 = bfp_fft_forward_mono(&curr_frame);
-    memcpy(&curr_fft, tmp1, sizeof(bfp_complex_s32_t));
-    //fft(&curr_fft, &curr);
+    bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
     
     bfp_complex_s32_mag(&abs_Y_suppressed, &curr_fft);
 
@@ -263,9 +235,7 @@ void sup_process_frame(sup_state_t * state,
     sup_rescale_vector(&curr_fft, &abs_Y_suppressed, &abs_Y_original);
     ////////////////////////////don't use abs_Y_orig after this point 
 
-    bfp_s32_t *tmp2 = bfp_fft_inverse_mono(&curr_fft);
-    memcpy(&curr_frame, tmp2, sizeof(bfp_s32_t));
-    //ifft(&curr, &curr_fft);
+    bfp_s32_t *curr_frame = bfp_fft_inverse_mono(&curr_fft);
 
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
