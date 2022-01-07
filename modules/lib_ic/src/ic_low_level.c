@@ -200,12 +200,12 @@ void ic_calc_inv_X_energy(
     //Make a copy of aec_conf so we can pass the right type
     aec_config_params_t aec_conf; //Only gamma_log2 is accessed in aec_priv_calc_inv_X_energy_denom
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.core_conf.gamma_log2;
-    const int disable_freq_smoothing = 0;
+    const unsigned disable_freq_smoothing = 0;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing);
     for(int i=0;i<10;i++){
-        bfp_s32_t X_energy_bfp = state->X_energy_bfp[ch];
+        // bfp_s32_t X_energy_bfp = state->X_energy_bfp[ch];
         // printf("    x energy bin %d: %f\n", i, ldexp(X_energy_bfp.data[i], X_energy_bfp.exp));
-        bfp_s32_t inv_X_energy_bfp = state->inv_X_energy_bfp[ch];
+        // bfp_s32_t inv_X_energy_bfp = state->inv_X_energy_bfp[ch];
         // printf("inv x energy bin %d: %f\n", i, ldexp(inv_X_energy_bfp.data[i], inv_X_energy_bfp.exp));
     }
 }

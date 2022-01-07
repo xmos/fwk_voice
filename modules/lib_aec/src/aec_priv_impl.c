@@ -747,7 +747,7 @@ extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
-#if 0 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+#if 0//82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
     bfp_s32_inverse(input, input);
 #else //36323 cycles. 2 x-channels, single thread
     int32_t min_element = xs3_vect_s32_min(

@@ -215,7 +215,7 @@ void ic_filter(
     printf("ic_ifft\n");
 
     for(int i=0; i<512; i++) {
-        printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
+        // printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
     }
 
 
@@ -226,7 +226,7 @@ void ic_filter(
     printf("ic_create_output\n");
 
     for(int i=0; i<512; i++) {
-        printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
+        // printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
     }
 }
 
@@ -262,7 +262,7 @@ void ic_adapt(
     }
     printf("ic_fft\n");
 
-    ic_dump_var_2d(state);
+    // ic_dump_var_2d(state);
 
     printf("gamma: %.12f\n", ldexp( 1, state->config_params.core_conf.gamma_log2));
     printf("delta: %.12f\n", ldexp( state->delta.mant, state->delta.exp));
@@ -274,6 +274,7 @@ void ic_adapt(
     }
     printf("ic_calc_inv_X_energy\n");
 
+    ic_dump_var_2d(state);
 
 
     //Adapt H_hat
