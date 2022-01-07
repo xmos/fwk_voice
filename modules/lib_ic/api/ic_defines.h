@@ -25,7 +25,7 @@
 #define IC_INIT_MU                                  double_to_float_s32(0.369566)
 #define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.98) //XC
 // #define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.9995117188) //Pyhton
-#define IC_FILTER_PHASES                            (10)
+#define IC_FILTER_PHASES                            10
 
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0

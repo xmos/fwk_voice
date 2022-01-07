@@ -26,8 +26,8 @@ typedef struct {
 }ic_config_params_t;
 
 typedef enum {
-    IC_ADAPTION_FORCE_ON,
-    IC_ADAPTION_FORCE_OFF
+    IC_ADAPTION_ON,
+    IC_ADAPTION_OFF
 }ic_adaption_mode_t;
 
 typedef struct {
@@ -110,7 +110,7 @@ typedef struct {
     float_s32_t delta;
 
 
-    bfp_s32_t sigma_XX_bfp[IC_X_CHANNELS]; //Have a copy for shadow filter though not needed for a cleaner ic_calc_inv_X_energy API
+    bfp_s32_t sigma_XX_bfp[IC_X_CHANNELS];
     int32_t DWORD_ALIGNED sigma_XX[IC_X_CHANNELS][IC_FD_FRAME_LENGTH];
 
     float_s32_t y_ema_energy[IC_Y_CHANNELS];

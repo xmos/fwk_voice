@@ -20,7 +20,10 @@
 
 #include "fileio.h"
 #include "wav_utils.h"
-#include "dump_H_hat.h"
+#include "dump_var_py.h"
+
+#define MAX_FRAMES  12
+#define INPUT_Y_DELAY_SAMPS 180
 
 #if PROFILE_PROCESSING
 #include "profile.h"
@@ -64,14 +67,15 @@
 
 
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
+
 void ic_task(const char *input_file_name, const char *output_file_name) {
     //open files
-    file_t input_file, output_file, H_hat_file, delay_file;
+    file_t input_file, output_file, dut_var_file, delay_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     ret = file_open(&output_file, output_file_name, "wb");
     assert((!ret) && "Failed to open file");
-    ret = file_open(&H_hat_file, "H_hat.bin", "wb");
+    ret = file_open(&dut_var_file, "dut_var.py", "wb");
     assert((!ret) && "Failed to open file");
     ret = file_open(&delay_file, "delay.bin", "wb");
     assert((!ret) && "Failed to open file");
@@ -98,6 +102,14 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     unsigned frame_count = wav_get_num_frames(&input_header_struct);
 
     unsigned block_count = frame_count / IC_FRAME_ADVANCE;
+
+#if MAX_FRAMES
+    if(block_count > MAX_FRAMES){
+        block_count = MAX_FRAMES;
+    }
+#endif
+
+
     //printf("num frames = %d\n",block_count);
     wav_form_header(&output_header_struct,
             input_header_struct.audio_format,
@@ -115,6 +127,9 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     int32_t DWORD_ALIGNED frame_x[IC_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED output[IC_FRAME_ADVANCE];
 
+    int32_t input_y_delay[INPUT_Y_DELAY_SAMPS] = {0};
+    unsigned input_delay_idx = 0;
+
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start ic
@@ -126,6 +141,9 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     // main_state.shared_state->config_params.coh_mu_conf.adaption_config = runtime_args[ADAPTION_MODE];
     // main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = runtime_args[FORCE_ADAPTION_MU];
 
+
+    ic_dump_var_2d_start(&state, &dut_var_file, block_count);
+
     for(unsigned b=0;b<block_count;b++){
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * IC_FRAME_ADVANCE, input_header_size);
@@ -134,7 +152,14 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         for(unsigned f=0; f<IC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<IC_Y_CHANNELS;ch++){
                 unsigned i =(f * (IC_Y_CHANNELS+IC_X_CHANNELS)) + ch;
-                frame_y[f] = input_read_buffer[i];
+                //pack in but apply delay
+                int32_t tmp = input_read_buffer[i];
+                frame_y[f] = input_y_delay[input_delay_idx];
+                input_y_delay[input_delay_idx] = tmp;
+                input_delay_idx++;
+                if(input_delay_idx == INPUT_Y_DELAY_SAMPS){
+                    input_delay_idx = 0;
+                }
             }
             for(unsigned ch=0;ch<IC_X_CHANNELS;ch++){
                 unsigned i =(f * (IC_Y_CHANNELS+IC_X_CHANNELS)) + IC_Y_CHANNELS + ch;
@@ -144,7 +169,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         // if (runtime_args[STOP_ADAPTING] > 0) {
         //     runtime_args[STOP_ADAPTING]--;
         //     if (runtime_args[STOP_ADAPTING] == 0) {
-                // ic_dump_H_hat(&state, &H_hat_file);
         //         //turn off adaption
         //         main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_OFF;
         //     }
@@ -157,8 +181,10 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         ic_filter(&state,  frame_y, frame_x, output);
         prof(3, "end_ic_filter");
 
+        ic_dump_var_2d(&state, b);
+
         prof(4, "start_vad_estimate");
-        uint8_t vad = 255;
+        uint8_t vad = 0;
         prof(5, "end_vad_estimate");
 
         prof(6, "start_ic_adapt");
@@ -172,7 +198,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){
             output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS] = output[i];
-            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS + 1] = frame_y[i];
+            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS + 1] = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 0];
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * IC_FRAME_ADVANCE * IC_TOTAL_OUTPUT_CHANNELS);
@@ -181,7 +207,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     }
     file_close(&input_file);
     file_close(&output_file);
-    file_close(&H_hat_file);
+    file_close(&dut_var_file);
     file_close(&delay_file);
     shutdown_session();
 }

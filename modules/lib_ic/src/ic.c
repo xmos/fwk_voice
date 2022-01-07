@@ -90,7 +90,7 @@ void ic_init(ic_state_t *state){
     state->config_params.core_conf.coeff_index = 0;
 
     state->ic_adaption_controller_state.leakage_alpha = IC_INIT_LEAKAGE_ALPHA;
-    state->ic_adaption_controller_state.adaption_mode = IC_ADAPTION_FORCE_OFF;
+    state->ic_adaption_controller_state.adaption_mode = IC_ADAPTION_ON;
 
     state->ic_adaption_controller_state.vad_counter = 0;
     state->ic_adaption_controller_state.smoothed_voice_chance = IC_INIT_SMOOTHED_VOICE_CHANCE;
@@ -194,7 +194,7 @@ void ic_filter(
     printf("ic_calc_Error_and_Y_hat\n");
 
         for(int i=0; i<257; i++) {
-        printf("Error: %.12f + %.12fj\n", ldexp( state->Error_bfp[0].data[i].re, state->Error_bfp[0].exp), ldexp( state->Error_bfp[0].data[i].im, state->Error_bfp[0].exp));
+        // printf("Error: %.12f + %.12fj\n", ldexp( state->Error_bfp[0].data[i].re, state->Error_bfp[0].exp), ldexp( state->Error_bfp[0].data[i].im, state->Error_bfp[0].exp));
         }
 
     //IFFT Error and Y_hat
