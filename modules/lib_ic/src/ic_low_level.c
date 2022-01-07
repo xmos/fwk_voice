@@ -159,10 +159,13 @@ void ic_calc_Error_and_Y_hat(
     bfp_complex_s32_t *Y_ptr = &state->Y_bfp[ch];
     bfp_complex_s32_t *Y_hat_ptr = &state->Y_hat_bfp[ch];
     bfp_complex_s32_t *Error_ptr = &state->Error_bfp[ch];
+    bfp_complex_s32_t *X_fifo = state->X_fifo_1d_bfp;
+    bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
+
     int32_t bypass_enabled = state->config_params.core_conf.bypass;
 
     printf("bypass_enabled: %ld\n", bypass_enabled);
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d_bfp, state->H_hat_bfp[ch], IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
+    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
 
 
@@ -197,12 +200,13 @@ void ic_calc_inv_X_energy(
     //Make a copy of aec_conf so we can pass the right type
     aec_config_params_t aec_conf; //Only gamma_log2 is accessed in aec_priv_calc_inv_X_energy_denom
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.core_conf.gamma_log2;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, 0);
+    const int disable_freq_smoothing = 0;
+    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing);
     for(int i=0;i<10;i++){
         bfp_s32_t X_energy_bfp = state->X_energy_bfp[ch];
-        printf("    x energy bin %d: %f\n", i, ldexp(X_energy_bfp.data[i], X_energy_bfp.exp));
+        // printf("    x energy bin %d: %f\n", i, ldexp(X_energy_bfp.data[i], X_energy_bfp.exp));
         bfp_s32_t inv_X_energy_bfp = state->inv_X_energy_bfp[ch];
-        printf("inv x energy bin %d: %f\n", i, ldexp(inv_X_energy_bfp.data[i], inv_X_energy_bfp.exp));
+        // printf("inv x energy bin %d: %f\n", i, ldexp(inv_X_energy_bfp.data[i], inv_X_energy_bfp.exp));
     }
 }
 
@@ -226,7 +230,7 @@ void ic_filter_adapt(
     if(state == NULL) {
         return;
     }
-    if(state->ic_adaption_controller_state.adaption_mode) {
+    if(state->ic_adaption_controller_state.adaption_mode != IC_ADAPTION_ON) {
         return;
     }
     bfp_complex_s32_t *T_ptr = &state->T_bfp[0];
@@ -282,10 +286,14 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     const float_s32_t zero = {0, 0};
 
     float_s32_t mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
+    printf("mu_tmp = %.22f\n", ldexp(mu.mant, mu.exp));
+
     float_s32_t ratio = one;
     if(float_s32_gt(ad_state->input_energy, zero)){ //Protect against div by zero
         ratio = float_s32_div(ad_state->output_energy, ad_state->input_energy);
     }
+
+    printf("ratio = %.22f\n", ldexp(ratio.mant, ratio.exp));
 
     printf("enable_filter_instability_recovery: %d\n", ad_state->enable_filter_instability_recovery);
     if (ad_state->enable_filter_instability_recovery){
@@ -302,6 +310,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         ratio = float_s32_sqrt(ratio);
         ratio = float_s32_sqrt(ratio);
     }
+    printf("ratio = %.22f\n", ldexp(ratio.mant, ratio.exp));
+
     mu = float_s32_mul(mu, ratio);
 
     float_s32_t fast_ratio = one;
@@ -310,19 +320,22 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     }
 
 
-#if AP_STAGE_B_DEBUG_PRINT
-    printf("mu = %.22f\n", att_uint32_to_double(mu, -31));
-    printf("fast_ratio = %.22f\n", att_uint32_to_double(fast_ratio.m, fast_ratio.e));
-#endif
+    printf("fast_ratio = %.22f\n", ldexp(fast_ratio.mant, fast_ratio.exp));
 
+    printf("mu: %f\n", ldexp(mu.mant, mu.exp));
 
-    if(float_s32_gte(fast_ratio, one)){
+    //TODO - a startup problem here. Fast ratio is often 1.00 at startup so adaption gets stuck. Works better if gt rather than gte?
+    if(float_s32_gt(fast_ratio, one)){
         state->ic_adaption_controller_state.leakage_alpha = state->ic_adaption_controller_state.instability_recovery_leakage_alpha;
         mu = zero;
     } else {
         state->ic_adaption_controller_state.leakage_alpha = one;
         // mu = mu;
     }
+
+    //tmp experiment to understand the behaviour of adapt against mu
+    float_s32_t frac = {793634859,-31}; //0.3695650301 same as model
+    mu = frac;
     printf("mu: %f\n", ldexp(mu.mant, mu.exp));
 
     //Copy mu to main state for use by AEC adapt

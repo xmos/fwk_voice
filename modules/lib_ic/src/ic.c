@@ -6,6 +6,10 @@
 #include "ic_low_level.h"
 
 
+void ic_dump_var_2d(ic_state_t *state);
+void ic_dump_var_3d(ic_state_t *state);
+
+
 void ic_init(ic_state_t *state){
 
     memset(state, 0, sizeof(ic_state_t));
@@ -188,6 +192,9 @@ void ic_filter(
     printf("ic_update_X_fifo_1d\n");
 
 
+    // ic_dump_var_3d(state);
+
+
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_calc_Error_and_Y_hat(state, ch);
     }
@@ -197,6 +204,9 @@ void ic_filter(
         // printf("Error: %.12f + %.12fj\n", ldexp( state->Error_bfp[0].data[i].re, state->Error_bfp[0].exp), ldexp( state->Error_bfp[0].data[i].im, state->Error_bfp[0].exp));
         }
 
+    // ic_dump_var_2d(state);
+
+
     //IFFT Error and Y_hat
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
@@ -204,11 +214,20 @@ void ic_filter(
     }
     printf("ic_ifft\n");
 
+    for(int i=0; i<512; i++) {
+        printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
+    }
+
+
     //Window error. Calculate output
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_create_output(state, output, ch);
     }
     printf("ic_create_output\n");
+
+    for(int i=0; i<512; i++) {
+        printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
+    }
 }
 
 
@@ -243,11 +262,18 @@ void ic_adapt(
     }
     printf("ic_fft\n");
 
+    ic_dump_var_2d(state);
+
+    printf("gamma: %.12f\n", ldexp( 1, state->config_params.core_conf.gamma_log2));
+    printf("delta: %.12f\n", ldexp( state->delta.mant, state->delta.exp));
+
+
     //calculate inv_X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_calc_inv_X_energy(state, ch);
     }
     printf("ic_calc_inv_X_energy\n");
+
 
 
     //Adapt H_hat
@@ -260,10 +286,9 @@ void ic_adapt(
             for(int i=0; i<10; i++) {
                 // printf("T:     %.12f + %.12fj\n", ldexp( state->T_bfp[xch].data[i].re, state->T_bfp[xch].exp), ldexp( state->T_bfp[xch].data[i].im, state->T_bfp[xch].exp));
                 // printf("Inv_x: %.12f\n", ldexp( state->inv_X_energy_bfp[xch].data[i], state->inv_X_energy_bfp[xch].exp));
-                printf("error: %.12f\n", ldexp( state->error_bfp[ych].data[i], state->error_bfp[ych].exp));
+                // printf("error: %.12f\n", ldexp( state->error_bfp[ych].data[i], state->error_bfp[ych].exp));
                 // printf("mu: %.12f\n", ldexp( state->mu[ych][xch].mant, state->mu[ych][xch].exp));
                 }
-            printf("\n\n");
 
 
         }

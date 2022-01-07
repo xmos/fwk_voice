@@ -22,7 +22,7 @@
 #include "wav_utils.h"
 #include "dump_var_py.h"
 
-#define MAX_FRAMES  12
+#define MAX_FRAMES  50
 #define INPUT_Y_DELAY_SAMPS 180
 
 #if PROFILE_PROCESSING
@@ -180,8 +180,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
          */ 
         ic_filter(&state,  frame_y, frame_x, output);
         prof(3, "end_ic_filter");
-
-        ic_dump_var_2d(&state, b);
 
         prof(4, "start_vad_estimate");
         uint8_t vad = 0;

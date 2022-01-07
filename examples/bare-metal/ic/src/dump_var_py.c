@@ -9,8 +9,9 @@
 
 
 file_t *g_file_handle = NULL;
+unsigned frame = 0;
 
-#define dut_var_3d state->H_hat_bfp
+#define dut_var_3d state->X_fifo_bfp
 
 void ic_dump_var_3d_start(ic_state_t *state, file_t *file_handle, unsigned n_frames){
     char strbuf[1024];
@@ -30,7 +31,7 @@ void ic_dump_var_3d_start(ic_state_t *state, file_t *file_handle, unsigned n_fra
     g_file_handle = file_handle;
 }
 
-void ic_dump_var_3d(ic_state_t *state, unsigned frame){
+void ic_dump_var_3d(ic_state_t *state){
     char strbuf[1024];
    
     for(int ph=0; ph<IC_FILTER_PHASES; ph++) {
@@ -46,9 +47,10 @@ void ic_dump_var_3d(ic_state_t *state, unsigned frame){
         sprintf(strbuf, "])\n");
         file_write(g_file_handle, (uint8_t*)strbuf,  strlen(strbuf));
     }
+    frame++;
 }
 
-#define dut_var_2d state->error_bfp
+#define dut_var_2d state->sigma_XX_bfp
 #define COMPLEX 0
 
 void ic_dump_var_2d_start(ic_state_t *state, file_t *file_handle, unsigned n_frames){
@@ -74,7 +76,7 @@ void ic_dump_var_2d_start(ic_state_t *state, file_t *file_handle, unsigned n_fra
     g_file_handle = file_handle;
 }
 
-void ic_dump_var_2d(ic_state_t *state, unsigned frame){
+void ic_dump_var_2d(ic_state_t *state){
     char strbuf[1024];
    
     sprintf(strbuf, "dut_var[%u] = ", frame);
@@ -92,4 +94,5 @@ void ic_dump_var_2d(ic_state_t *state, unsigned frame){
     }
     sprintf(strbuf, "])\n");
     file_write(g_file_handle, (uint8_t*)strbuf,  strlen(strbuf));
+    frame++;
 }
