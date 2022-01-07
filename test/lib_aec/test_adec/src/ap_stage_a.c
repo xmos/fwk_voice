@@ -75,30 +75,19 @@ void reset_partial_delay_buffer(delay_state_t *delay_state, int32_t ch, int32_t 
 static inline void get_delayed_frame(
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-        delay_state_t *delay_state,
-        int32_t *delay_change_mute_counter)
+        delay_state_t *delay_state)
 {    
     for(int i=0; i<AP_FRAME_ADVANCE; i++) {
         for(int ch=0; ch<2; ch++) {
             if (delay_state->delay_samples > 0) {
                 /* Requested Mic delay +ve => delay mic*/
                 get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
-                /*if(*delay_change_mute_counter){
-                    input_y_data[ch][i] = 0;
-                }*/
             }
             else if (delay_state->delay_samples < 0) {
                 /* Requested Mic delay negative => advance mic which can't be done => delay reference*/
                 get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
-                /*if(*delay_change_mute_counter){
-                    input_x_data[ch][i] = 0;
-                }*/
             }
         }
-        /*if(*delay_change_mute_counter) {
-            *delay_change_mute_counter = *delay_change_mute_counter - 1;
-            // printf("mute\n");
-        }*/
     }
     return;
 }
@@ -187,13 +176,11 @@ void ap_stage_a(ap_stage_a_state *state,
 {
     unsigned rx_elapsed;
     // Rx mic and ref audio
-    int32_t *delay_change_mute_counter_ptr = &state->delay_change_mute_counter;
     delay_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y_data,
             input_x_data,
-            delay_state_ptr,
-            delay_change_mute_counter_ptr
+            delay_state_ptr
             );
 
     if (state->adec_output.delay_estimator_enabled && !state->delay_estimator_enabled) {
@@ -286,7 +273,6 @@ void ap_stage_a(ap_stage_a_state *state,
         }
         state->wait_for_initial_adec = 0;
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
-        //state->delay_change_mute_counter = (state->delay_state.delay_samples < 0) ? -state->delay_state.delay_samples : state->delay_state.delay_samples;
 
         printf("AP Setting MIC delay to: %d\n", state->delay_state.delay_samples);
     }
