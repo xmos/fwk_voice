@@ -40,8 +40,10 @@ TEST(ns_update_p, case0){
 
     int32_t S_int [SUP_PROC_FRAME_BINS];
     int32_t S_min_int [SUP_PROC_FRAME_BINS];
+    int32_t p_int [SUP_PROC_FRAME_BINS];
     float_s32_t S_fl;
     float_s32_t S_min_fl;
+    float_s32_t p_fl;
     double S_db;
     double S_min_db;
 
@@ -69,20 +71,24 @@ TEST(ns_update_p, case0){
             
             S_int[v] = pseudo_rand_int(&seed, 0x1bbbbbbb, 0x7fffffff);
             S_fl.mant = S_int[v];
-            S_fl.exp = INT_EXP;
+            S_fl.exp = EXP;
             S_db = float_s32_to_double(S_fl);
 
             S_min_int[v] = pseudo_rand_int(&seed, 0x11111111, 0x1ddddddd);
             S_min_fl.mant = S_min_int[v];
-            S_min_fl.exp = INT_EXP;
+            S_min_fl.exp = EXP;
             S_min_db = float_s32_to_double(S_min_fl);
 
-            expected[v] = 0.0;
+            p_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
+            p_fl.mant = p_int[v];
+            p_fl.exp = EXP;
+            expected[v] = float_s32_to_double(p_fl);
 
             expected[v] *= alpha_p;
 
             if((S_db / S_min_db) > delta){
                 expected[v] += (1.0 - alpha_p);
+
             }
         }
 
@@ -90,6 +96,8 @@ TEST(ns_update_p, case0){
         bfp_s32_headroom(&state.S);
         state.S_min.data = &S_min_int[0];
         bfp_s32_headroom(&state.S_min);
+        state.p.data = &p_int[0];
+        bfp_s32_headroom(&state.p);
 
         ns_update_p(&state);
 
@@ -111,7 +119,7 @@ TEST(ns_update_p, case0){
         }
 
         double rel_error = fabs(abs_diff/(expected[id] + ldexp(1, -40)));
-        double thresh = ldexp(1, -24);
+        double thresh = ldexp(1, -20);
         TEST_ASSERT(rel_error < thresh);
     }
 }

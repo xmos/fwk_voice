@@ -48,12 +48,12 @@ TEST(ns_minimum, case0){
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             S_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
             S_fl.mant = S_int[v];
-            S_fl.exp = INT_EXP;
+            S_fl.exp = EXP;
             S_db[v] = float_s32_to_double(S_fl);
 
             S_tmp_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
             S_tmp_fl.mant = S_tmp_int[v];
-            S_tmp_fl.exp = INT_EXP + 2;
+            S_tmp_fl.exp = EXP + 2;
             S_tmp_db[v] = float_s32_to_double(S_tmp_fl);
 
             if (S_tmp_db[v] < S_db[v]){expected[v] = S_tmp_db[v];}
@@ -61,9 +61,9 @@ TEST(ns_minimum, case0){
         }
 
         bfp_s32_t S_bfp, S_tmp_bfp, S_min_bfp;
-        bfp_s32_init(&S_bfp, S_int, INT_EXP, SUP_PROC_FRAME_BINS, 1);
-        bfp_s32_init(&S_tmp_bfp, S_tmp_int, INT_EXP + 2, SUP_PROC_FRAME_BINS, 1);
-        bfp_s32_init(&S_min_bfp, S_min_int, INT_EXP, SUP_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&S_bfp, S_int, EXP, SUP_PROC_FRAME_BINS, 1);
+        bfp_s32_init(&S_tmp_bfp, S_tmp_int, EXP + 2, SUP_PROC_FRAME_BINS, 1);
+        bfp_s32_init(&S_min_bfp, S_min_int, EXP, SUP_PROC_FRAME_BINS, 0);
 
         ns_adjust_exp(&S_min_bfp, &S_tmp_bfp, &S_bfp);
         ns_minimum(&S_min_bfp, &S_tmp_bfp, &S_bfp);
