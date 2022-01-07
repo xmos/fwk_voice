@@ -9,8 +9,8 @@
 #include <stdio.h>
 
 #include <suppression_state.h>
-#include <suppression_ns.h>
-#include <suppression_testing.h>
+#include "suppression_ns.h"
+#include "suppression_testing.h"
 
 
 #if SUP_DEBUG | SUP_DEBUG_PRINT | SUP_WARNING_PRINT

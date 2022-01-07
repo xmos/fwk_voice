@@ -3,7 +3,7 @@
 #ifndef SUP_STATE_H
 #define SUP_STATE_H
 
-#include <suppression_conf.h>
+#include "suppression_conf.h"
 #include <xs3_math_types.h>
 
 typedef struct {
