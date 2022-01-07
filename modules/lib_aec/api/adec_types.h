@@ -27,12 +27,9 @@ typedef enum {
     ADEC_PK_AVE_VALID
 } adec_pk_ave_valid_t;
 
-typedef struct {
-    int32_t mic_delay_samples; //Delay requested to be applied to the input to compensate for measured delay
-}delay_t;
 
 typedef struct {
-    delay_t delay;
+    int32_t requested_mic_delay_samples;
     adec_delay_change_t mode_change_request; 
     uint32_t reset_all_aec_flag;
     uint32_t delay_estimator_enabled;

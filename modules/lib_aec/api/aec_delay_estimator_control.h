@@ -24,5 +24,6 @@ void aec_delay_estimator_controller(
     adec_output_t *adec_output, 
     const delay_estimator_output_t *de_output,
     const aec_to_adec_t *aec_to_adec,
-    unsigned far_end_active
+    unsigned far_end_active,
+    unsigned num_frames_since_last_call
 );

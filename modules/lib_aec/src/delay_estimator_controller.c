@@ -285,12 +285,13 @@ void aec_delay_estimator_controller(
     adec_output_t *adec_output, 
     const delay_estimator_output_t *de_output,
     const aec_to_adec_t *aec_to_adec,
-    unsigned far_end_active
+    unsigned far_end_active,
+    unsigned num_frames_since_last_call
 ){
   adec_output->reset_all_aec_flag = 0;
   adec_output->mode_change_request = ADEC_NO_MODE_CHANGE_NEEDED;
 
-  uint32_t elapsed_milliseconds = 15; //TODO How will this be handled??
+  uint32_t elapsed_milliseconds = num_frames_since_last_call*15; //Each frame is 15ms
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
@@ -376,7 +377,7 @@ void aec_delay_estimator_controller(
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += de_output->delay_estimate;
           printf("AEC MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.mic_delay_samples);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
           state->mode = state->mode; //Same mode (no change)
@@ -426,7 +427,7 @@ void aec_delay_estimator_controller(
 
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
               //But first we need to set the delay value so we can see forwards/backwards, see configure_delay.py
-              adec_output->delay.mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
+              adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
               adec_output->delay_estimator_enabled = 1;
 
               state->mode = ADEC_DELAY_ESTIMATOR_MODE;
@@ -458,7 +459,7 @@ void aec_delay_estimator_controller(
           printf("DE MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(de_output->peak_to_average_ratio), vtb_denormalise_and_saturate_u32(de_output->peak_to_average_ratio, -10));
 
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->delay.mic_delay_samples);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
 
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled = 0;

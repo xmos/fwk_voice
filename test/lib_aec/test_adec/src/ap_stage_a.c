@@ -258,7 +258,8 @@ void ap_stage_a(ap_stage_a_state *state,
             adec_out,
             &de_to_adec,
             &aec_to_adec,
-            is_ref_active
+            is_ref_active,
+            1 //ADEC called every frame so one frame since last call
             );
 
     if(state->adec_output.reset_all_aec_flag) {
@@ -267,7 +268,7 @@ void ap_stage_a(ap_stage_a_state *state,
 
     if(state->adec_output.mode_change_request == ADEC_MODE_CHANGE_REQUESTED){
         // Update delay_buffer delay_samples with mic delay requested by adec
-        state->delay_state.delay_samples = state->adec_output.delay.mic_delay_samples;
+        state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;
         for(int ch=0; ch<2; ch++) {
             reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
         }

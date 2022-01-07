@@ -47,7 +47,6 @@ typedef struct {
     uint64_t align5;
     adec_state_t adec_state;
 
-    delay_t stage_a_delay;
     delay_state_t delay_state;
     adec_output_t adec_output;
     aec_conf_t delay_conf;
