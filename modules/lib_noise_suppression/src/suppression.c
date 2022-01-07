@@ -56,6 +56,36 @@ void sup_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned lengt
 	}
 }
 
+void sup_forward_fft(
+        bfp_complex_s32_t *output,
+        bfp_s32_t *input)
+{
+    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
+    //This is done to avoid having to call bfp_s32_init() on the input every frame
+    int32_t len = input->length; 
+    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
+    
+    memcpy(output, temp, sizeof(bfp_complex_s32_t));
+    bfp_fft_unpack_mono(output);
+    input->length = len;
+    return;
+}
+
+void sup_inverse_fft(
+        bfp_s32_t *output,
+        bfp_complex_s32_t *input)
+{
+    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
+    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
+    int32_t len = input->length;
+    bfp_fft_pack_mono(input);
+    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
+    memcpy(output, temp, sizeof(bfp_s32_t));
+
+    input->length = len;
+    return;
+}
+
 void sup_set_noise_floor(sup_state_t * state, float_s32_t noise_floor){
 
     state->noise_floor = noise_floor;
@@ -90,36 +120,36 @@ void sup_reset_noise_suppression(sup_state_t * sup) {
     
     sup->reset_counter = 0;
 
-    bfp_s32_set(&sup->S, INT_MAX, INT_EXP);
-    bfp_s32_set(&sup->S_tmp, INT_MAX, INT_EXP);
-    bfp_s32_set(&sup->S_min, INT_MAX, INT_EXP);
-    bfp_s32_set(&sup->p, 0, INT_EXP);
-    bfp_s32_set(&sup->lambda_hat, 0, INT_EXP);
+    bfp_s32_set(&sup->S, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&sup->S_tmp, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&sup->S_min, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&sup->p, 0, SUP_INT_EXP);
+    bfp_s32_set(&sup->lambda_hat, 0, SUP_INT_EXP);
 }
 
 void sup_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value){
 
-    bfp_s32_init(a, data, INT_EXP, length, 0);
-    bfp_s32_set(a, value, INT_EXP);
+    bfp_s32_init(a, data, SUP_INT_EXP, length, 0);
+    bfp_s32_set(a, value, SUP_INT_EXP);
 }
 
 void sup_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev){
 
     memcpy(current->data, prev->data, (SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE) * sizeof(int32_t));
     memcpy(&current->data[SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE], input, SUP_FRAME_ADVANCE * sizeof(int32_t));
-    current->exp = INT_EXP;
+    current->exp = SUP_INT_EXP;
     bfp_s32_headroom(current);
 
     memcpy(prev->data, &prev->data[SUP_FRAME_ADVANCE], (SUP_PROC_FRAME_LENGTH - (2 * SUP_FRAME_ADVANCE)) * sizeof(int32_t));
     memcpy(&prev->data[SUP_PROC_FRAME_LENGTH - (2 * SUP_FRAME_ADVANCE)], input, SUP_FRAME_ADVANCE * sizeof(int32_t));
-    prev->exp = INT_EXP;
+    prev->exp = SUP_INT_EXP;
     bfp_s32_headroom(prev);
 }
 
 void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     bfp_s32_t in_half, output;
     
-    bfp_s32_init(&output, out, INT_EXP, SUP_FRAME_ADVANCE, 0);
+    bfp_s32_init(&output, out, SUP_INT_EXP, SUP_FRAME_ADVANCE, 0);
     bfp_s32_init(&in_half, in->data, in->exp, SUP_FRAME_ADVANCE, 1);
 
     bfp_s32_add(&output, &in_half, overlap);
@@ -128,8 +158,8 @@ void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     overlap->exp = in->exp;
     bfp_s32_headroom(overlap);
 
-    bfp_s32_use_exponent(&output, INT_EXP);
-    bfp_s32_use_exponent(overlap, INT_EXP);
+    bfp_s32_use_exponent(&output, SUP_INT_EXP);
+    bfp_s32_use_exponent(overlap, SUP_INT_EXP);
 }
 
 void sup_init_state(sup_state_t * state){
@@ -147,8 +177,8 @@ void sup_init_state(sup_state_t * state){
 
     sup_fill_rev_wind(state->data_rev_wind, SUP_SQRT_HANN_LUT, SUPPRESSION_WINDOW_LENGTH / 4);
 
-    bfp_s32_init(&state->wind, SUP_SQRT_HANN_LUT, INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
-    bfp_s32_init(&state->rev_wind, state->data_rev_wind, INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
+    bfp_s32_init(&state->wind, SUP_SQRT_HANN_LUT, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
+    bfp_s32_init(&state->rev_wind, state->data_rev_wind, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
     
     state->reset_period = (unsigned)(16000.0 * 0.15);
     state->alpha_d = float_to_float_s32(0.95);
@@ -188,7 +218,7 @@ void sup_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * 
         t1.exp = new_mag->exp;
 
         if(t1.mant != 0)t2[v] = float_s32_div(t1, t);
-        else {t2[v].mant = 0;t2[v].exp = t1.exp;}
+        else {t2[v].mant = 0;t2[v].exp = SUP_INT_EXP;}
         orig_mag->data[v] = t2[v].mant;
         if(t2[v].exp > max_exp)max_exp = t2[v].exp;
     }
@@ -203,8 +233,6 @@ void sup_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * 
     bfp_s32_headroom(orig_mag);
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
-
-    Y->data[0].im = 0;
 }
 
 void sup_process_frame(sup_state_t * state,
@@ -215,17 +243,20 @@ void sup_process_frame(sup_state_t * state,
     int32_t curr_frame_data[SUP_PROC_FRAME_LENGTH];
     int32_t scratch1[SUP_PROC_FRAME_BINS];
     int32_t scratch2[SUP_PROC_FRAME_BINS];
-    bfp_s32_init(&curr_frame, curr_frame_data, INT_EXP, SUP_PROC_FRAME_LENGTH, 0);
-    bfp_s32_init(&abs_Y_suppressed, scratch1, INT_EXP, SUP_PROC_FRAME_BINS, 0);
-    bfp_s32_init(&abs_Y_original, scratch2, INT_EXP, SUP_PROC_FRAME_BINS, 0);
+    bfp_s32_init(&curr_frame, curr_frame_data, SUP_INT_EXP, SUP_PROC_FRAME_LENGTH, 0);
+    bfp_s32_init(&abs_Y_suppressed, scratch1, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
+    bfp_s32_init(&abs_Y_original, scratch2, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     sup_pack_input(&curr_frame, input, &state->prev_frame);
     
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
-    bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
-    
-    bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);
+    //bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
+    bfp_complex_s32_t curr_fft;
+
+    sup_forward_fft(&curr_fft, &curr_frame);
+
+    bfp_complex_s32_mag(&abs_Y_suppressed, &curr_fft);
 
     memcpy(&abs_Y_original.data, &abs_Y_suppressed.data, sizeof(abs_Y_suppressed.data));
     abs_Y_original.exp = abs_Y_suppressed.exp;
@@ -233,10 +264,11 @@ void sup_process_frame(sup_state_t * state,
 
     ns_process_frame(&abs_Y_suppressed, state);
 
-    sup_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
+    sup_rescale_vector(&curr_fft, &abs_Y_suppressed, &abs_Y_original);
     ////////////////////////////don't use abs_Y_orig after this point 
 
-    bfp_fft_inverse_mono(curr_fft);
+    //bfp_fft_inverse_mono(curr_fft);
+    sup_inverse_fft(&curr_frame, &curr_fft);
 
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 

@@ -20,8 +20,7 @@
 #include "../../../../shared/testing/testing.h"
 
 #define EXP  -31
-#define len SUP_PROC_FRAME_BINS
-#define len2 SUP_PROC_FRAME_LENGTH
+
 
 TEST_GROUP_RUNNER(sup_rescale_vector){
     RUN_TEST_CASE(sup_rescale_vector, case0);
@@ -46,28 +45,26 @@ int32_t use_exp_float(float_s32_t fl, exponent_t exp)
 }
 
 void check_saturation(float_s32_t *fl, bfp_complex_s32_t *Y, int v){
-    if(use_exp_float(*fl, Y->exp) == INT_MAX){
-        while(use_exp_float(*fl, Y->exp) == INT_MAX){
-            fl->mant /= 2; Y->data[v].re /= 2;
-        }
+    while(use_exp_float(*fl, Y->exp) == INT_MAX){
+        fl->mant /= 2; Y->data[v].re /= 2;
     }
 }
 
 TEST(sup_rescale_vector, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
 
-    int32_t abs_orig_int[len];
-    int32_t abs_sup_int[len];
-    complex_s32_t Y_int[len];
+    int32_t abs_orig_int[SUP_PROC_FRAME_BINS];
+    int32_t abs_sup_int[SUP_PROC_FRAME_BINS];
+    complex_s32_t Y_int[SUP_PROC_FRAME_BINS];
     float_s32_t t, t1;
-    int32_t ex_re[len], ex_im[len];
+    int32_t ex_re[SUP_PROC_FRAME_BINS], ex_im[SUP_PROC_FRAME_BINS];
     double abs_ratio;
-    double expected[len2];
+    double expected[SUP_PROC_FRAME_BINS * 2];
     float_s32_t ex_re_fl, ex_im_fl;
 
     for(int i = 0; i < 100; i++){
 
-        for(int v = 0; v < len; v++){
+        for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             abs_orig_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
             abs_sup_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
 
@@ -89,20 +86,19 @@ TEST(sup_rescale_vector, case0){
             t1.exp = EXP;
             expected[(2 * v) + 1] = float_s32_to_double(t1) * abs_ratio;
         }
-        expected[1] = 0.0;
 
         bfp_s32_t abs_orig, abs_sup;
         bfp_complex_s32_t Y;
-        bfp_s32_init(&abs_orig, abs_orig_int, EXP, len, 1);
-        bfp_s32_init(&abs_sup, abs_sup_int, EXP, len, 1);
-        bfp_complex_s32_init(&Y, Y_int, EXP, len, 1);
+        bfp_s32_init(&abs_orig, abs_orig_int, EXP, SUP_PROC_FRAME_BINS, 1);
+        bfp_s32_init(&abs_sup, abs_sup_int, EXP, SUP_PROC_FRAME_BINS, 1);
+        bfp_complex_s32_init(&Y, Y_int, EXP, SUP_PROC_FRAME_BINS, 1);
 
         sup_rescale_vector(&Y, &abs_sup, &abs_orig);
 
         int32_t abs_diff = 0;
         int id = 0;
 
-        for(int v = 0; v < len; v++){
+        for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             float_s32_t act_re_fl, act_im_fl;
             int32_t d_r, d_i, re_int, im_int;
             int i;

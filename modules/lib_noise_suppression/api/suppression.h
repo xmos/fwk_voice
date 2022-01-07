@@ -6,8 +6,6 @@
 
 #include "suppression_state.h"
 
-//void sup_test_task(chanend c_input, chanend c_output, chanend ?c_control);
-
 /** Function that sets the reset period in ms for a noise suppressor
  *
  * \param[in,out] state    Noise suppressor to be modified
@@ -80,7 +78,7 @@ void sup_reset_noise_suppression(sup_state_t * sup);
 
 /** Function that initialises the suppression state.
  *
- * It initialises the a noise suppressor with the following settings:
+ * It initialises the noise suppressor with the following settings:
  *
  *   * reset period:  2400
  *
