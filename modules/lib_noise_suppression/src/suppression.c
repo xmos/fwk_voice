@@ -241,7 +241,4 @@ void sup_process_frame(sup_state_t * state,
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
     sup_form_output(output, &curr_frame, &state->overlap);
-    memcpy(state->prev_frame.data, curr_frame.data, SUP_PROC_FRAME_LENGTH * sizeof(int32_t));
-    state->prev_frame.exp = curr_frame.exp;
-    state->prev_frame.hr = curr_frame.hr;
 }
