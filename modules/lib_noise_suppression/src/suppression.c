@@ -187,7 +187,8 @@ void sup_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * 
         t1.mant = new_mag->data[v];
         t1.exp = new_mag->exp;
 
-        t2[v] = float_s32_div(t1, t);
+        if(t1.mant != 0)t2[v] = float_s32_div(t1, t);
+        else {t2[v].mant = 0;t2[v].exp = t1.exp;}
         orig_mag->data[v] = t2[v].mant;
         if(t2[v].exp > max_exp)max_exp = t2[v].exp;
     }
