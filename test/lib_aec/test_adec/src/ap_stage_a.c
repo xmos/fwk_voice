@@ -246,9 +246,9 @@ void ap_stage_a(ap_stage_a_state *state,
         adec_in.from_aec.shadow_to_main_copy_flag = 1;
     }
     // Directly from app
-    adec_in.far_end_active_flag = 1;
+    adec_in.far_end_active_flag = is_ref_active;
     adec_in.num_frames_since_last_call = 1;
-    adec_in.manual_de_cycle_trigger = 1;
+    adec_in.manual_de_cycle_trigger = 0;
     
     framenum++;
     
@@ -267,6 +267,9 @@ void ap_stage_a(ap_stage_a_state *state,
     }
 
     if(state->adec_output.mode_change_request_flag == 1){
+        // In case the mode change is requested as a result of manual DE cycle trigger, reset manual_de_cycle_trigger
+        adec_in.manual_de_cycle_trigger = 0;
+
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;
         for(int ch=0; ch<2; ch++) {

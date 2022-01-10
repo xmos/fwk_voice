@@ -43,7 +43,6 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
  */
 void adec_init(adec_state_t *adec_state){
   adec_state->enabled = 1; //TODO
-  adec_state->manual_dec_cycle_trigger = 0; //TODO
   adec_state->agm_q24 = ADEC_AGM_HALF;
 
   //Using bits log2(erle) with q7_28 gives us up to 10log(2^127) = 382dB ERLE measurement range.. 
@@ -410,16 +409,15 @@ void adec_process_frame(
 
           //printf("state->agm = %d, watchdog_triggered = %d, state->shadow_flag_counter = %d, state->convergence_counter = %d\n", state->agm_q24, watchdog_triggered, state->shadow_flag_counter, state->convergence_counter);
           
-          if (state->manual_dec_cycle_trigger ||
+          if (adec_in->manual_de_cycle_trigger ||
               ((state->agm_q24 < 0 || watchdog_triggered) &&
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
                 state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT))) {
 		  
-            if (state->enabled || state->manual_dec_cycle_trigger) {
-              if (state->manual_dec_cycle_trigger) {
+            if (state->enabled || adec_in->manual_de_cycle_trigger) {
+              if (adec_in->manual_de_cycle_trigger) {
                 if (state->agm_q24 < 0) state->agm_q24 = 0;//clip negative
                 printf("manual_dec_cycle_trigger\n");
-                state->manual_dec_cycle_trigger = 0;
               }
 
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.

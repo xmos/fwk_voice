@@ -61,7 +61,6 @@ typedef struct {
     adec_mode_t mode;
     int32_t peak_to_average_ratio_valid_flag;
     int32_t enabled;
-    int32_t manual_dec_cycle_trigger;
     int32_t gated_milliseconds_since_mode_change;
     int32_t last_measured_delay;
     int32_t peak_power_history_idx;
