@@ -4,9 +4,8 @@
 #ifdef __XC__
 extern "C" {
 #endif
-  #include "aec_defines.h"
   #include "aec_api.h"
-  #include "adec_types.h"
+  #include "adec_state.h"
 #ifdef __XC__
 }
 #endif
@@ -14,6 +13,8 @@ extern "C" {
 #include "aec_memory_pool.h"
 
 #define AP_FRAME_ADVANCE           (240)
+#define AP_MAX_Y_CHANNELS (2)
+#define AP_MAX_X_CHANNELS (2)
 
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
@@ -51,8 +52,8 @@ typedef struct {
     adec_output_t adec_output;
     aec_conf_t delay_conf;
     aec_conf_t run_conf_alt_arch;
-    unsigned delay_estimator_enabled;
-    int wait_for_initial_adec;
+    int32_t delay_estimator_enabled;
+    int32_t wait_for_initial_adec;
     uint64_t alignment;
 } ap_stage_a_state;
 

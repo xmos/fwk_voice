@@ -1,6 +1,6 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include "adec_types.h"
+#include "adec_state.h"
 
 /** Function that initialises the delay estimator controller (dec) state
  *

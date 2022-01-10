@@ -6,7 +6,7 @@
 
 #include "aec_defines.h"
 #include "aec_api.h"
-#include "aec_delay_estimator_control.h"
+#include "adec_api.h"
 
 #include "aec_config.h"
 #include "aec_task_distribution.h"

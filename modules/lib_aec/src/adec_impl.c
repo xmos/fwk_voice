@@ -1,7 +1,7 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "aec_delay_estimator_control.h"
+#include "adec_api.h"
 #include <string.h>
 #include <math.h>
 #include <limits.h>
@@ -435,13 +435,7 @@ void adec_process_frame(
               state->gated_milliseconds_since_mode_change = 0;
               //printf("Mode Change requested 2\n");              
               adec_output->mode_change_request_flag = 1;
-
-            } /*else if (!state->aec_reset_counter_frames) {
-              printf("AEC MODE - Trigger reset\n");
-              state->aec_reset_counter_frames = DEFAULT_AEC_RESET_TIMEOUT;
-              adec_output->reset_all_aec_flag = 1;
-              reset_stuff_on_AEC_mode_start(state, 1);
-            }*/
+            }
           }
         }
         break;

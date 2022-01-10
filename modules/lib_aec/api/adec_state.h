@@ -10,7 +10,7 @@ extern "C" {
 #ifdef __XC__
 }
 #endif
-#include "aec_delay_estimator_control_parameters.h"
+#include "adec_defines.h"
 
 typedef enum {
     ADEC_NORMAL_AEC_MODE,
@@ -52,15 +52,15 @@ typedef struct {
 
     adec_mode_t mode;
     int32_t peak_to_average_ratio_valid_flag;
-    unsigned enabled;
-    unsigned manual_dec_cycle_trigger;
-    uint32_t gated_milliseconds_since_mode_change;
+    int32_t enabled;
+    int32_t manual_dec_cycle_trigger;
+    int32_t gated_milliseconds_since_mode_change;
     int32_t last_measured_delay;
-    unsigned peak_power_history_idx;
-    unsigned peak_power_history_valid;
-    unsigned sf_copy_flag;
-    unsigned convergence_counter;
-    unsigned shadow_flag_counter;
+    int32_t peak_power_history_idx;
+    int32_t peak_power_history_valid;
+    int32_t sf_copy_flag;
+    int32_t convergence_counter;
+    int32_t shadow_flag_counter;
 } adec_state_t;
 
 
