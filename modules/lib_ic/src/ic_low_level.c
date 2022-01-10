@@ -216,7 +216,7 @@ void ic_compute_T(
         unsigned y_ch,
         unsigned x_ch){
 
-    bfp_complex_s32_t *T_ptr = &state->T_bfp[x_ch]; //Use the same memory as X to store T
+    bfp_complex_s32_t *T_ptr = &state->T_bfp[x_ch]; //We reuse the same memory as X to store T
     bfp_complex_s32_t *Error_ptr = &state->Error_bfp[y_ch];
     bfp_s32_t *inv_X_energy_ptr = &state->inv_X_energy_bfp[x_ch];
     float_s32_t mu = state->mu[y_ch][x_ch];
@@ -390,10 +390,10 @@ void ic_apply_leakage(
 
         int32_t mant = state->ic_adaption_controller_state.leakage_alpha.mant;
         exponent_t exp = state->ic_adaption_controller_state.leakage_alpha.exp;
-        float_complex_s32_t leakage = {{mant, mant}, exp};
+        float_s32_t leakage = {mant, exp};
 
         for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
             bfp_complex_s32_t *H_hat_ptr = &state->H_hat_bfp[y_ch][ph];
-            bfp_complex_s32_scale(H_hat_ptr, H_hat_ptr, leakage);
+            bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, leakage); 
         }
 }
