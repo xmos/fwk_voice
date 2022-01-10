@@ -39,6 +39,14 @@ typedef struct {
 }aec_to_adec_t;
 
 typedef struct {
+    de_to_adec_t from_de;
+    aec_to_adec_t from_aec;
+    int32_t far_end_active_flag;
+    int32_t num_frames_since_last_call;
+    int32_t manual_de_cycle_trigger;
+}adec_input_t;
+
+typedef struct {
     float_s32_t max_peak_to_average_ratio_since_reset;
     float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1];
     float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE];

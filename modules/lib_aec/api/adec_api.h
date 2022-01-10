@@ -22,8 +22,4 @@ void adec_init(adec_state_t *state);
 void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
-    const de_to_adec_t *de_output,
-    const aec_to_adec_t *aec_to_adec,
-    int32_t far_end_active_flag,
-    int32_t num_frames_since_last_call
-);
+    const adec_input_t *adec_in);

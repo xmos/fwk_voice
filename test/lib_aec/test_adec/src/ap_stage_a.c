@@ -226,39 +226,40 @@ void ap_stage_a(ap_stage_a_state *state,
             state->aec_main_state.num_phases
             );
 
-    //Convert to de to adec input format
+    // Create input to ADEC
+    adec_input_t adec_in;
+    // From DE
     delay_estimator_params_t *de_params = (delay_estimator_params_t *)&state->aec_main_state.shared_state->delay_estimator_params;
-    de_to_adec_t de_to_adec;
-    de_to_adec.delay_estimate = delay_estimate;
-    de_to_adec.peak_power_phase_index = de_params->peak_power_phase_index;
-    //peak_phase_power
-    de_to_adec.peak_phase_power = de_params->peak_phase_power;
-    //peak_to_average_ratio
-    de_to_adec.peak_to_average_ratio = de_params->peak_to_average_ratio;
-    //erle_ratio
-    aec_to_adec_t aec_to_adec;
-    aec_to_adec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
-    aec_to_adec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
-    aec_to_adec.shadow_better_or_equal_flag = 0;
+    adec_in.from_de.delay_estimate = delay_estimate;
+    adec_in.from_de.peak_power_phase_index = de_params->peak_power_phase_index;
+    adec_in.from_de.peak_phase_power = de_params->peak_phase_power;
+    adec_in.from_de.peak_to_average_ratio = de_params->peak_to_average_ratio;
+    // From AEC
+    adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
+    adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
+    adec_in.from_aec.shadow_better_or_equal_flag = 0;
     if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] > EQUAL) {
-        aec_to_adec.shadow_better_or_equal_flag = 1;
+        adec_in.from_aec.shadow_better_or_equal_flag = 1;
     }
-    aec_to_adec.shadow_to_main_copy_flag = 0;
+    adec_in.from_aec.shadow_to_main_copy_flag = 0;
     if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] == COPY) {
-        aec_to_adec.shadow_to_main_copy_flag = 1;
+        adec_in.from_aec.shadow_to_main_copy_flag = 1;
     }
-    //printf("erle_ratio %f, shadow_flag %d\n", ldexp(((double)(uint32_t)aec_to_adec.erle_ratio.m), aec_to_adec.erle_ratio.e), state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
+    // Directly from app
+    adec_in.far_end_active_flag = 1;
+    adec_in.num_frames_since_last_call = 1;
+    adec_in.manual_de_cycle_trigger = 1;
+    
     framenum++;
-
+    
+    // Log current mode for printing later
     adec_mode_t old_mode = state->adec_state.mode;
-
+    
+    // Call ADEC
     adec_process_frame(
             &state->adec_state,
             &state->adec_output,
-            &de_to_adec,
-            &aec_to_adec,
-            is_ref_active,
-            1 //ADEC called every frame so one frame since last call
+            &adec_in
             );
 
     if(state->adec_output.reset_all_aec_flag) {

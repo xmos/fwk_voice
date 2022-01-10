@@ -273,17 +273,14 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
 void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
-    const de_to_adec_t *de_output,
-    const aec_to_adec_t *aec_to_adec,
-    int32_t far_end_active_flag,
-    int32_t num_frames_since_last_call
+    const adec_input_t *adec_in
 ){
   adec_output->reset_all_aec_flag = 0;
   adec_output->mode_change_request_flag = 0;
   adec_output->delay_estimator_enabled = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
   adec_output->requested_mic_delay_samples = 0;
 
-  uint32_t elapsed_milliseconds = num_frames_since_last_call*15; //Each frame is 15ms
+  uint32_t elapsed_milliseconds = adec_in->num_frames_since_last_call*15; //Each frame is 15ms
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
@@ -301,7 +298,7 @@ void adec_process_frame(
   for(int i = ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i > 0; i--){
     state->peak_to_average_ratio_history[i] = state->peak_to_average_ratio_history[i - 1];
   }
-  state->peak_to_average_ratio_history[0] = de_output->peak_to_average_ratio;
+  state->peak_to_average_ratio_history[0] = adec_in->from_de.peak_to_average_ratio;
 
   float_s32_t last_n_total = double_to_float_s32(0.0);
   for(int i = 0; i < ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i++){
@@ -324,13 +321,13 @@ void adec_process_frame(
   }
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
-  if (float_s32_gte(de_output->peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset) 
+  if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset) 
     && (state->peak_to_average_ratio_valid_flag == 1)){
-    state->max_peak_to_average_ratio_since_reset = de_output->peak_to_average_ratio;
+    state->max_peak_to_average_ratio_since_reset = adec_in->from_de.peak_to_average_ratio;
   }
 
   //Work out the trend (slope) of the peak phase power to see if we are diverging..
-  push_peak_power_into_history(state, de_output->peak_phase_power);
+  push_peak_power_into_history(state, adec_in->from_de.peak_phase_power);
   float_s32_t peak_power_decimated[ADEC_PEAK_LINREG_HISTORY_DECIMATED_SIZE];
   get_decimated_peak_power_history(peak_power_decimated, state);
   float_s32_t decimate_ratio = {ADEC_PEAK_LINREG_DECIMATE_RATIO, 0};
@@ -343,9 +340,9 @@ void adec_process_frame(
 
   //Work out erle in log2
   float_s32_t erle_ratio;
-  float_s32_t denom = aec_to_adec->error_ema_energy_ch0;
+  float_s32_t denom = adec_in->from_aec.error_ema_energy_ch0;
   if(denom.mant != 0) {
-      erle_ratio = float_s32_div(aec_to_adec->y_ema_energy_ch0, denom);
+      erle_ratio = float_s32_div(adec_in->from_aec.y_ema_energy_ch0, denom);
   }
   else {
       erle_ratio = double_to_float_s32(1.0);
@@ -354,7 +351,7 @@ void adec_process_frame(
 
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):
-        if (aec_to_adec->shadow_better_or_equal_flag) {
+        if (adec_in->from_aec.shadow_better_or_equal_flag) {
           reset_stuff_on_AEC_mode_start(state, 0);
           ++state->shadow_flag_counter;
           state->convergence_counter = 0;
@@ -362,21 +359,21 @@ void adec_process_frame(
           ++state->convergence_counter;
         }
 
-        if (aec_to_adec->shadow_to_main_copy_flag) {
+        if (adec_in->from_aec.shadow_to_main_copy_flag) {
           state->sf_copy_flag = 1;
         }
 
         //In normal AEC mode, check to see if we have converged but have left significant tail on the table
         //But only change mode if the delay change is big enough - else reset of AEC not worth it
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
-          (float_s32_gte(de_output->peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
+          (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
           (state->peak_to_average_ratio_valid_flag == 1) &&
-          (de_output->delay_estimate > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
+          (adec_in->from_de.delay_estimate > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (state->enabled)){
 
           //We have a new estimate RELATIVE to current delay settings
-          state->last_measured_delay += de_output->delay_estimate;
-          printf("AEC MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
+          state->last_measured_delay += adec_in->from_de.delay_estimate;
+          printf("AEC MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
@@ -387,17 +384,17 @@ void adec_process_frame(
         }
 
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
-        if (far_end_active_flag && state->sf_copy_flag){
+        if (adec_in->far_end_active_flag && state->sf_copy_flag){
 
           //AEC goodness calculation
           state->agm_q24 = calculate_aec_goodness_metric(state, log2erle_q24, peak_power_slope, state->agm_q24);
 
           //Action if manual trigger or if agm dips below zero or watchdog when adec enabled - things are totally ruined so do full delay estimate cycle
-          if(float_s32_gte(aec_peak_to_average_ruined_aec_threshold, de_output->peak_to_average_ratio)) printf("less than 2\n");
+          if(float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) printf("less than 2\n");
           unsigned watchdog_triggered = (
                        (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
                       && ((float_s32_gte(state->aec_peak_to_average_good_aec_threshold, state->max_peak_to_average_ratio_since_reset)) ||
-                          ((state->peak_to_average_ratio_valid_flag == 1) && (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, de_output->peak_to_average_ratio)) )
+                          ((state->peak_to_average_ratio_valid_flag == 1) && (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) )
                          )
                                         );
 
@@ -444,14 +441,14 @@ void adec_process_frame(
         //track peak to average ratio and minimum time with far end energy to know when to change
         // printf("peak:ave * 1024: %d\n", vtb_denormalise_and_saturate_u32(state->peak_to_average_ratio, -10));
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
-          float_s32_gte(de_output->peak_to_average_ratio, aec_peak_to_average_good_de_threshold) &&
+          float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold) &&
           (state->peak_to_average_ratio_valid_flag == 1)){
 
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
-          state->last_measured_delay = de_output->delay_estimate - MAX_DELAY_SAMPLES;
-          printf("DE MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, de_output->delay_estimate); //+ve means MIC delay
-          //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(de_output->peak_to_average_ratio), vtb_denormalise_and_saturate_u32(de_output->peak_to_average_ratio, -10));
+          state->last_measured_delay = adec_in->from_de.delay_estimate - MAX_DELAY_SAMPLES;
+          printf("DE MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
+          //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
 
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
 
@@ -470,7 +467,7 @@ void adec_process_frame(
       break;
     }
 
-    if (far_end_active_flag) {
+    if (adec_in->far_end_active_flag) {
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 
