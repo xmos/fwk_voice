@@ -76,6 +76,12 @@ void ic_init(ic_state_t *state){
         bfp_s32_init(&state->prev_x_bfp[ch], state->x_prev_samples[ch], -1024, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, 0);
     }
 
+    //Reuse X memory for calculating T. Note we re-initialise T_bfp in ic_frame_init()
+    for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
+        bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
+    }
+
+
     //Initialise ema energy
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         state->y_ema_energy[ch].exp = -1024;
@@ -118,6 +124,7 @@ void ic_init(ic_state_t *state){
         }
     }
 
+    //TODO separate these out
     //Initialise ic config params
     // ic_priv_init_config_params(&state->config_params);
 }
@@ -157,14 +164,6 @@ void ic_filter(
     }
     printf("ic_fft\n");
 
-
-    for(int i=0; i<257; i++) {
-        // printf("Y_data: %.12f + %.12fj\n", ldexp( state->Y_bfp[0].data[i].re, state->Y_bfp[0].exp), ldexp( state->Y_bfp[0].data[i].im, state->Y_bfp[0].exp));
-
-        // printf("y: %.12f\n", ldexp( state->y_bfp[0].data[i], state->y_bfp[0].exp));
-        }
-    printf("\n\n");
-
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
     }
@@ -191,21 +190,11 @@ void ic_filter(
     ic_update_X_fifo_1d(state);
     printf("ic_update_X_fifo_1d\n");
 
-
-    // ic_dump_var_3d(state);
-
-
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_calc_Error_and_Y_hat(state, ch);
     }
+
     printf("ic_calc_Error_and_Y_hat\n");
-
-        for(int i=0; i<257; i++) {
-        // printf("Error: %.12f + %.12fj\n", ldexp( state->Error_bfp[0].data[i].re, state->Error_bfp[0].exp), ldexp( state->Error_bfp[0].data[i].im, state->Error_bfp[0].exp));
-        }
-
-    // ic_dump_var_2d(state);
-
 
     //IFFT Error and Y_hat
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
@@ -214,20 +203,12 @@ void ic_filter(
     }
     printf("ic_ifft\n");
 
-    for(int i=0; i<512; i++) {
-        // printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
-    }
-
 
     //Window error. Calculate output
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_create_output(state, output, ch);
     }
     printf("ic_create_output\n");
-
-    for(int i=0; i<512; i++) {
-        // printf("error %d: %.12f\n", i, ldexp( state->error_bfp[0].data[i], state->error_bfp[0].exp));
-    }
 }
 
 
@@ -274,23 +255,21 @@ void ic_adapt(
     }
     printf("ic_calc_inv_X_energy\n");
 
-    ic_dump_var_2d(state);
+    // ic_dump_var_2d(state);
 
 
     //Adapt H_hat
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         //There's only enough memory to store IC_X_CHANNELS worth of T data and not IC_Y_CHANNELS*IC_X_CHANNELS so the y_channels for loop cannot be run in parallel
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
+            for(int i=0;i<2;i++){
+                printf("Inv_x: %.12f\n", ldexp( state->inv_X_energy_bfp[0].data[i], state->inv_X_energy_bfp[0].exp));
+            }
             ic_compute_T(state, ych, xch);
 
-            // for(int i=0; i<state->T_bfp[xch].length; i++) {
-            for(int i=0; i<10; i++) {
-                // printf("T:     %.12f + %.12fj\n", ldexp( state->T_bfp[xch].data[i].re, state->T_bfp[xch].exp), ldexp( state->T_bfp[xch].data[i].im, state->T_bfp[xch].exp));
-                // printf("Inv_x: %.12f\n", ldexp( state->inv_X_energy_bfp[xch].data[i], state->inv_X_energy_bfp[xch].exp));
-                // printf("error: %.12f\n", ldexp( state->error_bfp[ych].data[i], state->error_bfp[ych].exp));
-                // printf("mu: %.12f\n", ldexp( state->mu[ych][xch].mant, state->mu[ych][xch].exp));
-                }
-
+            // printf("T len: %d\n", state->T_bfp[xch].length);
+            // ic_dump_var_2d(state);
+            // printf("T len: %d\n", state->T_bfp[xch].length);
 
         }
         printf("ic_compute_T\n");

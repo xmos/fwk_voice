@@ -22,7 +22,7 @@
 #include "wav_utils.h"
 #include "dump_var_py.h"
 
-#define MAX_FRAMES  50
+// #define MAX_FRAMES  0
 #define INPUT_Y_DELAY_SAMPS 180
 
 #if PROFILE_PROCESSING
@@ -30,41 +30,6 @@
 #endif
 
 #include "xs3_math.h"
-// void main_tile0(chanend, chanend);
-// void main_tile1(chanend);
-
-
-
-
-
-
-        // int32_t y_data[IC_FRAME_ADVANCE];
-        // int32_t x_data[IC_FRAME_ADVANCE];
-        // for(int i=0; i<IC_FRAME_ADVANCE; i++){
-        //     y_data[i] = in_frame[0][i].ch_a;
-        //     x_data[i] = in_frame[0][i].ch_b;
-        //     // printf("%d %d\n", frame_idx, in_frame[0][frame_idx].ch_a);
-        // }
-
-        // int32_t output[IC_FRAME_ADVANCE];
-
-        // uint8_t vad = 0;
-        // printf("pre ic_process_frame\n");
-        // printf("state.config_params.core_conf.bypass: %d\n", state.config_params.core_conf.bypass);
-        // printf("offset: %u\n", (unsigned)&state.config_params.core_conf.bypass - (unsigned)&state);
-
-
-        // ic_process_frame(&state, y_data, x_data, vad, output);
-        // // memcpy(output, y_data, sizeof(output));
-        // printf("post ic_process_frame\n");
-
-        // vtb_ch_pair_t output_full_frame[IC_FRAME_LENGTH] = {{0}};
-        
-        // for(int i=0; i<IC_FRAME_ADVANCE; i++){
-        //     output_full_frame[i].ch_a = output[i];
-        //     output_full_frame[i].ch_b = y_data[i]; //passthrough for now
-        // }
-
 
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 
@@ -138,10 +103,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     ic_init(&state);
     prof(1, "end_ic_init"); 
 
-    // main_state.shared_state->config_params.coh_mu_conf.adaption_config = runtime_args[ADAPTION_MODE];
-    // main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = runtime_args[FORCE_ADAPTION_MU];
-
-
     ic_dump_var_2d_start(&state, &dut_var_file, block_count);
 
     for(unsigned b=0;b<block_count;b++){
@@ -188,10 +149,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         prof(6, "start_ic_adapt");
         ic_adapt(&state, vad, output);
         prof(7, "end_ic_adapt");
-
-        // char strbuf[100];
-        // sprintf(strbuf, "%d\n", delay);
-        // file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
 
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){

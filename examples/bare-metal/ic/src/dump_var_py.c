@@ -11,6 +11,7 @@
 file_t *g_file_handle = NULL;
 unsigned frame = 0;
 
+//Define your state variable to print here
 #define dut_var_3d state->X_fifo_bfp
 
 void ic_dump_var_3d_start(ic_state_t *state, file_t *file_handle, unsigned n_frames){
@@ -52,8 +53,9 @@ void ic_dump_var_3d(ic_state_t *state){
 
 // #define dut_var_2d state->sigma_XX_bfp
 // #define dut_var_2d state->X_energy_bfp
-#define dut_var_2d state->inv_X_energy_bfp
-#define COMPLEX 0
+// #define dut_var_2d state->inv_X_energy_bfp
+#define dut_var_2d state->T_bfp
+#define COMPLEX 1
 
 void ic_dump_var_2d_start(ic_state_t *state, file_t *file_handle, unsigned n_frames){
     char strbuf[1024];

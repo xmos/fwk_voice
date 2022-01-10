@@ -202,12 +202,6 @@ void ic_calc_inv_X_energy(
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.core_conf.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing);
-    for(int i=0;i<10;i++){
-        // bfp_s32_t X_energy_bfp = state->X_energy_bfp[ch];
-        // printf("    x energy bin %d: %f\n", i, ldexp(X_energy_bfp.data[i], X_energy_bfp.exp));
-        // bfp_s32_t inv_X_energy_bfp = state->inv_X_energy_bfp[ch];
-        // printf("inv x energy bin %d: %f\n", i, ldexp(inv_X_energy_bfp.data[i], inv_X_energy_bfp.exp));
-    }
 }
 
 /// Calculate T (mu * inv_X_energy * Error)
@@ -236,7 +230,6 @@ void ic_filter_adapt(
     bfp_complex_s32_t *T_ptr = &state->T_bfp[0];
     int y_ch = 0;
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
-
 }
 
 

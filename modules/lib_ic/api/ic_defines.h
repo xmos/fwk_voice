@@ -13,18 +13,11 @@
 
 //User modifiable parameters
 #define IC_INIT_SIGMA_XX_SHIFT                      11 //From XC (no concept of this in Py)
-// #define IC_INIT_SIGMA_XX_SHIFT                      0
-// #define IC_INIT_GAMMA_LOG2                          2 //From XC IC
-// #define IC_INIT_GAMMA_LOG2                          6 //From AEC
 #define IC_INIT_GAMMA_LOG2                          1 //From Pyhton IC (2^1 = 2.0)
-
-// #define IC_INIT_DELTA                               double_to_float_s32(0.00007) //XC
-// #define IC_INIT_DELTA                               double_to_float_s32(0.000000007450581) //Python IC.py
 #define IC_INIT_DELTA                               double_to_float_s32(0.0156249999963620211929) //Python test_wav_ic
 #define IC_INIT_LEAKAGE_ALPHA                       double_to_float_s32(1.0)
 #define IC_INIT_MU                                  double_to_float_s32(0.369566)
-#define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.98) //XC
-// #define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.9995117188) //Pyhton
+#define IC_INIT_EMA_ALPHA_Q30                       Q1_30(0.9995117188) //Pyhton
 #define IC_FILTER_PHASES                            10
 
 
@@ -40,7 +33,7 @@
 #define IC_Y_CHANNELS (1)
 #define IC_X_CHANNELS (1)
 
-#define IC_FRAME_LENGTH (512)   //Time domain frame length
+#define IC_FRAME_LENGTH (512) 
 #define IC_FRAME_ADVANCE (240)
 #define IC_FRAME_OVERLAP (IC_FRAME_LENGTH - (2 * IC_FRAME_ADVANCE))
 #define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) //Frequency domain frame length
