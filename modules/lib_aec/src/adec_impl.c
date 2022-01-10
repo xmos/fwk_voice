@@ -42,7 +42,7 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
  * at H_hat[0] and we're wasting some of the tail length.
  */
 void adec_init(adec_state_t *adec_state){
-  adec_state->enabled = 1; //TODO
+  adec_state->adec_config.bypass = 0;
   adec_state->agm_q24 = ADEC_AGM_HALF;
 
   //Using bits log2(erle) with q7_28 gives us up to 10log(2^127) = 382dB ERLE measurement range.. 
@@ -368,7 +368,7 @@ void adec_process_frame(
           (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
           (state->peak_to_average_ratio_valid_flag == 1) &&
           (adec_in->from_de.delay_estimate > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
-          (state->enabled)){
+          (!state->adec_config.bypass)){
 
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += adec_in->from_de.delay_estimate;
@@ -399,7 +399,7 @@ void adec_process_frame(
 
           //Do some debug printing if the watchdog has triggered.
           //TODO Fix debug prints
-          /*if (watchdog_triggered && state->enabled){
+          /*if (watchdog_triggered && !state->adec_config.bypass){
             printf("Watchdog, max_pk_ave_b: %d thresh: %d time: %d limit: %d\n",
               float_to_frac_bits(state->max_peak_to_average_ratio_since_reset),
               float_to_frac_bits(state->aec_peak_to_average_good_aec_threshold),
@@ -414,7 +414,7 @@ void adec_process_frame(
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
                 state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT))) {
 		  
-            if (state->enabled || adec_in->manual_de_cycle_trigger) {
+            if (!state->adec_config.bypass || adec_in->manual_de_cycle_trigger) {
               if (adec_in->manual_de_cycle_trigger) {
                 if (state->agm_q24 < 0) state->agm_q24 = 0;//clip negative
                 printf("manual_dec_cycle_trigger\n");
