@@ -147,7 +147,6 @@ void reset_all_aec(ap_stage_a_state *state){
 void ap_stage_a_init(ap_stage_a_state *state) {
     memset(state, 0, sizeof(ap_stage_a_state));
     state->delay_estimator_enabled = 0;
-    state->wait_for_initial_adec = INITIAL_DELAY_ESTIMATION;
 
     // Initialise default delay values
     delay_buffer_init(&state->delay_state, 0/*Initialise with 0 delay_samples*/);
@@ -164,6 +163,10 @@ void ap_stage_a_init(ap_stage_a_state *state) {
     state->run_conf_alt_arch.num_shadow_filt_phases = 5; //ALT_ARCH_AEC_SHADOW_FILTER_PHASES;
 
     adec_init(&state->adec_state);
+#if DELAY_ESTIMATION_ENABLED_ON_STARTUP
+    // If DE is enabled only on startup, trigger delay estimation cycle once
+    state->adec_state.adec_config.manual_de_cycle_trigger = 1;
+#endif
     aec_conf_t *conf = &state->run_conf_alt_arch;
     aec_switch_configuration(state, conf);
 }
@@ -248,7 +251,6 @@ void ap_stage_a(ap_stage_a_state *state,
     // Directly from app
     adec_in.far_end_active_flag = is_ref_active;
     adec_in.num_frames_since_last_call = 1;
-    adec_in.manual_de_cycle_trigger = 0;
     
     framenum++;
     
@@ -268,14 +270,13 @@ void ap_stage_a(ap_stage_a_state *state,
 
     if(state->adec_output.mode_change_request_flag == 1){
         // In case the mode change is requested as a result of manual DE cycle trigger, reset manual_de_cycle_trigger
-        adec_in.manual_de_cycle_trigger = 0;
+        state->adec_state.adec_config.manual_de_cycle_trigger = 0;
 
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;
         for(int ch=0; ch<2; ch++) {
             reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
         }
-        state->wait_for_initial_adec = 0;
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
         printf("AP Setting MIC delay to: %d\n", state->delay_state.delay_samples);

@@ -1,11 +1,5 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#ifndef INITIAL_DELAY_ESTIMATION
-#define INITIAL_DELAY_ESTIMATION                0
-#endif
-#ifndef ADEC_ENABLED_DEFAULT
-#define ADEC_ENABLED_DEFAULT                    0
-#endif
 //TODO duplicate definitions
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )

@@ -2,14 +2,8 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef __ADEC_TYPES_H__
 #define __ADEC_TYPES_H__
-#ifdef __XC__
-extern "C" {
-#endif
-    #include "bfp_math.h"
-    #include "xs3_math.h"
-#ifdef __XC__
-}
-#endif
+#include "bfp_math.h"
+#include "xs3_math.h"
 #include "adec_defines.h"
 
 typedef enum {
@@ -19,6 +13,7 @@ typedef enum {
 
 typedef struct {
     int32_t bypass;
+    int32_t manual_de_cycle_trigger; 
 }adec_config_params_t;
 
 typedef struct {
@@ -47,7 +42,6 @@ typedef struct {
     aec_to_adec_t from_aec;
     int32_t far_end_active_flag;
     int32_t num_frames_since_last_call;
-    int32_t manual_de_cycle_trigger;
 }adec_input_t;
 
 typedef struct {

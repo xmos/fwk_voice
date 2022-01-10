@@ -1,23 +1,22 @@
 #ifndef AP_STAGE_A_STATE_H
 #define AP_STAGE_A_STATE_H
 
-#ifdef __XC__
-extern "C" {
-#endif
-  #include "aec_api.h"
-  #include "adec_state.h"
-#ifdef __XC__
-}
-#endif
+#include "aec_api.h"
+#include "adec_state.h"
 
 #include "aec_memory_pool.h"
 
 #define AP_FRAME_ADVANCE           (240)
 #define AP_MAX_Y_CHANNELS (2)
 #define AP_MAX_X_CHANNELS (2)
+#define AP_MAX_CHANNELS ((AP_MAX_Y_CHANNELS > AP_MAX_X_CHANNELS) ? (AP_MAX_Y_CHANNELS) : (AP_MAX_X_CHANNELS) )
 
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
+
+#ifndef INITIAL_DELAY_ESTIMATION
+#define INITIAL_DELAY_ESTIMATION (0)
+#endif
 
 typedef struct {
     // Circular buffer to store the samples
@@ -53,7 +52,6 @@ typedef struct {
     aec_conf_t delay_conf;
     aec_conf_t run_conf_alt_arch;
     int32_t delay_estimator_enabled;
-    int32_t wait_for_initial_adec;
     uint64_t alignment;
 } ap_stage_a_state;
 
