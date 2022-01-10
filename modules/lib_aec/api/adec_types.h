@@ -17,22 +17,11 @@ typedef enum {
     ADEC_DELAY_ESTIMATOR_MODE,
 } adec_mode_t;
 
-typedef enum {
-    ADEC_NO_MODE_CHANGE_NEEDED = 0,
-    ADEC_MODE_CHANGE_REQUESTED
-} adec_delay_change_t;
-
-typedef enum {
-    ADEC_PK_AVE_INVALID = 0,
-    ADEC_PK_AVE_VALID
-} adec_pk_ave_valid_t;
-
-
 typedef struct {
     int32_t requested_mic_delay_samples;
-    adec_delay_change_t mode_change_request; 
-    uint32_t reset_all_aec_flag;
-    uint32_t delay_estimator_enabled;
+    int32_t mode_change_request_flag;
+    int32_t reset_all_aec_flag;
+    int32_t delay_estimator_enabled;
 } adec_output_t;
 
 typedef struct {
@@ -45,7 +34,8 @@ typedef struct {
 typedef struct {
     float_s32_t y_ema_energy_ch0;
     float_s32_t error_ema_energy_ch0;
-    int shadow_flag;
+    int32_t shadow_better_or_equal_flag;
+    int32_t shadow_to_main_copy_flag;
 }aec_to_adec_t;
 
 typedef struct {
@@ -60,7 +50,7 @@ typedef struct {
     float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE];
     float_s32_t aec_peak_to_average_good_aec_threshold;
 
-    adec_pk_ave_valid_t peak_to_average_ratio_valid;
+    int32_t peak_to_average_ratio_valid_flag;
     adec_mode_t mode;
     unsigned enabled;
     unsigned manual_dec_cycle_trigger;

@@ -239,13 +239,21 @@ void ap_stage_a(ap_stage_a_state *state,
     aec_to_adec_t aec_to_adec;
     aec_to_adec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     aec_to_adec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
-    aec_to_adec.shadow_flag = state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0];
+    aec_to_adec.shadow_better_or_equal_flag = 0;
+    if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] > EQUAL) {
+        aec_to_adec.shadow_better_or_equal_flag = 1;
+    }
+    aec_to_adec.shadow_to_main_copy_flag = 0;
+    if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] == COPY) {
+        aec_to_adec.shadow_to_main_copy_flag = 1;
+    }
     //printf("erle_ratio %f, shadow_flag %d\n", ldexp(((double)(uint32_t)aec_to_adec.erle_ratio.m), aec_to_adec.erle_ratio.e), state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
     framenum++;
 
     adec_mode_t old_mode = state->adec_state.mode;
 
     adec_output_t *adec_out = &state->adec_output;
+    //memset(adec_)
     aec_delay_estimator_controller(
             &state->adec_state,
             adec_out,
@@ -259,7 +267,7 @@ void ap_stage_a(ap_stage_a_state *state,
         reset_all_aec(state);
     }
 
-    if(state->adec_output.mode_change_request == ADEC_MODE_CHANGE_REQUESTED){
+    if(state->adec_output.mode_change_request_flag == 1){
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;
         for(int ch=0; ch<2; ch++) {

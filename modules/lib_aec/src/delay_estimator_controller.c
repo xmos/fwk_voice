@@ -23,7 +23,7 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
   adec_state->peak_power_history_idx = 0;
   adec_state->peak_power_history_valid = 0;
 
-  adec_state->peak_to_average_ratio_valid = ADEC_PK_AVE_INVALID;
+  adec_state->peak_to_average_ratio_valid_flag = 0;
   adec_state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
 
   adec_state->gated_milliseconds_since_mode_change = 0;
@@ -52,7 +52,7 @@ void aec_delay_estimator_controller_init(adec_state_t *adec_state){
   adec_state->peak_phase_energy_trend_gain_q24 = FLOAT_TO_Q24(ADEC_PEAK_PHASE_ENERGY_TREND_GAIN);
   adec_state->erle_bad_gain_q24 = FLOAT_TO_Q24(ADEC_ERLE_BAD_GAIN);
 
-  adec_state->peak_to_average_ratio_valid = ADEC_PK_AVE_INVALID;
+  adec_state->peak_to_average_ratio_valid_flag = 0;
   adec_state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
 
   float_s32_t v = ADEC_PEAK_TO_AVERAGE_GOOD_AEC;
@@ -289,7 +289,7 @@ void aec_delay_estimator_controller(
     unsigned num_frames_since_last_call
 ){
   adec_output->reset_all_aec_flag = 0;
-  adec_output->mode_change_request = ADEC_NO_MODE_CHANGE_NEEDED;
+  adec_output->mode_change_request_flag = 0;
 
   uint32_t elapsed_milliseconds = num_frames_since_last_call*15; //Each frame is 15ms
 
@@ -324,8 +324,8 @@ void aec_delay_estimator_controller(
   // Note we look for last_n_total > penultimate_n_total so !(penultimate_n_total >= last_n_total)
   // As we want upwards trend not flat
   if (!float_s32_gte(penultimate_n_total, last_n_total)){
-    if (state->peak_to_average_ratio_valid != ADEC_PK_AVE_VALID) printf("***WERE ON THE UP MY FRIEND.. ***\n");
-    state->peak_to_average_ratio_valid = ADEC_PK_AVE_VALID;
+    if (state->peak_to_average_ratio_valid_flag != 1) printf("***WERE ON THE UP MY FRIEND.. ***\n");
+    state->peak_to_average_ratio_valid_flag = 1;
   }
   else{
     // Still descending. Wait for now.
@@ -333,7 +333,7 @@ void aec_delay_estimator_controller(
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
   if (float_s32_gte(de_output->peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset) 
-    && (state->peak_to_average_ratio_valid == ADEC_PK_AVE_VALID)){
+    && (state->peak_to_average_ratio_valid_flag == 1)){
     state->max_peak_to_average_ratio_since_reset = de_output->peak_to_average_ratio;
   }
 
@@ -362,7 +362,7 @@ void aec_delay_estimator_controller(
 
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):
-        if (aec_to_adec->shadow_flag > EQUAL) {
+        if (aec_to_adec->shadow_better_or_equal_flag) {
           reset_stuff_on_AEC_mode_start(state, 0);
           ++state->shadow_flag_counter;
           state->convergence_counter = 0;
@@ -370,7 +370,7 @@ void aec_delay_estimator_controller(
           ++state->convergence_counter;
         }
 
-        if (aec_to_adec->shadow_flag == COPY) {
+        if (aec_to_adec->shadow_to_main_copy_flag) {
           state->sf_copy_flag = 1;
         }
 
@@ -378,7 +378,7 @@ void aec_delay_estimator_controller(
         //But only change mode if the delay change is big enough - else reset of AEC not worth it
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
           (float_s32_gte(de_output->peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
-          (state->peak_to_average_ratio_valid == ADEC_PK_AVE_VALID) &&
+          (state->peak_to_average_ratio_valid_flag == 1) &&
           (de_output->delay_estimate > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (state->enabled)){
 
@@ -391,7 +391,7 @@ void aec_delay_estimator_controller(
           state->mode = state->mode; //Same mode (no change)
 
           //printf("Mode Change requested 1\n");          
-          adec_output->mode_change_request = ADEC_MODE_CHANGE_REQUESTED; //But we want to reset AEC even though we are staying in the same mode
+          adec_output->mode_change_request_flag = 1; //But we want to reset AEC even though we are staying in the same mode
         }
 
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
@@ -405,7 +405,7 @@ void aec_delay_estimator_controller(
           unsigned watchdog_triggered = (
                        (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
                       && ((float_s32_gte(state->aec_peak_to_average_good_aec_threshold, state->max_peak_to_average_ratio_since_reset)) ||
-                          ((state->peak_to_average_ratio_valid == ADEC_PK_AVE_VALID) && (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, de_output->peak_to_average_ratio)) )
+                          ((state->peak_to_average_ratio_valid_flag == 1) && (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, de_output->peak_to_average_ratio)) )
                          )
                                         );
 
@@ -442,7 +442,7 @@ void aec_delay_estimator_controller(
               adec_output->reset_all_aec_flag = 1;
               state->gated_milliseconds_since_mode_change = 0;
               //printf("Mode Change requested 2\n");              
-              adec_output->mode_change_request = ADEC_MODE_CHANGE_REQUESTED;
+              adec_output->mode_change_request_flag = 1;
 
             } /*else if (!state->aec_reset_counter_frames) {
               printf("AEC MODE - Trigger reset\n");
@@ -459,7 +459,7 @@ void aec_delay_estimator_controller(
         // printf("peak:ave * 1024: %d\n", vtb_denormalise_and_saturate_u32(state->peak_to_average_ratio, -10));
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
           float_s32_gte(de_output->peak_to_average_ratio, aec_peak_to_average_good_de_threshold) &&
-          (state->peak_to_average_ratio_valid == ADEC_PK_AVE_VALID)){
+          (state->peak_to_average_ratio_valid_flag == 1)){
 
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
@@ -475,7 +475,7 @@ void aec_delay_estimator_controller(
           reset_stuff_on_AEC_mode_start(state, 1);
           //printf("Mode Change requested 3\n");
            
-          adec_output->mode_change_request = ADEC_MODE_CHANGE_REQUESTED;
+          adec_output->mode_change_request_flag = 1;
         }
       break;
 
@@ -488,10 +488,10 @@ void aec_delay_estimator_controller(
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 
-  if (adec_output->mode_change_request == ADEC_MODE_CHANGE_REQUESTED){ //TODO Is this needed when already calling reset_stuff_on_AEC_mode_start()?
+  if (adec_output->mode_change_request_flag == 1){ //TODO Is this needed when already calling reset_stuff_on_AEC_mode_start()?
       state->gated_milliseconds_since_mode_change = 0;
       state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
-      state->peak_to_average_ratio_valid = ADEC_PK_AVE_INVALID;
+      state->peak_to_average_ratio_valid_flag = 0;
       init_pk_ave_ratio_history(state);
   }
 
