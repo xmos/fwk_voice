@@ -39,19 +39,19 @@ typedef struct {
 }aec_to_adec_t;
 
 typedef struct {
+    float_s32_t max_peak_to_average_ratio_since_reset;
+    float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1];
+    float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE];
+    float_s32_t aec_peak_to_average_good_aec_threshold;
+
     fixed_s32_t agm_q24;
     fixed_s32_t erle_bad_bits_q24;
     fixed_s32_t erle_good_bits_q24;
     fixed_s32_t peak_phase_energy_trend_gain_q24;
     fixed_s32_t erle_bad_gain_q24;
 
-    float_s32_t max_peak_to_average_ratio_since_reset;
-    float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1];
-    float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE];
-    float_s32_t aec_peak_to_average_good_aec_threshold;
-
-    int32_t peak_to_average_ratio_valid_flag;
     adec_mode_t mode;
+    int32_t peak_to_average_ratio_valid_flag;
     unsigned enabled;
     unsigned manual_dec_cycle_trigger;
     uint32_t gated_milliseconds_since_mode_change;

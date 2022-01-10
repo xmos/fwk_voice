@@ -163,7 +163,7 @@ void ap_stage_a_init(ap_stage_a_state *state) {
     state->run_conf_alt_arch.num_main_filt_phases = 15; //ALT_ARCH_AEC_PHASES;
     state->run_conf_alt_arch.num_shadow_filt_phases = 5; //ALT_ARCH_AEC_SHADOW_FILTER_PHASES;
 
-    aec_delay_estimator_controller_init(&state->adec_state);
+    adec_init(&state->adec_state);
     aec_conf_t *conf = &state->run_conf_alt_arch;
     aec_switch_configuration(state, conf);
 }
@@ -252,11 +252,10 @@ void ap_stage_a(ap_stage_a_state *state,
 
     adec_mode_t old_mode = state->adec_state.mode;
 
-    adec_output_t *adec_out = &state->adec_output;
-    //memset(adec_)
-    aec_delay_estimator_controller(
+    memset(&state->adec_output, 0, sizeof(adec_output_t)); //To confirm that ADEC processing for a given frame doesn't depend on previous frame's ADEC output.
+    adec_process_frame(
             &state->adec_state,
-            adec_out,
+            &state->adec_output,
             &de_to_adec,
             &aec_to_adec,
             is_ref_active,

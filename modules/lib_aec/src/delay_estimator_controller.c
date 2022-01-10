@@ -41,7 +41,7 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
  * Mic late means the echo seen in mic input is present in one of the (ph>0) phases of X_fifo. So the filter peak is not
  * at H_hat[0] and we're wasting some of the tail length.
  */
-void aec_delay_estimator_controller_init(adec_state_t *adec_state){
+void adec_init(adec_state_t *adec_state){
   adec_state->enabled = 1; //TODO
   adec_state->manual_dec_cycle_trigger = 0; //TODO
   adec_state->agm_q24 = ADEC_AGM_HALF;
@@ -270,23 +270,13 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
   return new_agm_q24;
 }
 
-typedef enum {
-    LOW_REF = -4,    // Not much reference so no point in acting on AEC filter logic
-    ERROR = -3,      // something has gone wrong, zero shadow filter
-    ZERO = -2,       // shadow filter has been reset multiple times, zero shadow filter
-    RESET = -1,      // copy main filter to shadow filter
-    EQUAL = 0,       // main filter and shadow filter are similar
-    SIGMA = 1,       // shadow filter bit better than main, reset sigma_xx for faster convergence
-    COPY = 2,        // shadow filter much better, copy to main
-}shadow_state_e; //TODO How will this dependency on lib_aec be handled?
-
-void aec_delay_estimator_controller(
+void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
     const de_to_adec_t *de_output,
     const aec_to_adec_t *aec_to_adec,
-    unsigned far_end_active,
-    unsigned num_frames_since_last_call
+    int32_t far_end_active_flag,
+    int32_t num_frames_since_last_call
 ){
   adec_output->reset_all_aec_flag = 0;
   adec_output->mode_change_request_flag = 0;
@@ -395,7 +385,7 @@ void aec_delay_estimator_controller(
         }
 
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
-        if (far_end_active && state->sf_copy_flag){
+        if (far_end_active_flag && state->sf_copy_flag){
 
           //AEC goodness calculation
           state->agm_q24 = calculate_aec_goodness_metric(state, log2erle_q24, peak_power_slope, state->agm_q24);
@@ -484,7 +474,7 @@ void aec_delay_estimator_controller(
       break;
     }
 
-    if (far_end_active) {
+    if (far_end_active_flag) {
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 
