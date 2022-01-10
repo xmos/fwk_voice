@@ -252,7 +252,6 @@ void ap_stage_a(ap_stage_a_state *state,
 
     adec_mode_t old_mode = state->adec_state.mode;
 
-    memset(&state->adec_output, 0, sizeof(adec_output_t)); //To confirm that ADEC processing for a given frame doesn't depend on previous frame's ADEC output.
     adec_process_frame(
             &state->adec_state,
             &state->adec_output,

@@ -280,6 +280,8 @@ void adec_process_frame(
 ){
   adec_output->reset_all_aec_flag = 0;
   adec_output->mode_change_request_flag = 0;
+  adec_output->delay_estimator_enabled = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
+  adec_output->requested_mic_delay_samples = 0;
 
   uint32_t elapsed_milliseconds = num_frames_since_last_call*15; //Each frame is 15ms
 
