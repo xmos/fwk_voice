@@ -20,9 +20,9 @@
 
 typedef struct {
     // Circular buffer to store the samples
-    int32_t delay_buffer[2][MAX_DELAY_SAMPLES];
+    int32_t delay_buffer[AP_MAX_CHANNELS][MAX_DELAY_SAMPLES];
     // index of the value for the samples to be stored in the buffer
-    uint32_t curr_idx[2];
+    int32_t curr_idx[AP_MAX_CHANNELS];
     int32_t delay_samples;
 } delay_state_t;
 
@@ -34,25 +34,19 @@ typedef struct {
 } aec_conf_t;
 
 typedef struct {
-    aec_state_t aec_main_state;
-    uint64_t align1;
-    aec_state_t aec_shadow_state;
-    uint64_t align2;
-    aec_shared_state_t aec_shared_state;
-    uint64_t align3;
-    uint8_t aec_main_memory_pool[sizeof(aec_memory_pool_t)];
-    uint64_t align4;
-    uint8_t aec_shadow_memory_pool[sizeof(aec_shadow_filt_memory_pool_t)];
+    aec_state_t DWORD_ALIGNED aec_main_state;
+    aec_state_t DWORD_ALIGNED aec_shadow_state;
+    aec_shared_state_t DWORD_ALIGNED aec_shared_state;
+    uint8_t DWORD_ALIGNED aec_main_memory_pool[sizeof(aec_memory_pool_t)];
+    uint8_t DWORD_ALIGNED aec_shadow_memory_pool[sizeof(aec_shadow_filt_memory_pool_t)];
 
-    uint64_t align5;
-    adec_state_t adec_state;
+    adec_state_t DWORD_ALIGNED adec_state;
 
     delay_state_t delay_state;
     adec_output_t adec_output;
     aec_conf_t delay_conf;
     aec_conf_t run_conf_alt_arch;
     int32_t delay_estimator_enabled;
-    uint64_t alignment;
 } ap_stage_a_state;
 
 void ap_stage_a(ap_stage_a_state *state,

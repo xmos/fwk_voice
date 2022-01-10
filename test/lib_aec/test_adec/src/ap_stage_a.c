@@ -76,9 +76,10 @@ static inline void get_delayed_frame(
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         delay_state_t *delay_state)
-{    
+{
+    int num_channels = (delay_state->delay_samples) > 0 ? AP_MAX_Y_CHANNELS : AP_MAX_X_CHANNELS;
     for(int i=0; i<AP_FRAME_ADVANCE; i++) {
-        for(int ch=0; ch<2; ch++) {
+        for(int ch=0; ch<num_channels; ch++) {
             if (delay_state->delay_samples > 0) {
                 /* Requested Mic delay +ve => delay mic*/
                 get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
@@ -157,10 +158,10 @@ void ap_stage_a_init(ap_stage_a_state *state) {
     state->delay_conf.num_main_filt_phases = 30;
     state->delay_conf.num_shadow_filt_phases = 0;
 
-    state->run_conf_alt_arch.num_x_channels = 2; //ALT_ARCH_AEC_X_CHANNELS;   // Far
-    state->run_conf_alt_arch.num_y_channels = 1; //ALT_ARCH_AEC_Y_CHANNELS;   // Mics
-    state->run_conf_alt_arch.num_main_filt_phases = 15; //ALT_ARCH_AEC_PHASES;
-    state->run_conf_alt_arch.num_shadow_filt_phases = 5; //ALT_ARCH_AEC_SHADOW_FILTER_PHASES;
+    state->run_conf_alt_arch.num_x_channels = 2;
+    state->run_conf_alt_arch.num_y_channels = 1;
+    state->run_conf_alt_arch.num_main_filt_phases = 15;
+    state->run_conf_alt_arch.num_shadow_filt_phases = 5;
 
     adec_init(&state->adec_state);
 #if DELAY_ESTIMATION_ENABLED_ON_STARTUP
@@ -178,29 +179,23 @@ void ap_stage_a(ap_stage_a_state *state,
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
     unsigned rx_elapsed;
-    // Rx mic and ref audio
+    // Get delayed frame
     delay_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y_data,
             input_x_data,
             delay_state_ptr
             );
-
+    
     if (state->adec_output.delay_estimator_enabled && !state->delay_estimator_enabled) {
-        // Init delay estimator
-        aec_conf_t *conf = &state->delay_conf;
-        aec_switch_configuration(state, conf);
-        //Set adaption to AEC_ADAPTION_FORCE_ON
+        // Initialise AEC for delay estimation config
+        aec_switch_configuration(state, &state->delay_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
         state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
         state->delay_estimator_enabled = 1;
-
-        // if delay estimation has just been finished or AEC reset has been triggered, init AEC,
-        // note that if aec_reset_timeout is negative, AEC reset triggering is not enabled
     } else if ((!state->adec_output.delay_estimator_enabled && state->delay_estimator_enabled)) {
-        // Init AEC
-        aec_conf_t *conf = &state->run_conf_alt_arch;
-        aec_switch_configuration(state, conf);
+        // Start AEC for normal aec config
+        aec_switch_configuration(state, &state->run_conf_alt_arch);
 
         state->delay_estimator_enabled = 0;
     }
@@ -212,13 +207,13 @@ void ap_stage_a(ap_stage_a_state *state,
       }*/
 
     //printf("frame %d\n",framenum);
-    int32_t aec_output_main[2][240];
-    int32_t aec_output_shadow[2][240];
+    int32_t aec_output_main[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t aec_output_shadow[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
 #if (AEC_THREAD_COUNT == 1)
-        aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+        aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, output_data, aec_output_shadow);
 #elif (AEC_THREAD_COUNT == 2)
-        aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+        aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, output_data, aec_output_shadow);
 #else
         #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
 #endif
@@ -274,26 +269,21 @@ void ap_stage_a(ap_stage_a_state *state,
 
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;
-        for(int ch=0; ch<2; ch++) {
+        for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
             reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
         }
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
         printf("AP Setting MIC delay to: %d\n", state->delay_state.delay_samples);
     }
+
     if (state->delay_estimator_enabled) {
         // Send the current frame unprocessed
-        for(int ch=0; ch<2; ch++) {
-            for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
+        for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
+            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
                 output_data[ch][i] = input_y_data[ch][i];
             }
         }
 
-    } else {
-        for(int ch=0; ch<2; ch++) {
-            for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-                output_data[ch][i] = aec_output_main[ch][i];
-            }
-        }
     }
 }

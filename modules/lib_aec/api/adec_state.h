@@ -17,7 +17,7 @@ typedef struct {
 }adec_config_params_t;
 
 typedef struct {
-    int32_t requested_mic_delay_samples;
+    int32_t requested_mic_delay_samples; // removed the direction field
     int32_t mode_change_request_flag;
     int32_t reset_all_aec_flag;
     int32_t delay_estimator_enabled;
@@ -31,9 +31,9 @@ typedef struct {
 }de_to_adec_t;
 
 typedef struct {
-    float_s32_t y_ema_energy_ch0;
-    float_s32_t error_ema_energy_ch0;
-    int32_t shadow_better_or_equal_flag;
+    float_s32_t y_ema_energy_ch0; //for erle
+    float_s32_t error_ema_energy_ch0; //for erle
+    int32_t shadow_better_or_equal_flag; //not passing shadow_flag to avoid sharing shadow_state_e between lib_aec and lib_adec
     int32_t shadow_to_main_copy_flag;
 }aec_to_adec_t;
 
@@ -49,7 +49,7 @@ typedef struct {
     float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1];
     float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE];
     float_s32_t aec_peak_to_average_good_aec_threshold;
-
+    
     fixed_s32_t agm_q24;
     fixed_s32_t erle_bad_bits_q24;
     fixed_s32_t erle_good_bits_q24;
