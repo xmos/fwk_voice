@@ -668,7 +668,7 @@ void aec_priv_calc_coherence(
     t2 = float_s32_mul(one_minus_slow_alpha, coh_mu_state->coh);
     coh_mu_state->coh_slow = float_s32_add(t1, t2);
 }
-
+// Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
 static const int32_t WOLA_window[32] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,
      370590464,  450910459,  536870911,  627693349,  722555272,  820597594,  920932429, 1022651130,

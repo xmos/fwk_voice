@@ -6,10 +6,12 @@
 #include "aec_defines.h"
 #include "aec_api.h"
 
-
+/* This is an example of processing one frame of data through the AEC pipeline stage. The example runs on 1 thread and
+ * can be compiled for both bare metal and x86.
+ */
 static unsigned X_energy_recalc_bin = 0;
 static int framenum = 0;
-void aec_process_frame(
+void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
@@ -36,13 +38,6 @@ void aec_process_frame(
     }
 
     // Calculate mic input spectrum for all num_y_channels of mic input
-    for(int ch=0; ch<num_y_channels; ch++) {
-        aec_forward_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
-    }
-    // Calculate reference input spectrum for all num_x_channels of reference input
-    for(int ch=0; ch<num_x_channels; ch++) {
-        aec_forward_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
-    }
     /* The spectrum calculation is done in place. Taking mic input as example, after the aec_forward_fft() call
      * main_state->shared_state->Y[ch].data and main_state->shared_state->y[ch].data point to the same memory address.
      * The spectral representation of the input is used after this function. Time domain input
@@ -52,6 +47,13 @@ void aec_process_frame(
      * Same is true for reference spectrum samples pointed to by  main_state->shared_state->X[ch].data
      * as well.
      */
+    for(int ch=0; ch<num_y_channels; ch++) {
+        aec_forward_fft(&main_state->shared_state->Y[ch], &main_state->shared_state->y[ch]);
+    }
+    // Calculate reference input spectrum for all num_x_channels of reference input
+    for(int ch=0; ch<num_x_channels; ch++) {
+        aec_forward_fft(&main_state->shared_state->X[ch], &main_state->shared_state->x[ch]);
+    }
 
     // Calculate sum of X energy over X FIFO phases for all num_x_channels reference channels
     /* AEC data structures store a single copy of the X FIFO that is shared between the main and shadow filter.
@@ -131,7 +133,7 @@ void aec_process_frame(
         aec_calc_output(main_state, &output_main[ch], ch);
         /* Application can choose to not generate AEC shadow filter output by passing NULL as output_shadow argument.
          * Note that aec_calc_output() will still need to be called since this function also windows the error signal
-         * which is needed for shadow filter even when output is not generated
+         * which is needed for subsequent processing of the shadow filter even when output is not generated.
          */
         if(output_shadow != NULL) {           
             aec_calc_output(shadow_state, &output_shadow[ch], ch);
