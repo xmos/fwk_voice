@@ -6,6 +6,7 @@
 
 #include "aec_defines.h"
 #include "aec_api.h"
+#include "de_api.h"
 #include "adec_api.h"
 
 #include "aec_config.h"
@@ -222,8 +223,9 @@ void ap_stage_a(ap_stage_a_state *state,
 #endif
     
     /** Delay estimator*/
-    int delay_estimate = aec_estimate_delay(
-            &state->aec_main_state.shared_state->delay_estimator_params,
+    de_output_t de_output;
+    estimate_delay(
+            &de_output,
             state->aec_main_state.H_hat[0],
             state->aec_main_state.num_phases
             );
@@ -232,11 +234,10 @@ void ap_stage_a(ap_stage_a_state *state,
     // Create input to ADEC
     adec_input_t adec_in;
     // From DE
-    delay_estimator_params_t *de_params = (delay_estimator_params_t *)&state->aec_main_state.shared_state->delay_estimator_params;
-    adec_in.from_de.delay_estimate = delay_estimate;
-    adec_in.from_de.peak_power_phase_index = de_params->peak_power_phase_index;
-    adec_in.from_de.peak_phase_power = de_params->peak_phase_power;
-    adec_in.from_de.peak_to_average_ratio = de_params->peak_to_average_ratio;
+    adec_in.from_de.delay_estimate = de_output.measured_delay;
+    adec_in.from_de.peak_power_phase_index = de_output.peak_power_phase_index;
+    adec_in.from_de.peak_phase_power = de_output.peak_phase_power;
+    adec_in.from_de.peak_to_average_ratio = de_output.peak_to_average_ratio;
     // From AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];

@@ -18,8 +18,8 @@
 
 #include "aec_config.h"
 #include "aec_task_distribution.h"
-#include "aec_defines.h"
 #include "aec_api.h"
+#include "de_api.h"
 #include "aec_memory_pool.h"
 #include "fileio.h"
 #include "wav_utils.h"
@@ -106,6 +106,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
     assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (DE_LIB_MAX_PHASES));
     //Initialise default values of runtime arguments
     runtime_args[Y_CHANNELS] = AEC_MAX_Y_CHANNELS;
     runtime_args[X_CHANNELS] = AEC_MAX_X_CHANNELS;
@@ -126,6 +127,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert(runtime_args[X_CHANNELS] <= AEC_MAX_X_CHANNELS);
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[SHADOW_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
+    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (DE_LIB_MAX_PHASES));
     
     //open files
     file_t input_file, output_file, H_hat_file, delay_file;
@@ -231,12 +233,13 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 #endif
         prof(3, "end_aec_process_frame");
 
-        prof(4, "start_aec_estimate_delay");
-        int delay = aec_estimate_delay(&main_state.shared_state->delay_estimator_params, main_state.H_hat[0], main_state.num_phases); //Delay is estimated using 1 x-y pair
-        prof(5, "end_aec_estimate_delay");
+        prof(4, "start_estimate_delay");
+        de_output_t de_output;
+        estimate_delay(&de_output, main_state.H_hat[0], main_state.num_phases); //Delay is estimated using 1 x-y pair
+        prof(5, "end_estimate_delay");
 
         char strbuf[100];
-        sprintf(strbuf, "%d\n", delay);
+        sprintf(strbuf, "%ld\n", de_output.measured_delay);
         file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
 
         for (unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){

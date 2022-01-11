@@ -356,16 +356,6 @@ void aec_filter_adapt(
 void aec_update_X_fifo_1d(
         aec_state_t *state);
 
-/// Estimate delay
-/*int aec_estimate_delay (
-        aec_state_t *state);*/
-int aec_estimate_delay (
-        delay_estimator_params_t *de_state,
-        const bfp_complex_s32_t* H_hat, 
-        unsigned num_phases);
-
-
-
 //TODO pending documentation and examples for L2 APIs
 /**
  * @brief Calculate Error and Y_hat for a channel over a range of bins.
