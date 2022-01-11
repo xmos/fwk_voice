@@ -1,11 +1,9 @@
-// Copyright 2018-2021 XMOS LIMITED.
+// Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <xs1.h>
 #include "ic_unit_tests.h"
 #include <stdio.h>
-#include <xcore/assert.h>
-#include "aec_api.h"
-
+#include <assert.h>
  
 void ic_apply_leakage_fp(
     dsp_complex_fp H_hat_fp[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH],
@@ -21,10 +19,11 @@ void ic_apply_leakage_fp(
  
 
 void test_apply_leakage() {
+    unsafe{
     ic_state_t state;
     ic_init(&state);
 
-    dsp_complex_fp H_hat_fp[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH] = {{{0}}};
+    dsp_complex_fp H_hat_fp[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH] = {{{{0}}}};
     double alpha_fp = 0;
     
     unsigned seed = 45;
@@ -43,17 +42,18 @@ void test_apply_leakage() {
                     H_hat_fp[ch][ph][i].re = att_int32_to_double(state.H_hat_bfp[ch][ph].data[i].re, state.H_hat_bfp[ch][ph].exp);
                     H_hat_fp[ch][ph][i].im = att_int32_to_double(state.H_hat_bfp[ch][ph].data[i].im, state.H_hat_bfp[ch][ph].exp);
                 }
+            }
         }
         //initialise leakage
-        for(int ych=0; ych<num_y_channels; ych++) {
+        for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
             state.ic_adaption_controller_state.leakage_alpha.mant = att_random_uint32(seed) >> 1;//Positive 0 - INT_MAX
             state.ic_adaption_controller_state.leakage_alpha.exp = -31;
-            alpha_fp = att_int32_to_double(state.ic_adaption_controller_state.leakage_alpha.mant, state.ic_adaption_controller_state.leakage_alpha.exp)
+            alpha_fp = att_int32_to_double(state.ic_adaption_controller_state.leakage_alpha.mant, state.ic_adaption_controller_state.leakage_alpha.exp);
         }
 
-        for(int ych=0; ych<num_y_channels; ych++) {
-            ic_apply_leakage(state, ych);
-            ic_apply_leakage_fp(H_hat_fp, alpha_fp)
+        for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
+            ic_apply_leakage(&state, ych);
+            ic_apply_leakage_fp(H_hat_fp, alpha_fp);
 
             //Since T memory will be overwritten when computing for next y-channel, do error checking now
             for(int ph=0; ph<IC_FILTER_PHASES*IC_X_CHANNELS; ph++) {
@@ -83,5 +83,6 @@ void test_apply_leakage() {
                 }
             }
         }
+    }
     }
 }

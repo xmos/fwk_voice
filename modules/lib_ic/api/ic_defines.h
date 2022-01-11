@@ -47,6 +47,13 @@
 #define FFT_PADDING 2
 
 
+//For unit tests
+#ifdef __XC__ 
+#undef DWORD_ALIGNED
+#define DWORD_ALIGNED
+#endif
+
+
 #if !PROFILE_PROCESSING
     #define prof(n, str)
     #define print_prof(start, end, framenum)

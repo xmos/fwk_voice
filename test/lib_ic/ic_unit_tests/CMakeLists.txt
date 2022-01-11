@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  ic_unit_tests )
+set( APP_NAME ic_unit_tests )
 
 # Auto-generate schedule and top level config files
 
@@ -13,11 +13,6 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 
 message(STATUS "${APP_NAME} ic build config:  ${IC_UNIT_TESTS_BUILD_CONFIG}" )
 message( STATUS "Unit tests speedup factor ${IC_UNIT_TESTS_SPEEDUP_FACTOR}" )
-set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
-
-unset(GEN_SCHEDULE_SCRIPT_ARGS) 
-list(APPEND GEN_SCHEDULE_SCRIPT_ARGS --out-dir ${AUTOGEN_DIR})
-list(APPEND GEN_SCHEDULE_SCRIPT_ARGS --config ${IC_UNIT_TESTS_BUILD_CONFIG})
 
 file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 
@@ -69,6 +64,7 @@ list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOU
 
 ## Includes
 list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
+list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_ic/src)
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -107,9 +103,9 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating IC runner" )
     
-    # if (${testfile} MATCHES "test_estimate_delay.xc")
-    #     set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_calc_fd_frame_energy.xc)
-    # endif()
+    if (${testfile} MATCHES "test_adaption_controller.xc")
+        set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_aec/src/aec_priv_impl.c)
+    endif()
 
     #########
     ## Add a build target

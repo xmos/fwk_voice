@@ -1,11 +1,9 @@
-// Copyright 2018-2021 XMOS LIMITED.
+// Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <xs1.h>
 #include "ic_unit_tests.h"
 #include <stdio.h>
-#include <xcore/assert.h>
-#include "ic_api.h"
-
+#include <assert.h>
  
 void ic_adaption_controller_fp(
         uint8_t vad,
@@ -17,7 +15,7 @@ void ic_adaption_controller_fp(
         double output_energy0,
         double out_to_in_ratio_limit,
         int enable_filter_instability_recovery,
-        int *reset
+        int *reset,
         double instability_recovery_leakage_alpha,
         double *leakage_alpha,
         double *mu){
@@ -31,7 +29,7 @@ void ic_adaption_controller_fp(
 
     printf("fp smoothed_voice_chance = %.22f\n", *smoothed_voice_chance);
     
-    double mu = 1.0 - *smoothed_voice_chance;
+    double mu_tmp = 1.0 - *smoothed_voice_chance;
     double ratio = 1.0;
     if(input_energy > 0.0){
         ratio = output_energy / input_energy;
@@ -50,7 +48,7 @@ void ic_adaption_controller_fp(
         ratio = sqrt(ratio);
         ratio = sqrt(ratio);
     }
-    *mu *= ratio;
+    mu_tmp *= ratio;
 
     double fast_ratio = 1.0;
     if(input_energy0 > 0.0){
@@ -62,11 +60,11 @@ void ic_adaption_controller_fp(
         *mu = 0.0;
     }else{
         *leakage_alpha = 1.0;
-        *mu = *mu;
+        *mu = mu_tmp;
     }
 }
 
-int check_parms_equal(char *str, double ref_fp, float_s32_t dut){
+void check_parms_equal(char *str, int iter, double ref_fp, float_s32_t dut){
     double dut_fp = att_int32_to_double(dut.mant, dut.exp);
     double diff = (ref_fp - dut_fp);
     double max_diff_percentage = 0.0;
@@ -77,24 +75,28 @@ int check_parms_equal(char *str, double ref_fp, float_s32_t dut){
     if(diff_percentage > max_diff_percentage) max_diff_percentage = diff_percentage;
     if(diff > 0.0002*(ref_fp < 0.0 ? -ref_fp : ref_fp) + pow(10, -8))
     {
-        printf("%s fail: iter %d, ych %d, ph %d, bin %d\n", str, iter, ych, ph, i);
+        printf("%s fail, iter: %d, ref: %lf, dut: %lf\n", str, iter, ref_fp, dut_fp);
         assert(0);
     }
 }
 
 int filter_is_reset(bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES]){
+    unsafe{
     int is_reset = 1;
     for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
         if(H_hat_bfp[0][ph].exp != -1024) is_reset = 0;
         if(H_hat_bfp[0][ph].hr != 31) is_reset = 0;
         for(int i=0; i<IC_FD_FRAME_LENGTH;i++){
-            if(H_hat_bfp[0][ph].data[i] != 0) is_reset = 0;
+            if(H_hat_bfp[0][ph].data[i].re != 0 || H_hat_bfp[0][ph].data[i].im != 0) is_reset = 0;
         }
     }
     return is_reset;
+    }
 }
 
 void test_adaption_controller() {
+    unsafe {
+
     ic_state_t state;
     ic_init(&state);
     ic_adaption_controller_state_t *st = &state.ic_adaption_controller_state;
@@ -115,7 +117,7 @@ void test_adaption_controller() {
     st->out_to_in_ratio_limit = double_to_float_s32(out_to_in_ratio_limit_fp);
     st->instability_recovery_leakage_alpha = double_to_float_s32(instability_recovery_leakage_alpha_fp);
     st->leakage_alpha = double_to_float_s32(leakage_alpha_fp);
-    st->mu = double_to_float_s32(mu_fp);
+    state.mu[0][0] = double_to_float_s32(mu_fp);
 
     for(int iter=0; iter<(1<<11)/F; iter++) {
 
@@ -129,10 +131,13 @@ void test_adaption_controller() {
         st->output_energy0.mant = att_random_uint32(seed);
         st->output_energy0.exp = att_random_uint32(seed) % exp_mod;
 
-        double input_energy = att_int32_to_double(st->input_energy.mant, st->input_energy.exp);
-        double output_energy = att_int32_to_double(st->output_energy.mant, st->output_energy.exp);
-        double input_energy0 = att_int32_to_double(st->input_energy0.mant, st->input_energy0.exp);
-        double output_energy0 = att_int32_to_double(st->output_energy0.mant, st->output_energy0.exp);
+        double input_energy_fp = att_int32_to_double(st->input_energy.mant, st->input_energy.exp);
+        double output_energy_fp = att_int32_to_double(st->output_energy.mant, st->output_energy.exp);
+        double input_energy0_fp = att_int32_to_double(st->input_energy0.mant, st->input_energy0.exp);
+        double output_energy0_fp = att_int32_to_double(st->output_energy0.mant, st->output_energy0.exp);
+        double instability_recovery_leakage_alpha_fp = att_int32_to_double(st->instability_recovery_leakage_alpha.mant, st->instability_recovery_leakage_alpha.exp);
+
+        int has_reset = 0;
 
         uint8_t vad = att_random_uint32(seed) % 256;
 
@@ -148,20 +153,20 @@ void test_adaption_controller() {
             output_energy0_fp,
             out_to_in_ratio_limit_fp,
             enable_filter_instability_recovery,
-            &has_reset
+            &has_reset,
             instability_recovery_leakage_alpha_fp,
             &leakage_alpha_fp,
             &mu_fp);
 
-        check_parms_equal("smoothed_voice_chance", smoothed_voice_chance_fp, st->smoothed_voice_chance);
-        check_parms_equal("mu", mu_fp, state.mu[0][0]);
-        check_parms_equal("leakage_alpha", leakage_alpha_fp, st->leakage_alpha);
+        check_parms_equal("smoothed_voice_chance", iter, smoothed_voice_chance_fp, st->smoothed_voice_chance);
+        check_parms_equal("mu", iter, mu_fp, state.mu[0][0]);
+        check_parms_equal("leakage_alpha", iter, leakage_alpha_fp, st->leakage_alpha);
       
 
         if(iter == 20){
             enable_filter_instability_recovery = 1;
             st->enable_filter_instability_recovery = 1;
         }
-
+    }
     }
 }

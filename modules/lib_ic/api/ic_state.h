@@ -123,7 +123,3 @@ typedef struct {
 } ic_state_t;
 
 #endif
-
-#ifdef __XC__
-#error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES
-#endif

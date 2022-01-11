@@ -24,4 +24,9 @@ void ic_adapt(ic_state_t *state,
                       int32_t output[IC_FRAME_ADVANCE]);
 
 
+
+#ifdef __XC__
+#error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES
+#endif
+
 #endif //IC_API_H
