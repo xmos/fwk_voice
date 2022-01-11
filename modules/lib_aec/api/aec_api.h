@@ -45,7 +45,7 @@
  *
  * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter
  * processing.  AEC state aec_state_t and shared state aec_shared_state_t structures contain only the BFP data
- * strcutures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
+ * strctures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
  * memory pool main and shadow filters memory pool. An example memory pool structure is present in aec_memory_pool_t and
  * aec_shadow_filt_memory_pool_t.
  *
@@ -60,7 +60,7 @@
         uint8_t DWORD_ALIGNED aec_mem[sizeof(aec_memory_pool_t)];
         uint8_t DWORD_ALIGNED aec_shadow_mem[sizeof(aec_shadow_filt_memory_pool_t)];
         unsigned y_chans = 2, x_chans = 2;
-        unsigned main_phases = 10, shadow_phases = 10;
+        unsigned main_phases = 10, shadow_phases = 5;
         // There is one main and one shadow filter per x-y channel pair, so for this example there will be 4 main and 4
         // shadow filters. Each main filter will have 10 phases and each shadow filter will have 5 phases.
         aec_init(&main_state, &shadow_state, &shared_state, aec_mem, aec_shadow_mem, y_chans, x_chans, main_phases, shadow_phases);

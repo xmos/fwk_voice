@@ -31,7 +31,7 @@
 
 /** @brief Maximum number of reference input channels supported in the library.
  * Reference input to the AEC refers to a copy of the device's speaker output audio that is also sent as an input to the
- * AEC. It is used to model the echo chracteristics between a mic-loudspeaker pair.
+ * AEC. It is used to model the echo characteristics between a mic-loudspeaker pair.
  *
  * AEC functions follow the convention of using @math{x} and @math{X} for referring to time domain and frequency domain
  * representation of reference input.

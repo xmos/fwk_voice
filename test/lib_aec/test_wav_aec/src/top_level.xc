@@ -40,22 +40,10 @@ int main (void)
     xscope_host_data(xscope_chan);
 #endif
     on tile[0]: {
-        par {
-            par(int t=0; t<8-AEC_THREAD_COUNT; t++) {
-                {
-                    set_core_fast_mode_on();
-                    //../../../../../audio_test_tools/audio_test_tools/src/burners.S:(.text+0x84): Error: byte offset 0xffffff7e for relocation R_XCORE1_REL16_4 is misaligned
-                    //../../../../../audio_test_tools/audio_test_tools/src/burners.S: Error: relocation with respect to 'div_loop'
-                    //att_burn_thread_div();
-                    //while(1) {continue;}
-                    burn_div();
-                }
-            }
             {
             main_tile0(c_cross_tile, xscope_chan);
             _Exit(0);
             }
-        }
     }
     on tile[1]: main_tile1(c_cross_tile);
   }
