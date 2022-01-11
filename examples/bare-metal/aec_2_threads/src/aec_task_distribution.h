@@ -2,12 +2,12 @@
 #define aec_task_distribution_h_
 
 /**
- * @page This header defines the data structures used when distributing tasks across threads.
+ * @page This header defines the data structures used when distributing tasks across hardware threads.
  *
- * The task distribution scheme distributes tasks across threads for 2 scenarios.
- *      1. Distribute multiple unique tasks across multiple threads. For example, for a 3 tasks, 2 threads configuration,
+ * The task distribution scheme distributes tasks across hardware threads for 2 scenarios.
+ *      1. Distribute multiple unique tasks across multiple HW threads. For example, for a 3 tasks, 2 threads configuration,
  *         distribute [task0, task1, task2] across [Thread0, Thread1].
- *      2. Distribute multiple (task, channel) pairs across multiple threads. For example, for a 3 tasks, 2 channels, 2 threads
+ *      2. Distribute multiple (task, channel) pairs across multiple HW threads. For example, for a 3 tasks, 2 channels, 2 threads
  *      configuration, distribute [(task0, ch0), (task0, ch1), (task1, ch0), (task1, ch1), (task2, ch0), (task2,
  *      ch1)] across [Thread0, Thread1].
  *      Number of channels used when defining the (task, channel) pair is fixed to max(`AEC_MAX_Y_CHANNELS`,
@@ -15,7 +15,7 @@
  */
 
 /**
- * @brief Structure used when distributing tasks across threads.
+ * @brief Structure used when distributing tasks across hardware threads.
  */ 
 typedef struct {
     /** Task index.*/
@@ -26,7 +26,7 @@ typedef struct {
 }par_tasks_t;
 
 /**
- * @brief Structure used when distributing (task, channel) pairs across threads.
+ * @brief Structure used when distributing (task, channel) pairs across hardware threads.
  */
 typedef struct {
     /** Task index.*/
@@ -39,7 +39,7 @@ typedef struct {
 }par_tasks_and_channels_t;
 
 
-#define AEC_THREAD_COUNT   (2) /// <Number of threads
+#define AEC_THREAD_COUNT   (2) /// <Number of hardware threads available
 
 /** Number of iterations run on a given thread when distributing 2 tasks across AEC_THREAD_COUNT threads*/
 #define AEC_2_TASKS_PASSES   (1)
