@@ -17,7 +17,7 @@ typedef struct {
 }adec_config_params_t;
 
 typedef struct {
-    int32_t requested_mic_delay_samples; // removed the direction field
+    int32_t requested_mic_delay_samples; // delay_samples signed to indicate delay direction
     int32_t mode_change_request_flag;
     int32_t reset_all_aec_flag;
     int32_t delay_estimator_enabled;
