@@ -61,6 +61,7 @@ typedef struct {
     float_s32_t eps;
     /** -20dB threshold*/
     float_s32_t thresh_minus20dB;
+    /** X_energy threshold used for determining if the signal has enough reference energy for sensible coherence mu calculation*/ 
     float_s32_t x_energy_thresh;
     /** Number of frames after low coherence, adaption frozen for.*/
     unsigned mu_coh_time;
@@ -82,8 +83,10 @@ typedef struct {
     float_s32_t shadow_copy_thresh;
     /** threshold for resetting shadow filter.*/
     float_s32_t shadow_reset_thresh;
+    /** threshold for turning off shadow filter reset if reference delay is large*/
     float_s32_t shadow_delay_thresh;
-    /** X energy threshold used for deciding whether the system has low reference*/
+    /** X energy threshold used for deciding whether the system has enough reference energy for main and shadow filter
+     * comparison to make sense*/
     float_s32_t x_energy_thresh;
     /** fixed mu value used during shadow filter adaption.*/
     float_s32_t shadow_mu;
@@ -172,7 +175,7 @@ typedef struct {
 typedef struct {
     int32_t peak_power_phase_index; ///< H_hat phase index with the maximum energy
     float_s32_t peak_phase_power; ///< Maximum energy across all H_hat phases
-    float_s32_t sum_phase_powers;
+    float_s32_t sum_phase_powers; ///< Sum of filter energy across all filter phases. Used in peak_to_average_ratio calculation. 
     float_s32_t peak_to_average_ratio; ///< peak to average ratio of H_hat phase energy.
     float_s32_t phase_power[AEC_LIB_MAX_PHASES]; ///< Energy for every H_hat phase
 }delay_estimator_params_t;
@@ -286,7 +289,7 @@ typedef struct {
      * AEC_FD_FRAME_LENGTH, complex 32bit array per y channel.*/
     bfp_complex_s32_t Y_hat[AEC_LIB_MAX_Y_CHANNELS];
 
-    /** BFP array pointing to adaptive filer error signal spectrum. The Error data is stored as length
+    /** BFP array pointing to adaptive filter error signal spectrum. The Error data is stored as length
      * AEC_FD_FRAME_LENGTH, complex 32bit array per y channel.*/
     bfp_complex_s32_t Error[AEC_LIB_MAX_Y_CHANNELS];
 
@@ -318,7 +321,7 @@ typedef struct {
     /** BFP array pointing to T values which are stored as a length AEC_FD_FRAME_LENGTH, complex array per x channel.*/ 
     bfp_complex_s32_t T[AEC_LIB_MAX_X_CHANNELS]; 
 
-    /** BFP array pointing to the normailisation spectrum which are stored as a length AEC_FD_FRAME_LENGTH, 32bit
+    /** BFP array pointing to the normalisation spectrum which are stored as a length AEC_FD_FRAME_LENGTH, 32bit
      * integer array per x channel.*/ 
     bfp_s32_t inv_X_energy[AEC_LIB_MAX_X_CHANNELS];
 

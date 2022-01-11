@@ -45,7 +45,7 @@
  *
  * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter
  * processing.  AEC state aec_state_t and shared state aec_shared_state_t structures contain only the BFP data
- * strcutures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
+ * strctures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
  * memory pool main and shadow filters memory pool. An example memory pool structure is present in aec_memory_pool_t and
  * aec_shadow_filt_memory_pool_t.
  *

@@ -159,7 +159,15 @@ def parse_profile_log(run_config, threads, prof_stdo, profile_file="parsed_profi
             #in the end, print the worst case frame
             for key, value in worst_case_frame[0].items():
                 fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
-            fp.write(f'{"TOTAL_120MHz_TIMER_CYCLES":<32} {worst_case_frame[1]}\n')
+            worst_case_timer_cycles = np.float64(worst_case_frame[1])
+            fp.write(f'{"Worst_case_frame_timer(100MHz)_cycles":<32} {worst_case_timer_cycles}\n')
+            worst_case_processor_cycles = (worst_case_timer_cycles/100) * 120
+            fp.write(f'{"Worst_case_frame_processor(120MHz)_cycles":<32} {worst_case_processor_cycles}\n')
+            #0.015 is seconds_per_frame. 1/0.015 is the frames_per_second.
+            #processor_cycles_per_frame * frames_per_sec = processor_cycles_per_sec. processor_cycles_per_sec/1000000 => MCPS
+            mcps = "{:.2f}".format((worst_case_processor_cycles / 0.015) / 1000000)
+            fp.write(f'{"MCPS":<10} {mcps} MIPS\n')
+
 
 
 

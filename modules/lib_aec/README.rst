@@ -42,7 +42,7 @@ details about the fields within the state modified when calling a given function
 2 levels of parallelism:
 
 * Single level of parallelism where for a given function, main and shadow filter processing can happen in parallel.
-* Two levels of parallelism where a for a given function, processing across multiple channels as well as main and shadow filter can be done in parallel.
+* Two levels of parallelism where for a given function, processing across multiple channels as well as main and shadow filter can be done in parallel.
 
 Low level API has more input arguments but allows more freedom for running in parallel across multiple threads. Low
 level API function names begin with a ``aec_l2_`` prefix. 
