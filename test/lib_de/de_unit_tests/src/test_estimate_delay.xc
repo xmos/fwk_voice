@@ -1,7 +1,7 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <xs1.h>
-#include "aec_unit_tests.h"
+#include "de_unit_tests.h"
 #include <stdio.h>
 #include <assert.h>
 extern "C"{

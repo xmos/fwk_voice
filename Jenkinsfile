@@ -137,6 +137,33 @@ pipeline {
             }
           }
         }
+        stage('DE de_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_de/de_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('DE test_delay_estimator') {
+          steps {
+            dir("${REPO}/test/lib_de/test_delay_estimator") {
+              viewEnv() {
+                withVenv {
+                  sh 'mkdir -p ./input_wavs/'
+                  sh 'mkdir -p ./output_files/'
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                  runPython("python print_stats.py")
+                }
+              }
+            }
+          }
+        }
         stage('ADEC tests') {
           steps {
             dir("${REPO}/test/lib_aec/test_adec") {
@@ -165,21 +192,6 @@ pipeline {
                       junit "pytest_result.xml"
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-        stage('AEC test_delay_estimator') {
-          steps {
-            dir("${REPO}/test/lib_aec/test_delay_estimator") {
-              viewEnv() {
-                withVenv {
-                  sh 'mkdir -p ./input_wavs/'
-                  sh 'mkdir -p ./output_files/'
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  runPython("python print_stats.py")
                 }
               }
             }
