@@ -119,17 +119,6 @@ typedef struct {
     fixed_s32_t ema_alpha_q30;
 }aec_core_config_params_t;
 
-/** Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
- *
- * @ingroup aec_types
- */
-typedef struct{
-    int32_t window_mem[32];
-    int32_t window_flpd_mem[32];
-    bfp_s32_t window;
-    bfp_s32_t window_flpd;
-}aec_window_t;
-
 /**
  * @brief AEC control parameters.
  *
@@ -143,8 +132,6 @@ typedef struct {
     shadow_filt_config_params_t shadow_filt_conf;
     /** All AEC control params except those for coherence mu and shadow filter.*/
     aec_core_config_params_t aec_core_conf;
-    /** Hanning window applied to smooth out the echo canceller time domain output.*/
-    aec_window_t aec_window;
 }aec_config_params_t;
 
 /**
