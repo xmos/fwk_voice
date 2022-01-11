@@ -166,7 +166,7 @@ void ap_stage_a_init(ap_stage_a_state *state) {
     adec_init(&state->adec_state);
 #if DELAY_ESTIMATION_ENABLED_ON_STARTUP
     // If DE is enabled only on startup, trigger delay estimation cycle once
-    state->adec_state.adec_config.manual_de_cycle_trigger = 1;
+    state->adec_state.adec_config.force_de_cycle_trigger = 1;
 #endif
     aec_conf_t *conf = &state->run_conf_alt_arch;
     aec_switch_configuration(state, conf);
@@ -270,8 +270,8 @@ void ap_stage_a(ap_stage_a_state *state,
     
     /** Update delay samples if there's a delay change requested by ADEC*/
     if(state->adec_output.mode_change_request_flag == 1){
-        // In case the mode change is requested as a result of manual DE cycle trigger, reset manual_de_cycle_trigger
-        state->adec_state.adec_config.manual_de_cycle_trigger = 0;
+        // In case the mode change is requested as a result of force DE cycle trigger, reset force_de_cycle_trigger
+        state->adec_state.adec_config.force_de_cycle_trigger = 0;
 
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = state->adec_output.requested_mic_delay_samples;

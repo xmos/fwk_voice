@@ -43,7 +43,7 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
  */
 void adec_init(adec_state_t *adec_state){
   adec_state->adec_config.bypass = 0;
-  adec_state->adec_config.manual_de_cycle_trigger = 0;
+  adec_state->adec_config.force_de_cycle_trigger = 0;
   adec_state->agm_q24 = ADEC_AGM_HALF;
 
   //Using bits log2(erle) with q7_28 gives us up to 10log(2^127) = 382dB ERLE measurement range.. 
@@ -90,12 +90,12 @@ void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_del
 
     if (*mic_delay_samples >= MAX_DELAY_SAMPLES){
         int32_t actual_delay = MAX_DELAY_SAMPLES - 1; //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
-        printf("**Warning - too large a delay requested (%d), setting to %d\n", *mic_delay_samples, actual_delay);
+        printf("**Warning - too large a delay requested (%ld), setting to %ld\n", *mic_delay_samples, actual_delay);
         *mic_delay_samples = actual_delay;
     }
     else if(*mic_delay_samples <= -(MAX_DELAY_SAMPLES)) {
         int32_t actual_delay = -(MAX_DELAY_SAMPLES - 1); //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
-        printf("**Warning - too large a delay requested (%d), setting to %d\n", *mic_delay_samples, actual_delay);
+        printf("**Warning - too large a delay requested (%ld), setting to %ld\n", *mic_delay_samples, actual_delay);
         *mic_delay_samples = actual_delay;
     }
 
@@ -373,7 +373,7 @@ void adec_process_frame(
 
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += adec_in->from_de.delay_estimate;
-          printf("AEC MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
+          printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
@@ -389,7 +389,7 @@ void adec_process_frame(
           //AEC goodness calculation
           state->agm_q24 = calculate_aec_goodness_metric(state, log2erle_q24, peak_power_slope, state->agm_q24);
 
-          //Action if manual trigger or if agm dips below zero or watchdog when adec enabled - things are totally ruined so do full delay estimate cycle
+          //Action if force trigger or if agm dips below zero or watchdog when adec enabled - things are totally ruined so do full delay estimate cycle
           if(float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) printf("less than 2\n");
           unsigned watchdog_triggered = (
                        (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
@@ -410,15 +410,15 @@ void adec_process_frame(
 
           //printf("state->agm = %d, watchdog_triggered = %d, state->shadow_flag_counter = %d, state->convergence_counter = %d\n", state->agm_q24, watchdog_triggered, state->shadow_flag_counter, state->convergence_counter);
           
-          if (state->adec_config.manual_de_cycle_trigger ||
+          if (state->adec_config.force_de_cycle_trigger ||
               ((state->agm_q24 < 0 || watchdog_triggered) &&
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
                 state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT))) {
 		  
-            if (!state->adec_config.bypass || state->adec_config.manual_de_cycle_trigger) {
-              if (state->adec_config.manual_de_cycle_trigger) {
+            if (!state->adec_config.bypass || state->adec_config.force_de_cycle_trigger) {
+              if (state->adec_config.force_de_cycle_trigger) {
                 if (state->agm_q24 < 0) state->agm_q24 = 0;//clip negative
-                printf("manual_dec_cycle_trigger\n");
+                printf("force_de_cycle_trigger\n");
               }
 
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
@@ -427,7 +427,6 @@ void adec_process_frame(
               adec_output->delay_estimator_enabled = 1;
 
               state->mode = ADEC_DELAY_ESTIMATOR_MODE;
-              adec_output->reset_all_aec_flag = 1;
               state->gated_milliseconds_since_mode_change = 0;
               //printf("Mode Change requested 2\n");              
               adec_output->mode_change_request_flag = 1;
@@ -446,14 +445,13 @@ void adec_process_frame(
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
           state->last_measured_delay = adec_in->from_de.delay_estimate - MAX_DELAY_SAMPLES;
-          printf("DE MODE - Measured delay estimate: %d (raw %d)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
+          printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
 
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
 
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled = 0;
-          adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
           //printf("Mode Change requested 3\n");
            

@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
     int32_t bypass;
-    int32_t manual_de_cycle_trigger; 
+    int32_t force_de_cycle_trigger; 
 }adec_config_params_t;
 
 typedef struct {

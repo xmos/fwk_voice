@@ -1,10 +1,8 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-//TODO duplicate definitions
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
 
-#define ADEC_VTB_FLOAT_U32_ONE                  {2147483648, -31} //Denormalised 1.0
 #define ADEC_AGM_ONE                            (1<<24)           //7Q24 1.0 MAX AGM
 #define ADEC_AGM_HALF                           (1<<23)           //7Q24 0.5 INITIAL AGM
 #define ADEC_ERLE_BAD_BITS                      -0.066            //-0.2dB -> 0.95 -> -0.066b
@@ -31,10 +29,6 @@
 
 #define ADEC_CONVERGENCE_COUNTER_LIMIT          (66*5)           //Number of samples to hold off the ADEC while the shadow filter attempts to converge
 #define ADEC_SHADOW_FLAG_COUNTER_LIMIT          3                //Number of times shadow filter needs to be better before calculating new delay
-
-#ifndef DEFAULT_AEC_RESET_TIMEOUT
-#define DEFAULT_AEC_RESET_TIMEOUT               -1               //AEC reset is disabled by default
-#endif
 
 #define MILLISECONDS_TO_SAMPLES(ms) (ms * (16000 / 1000))
 
