@@ -747,7 +747,27 @@ extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
-#if 0//82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+#if 0
+    int max_exp = INT_MIN;
+    float_s32_t fl_s32_temp[257];
+    for(int i=0; i<input->length; i++){
+        float_s32_t f;
+        f.mant = input->data[i];
+        f.exp = input->exp;
+         
+        double t = float_s32_to_double(f);
+        double inv = 1.0/t;
+
+        fl_s32_temp[i] = double_to_float_s32(inv);
+        if(fl_s32_temp[i].exp > max_exp) max_exp = fl_s32_temp[i].exp;
+     }
+     for(int i=0; i<input->length; i++){
+         input->data[i] = fl_s32_temp[i].mant >> (max_exp - fl_s32_temp[i].exp);
+     }
+     input->exp = max_exp;
+     input->hr = bfp_s32_headroom(input);
+     return;
+#elif 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
     bfp_s32_inverse(input, input);
 #else //36323 cycles. 2 x-channels, single thread
     int32_t min_element = xs3_vect_s32_min(
@@ -796,6 +816,13 @@ void aec_priv_calc_inv_X_energy_denom(
     }
     else
     {
+        //TODO maybe fix this for AEC?
+        // int32_t temp[AEC_PROC_FRAME_LENGTH/2 + 1];
+        // bfp_s32_t temp_bfp;
+        // bfp_s32_init(&temp_bfp, &temp[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
+
         bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
 }
