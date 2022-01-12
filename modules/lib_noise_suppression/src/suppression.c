@@ -210,7 +210,7 @@ void sup_process_frame(sup_state_t * state,
                         const int32_t input[SUP_FRAME_ADVANCE]){
 
     bfp_s32_t curr_frame, abs_Y_suppressed, abs_Y_original;
-    int32_t curr_frame_data[SUP_PROC_FRAME_LENGTH];
+    int32_t curr_frame_data[SUP_PROC_FRAME_LENGTH + 2];
     int32_t scratch1[SUP_PROC_FRAME_BINS];
     int32_t scratch2[SUP_PROC_FRAME_BINS];
     bfp_s32_init(&curr_frame, curr_frame_data, SUP_INT_EXP, SUP_PROC_FRAME_LENGTH, 0);
