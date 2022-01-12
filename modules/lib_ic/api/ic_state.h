@@ -62,7 +62,6 @@ typedef struct {
 typedef struct {
     bfp_s32_t y_bfp[IC_Y_CHANNELS];
     bfp_complex_s32_t Y_bfp[IC_Y_CHANNELS];
-    uint64_t pad;
     int32_t DWORD_ALIGNED y[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
 
     bfp_s32_t x_bfp[IC_X_CHANNELS];
@@ -81,7 +80,6 @@ typedef struct {
 
     bfp_complex_s32_t Error_bfp[IC_Y_CHANNELS];
     bfp_s32_t error_bfp[IC_Y_CHANNELS];
-    uint64_t pad2;
     complex_s32_t DWORD_ALIGNED Error[IC_Y_CHANNELS][IC_FD_FRAME_LENGTH];
 
 

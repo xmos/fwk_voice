@@ -21,7 +21,8 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 
 list( APPEND  DEP_LIBS        
     lib_xs3_math
-    lib_ic 
+    lib_ic
+    test_shared
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
@@ -63,7 +64,7 @@ list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/
 list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
+list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
 list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_ic/src)
 
 ## executable output directory
@@ -76,7 +77,7 @@ set( GEN_RUNNER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/generate_unity_runner.py )
 set( RUNNERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.runners )
 file( MAKE_DIRECTORY ${RUNNERS_DIR} )
 
-file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.xc )
+file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
 
 # For every source file in ic_unit_tests/src
 foreach( testfile ${TEST_SOURCES} )
