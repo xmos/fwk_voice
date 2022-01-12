@@ -107,10 +107,19 @@ pipeline {
         }
         stage('Examples') {
           steps {
-            dir("${REPO}/examples/bare-metal/aec") {
+            dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python run_xcoreai.py ../../../build/examples/bare-metal/aec/bin/aec_example.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread_example.xe"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/aec_2_threads") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe"
+                  // Make sure 1 thread and 2 threads output is bitexact
+                  sh "diff output.wav ../aec_1_thread/output.wav"
                 }
               }
             }

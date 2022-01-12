@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "aec_defines.h"
 #include "aec_api.h"
 
 #include "aec_config.h"
@@ -15,7 +14,7 @@
 #include "wav_utils.h"
 
 
-extern void aec_process_frame(
+extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
@@ -27,8 +26,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     // Ensure configuration is a subset of the maximum configuration the library supports
     assert(AEC_MAX_Y_CHANNELS <= AEC_LIB_MAX_Y_CHANNELS);
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_MAIN_FILTER_PHASES));
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_SHADOW_FILTER_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     
     file_t input_file, output_file;
     // Open input wav file containing mic and ref channels of input data
@@ -41,7 +40,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     wav_header input_header_struct, output_header_struct;
     unsigned input_header_size;
     if(get_wav_header_details(&input_file, &input_header_struct, &input_header_size) != 0){
-        printf("error in att_get_wav_header_details()\n");
+        printf("error in get_wav_header_details()\n");
         _Exit(1);
     }
     file_seek(&input_file, input_header_size, SEEK_SET);
@@ -108,7 +107,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         /* Reuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output.
          */
-        aec_process_frame(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+        aec_process_frame_1thread(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AEC_MAX_Y_CHANNELS;ch++){

@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  aec_example )
+set( APP_NAME  aec_2_threads_example )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -14,10 +14,12 @@ list( APPEND  DEP_LIBS
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
-
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED ../shared_src/*.c )
+file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
+file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_2threads.c )
+unset( SOURCES_SHARED )
+list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
@@ -29,12 +31,10 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ../shared_src )
+list( APPEND  INCLUDES src ../shared_src/file_utils ../shared_src/aec )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
-
-message( STATUS "Includes ${INCLUDES}" )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
