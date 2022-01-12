@@ -575,6 +575,21 @@ void aec_priv_update_total_X_energy(
 
     aec_priv_bfp_complex_s32_recalc_energy_one_bin(X_energy, X_fifo, X, num_phases, recalc_bin);
     *max_X_energy = bfp_s32_max(X_energy);
+    /** To avoid divide by 0 in the inv_X_energy calculation step, set X_energy exp to a really small number if
+     * max_X_energy mant is 0. This is a
+     * workaround for an issue where all X_energy mants are 0 but X_energy->exp is something reasonable, like -34. Before inv_X_energy
+     * computation we do X_energy + delta to avoid a divide by 0. However, if delta is very small, something like delta
+     * exp = -97 which happens when delta is set to delta_min, X_energy + delta will still have the mant = 0.
+     * (zero_mant, -34 exp) + (non_zero mant, -97 exp) is still 0 mant in the result.
+     * Detecting X_energy being 0 by looking at max_X_energy->mant being 0 will help preventing a divide by 0 when all
+     * bins of X_energy have mant = 0, and hence max_X_energy->mant = 0. TODO However, if only some of the X_energy bins mant
+     * = 0, then max_X_energy mant will be non-zero and the workaround below will not work, leading to divide by 0.
+     */
+
+    if(max_X_energy->mant == 0) {
+        X_energy->exp = -1024;
+        // What if I do bfp_s32_add_scalar(X_energy, (float_s32_t){1, X_energy->exp}) instead
+    }
     return;
 }
 
