@@ -1,9 +1,7 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <xs1.h>
 #include "ic_unit_tests.h"
-#include <stdio.h>
-#include <assert.h>
+
  
 void ic_adaption_controller_fp(
         uint8_t vad,
@@ -20,40 +18,49 @@ void ic_adaption_controller_fp(
         double *leakage_alpha,
         double *mu){
 
-    double r = (double)vad/UCHAR_MAX;
+    double r = (double)vad/256;
 
     *smoothed_voice_chance = *smoothed_voice_chance * voice_chance_alpha;
     if(r > *smoothed_voice_chance){
         *smoothed_voice_chance = r;
     }
+    // printf("fp r = %.22f\n", r);
+    // printf("fp smoothed_voice_chance = %.22f\n", *smoothed_voice_chance);
 
-    printf("fp smoothed_voice_chance = %.22f\n", *smoothed_voice_chance);
     
     double mu_tmp = 1.0 - *smoothed_voice_chance;
+    // printf("fp mu_tmp = %.22f\n", mu_tmp);
+
     double ratio = 1.0;
     if(input_energy > 0.0){
         ratio = output_energy / input_energy;
     }
+    // printf("fp ratio = %.22f\n", ratio);
+
 
     if (enable_filter_instability_recovery){
-        if(ratio  > out_to_in_ratio_limit){
-            printf("**fp ic_reset_filter** %f > %f\n", ratio, out_to_in_ratio_limit);
+        if(ratio > out_to_in_ratio_limit){
+            // printf("**fp ic_reset_filter** %f > %f\n", ratio, out_to_in_ratio_limit);
             *reset = 1;
         }
     }
 
-    if(ratio > 1.0){
+    if(ratio >= 1.0){
         ratio = 1.0;
     } else {
         ratio = sqrt(ratio);
         ratio = sqrt(ratio);
     }
+    // printf("fp ratio = %.22f\n", ratio);
     mu_tmp *= ratio;
 
     double fast_ratio = 1.0;
     if(input_energy0 > 0.0){
-        fast_ratio = output_energy0 / input_energy;
+        fast_ratio = output_energy0 / input_energy0;
     }
+    // printf("fp fast_ratio = %.22f\n", fast_ratio);
+    // printf("fp mu = %.22f\n", mu_tmp);
+
 
     if(fast_ratio > 1.0){
         *leakage_alpha = instability_recovery_leakage_alpha;
@@ -64,24 +71,53 @@ void ic_adaption_controller_fp(
     }
 }
 
+int isclose(double ref_fp, double dut_fp, double rtol, double atol){
+    double a_diff = (ref_fp - dut_fp) > 0 ? (ref_fp - dut_fp) : (dut_fp - ref_fp);
+
+    double r_diff = 1.0;
+    double abs_ref = fabs(ref_fp);
+    double abs_dut = fabs(dut_fp);
+
+    if(abs_dut > abs_ref){
+        if(ref_fp > 0){
+            r_diff = abs_dut/abs_ref - 1.0;
+        }else{
+            r_diff = INFINITY;
+        }
+    }else{
+        if(abs_dut > 0){
+            r_diff = abs_ref/abs_dut - 1.0;
+        }else{
+            r_diff = INFINITY;
+        }
+    }
+
+    int isclose = 1;
+    if(a_diff > atol && r_diff > rtol){
+        printf("NOT CLOSE - ref: %lf, dut: %lf, rel: %lf(%lf) abs: %lf(%lf)\n", ref_fp, dut_fp, r_diff, rtol, a_diff, atol);
+        isclose = 0;
+    }else{
+        // printf("CLOSE - ref: %lf, dut: %lf, rel: %lf(%lf) abs: %lf(%lf)\n", ref_fp, dut_fp, r_diff, rtol, a_diff, atol);
+
+    }
+
+    return isclose;
+}
+
+
 void check_parms_equal(char *str, int iter, double ref_fp, float_s32_t dut){
-    double dut_fp = att_int32_to_double(dut.mant, dut.exp);
-    double diff = (ref_fp - dut_fp);
-    double max_diff_percentage = 0.0;
+    double dut_fp = ldexp(dut.mant, dut.exp);
 
-
-    if(diff < 0.0) diff = -diff;
-    double diff_percentage = (diff / (ref_fp < 0.0 ? -ref_fp : ref_fp)) * 100;
-    if(diff_percentage > max_diff_percentage) max_diff_percentage = diff_percentage;
-    if(diff > 0.0002*(ref_fp < 0.0 ? -ref_fp : ref_fp) + pow(10, -8))
-    {
-        printf("%s fail, iter: %d, ref: %lf, dut: %lf\n", str, iter, ref_fp, dut_fp);
+    double atol = 0.00001;
+    double rtol = 0.00001;
+   
+    if(!isclose(ref_fp, dut_fp, rtol, atol)){
+        printf("**%s** FAILED, iter: %d\n", str, iter);
         assert(0);
     }
 }
 
 int filter_is_reset(bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES]){
-    unsafe{
     int is_reset = 1;
     for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
         if(H_hat_bfp[0][ph].exp != -1024) is_reset = 0;
@@ -91,26 +127,22 @@ int filter_is_reset(bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_
         }
     }
     return is_reset;
-    }
 }
 
 void test_adaption_controller() {
-    unsafe {
-
     ic_state_t state;
     ic_init(&state);
     ic_adaption_controller_state_t *st = &state.ic_adaption_controller_state;
 
-    unsigned seed = 45;
+    unsigned seed = 55378008;
 
-    double smoothed_voice_chance_fp = 0.0;
-    double voice_chance_alpha_fp = 0.99;
-    double out_to_in_ratio_limit_fp = 2.0;
+    double smoothed_voice_chance_fp = IC_INIT_SMOOTHED_VOICE_CHANCE;
+    double voice_chance_alpha_fp = IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA;
+    double out_to_in_ratio_limit_fp = IC_INIT_INSTABILITY_RATIO_LIMIT;
     int enable_filter_instability_recovery = 0;
-    int reset = 0;
-    double instability_recovery_leakage_alpha_fp = 0.995;
-    double leakage_alpha_fp = 1.0;
-    double mu_fp = 0.34;
+    double instability_recovery_leakage_alpha_fp = IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA;
+    double leakage_alpha_fp = IC_INIT_LEAKAGE_ALPHA;
+    double mu_fp = IC_INIT_MU;
 
     st->smoothed_voice_chance = double_to_float_s32(smoothed_voice_chance_fp);
     st->voice_chance_alpha = double_to_float_s32(voice_chance_alpha_fp);
@@ -122,24 +154,24 @@ void test_adaption_controller() {
     for(int iter=0; iter<(1<<11)/F; iter++) {
 
         const int exp_mod = 5;
-        st->input_energy.mant = att_random_uint32(seed);
-        st->input_energy.exp = att_random_uint32(seed) % exp_mod;
-        st->output_energy.mant = att_random_uint32(seed);
-        st->output_energy.exp = att_random_uint32(seed) % exp_mod;
-        st->input_energy0.mant = att_random_uint32(seed);
-        st->input_energy0.exp = att_random_uint32(seed) % exp_mod;
-        st->output_energy0.mant = att_random_uint32(seed);
-        st->output_energy0.exp = att_random_uint32(seed) % exp_mod;
+        st->input_energy.mant = pseudo_rand_int32(&seed);
+        st->input_energy.exp = pseudo_rand_int32(&seed) % exp_mod;
+        st->output_energy.mant = pseudo_rand_int32(&seed);
+        st->output_energy.exp = pseudo_rand_int32(&seed) % exp_mod;
+        st->input_energy0.mant = pseudo_rand_int32(&seed);
+        st->input_energy0.exp = pseudo_rand_int32(&seed) % exp_mod;
+        st->output_energy0.mant = pseudo_rand_int32(&seed);
+        st->output_energy0.exp = pseudo_rand_int32(&seed) % exp_mod;
 
-        double input_energy_fp = att_int32_to_double(st->input_energy.mant, st->input_energy.exp);
-        double output_energy_fp = att_int32_to_double(st->output_energy.mant, st->output_energy.exp);
-        double input_energy0_fp = att_int32_to_double(st->input_energy0.mant, st->input_energy0.exp);
-        double output_energy0_fp = att_int32_to_double(st->output_energy0.mant, st->output_energy0.exp);
-        double instability_recovery_leakage_alpha_fp = att_int32_to_double(st->instability_recovery_leakage_alpha.mant, st->instability_recovery_leakage_alpha.exp);
+        double input_energy_fp = ldexp(st->input_energy.mant, st->input_energy.exp);
+        double output_energy_fp = ldexp(st->output_energy.mant, st->output_energy.exp);
+        double input_energy0_fp = ldexp(st->input_energy0.mant, st->input_energy0.exp);
+        double output_energy0_fp = ldexp(st->output_energy0.mant, st->output_energy0.exp);
+        double instability_recovery_leakage_alpha_fp = ldexp(st->instability_recovery_leakage_alpha.mant, st->instability_recovery_leakage_alpha.exp);
 
         int has_reset = 0;
 
-        uint8_t vad = att_random_uint32(seed) % 256;
+        uint8_t vad = pseudo_rand_int32(&seed) % 256;
 
         ic_adaption_controller(&state, vad);
 
@@ -167,6 +199,10 @@ void test_adaption_controller() {
             enable_filter_instability_recovery = 1;
             st->enable_filter_instability_recovery = 1;
         }
-    }
+
+        if(iter == 1000){
+            enable_filter_instability_recovery = 0;
+            st->enable_filter_instability_recovery = 0;
+        }
     }
 }

@@ -104,7 +104,7 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating IC runner" )
     
-    if (${testfile} MATCHES "test_adaption_controller.xc")
+    if (${testfile} MATCHES "test_adaption_controller.c")
         set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_aec/src/aec_priv_impl.c)
     endif()
 
