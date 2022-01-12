@@ -30,7 +30,7 @@ voice_sample_rate = 16000
 xcore_working_dir = '../test_wav_ap'
 
 aec_input_file = "stage_a_input_16k.wav"
-adec_test_xe =os.path.abspath(glob.glob(f'../../../build/test/lib_aec/test_adec/bin/*.xe')[0])
+adec_test_xe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/*.xe')[0])
 
 
 def generate_random_delay_changes(number, spacing, min_s, max_s):

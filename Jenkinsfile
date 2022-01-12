@@ -164,9 +164,9 @@ pipeline {
             }
           }
         }
-        stage('ADEC tests') {
+        stage('ADEC test_adec') {
           steps {
-            dir("${REPO}/test/lib_aec/test_adec") {
+            dir("${REPO}/test/lib_adec/test_adec") {
               viewEnv() {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
