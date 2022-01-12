@@ -73,11 +73,10 @@ void adec_init(adec_state_t *adec_state){
   adec_state->sf_copy_flag = 0;
   adec_state->convergence_counter = 0;
   adec_state->shadow_flag_counter = 0;
-  adec_state->measured_delay_samples_debug = 0;
 }
 
 //Work out what we should send to the delay register from a signed input. Accounts for the margin to ensure mics always after ref
-void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples, int32_t *measured_delay_compensated_debug){
+void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples, int32_t *requested_delay_debug){
     //If we see a MIC delay (+ve measured delay), we want to delay Reference by LESS than this to leave some headroom
     //If we see a REF delay (-ve measured delay), we want to delay MIC by MORE than this to leave some headroom
     int32_t measured_delay_compensated = measured_delay - ADEC_DE_DELAY_HEADROOM_SAMPS;
@@ -96,12 +95,8 @@ void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_del
         printf("**Warning - too large a delay requested (%ld), setting to %ld\n", *mic_delay_samples, actual_delay);
         *mic_delay_samples = actual_delay;
     }
-
     //Write to debug copy of var for logging purposes during simulations
-    //We toggle the lower bit to ensure a set to same value counts as a change. 1 sample is inconsequential to the ADEC
-    unsigned new_bottom_bit = (*measured_delay_compensated_debug & 0x1) ^ 0x1; 
-    *measured_delay_compensated_debug = -(measured_delay_compensated);
-    *measured_delay_compensated_debug = (*measured_delay_compensated_debug & 0xfffffffe) | new_bottom_bit;
+    *requested_delay_debug = -(measured_delay_compensated);
 }
 
 //This takes about 68 cycles compared with dsp_math_log that takes 12650
@@ -276,7 +271,6 @@ void adec_process_frame(
   adec_output->reset_all_aec_flag = 0;
   adec_output->delay_change_request_flag = 0;
   adec_output->delay_estimator_enabled_flag = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
-  adec_output->requested_mic_delay_samples = 0;
 
   uint32_t elapsed_milliseconds = adec_in->num_frames_since_last_call*15; //Each frame is 15ms
 
@@ -372,7 +366,7 @@ void adec_process_frame(
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += adec_in->from_de.delay_estimate;
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &state->measured_delay_samples_debug);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
           state->mode = state->mode; //Same mode (no change)
@@ -447,8 +441,7 @@ void adec_process_frame(
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
 
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &state->measured_delay_samples_debug);
-
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled_flag = 0;
           reset_stuff_on_AEC_mode_start(state, 1);

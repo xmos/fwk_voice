@@ -24,6 +24,7 @@ typedef struct {
     AEC so no need to do an extra reset*/
     int32_t reset_all_aec_flag; 
     int32_t delay_estimator_enabled_flag; ///< Flag indicating whether or not AEC should run in delay estimator mode
+    int32_t requested_delay_samples_debug; ///< Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used in tests.
 } adec_output_t;
 
 typedef struct {
@@ -68,9 +69,6 @@ typedef struct {
     int32_t sf_copy_flag;
     int32_t convergence_counter;
     int32_t shadow_flag_counter;
-    /** Measured delay samples in ADEC. Put in stage so that the app can access it for logging. Needs to be persistant
-     * since logged every frame but updated only when a delay change is detected, so can't be put in adec_output_t*/
-    int32_t measured_delay_samples_debug;
     adec_config_params_t adec_config;
 } adec_state_t;
 

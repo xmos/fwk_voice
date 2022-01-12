@@ -43,8 +43,7 @@ typedef struct {
     
     // ADEC
     adec_state_t DWORD_ALIGNED adec_state;
-    adec_output_t adec_output;
-    
+ 
     // Delay Buffer
     delay_state_t delay_state;
 
@@ -52,6 +51,7 @@ typedef struct {
     aec_conf_t delay_conf;
     aec_conf_t run_conf_alt_arch;
     int32_t delay_estimator_enabled;
+    int32_t adec_requested_delay_samples; // Delay requested from ADEC in case of a delay change event
 } ap_stage_a_state;
 
 #endif
