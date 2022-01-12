@@ -48,8 +48,8 @@ typedef struct {
     delay_state_t delay_state;
 
     //Top level
-    aec_conf_t delay_conf;
-    aec_conf_t run_conf_alt_arch;
+    aec_conf_t aec_de_mode_conf;
+    aec_conf_t aec_non_de_mode_conf;
     int32_t delay_estimator_enabled;
     int32_t adec_requested_delay_samples; // Delay requested from ADEC in case of a delay change event
 } ap_stage_a_state;

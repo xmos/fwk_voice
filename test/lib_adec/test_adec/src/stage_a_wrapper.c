@@ -7,7 +7,7 @@
 
 #include "ap_stage_a_state.h"
 
-extern void ap_stage_a_init(ap_stage_a_state *state);
+extern void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf);
 extern void ap_stage_a(ap_stage_a_state *state,
     int32_t (*input_y_data)[AP_FRAME_ADVANCE],
     int32_t (*input_x_data)[AP_FRAME_ADVANCE],
@@ -66,9 +66,21 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
 
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
     
+    aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+    aec_de_mode_conf.num_x_channels = 1;
+    aec_de_mode_conf.num_y_channels = 1;
+    aec_de_mode_conf.num_main_filt_phases = 30;
+    aec_de_mode_conf.num_shadow_filt_phases = 0;
+    
+    //Make this run time configurable
+    aec_non_de_mode_conf.num_x_channels = 2;
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = 5;
+    
     //Initialise ap_stage_a
     ap_stage_a_state DWORD_ALIGNED stage_a_state;
-    ap_stage_a_init(&stage_a_state);
+    ap_stage_a_init(&stage_a_state, &aec_de_mode_conf, &aec_non_de_mode_conf);
 
     for(unsigned b=0;b<block_count;b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * AP_FRAME_ADVANCE, input_header_size);

@@ -146,31 +146,23 @@ void reset_all_aec(ap_stage_a_state *state){
     }
 }
 
-void ap_stage_a_init(ap_stage_a_state *state) {
+void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
     memset(state, 0, sizeof(ap_stage_a_state));
     state->delay_estimator_enabled = 0;
     state->adec_requested_delay_samples = 0;
 
     // Initialise default delay values
     delay_buffer_init(&state->delay_state, 0/*Initialise with 0 delay_samples*/);
-
-    state->delay_conf.num_x_channels = 1;
-    state->delay_conf.num_y_channels = 1;
-    state->delay_conf.num_main_filt_phases = 30;
-    state->delay_conf.num_shadow_filt_phases = 0;
-
-    state->run_conf_alt_arch.num_x_channels = 2;
-    state->run_conf_alt_arch.num_y_channels = 1;
-    state->run_conf_alt_arch.num_main_filt_phases = 15;
-    state->run_conf_alt_arch.num_shadow_filt_phases = 5;
+    
+    memcpy(&state->aec_de_mode_conf, de_conf, sizeof(aec_conf_t));
+    memcpy(&state->aec_non_de_mode_conf, non_de_conf, sizeof(aec_conf_t));
 
     adec_init(&state->adec_state);
 #if DELAY_ESTIMATION_ENABLED_ON_STARTUP
     // If DE is enabled only on startup, trigger delay estimation cycle once
     state->adec_state.adec_config.force_de_cycle_trigger = 1;
 #endif
-    aec_conf_t *conf = &state->run_conf_alt_arch;
-    aec_switch_configuration(state, conf);
+    aec_switch_configuration(state, &state->aec_non_de_mode_conf);
 }
 
 int framenum = 0;
@@ -294,13 +286,13 @@ void ap_stage_a(ap_stage_a_state *state,
     /** Switch AEC config if needed*/
     if (adec_output.delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
         // Initialise AEC for delay estimation config
-        aec_switch_configuration(state, &state->delay_conf);
+        aec_switch_configuration(state, &state->aec_de_mode_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
         //state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
         state->delay_estimator_enabled = 1;
     } else if ((!adec_output.delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
         // Start AEC for normal aec config
-        aec_switch_configuration(state, &state->run_conf_alt_arch);
+        aec_switch_configuration(state, &state->aec_non_de_mode_conf);
         state->delay_estimator_enabled = 0;
     }
 
