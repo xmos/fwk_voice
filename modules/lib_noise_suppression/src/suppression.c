@@ -56,36 +56,6 @@ void sup_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned lengt
 	}
 }
 
-void sup_forward_fft(
-        bfp_complex_s32_t *output,
-        bfp_s32_t *input)
-{
-    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
-    //This is done to avoid having to call bfp_s32_init() on the input every frame
-    int32_t len = input->length; 
-    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
-    
-    memcpy(output, temp, sizeof(bfp_complex_s32_t));
-    bfp_fft_unpack_mono(output);
-    input->length = len;
-    return;
-}
-
-void sup_inverse_fft(
-        bfp_s32_t *output,
-        bfp_complex_s32_t *input)
-{
-    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
-    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
-    int32_t len = input->length;
-    bfp_fft_pack_mono(input);
-    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
-    memcpy(output, temp, sizeof(bfp_s32_t));
-
-    input->length = len;
-    return;
-}
-
 void sup_reset_noise_suppression(sup_state_t * sup) {
     
     sup->reset_counter = 0;
@@ -221,12 +191,10 @@ void sup_process_frame(sup_state_t * state,
     
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
-    //bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
-    bfp_complex_s32_t curr_fft;
+    bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
+    bfp_fft_unpack_mono(curr_fft);
 
-    sup_forward_fft(&curr_fft, &curr_frame);
-
-    bfp_complex_s32_mag(&abs_Y_suppressed, &curr_fft);
+    bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);
 
     memcpy(&abs_Y_original.data, &abs_Y_suppressed.data, sizeof(abs_Y_suppressed.data));
     abs_Y_original.exp = abs_Y_suppressed.exp;
@@ -234,11 +202,11 @@ void sup_process_frame(sup_state_t * state,
 
     ns_process_frame(&abs_Y_suppressed, state);
 
-    sup_rescale_vector(&curr_fft, &abs_Y_suppressed, &abs_Y_original);
+    sup_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
     ////////////////////////////don't use abs_Y_orig after this point 
 
-    //bfp_fft_inverse_mono(curr_fft);
-    sup_inverse_fft(&curr_frame, &curr_fft);
+    bfp_fft_pack_mono(curr_fft);
+    bfp_fft_inverse_mono(curr_fft);
 
     sup_apply_window(&curr_frame, &state->wind, &state->rev_wind, SUP_PROC_FRAME_LENGTH, SUPPRESSION_WINDOW_LENGTH);
 
