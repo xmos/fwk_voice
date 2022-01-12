@@ -25,8 +25,8 @@ void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main){
     B->hr = min_hr;
 }
 
-// A = min (B, C) - element wise
-// A_exp = C_exp
+//    A = min (B, C) - element wise
+//    A_exp = C_exp
 void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
 
     for (int v = 0; v < dst->length; v++){
@@ -35,9 +35,8 @@ void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
     bfp_s32_headroom(dst);
 }
 
-//S = alpha_s*S + (1.0-alpha_s)*(abs(Y)**2)
-void ns_update_S(bfp_s32_t * abs_Y,
-        sup_state_t *state){
+//    S = alpha_s*S + (1.0-alpha_s)*(abs(Y)**2)
+void ns_update_S(sup_state_t *state, const bfp_s32_t * abs_Y){
     int32_t scratch[SUP_PROC_FRAME_BINS];
     bfp_s32_t tmp;
     float_s32_t t;
@@ -106,9 +105,9 @@ void ns_update_alpha_d_tilde(sup_state_t * state){
 }
 
 //    lambda_hat = alpha_d_tilde[i]*lambda_hat + (1.0 - alpha_d_tilde)*np.square(np.absolute(Y))
-void ns_update_lambda_hat(bfp_s32_t * abs_Y, sup_state_t * state){
+void ns_update_lambda_hat(sup_state_t * state, const bfp_s32_t * abs_Y){
     bfp_s32_t tmp1, tmp2;
-    float_s32_t one, t;
+    float_s32_t t;
     int32_t scratch1 [SUP_PROC_FRAME_BINS];
     int32_t scratch2 [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&tmp1, scratch1, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
@@ -162,6 +161,12 @@ const int32_t LUT[LUT_SIZE] = {
 31952,  24786,  19227,  14914,  
 };
 
+//    sqrt_lamda = np.sqrt(self.lamda_hat)
+//    denom = sqrt_lamda/self.lut_input_multiplier
+//    lut_index = np.asarray(input_spectrum / (denom + 1e-99), dtype=np.uint32)
+//    lut_index = np.minimum(lut_index, len(self.sub_limit_curve_y)-1)
+//    r = self.sub_limit_curve_y[lut_index]
+//    desired_mag_limited =  np.maximum(input_spectrum  - (sqrt_lamda * r), 0)
 void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, sup_state_t * state){
     bfp_s32_t sqrt_lambda, tmp, comp;
     int32_t scratch1 [SUP_PROC_FRAME_BINS];
@@ -207,13 +212,15 @@ void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, sup_state_t * state){
  */
 void ns_process_frame(bfp_s32_t * abs_Y, sup_state_t * state){
 
-    ns_update_S(abs_Y, state);
+    ns_update_S(state, abs_Y);
 
     ns_adjust_exp(&state->S_min, &state->S_tmp, &state->S);
 
     if(ns_update_and_test_reset(state)){
         ns_minimum(&state->S_min, &state->S_tmp, &state->S);
-        memcpy(&state->S_tmp, &state->S, sizeof(state->S));
+        memcpy(&state->S_tmp.data, &state->S.data, sizeof(state->S.length));
+        state->S_tmp.exp = state->S.exp;
+        bfp_s32_headroom(&state->S_min);
     } else {
         ns_minimum(&state->S_min, &state->S_min, &state->S);
         ns_minimum(&state->S_tmp, &state->S_tmp, &state->S);
@@ -223,7 +230,7 @@ void ns_process_frame(bfp_s32_t * abs_Y, sup_state_t * state){
 
     ns_update_alpha_d_tilde(state);
 
-    ns_update_lambda_hat(abs_Y, state);
+    ns_update_lambda_hat(state, abs_Y);
 
     ns_subtract_lambda_from_frame(abs_Y, state);
 

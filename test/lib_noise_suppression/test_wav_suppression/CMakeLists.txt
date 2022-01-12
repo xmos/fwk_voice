@@ -17,7 +17,7 @@ list( APPEND  DEP_LIBS
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED ../shared_src/*.c )
+file( GLOB SOURCES_SHARED ../../../examples/bare-metal/shared_src/*.c )
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
@@ -29,7 +29,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} )
+list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/shared_src ${AUTOGEN_DIR} )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
@@ -68,9 +68,12 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable( ${APP_NAME} ${SOURCES} ${SOURCES_C_APP} )
+add_executable( ${APP_NAME} ${SOURCES} )
 
-target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
+target_include_directories( ${APP_NAME} PRIVATE 
+    ${INCLUDES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/bare-matal/shared_src
+     )
 
 target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 

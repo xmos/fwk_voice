@@ -15,8 +15,8 @@
 #include <unity.h>
 
 #include "unity_fixture.h"
-#include "../../../../shared/pseudo_rand/pseudo_rand.h"
-#include "../../../../shared/testing/testing.h"
+#include <pseudo_rand.h>
+#include <testing.h>
 
 #define EXP  -31
 
@@ -48,7 +48,7 @@ TEST(ns_update_alpha_d_tilde, case0){
 
         alpha_d_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
         alpha_d_fl.exp = EXP;
-        sup_set_noise_alpha_d(&state, alpha_d_fl);
+        state.alpha_d = alpha_d_fl;
         alpha_d = float_s32_to_double(alpha_d_fl);
 
         for (int v = 0; v < SUP_PROC_FRAME_BINS; v++){

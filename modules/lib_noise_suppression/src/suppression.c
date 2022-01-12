@@ -86,36 +86,6 @@ void sup_inverse_fft(
     return;
 }
 
-void sup_set_noise_floor(sup_state_t * state, float_s32_t noise_floor){
-
-    state->noise_floor = noise_floor;
-
-}
-
-void sup_set_noise_delta(sup_state_t * state, float_s32_t delta){
-
-    state->delta = delta;
-
-}
-
-void sup_set_noise_alpha_p(sup_state_t * state, float_s32_t alpha_p){
-
-    state->alpha_p = alpha_p;
-
-}
-
-void sup_set_noise_alpha_d(sup_state_t * state, float_s32_t alpha_d){
-
-    state->alpha_d = alpha_d;
-
-}
-
-void sup_set_noise_alpha_s(sup_state_t * state, float_s32_t alpha_s){
-
-    state->alpha_s = alpha_s;
-
-}
-
 void sup_reset_noise_suppression(sup_state_t * sup) {
     
     sup->reset_counter = 0;

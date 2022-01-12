@@ -15,8 +15,8 @@
 #include <unity.h>
 
 #include "unity_fixture.h"
-#include "../../../../shared/pseudo_rand/pseudo_rand.h"
-#include "../../../../shared/testing/testing.h"
+#include <pseudo_rand.h>
+#include <testing.h>
 
 #define EXP  -31
 
@@ -66,7 +66,7 @@ TEST(ns_update_lambda_hat, case0){
         state.alpha_d_tilde.data = &adt_int[0];
         bfp_s32_headroom(&state.alpha_d_tilde);
 
-        ns_update_lambda_hat(&abs_Y_bfp, &state);
+        ns_update_lambda_hat(&state, &abs_Y_bfp);
 
         double abs_diff = 0;
         int id = 0;

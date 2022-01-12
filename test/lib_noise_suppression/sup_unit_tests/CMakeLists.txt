@@ -31,7 +31,7 @@ file( GLOB UNITY_SOURCES  ${UNITY_PATH}/*.c
 
 # If "CONFIG" is given as an optional argument, tell Unity to include "unity_config.h"
 # (user should make sure unity_config.h is in the include path)
-if (CONFIG IN_LIST ARGN)
+if (  CONFIG IN_LIST ARGN  )
   target_compile_definitions( ${target_name} PRIVATE "UNITY_INCLUDE_CONFIG_H")
 endif()
 
@@ -39,7 +39,10 @@ string(REPLACE ";" " " UNITY_FLAGS "${UNITY_FLAGS}")
 set_source_files_properties( ${UNITY_SOURCES} PROPERTIES  COMPILE_FLAGS  "${UNITY_FLAGS}" )
 
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-list( APPEND  SOURCES         ${SOURCES_C}     )
+file( GLOB_RECURSE  SOURCES_RAND  ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand/*.c )
+file( GLOB_RECURSE  SOURCES_TEST  ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/testing/*.c )
+
+list( APPEND  SOURCES   ${SOURCES_C}  ${SOURCES_RAND}  ${SOURCES_TEST} )
 list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 list( APPEND  SOURCES ${UNITY_SOURCES} )
 
@@ -82,10 +85,13 @@ target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
 
 list( APPEND INCLUDES src 
-${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/api
-${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/src
-${UNITY_PATH} 
-${UNITY_PATH}/../extras/fixture/src)
+    ${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/api
+    ${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/src
+    ${UNITY_PATH} 
+    ${UNITY_PATH}/../extras/fixture/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/testing
+    )
 
 target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
 

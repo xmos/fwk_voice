@@ -30,8 +30,7 @@ void sup_apply_window(bfp_s32_t * input,
 
 void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap);
 
-void ns_update_S(bfp_s32_t * abs_Y,
-        sup_state_t * state);
+void ns_update_S(sup_state_t * state, const bfp_s32_t * abs_Y);
 
 void ns_minimum(bfp_s32_t * dst,
                 bfp_s32_t * src1, 
@@ -41,8 +40,7 @@ void ns_update_p(sup_state_t * state);
 
 void ns_update_alpha_d_tilde(sup_state_t * state);
 
-void ns_update_lambda_hat(bfp_s32_t * abs_Y, 
-                        sup_state_t * state);
+void ns_update_lambda_hat(sup_state_t * state, const bfp_s32_t * abs_Y);
 
 int ns_update_and_test_reset(sup_state_t * state);
 
