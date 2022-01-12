@@ -368,7 +368,6 @@ void adec_process_frame(
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           adec_output->reset_all_aec_flag = 1;
-          reset_stuff_on_AEC_mode_start(state, 1);
           state->mode = state->mode; //Same mode (no change)
 
           //printf("Mode Change requested 1\n");          
@@ -444,7 +443,6 @@ void adec_process_frame(
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled_flag = 0;
-          reset_stuff_on_AEC_mode_start(state, 1);
           //printf("Mode Change requested 3\n");
            
           adec_output->delay_change_request_flag = 1;
@@ -460,11 +458,8 @@ void adec_process_frame(
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 
-  if (adec_output->delay_change_request_flag == 1){ //TODO Is this needed when already calling reset_stuff_on_AEC_mode_start()?
-      state->gated_milliseconds_since_mode_change = 0;
-      state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
-      state->peak_to_average_ratio_valid_flag = 0;
-      init_pk_ave_ratio_history(state);
+  if (adec_output->delay_change_request_flag == 1){
+      reset_stuff_on_AEC_mode_start(state, 1);
   }
 
   return;
