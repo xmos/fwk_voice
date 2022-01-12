@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "ic_low_level.h"
+#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 
 
 void ic_dump_var_2d(ic_state_t *state);
@@ -18,7 +19,6 @@ void ic_init(ic_state_t *state){
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         for(unsigned ph=0; ph<(IC_X_CHANNELS * IC_FILTER_PHASES); ph++) {
             bfp_complex_s32_init(&state->H_hat_bfp[ch][ph], state->H_hat[ch][ph], -1024, IC_FD_FRAME_LENGTH, 0);
-            printf("H_hat ph(%u) len: %u\n", ph, state->H_hat_bfp[ch][ph].length);
         }
     }
     //X_fifo
@@ -91,36 +91,36 @@ void ic_init(ic_state_t *state){
         state->x_ema_energy[ch].exp = -1024;
     }
     //fractional regularisation scalefactor
-    state->delta = IC_INIT_DELTA;
+    state->delta = double_to_float_s32(IC_INIT_DELTA);
 
     state->config_params.core_conf.sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
     state->config_params.core_conf.gamma_log2 = IC_INIT_GAMMA_LOG2;
-    state->config_params.core_conf.ema_alpha_q30 = IC_INIT_EMA_ALPHA_Q30;
+    state->config_params.core_conf.ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
     state->config_params.core_conf.bypass = 0;
     state->config_params.core_conf.coeff_index = 0;
 
-    state->ic_adaption_controller_state.leakage_alpha = IC_INIT_LEAKAGE_ALPHA;
+    state->ic_adaption_controller_state.leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
     state->ic_adaption_controller_state.adaption_mode = IC_ADAPTION_ON;
 
     state->ic_adaption_controller_state.vad_counter = 0;
-    state->ic_adaption_controller_state.smoothed_voice_chance = IC_INIT_SMOOTHED_VOICE_CHANCE;
-    state->ic_adaption_controller_state.voice_chance_alpha = IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA;
+    state->ic_adaption_controller_state.smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
+    state->ic_adaption_controller_state.voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
 
-    state->ic_adaption_controller_state.energy_alpha = IC_INIT_ENERGY_ALPHA;
+    state->ic_adaption_controller_state.energy_alpha = double_to_float_s32(IC_INIT_ENERGY_ALPHA);
     state->ic_adaption_controller_state.input_energy = double_to_float_s32(0.0);
     state->ic_adaption_controller_state.output_energy = double_to_float_s32(0.0);
 
-    state->ic_adaption_controller_state.energy_alpha0 = IC_INIT_ENERGY_ALPHA0;
+    state->ic_adaption_controller_state.energy_alpha0 = double_to_float_s32(IC_INIT_ENERGY_ALPHA0);
     state->ic_adaption_controller_state.input_energy0 = double_to_float_s32(0.0);
     state->ic_adaption_controller_state.output_energy0 = double_to_float_s32(0.0);
 
-    state->ic_adaption_controller_state.out_to_in_ratio_limit = IC_INIT_INSTABILITY_RATIO_LIMIT;
+    state->ic_adaption_controller_state.out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
     state->ic_adaption_controller_state.enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
-    state->ic_adaption_controller_state.instability_recovery_leakage_alpha = IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA;
+    state->ic_adaption_controller_state.instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
 
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
-            state->mu[ych][xch] = IC_INIT_MU;
+            state->mu[ych][xch] = double_to_float_s32(IC_INIT_MU);
         }
     }
 
