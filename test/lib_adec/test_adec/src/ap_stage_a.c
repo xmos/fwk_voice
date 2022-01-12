@@ -177,9 +177,9 @@ int framenum = 0;
 void ap_stage_a(ap_stage_a_state *state,
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-        int32_t (*output_data)[AP_FRAME_ADVANCE])
+        int32_t (*output_data)[AP_FRAME_ADVANCE],
+        int32_t *measured_delay_samples)
 {
-    unsigned rx_elapsed;
     /** Get delayed frame*/
     delay_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
@@ -189,13 +189,13 @@ void ap_stage_a(ap_stage_a_state *state,
             );
     
     /** Switch AEC config if needed*/
-    if (state->adec_output.delay_estimator_enabled && !state->delay_estimator_enabled) {
+    if (state->adec_output.delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
         // Initialise AEC for delay estimation config
         aec_switch_configuration(state, &state->delay_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
         //state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
         state->delay_estimator_enabled = 1;
-    } else if ((!state->adec_output.delay_estimator_enabled && state->delay_estimator_enabled)) {
+    } else if ((!state->adec_output.delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
         // Start AEC for normal aec config
         aec_switch_configuration(state, &state->run_conf_alt_arch);
 
@@ -211,8 +211,8 @@ void ap_stage_a(ap_stage_a_state *state,
     //printf("frame %d\n",framenum);
 
     /** AEC*/
-    int32_t aec_output_main[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     int32_t aec_output_shadow[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    // Writing main filter output to output_data directly
 
 #if (AEC_THREAD_COUNT == 1)
         aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, output_data, aec_output_shadow);
@@ -270,7 +270,7 @@ void ap_stage_a(ap_stage_a_state *state,
     }
     
     /** Update delay samples if there's a delay change requested by ADEC*/
-    if(state->adec_output.mode_change_request_flag == 1){
+    if(state->adec_output.delay_change_request_flag == 1){
         // In case the mode change is requested as a result of force DE cycle trigger, reset force_de_cycle_trigger
         state->adec_state.adec_config.force_de_cycle_trigger = 0;
 
@@ -281,7 +281,7 @@ void ap_stage_a(ap_stage_a_state *state,
         }
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
-        printf("AP Setting MIC delay to: %d\n", state->delay_state.delay_samples);
+        printf("AP Setting MIC delay to: %ld\n", state->delay_state.delay_samples);
     }
     
     /** Overwrite output with mic input if delay estimation enabled*/
@@ -293,5 +293,6 @@ void ap_stage_a(ap_stage_a_state *state,
             }
         }
     }
+    *measured_delay_samples = state->adec_state.measured_delay_samples_debug;
     framenum++;
 }

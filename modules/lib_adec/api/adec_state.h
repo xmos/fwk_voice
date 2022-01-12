@@ -17,10 +17,13 @@ typedef struct {
 }adec_config_params_t;
 
 typedef struct {
-    int32_t requested_mic_delay_samples; // delay_samples signed to indicate delay direction
-    int32_t mode_change_request_flag;
-    int32_t reset_all_aec_flag;
-    int32_t delay_estimator_enabled;
+    int32_t delay_change_request_flag; ///< ADEC is requesting a change in the delay applied at the input
+    int32_t requested_mic_delay_samples; ///< Mic delay in samples requested by ADEC. Relevant when delay_change_request_flag is 1
+    /** flag indicating ADEC requesting an AEC reset. This is one when there's a delay
+    change requested that is not accompanied by an AEC mode change. A change in AEC mode would anyway reinitialise the
+    AEC so no need to do an extra reset*/
+    int32_t reset_all_aec_flag; 
+    int32_t delay_estimator_enabled_flag; ///< Flag indicating whether or not AEC should run in delay estimator mode
 } adec_output_t;
 
 typedef struct {
@@ -65,6 +68,9 @@ typedef struct {
     int32_t sf_copy_flag;
     int32_t convergence_counter;
     int32_t shadow_flag_counter;
+    /** Measured delay samples in ADEC. Put in stage so that the app can access it for logging. Needs to be persistant
+     * since logged every frame but updated only when a delay change is detected, so can't be put in adec_output_t*/
+    int32_t measured_delay_samples_debug;
     adec_config_params_t adec_config;
 } adec_state_t;
 

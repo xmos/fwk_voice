@@ -11,10 +11,8 @@ extern void ap_stage_a_init(ap_stage_a_state *state);
 extern void ap_stage_a(ap_stage_a_state *state,
     int32_t (*input_y_data)[AP_FRAME_ADVANCE],
     int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-    int32_t (*output_data)[AP_FRAME_ADVANCE]);
-
-extern int32_t debug_set_delay;
-int32_t *debug_signed_delay_ptr_1 = &debug_set_delay;
+    int32_t (*output_data)[AP_FRAME_ADVANCE],
+    int32_t *measured_delay_samples);
 
 void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
 {
@@ -88,7 +86,9 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
                 frame_x[ch][f] = input_read_buffer[i];
             }
         }
-        ap_stage_a(&stage_a_state, frame_y, frame_x, stage_a_output);
+
+        int32_t adec_measured_delay_samples;
+        ap_stage_a(&stage_a_state, frame_y, frame_x, stage_a_output, &adec_measured_delay_samples);
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AP_MAX_Y_CHANNELS;ch++){
@@ -99,12 +99,9 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AP_FRAME_ADVANCE * AP_MAX_Y_CHANNELS);
         
-        //This will get called once per frame so rate is correct
-          int32_t signed_delay = *debug_signed_delay_ptr_1;
-
-          char strbuf[100];
-          sprintf(strbuf, "%ld\n", signed_delay);
-          file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
+        char strbuf[100];
+        sprintf(strbuf, "%ld\n", adec_measured_delay_samples);
+        file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
     }
     file_close(&input_file);
     file_close(&output_file);

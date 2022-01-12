@@ -54,9 +54,4 @@ typedef struct {
     int32_t delay_estimator_enabled;
 } ap_stage_a_state;
 
-void ap_stage_a(ap_stage_a_state *state,
-    int32_t (*input_y_data)[AP_FRAME_ADVANCE],
-    int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-    int32_t (*output_data)[AP_FRAME_ADVANCE]);
-
 #endif

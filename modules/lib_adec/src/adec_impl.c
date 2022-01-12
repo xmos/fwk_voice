@@ -73,19 +73,17 @@ void adec_init(adec_state_t *adec_state){
   adec_state->sf_copy_flag = 0;
   adec_state->convergence_counter = 0;
   adec_state->shadow_flag_counter = 0;
+  adec_state->measured_delay_samples_debug = 0;
 }
 
-//Used for tests (provides global copy available on same tile for logging purposes). Read by test_wav_ap.xc in test firmware
-int32_t debug_set_delay = 0;
-
 //Work out what we should send to the delay register from a signed input. Accounts for the margin to ensure mics always after ref
-void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples){
+void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples, int32_t *measured_delay_compensated_debug){
     //If we see a MIC delay (+ve measured delay), we want to delay Reference by LESS than this to leave some headroom
     //If we see a REF delay (-ve measured delay), we want to delay MIC by MORE than this to leave some headroom
     int32_t measured_delay_compensated = measured_delay - ADEC_DE_DELAY_HEADROOM_SAMPS;
 
     //Set the requested mic delay to -ve of the measured delay in order to compensate the effect of delay measured in the system
-    *mic_delay_samples = -measured_delay_compensated;
+    *mic_delay_samples = -(measured_delay_compensated);
     //Make sure we don't exceed the delay buffer size
 
     if (*mic_delay_samples >= MAX_DELAY_SAMPLES){
@@ -101,9 +99,9 @@ void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_del
 
     //Write to debug copy of var for logging purposes during simulations
     //We toggle the lower bit to ensure a set to same value counts as a change. 1 sample is inconsequential to the ADEC
-    unsigned new_bottom_bit = (debug_set_delay & 0x1) ^ 0x1; 
-    debug_set_delay = -measured_delay_compensated;
-    debug_set_delay = (debug_set_delay & 0xfffffffe) | new_bottom_bit;
+    unsigned new_bottom_bit = (*measured_delay_compensated_debug & 0x1) ^ 0x1; 
+    *measured_delay_compensated_debug = -(measured_delay_compensated);
+    *measured_delay_compensated_debug = (*measured_delay_compensated_debug & 0xfffffffe) | new_bottom_bit;
 }
 
 //This takes about 68 cycles compared with dsp_math_log that takes 12650
@@ -276,8 +274,8 @@ void adec_process_frame(
     const adec_input_t *adec_in
 ){
   adec_output->reset_all_aec_flag = 0;
-  adec_output->mode_change_request_flag = 0;
-  adec_output->delay_estimator_enabled = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
+  adec_output->delay_change_request_flag = 0;
+  adec_output->delay_estimator_enabled_flag = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
   adec_output->requested_mic_delay_samples = 0;
 
   uint32_t elapsed_milliseconds = adec_in->num_frames_since_last_call*15; //Each frame is 15ms
@@ -374,13 +372,14 @@ void adec_process_frame(
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += adec_in->from_de.delay_estimate;
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &state->measured_delay_samples_debug);
           adec_output->reset_all_aec_flag = 1;
           reset_stuff_on_AEC_mode_start(state, 1);
           state->mode = state->mode; //Same mode (no change)
 
           //printf("Mode Change requested 1\n");          
-          adec_output->mode_change_request_flag = 1; //But we want to reset AEC even though we are staying in the same mode
+          adec_output->delay_change_request_flag = 1; //But we want to reset AEC even though we are staying in the same mode
+          break;
         }
 
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
@@ -424,12 +423,12 @@ void adec_process_frame(
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
               //But first we need to set the delay value so we can see forwards/backwards, see configure_delay.py
               adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
-              adec_output->delay_estimator_enabled = 1;
+              adec_output->delay_estimator_enabled_flag = 1;
 
               state->mode = ADEC_DELAY_ESTIMATOR_MODE;
               state->gated_milliseconds_since_mode_change = 0;
               //printf("Mode Change requested 2\n");              
-              adec_output->mode_change_request_flag = 1;
+              adec_output->delay_change_request_flag = 1;
             }
           }
         }
@@ -448,14 +447,14 @@ void adec_process_frame(
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
 
-          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples);
+          set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &state->measured_delay_samples_debug);
 
           state->mode = ADEC_NORMAL_AEC_MODE;
-          adec_output->delay_estimator_enabled = 0;
+          adec_output->delay_estimator_enabled_flag = 0;
           reset_stuff_on_AEC_mode_start(state, 1);
           //printf("Mode Change requested 3\n");
            
-          adec_output->mode_change_request_flag = 1;
+          adec_output->delay_change_request_flag = 1;
         }
       break;
 
@@ -468,7 +467,7 @@ void adec_process_frame(
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 
-  if (adec_output->mode_change_request_flag == 1){ //TODO Is this needed when already calling reset_stuff_on_AEC_mode_start()?
+  if (adec_output->delay_change_request_flag == 1){ //TODO Is this needed when already calling reset_stuff_on_AEC_mode_start()?
       state->gated_milliseconds_since_mode_change = 0;
       state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
       state->peak_to_average_ratio_valid_flag = 0;
