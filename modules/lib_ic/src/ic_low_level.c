@@ -117,10 +117,6 @@ void ic_update_X_energy(
         ic_state_t *state,
         unsigned ch,
         unsigned recalc_bin){
-
-    // printf("aec_state_t: %d\n", sizeof(aec_state_t));
-    // aec_state_t aec_state;
-
     bfp_s32_t *X_energy_ptr = &state->X_energy_bfp[ch];
     bfp_complex_s32_t *X_ptr = &state->X_bfp[ch];
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
@@ -163,8 +159,6 @@ void ic_calc_Error_and_Y_hat(
     bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
 
     int32_t bypass_enabled = state->config_params.core_conf.bypass;
-
-    printf("bypass_enabled: %ld\n", bypass_enabled);
     aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
 
@@ -246,10 +240,6 @@ void ic_update_vad_history(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE], 
     for(unsigned s=0; s<IC_FRAME_ADVANCE; s++){
         ad_state->vad_data_window[s] = output[s];
     }
-#if AP_STAGE_B_DEBUG_PRINT
-    printf("vad_new_samples = "); att_print_python_td(state->ic_state.output[0], IC_FRAME_ADVANCE, input_exp, 0);
-    printf("vad_new_frame = "); att_print_python_int32(state->vad_data_window, IC_PROC_FRAME_LENGTH, input_exp);
-#endif 
 
     //From https://github.com/xmos/lib_audio_pipelines/blob/2f352c87a058c6f91c43ed4b69e77bd63db24ff4/lib_audio_pipelines/src/dsp/ap_stage_b.xc#L171
     //Keep VAD zero for first 12 frames
@@ -272,26 +262,16 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     if(float_s32_gt(r, ad_state->smoothed_voice_chance)){
         ad_state->smoothed_voice_chance = r;
     }
-    
-    printf("smoothed_voice_chance = %.22f\n", ldexp(state->ic_adaption_controller_state.smoothed_voice_chance.mant, state->ic_adaption_controller_state.smoothed_voice_chance.exp));
-    
     const float_s32_t one = {1, 0};
     const float_s32_t zero = {0, 0};
 
     float_s32_t mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
-    printf("mu_tmp = %.22f\n", ldexp(mu.mant, mu.exp));
-
     float_s32_t ratio = one;
     if(float_s32_gt(ad_state->input_energy, zero)){ //Protect against div by zero
         ratio = float_s32_div(ad_state->output_energy, ad_state->input_energy);
     }
-
-    printf("ratio = %.22f\n", ldexp(ratio.mant, ratio.exp));
-
-    printf("enable_filter_instability_recovery: %d\n", ad_state->enable_filter_instability_recovery);
-    if (ad_state->enable_filter_instability_recovery){
+ if (ad_state->enable_filter_instability_recovery){
         if(float_s32_gte(ratio, ad_state->out_to_in_ratio_limit)){
-            printf("**ic_reset_filter** %f > %f\n", ldexp(ratio.mant, ratio.exp), ldexp(ad_state->out_to_in_ratio_limit.mant, ad_state->out_to_in_ratio_limit.exp));
             ic_reset_filter(state);
         }
     }
@@ -303,7 +283,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         ratio = float_s32_sqrt(ratio);
         ratio = float_s32_sqrt(ratio);
     }
-    printf("ratio = %.22f\n", ldexp(ratio.mant, ratio.exp));
 
     mu = float_s32_mul(mu, ratio);
 
@@ -311,13 +290,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     if(float_s32_gt(ad_state->input_energy0, zero)){ //Protect against div by zero
         fast_ratio = float_s32_div(ad_state->output_energy0, ad_state->input_energy0);
     }
-
-
-    printf("fast_ratio = %.22f\n", ldexp(fast_ratio.mant, fast_ratio.exp));
-
-    printf("mu: %f\n", ldexp(mu.mant, mu.exp));
-
-    //TODO - a startup problem here. Fast ratio is often 1.00 at startup so adaption gets stuck. Works better if gt rather than gte?
     if(float_s32_gt(fast_ratio, one)){
         state->ic_adaption_controller_state.leakage_alpha = state->ic_adaption_controller_state.instability_recovery_leakage_alpha;
         mu = zero;
@@ -326,12 +298,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         // mu = mu;
     }
 
-    //tmp experiment to understand the behaviour of adapt against mu
-    float_s32_t frac = {793634859,-31}; //0.3695650301 same as model
-    mu = frac;
-    printf("mu: %f\n", ldexp(mu.mant, mu.exp));
-
-    //Copy mu to main state for use by AEC adapt
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;

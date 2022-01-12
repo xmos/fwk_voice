@@ -13,10 +13,10 @@
 #define IC_INIT_SIGMA_XX_SHIFT                      11 //From XC (no concept of this in Py)
 #define IC_INIT_GAMMA_LOG2                          1 //From Pyhton IC (2^1 = 2.0)
 #define IC_INIT_DELTA                               0.0156249999963620211929 //Python test_wav_ic
-#define IC_INIT_LEAKAGE_ALPHA                       1.0
 #define IC_INIT_MU                                  0.369566
 #define IC_INIT_EMA_ALPHA                           0.9995117188 //Pyhton
 #define IC_FILTER_PHASES                            10
+#define IC_INIT_LEAKAGE_ALPHA                       1.0
 
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0
@@ -26,6 +26,7 @@
 #define IC_INIT_ENERGY_ALPHA                        0.999
 #define IC_INIT_ENERGY_ALPHA0                       0.98
 #define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995
+
 
 //Fixed paramaters - do not edit
 #define IC_Y_CHANNELS (1)

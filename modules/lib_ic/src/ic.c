@@ -255,9 +255,6 @@ void ic_adapt(
     }
     printf("ic_calc_inv_X_energy\n");
 
-    // ic_dump_var_2d(state);
-
-
     //Adapt H_hat
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         //There's only enough memory to store IC_X_CHANNELS worth of T data and not IC_Y_CHANNELS*IC_X_CHANNELS so the y_channels for loop cannot be run in parallel
