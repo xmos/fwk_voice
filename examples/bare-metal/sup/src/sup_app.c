@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "suppression_conf.h"
 #include "suppression.h"
 
 #include "fileio.h"

@@ -16,8 +16,8 @@
 #include <unity.h>
 
 #include "unity_fixture.h"
-#include "../../../../shared/pseudo_rand/pseudo_rand.h"
-#include "../../../../shared/testing/testing.h"
+#include <pseudo_rand.h>
+#include <testing.h>
 
 #define EXP  -31
 #define LUT_SIZE 64

@@ -15,8 +15,8 @@
 #include <unity.h>
 
 #include "unity_fixture.h"
-#include "../../../../shared/pseudo_rand/pseudo_rand.h"
-#include "../../../../shared/testing/testing.h"
+#include <pseudo_rand.h>
+#include <testing.h>
 
 #define EXP  -31
 
@@ -58,13 +58,13 @@ TEST(ns_update_p, case0){
         
         alpha_p_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
         alpha_p_fl.exp = EXP;
-        sup_set_noise_alpha_p(&state, alpha_p_fl);
+        state.alpha_p = alpha_p_fl;
         alpha_p = float_s32_to_double(alpha_p_fl);
 
         delta_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
         delta_fl.exp = EXP;
         delta_fl = float_s32_add(delta_fl, float_to_float_s32(1.0));
-        sup_set_noise_delta(&state, delta_fl);
+        state.delta = delta_fl;
         delta = float_s32_to_double(delta_fl);
 
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){

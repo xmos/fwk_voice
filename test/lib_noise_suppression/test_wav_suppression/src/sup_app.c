@@ -6,11 +6,10 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "suppression_conf.h"
 #include "suppression.h"
 
-#include "fileio.h"
-#include "wav_utils.h"
+#include <fileio.h>
+#include <wav_utils.h>
 
 #define MAX_CHANNELS 2
 

@@ -3,8 +3,13 @@
 #ifndef SUP_STATE_H
 #define SUP_STATE_H
 
-#include <suppression_conf.h>
 #include <xs3_math_types.h>
+
+#define SUP_FRAME_ADVANCE           (240)
+#define SUP_PROC_FRAME_LENGTH      (512) 
+#define SUP_PROC_FRAME_BINS        ((SUP_PROC_FRAME_LENGTH / 2) + 1)
+#define SUP_INT_EXP (-31)
+#define SUPPRESSION_WINDOW_LENGTH (480)
 
 typedef struct {
 
