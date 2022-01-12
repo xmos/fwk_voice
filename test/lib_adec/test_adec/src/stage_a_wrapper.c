@@ -16,26 +16,16 @@ extern void ap_stage_a(ap_stage_a_state *state,
 extern int32_t debug_set_delay;
 int32_t *debug_signed_delay_ptr_1 = &debug_set_delay;
 
-void stage_a_wrapper(const char *input_file_name, const char* output_file_name) {
-    //For logging delay to file..
-    static FILE *out_file;
-    char * delay_file_name = "xc_sim_delays.txt";
-    out_file = fopen((char *)delay_file_name, "wt");
-    if (out_file == NULL)
-    {
-        printf("Error while opening output file: %s", delay_file_name);
-        _Exit(1);
-    }
-
-    //aec_state_t aec_state;
-    //adec_state_t adec_state;    
-
-    file_t input_file, output_file;
+void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
+{
+    file_t input_file, output_file, delay_file;
     // Open input wav file containing mic and ref channels of input data
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     // Open output wav file that will contain the AEC output
     ret = file_open(&output_file, output_file_name, "wb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&delay_file, "delay.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct, output_header_struct;
@@ -111,17 +101,13 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name) 
         
         //This will get called once per frame so rate is correct
           int32_t signed_delay = *debug_signed_delay_ptr_1;
-#if TEST_WAV_XSCOPE
-          //fprintf is not supported over xscope. printf to stdout instead and then parse
-          //print with xc_sim_delays: tag to differtiate from other prints coming out of the device
-          printf("xc_sim_delays: %d\n", signed_delay);
-          fflush(stdout);
-#else
-          fprintf(out_file, "%d\n", signed_delay);
-          fflush(out_file);
-#endif
+
+          char strbuf[100];
+          sprintf(strbuf, "%ld\n", signed_delay);
+          file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
     }
     file_close(&input_file);
     file_close(&output_file);
+    file_close(&delay_file);
     shutdown_session();
 }

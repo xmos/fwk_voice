@@ -32,7 +32,7 @@ extern void aec_process_frame_2threads(
 
 // After aec_init, these values are overwritten to modify convergence behaviour
 //https://github.com/xmos/lib_aec/pull/190
-const fixed_s32_t fixed_mu_delay_est_mode = (int)(0.4 * (1<<30)); //TODO this will probably need tuning. 0.4 is the value that works with delay_est tests in lib_aec
+//const fixed_s32_t fixed_mu_delay_est_mode = (int)(0.4 * (1<<30)); //TODO this will probably need tuning. 0.4 is the value that works with delay_est tests in lib_aec
 
 
 void delay_buffer_init(delay_state_t *state, int default_delay_samples) {
@@ -193,7 +193,7 @@ void ap_stage_a(ap_stage_a_state *state,
         // Initialise AEC for delay estimation config
         aec_switch_configuration(state, &state->delay_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
-        state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
+        //state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
         state->delay_estimator_enabled = 1;
     } else if ((!state->adec_output.delay_estimator_enabled && state->delay_estimator_enabled)) {
         // Start AEC for normal aec config

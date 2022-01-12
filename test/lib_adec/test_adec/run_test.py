@@ -25,6 +25,7 @@ import re
 
 source_wav_file_rate = 48000
 voice_sample_rate = 16000
+delay_output_file_name = "delay.bin"
 
 #Locations of the xcore version of the code
 xcore_working_dir = '../test_wav_ap'
@@ -77,18 +78,13 @@ def run_test(pipeline_config, info, path_to_regression_files, input_audio_files,
     copyfile("stage_a_input_16k.wav", "input.wav") #Axe sim has fixed file name input
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-        f = io.StringIO()      
         print(f"Running on {adapter_id}")
-        with redirect_stdout(f):
-            xscope_fileio.run_on_target(adapter_id, xe_name)
-        xcore_stdo = []
-        #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-        for line in f.getvalue().splitlines():
-            m = re.search(r'\[DEVICE\] xc_sim_delays:\s*(.*)', line)
-            if m is not None:
-                xcore_stdo.append(m.group(1))            
-        xcore_stdo = np.asarray(xcore_stdo, dtype=np.float)
-        estimates = xcore_stdo / float(voice_sample_rate)
+        xscope_fileio.run_on_target(adapter_id, xe_name)
+        # Read estimated delay samples for every frame
+        with open(delay_output_file_name, 'r') as f:
+            estimated_delay_samples = np.array([int(l) for l in f.readlines()], dtype=float)
+
+        estimates = estimated_delay_samples / float(voice_sample_rate)
     
     #Scale estimates file to seconds
     xc_sim_de_file = "xc_sim_delays_s.txt"
