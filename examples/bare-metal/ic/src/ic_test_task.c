@@ -22,6 +22,7 @@
 #include "wav_utils.h"
 #include "dump_var_py.h"
 
+//Optionally quit processing after number of frames processed
 // #define MAX_FRAMES  0
 #define INPUT_Y_DELAY_SAMPS 180
 
@@ -33,15 +34,13 @@
 
 void ic_task(const char *input_file_name, const char *output_file_name) {
     //open files
-    file_t input_file, output_file, dut_var_file, delay_file;
+    file_t input_file, output_file, dut_var_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     ret = file_open(&output_file, output_file_name, "wb");
     assert((!ret) && "Failed to open file");
-    ret = file_open(&dut_var_file, "dut_var.py", "wb");
-    assert((!ret) && "Failed to open file");
-    ret = file_open(&delay_file, "delay.bin", "wb");
-    assert((!ret) && "Failed to open file");
+    // ret = file_open(&dut_var_file, "dut_var.py", "wb"); //Option to dump variables on each frame
+    // assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct, output_header_struct;
     unsigned input_header_size;
@@ -63,7 +62,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     
 
     unsigned frame_count = wav_get_num_frames(&input_header_struct);
-
     unsigned block_count = frame_count / IC_FRAME_ADVANCE;
 
 #if MAX_FRAMES
@@ -125,13 +123,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
                 frame_x[f] = input_read_buffer[i];
             }
         }
-        // if (runtime_args[STOP_ADAPTING] > 0) {
-        //     runtime_args[STOP_ADAPTING]--;
-        //     if (runtime_args[STOP_ADAPTING] == 0) {
-        //         //turn off adaption
-        //         main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_OFF;
-        //     }
-        // }
+
         prof(2, "start_ic_filter");
         // Call IC functions to process IC_FRAME_ADVANCE new samples of data
         ic_filter(&state,  frame_y, frame_x, output);
@@ -146,18 +138,18 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         prof(7, "end_ic_adapt");
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){
-            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS] = output[i];
-            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS + 1] = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 0];
+            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS] = output[i]; //IC adaptive filter output
+            int32_t y_samp = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 0];
+            int32_t x_samp = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 1];
+            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS + 1] = (y_samp >> 1) + (x_samp >> 1); //Beamform with no delay on 2nd channel
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * IC_FRAME_ADVANCE * IC_TOTAL_OUTPUT_CHANNELS);
-
         print_prof(0,6,b+1);
     }
     file_close(&input_file);
     file_close(&output_file);
-    file_close(&dut_var_file);
-    file_close(&delay_file);
+    // file_close(&dut_var_file);
     shutdown_session();
 }
 
