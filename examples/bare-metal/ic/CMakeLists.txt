@@ -18,7 +18,7 @@ list( APPEND  DEP_LIBS
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED ../shared_src/*.c )
+file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
@@ -30,7 +30,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ../shared_src )
+list( APPEND  INCLUDES src ../shared_src/file_utils )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )

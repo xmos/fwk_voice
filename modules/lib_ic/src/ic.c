@@ -136,38 +136,24 @@ void ic_filter(
         int32_t output[IC_FRAME_ADVANCE])
 {
 
-    printf("state.config_params.core_conf.bypass: %d\n", state->config_params.core_conf.bypass);
-    printf("offset: %u\n", (unsigned)&state->config_params.core_conf.bypass - (unsigned)state);
-
-
     ic_frame_init(state, y_data, x_data);
-    printf("ic_frame_init\n");
 
     ///calculate input td ema energy
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_update_td_ema_energy(&state->y_ema_energy[ch], &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, &state->config_params);
     }
-    printf("ic_update_td_ema_energy\n");
 
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_update_td_ema_energy(&state->x_ema_energy[ch], &state->x_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, &state->config_params);
     }
-    printf("ic_update_td_ema_energy\n");
-
-
-    printf("y_ema_energy: %f\n", ldexp(state->y_ema_energy[0].mant, state->y_ema_energy[0].exp));
-    printf("x_ema_energy: %f\n", ldexp(state->x_ema_energy[0].mant, state->x_ema_energy[0].exp));
-
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_fft(&state->Y_bfp[ch], &state->y_bfp[ch]);
     }
-    printf("ic_fft\n");
 
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
     }
-    printf("ic_fft\n");
 
     //Update X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
@@ -178,37 +164,32 @@ void ic_filter(
     if(state->X_energy_recalc_bin == IC_FD_FRAME_LENGTH) {
         state->X_energy_recalc_bin = 0;
     }
-    printf("ic_update_X_energy\n");
 
     //update X_fifo with the new X and calcualate sigma_XX
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_update_X_fifo_and_calc_sigmaXX(state, ch);
     }
-    printf("ic_update_X_fifo_and_calc_sigmaXX\n");
 
     //Update the 1 dimensional bfp structs that are also used to access X_fifo
     ic_update_X_fifo_1d(state);
-    printf("ic_update_X_fifo_1d\n");
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_calc_Error_and_Y_hat(state, ch);
     }
-
-    printf("ic_calc_Error_and_Y_hat\n");
 
     //IFFT Error and Y_hat
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
         ic_ifft(&state->y_hat_bfp[ch], &state->Y_hat_bfp[ch]);
     }
-    printf("ic_ifft\n");
 
+    //Note the model supports noise minimisation but we have not ported this
+    //as it has not been found to aid ASR performance
 
     //Window error. Calculate output
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_create_output(state, output, ch);
     }
-    printf("ic_create_output\n");
 }
 
 
@@ -217,15 +198,12 @@ void ic_adapt(
         uint8_t vad,
         int32_t output[IC_FRAME_ADVANCE]){
 
-
     //Process vad input
     ic_update_vad_history(state, output, &vad);
-    printf("ic_update_vad_history\n");
-
+   
     //Calculate leakage and mu for adaption
     ic_adaption_controller(state, vad);
-    printf("ic_adaption_controller\n");
-
+   
     //calculate error_ema_energy for main state
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_t temp;
@@ -233,52 +211,29 @@ void ic_adapt(
 
         ic_update_td_ema_energy(&state->error_ema_energy[ch], &temp, 0, IC_FRAME_ADVANCE, &state->config_params);
     }
-    printf("ic_update_td_ema_energy\n");
-    printf("error_ema_energy: %f\n", ldexp(state->error_ema_energy[0].mant, state->error_ema_energy[0].exp));
-
-
+   
     //error -> Error FFT
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
     }
-    printf("ic_fft\n");
-
-    // ic_dump_var_2d(state);
-
-    printf("gamma: %.12f\n", ldexp( 1, state->config_params.core_conf.gamma_log2));
-    printf("delta: %.12f\n", ldexp( state->delta.mant, state->delta.exp));
-
-
+   
     //calculate inv_X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_calc_inv_X_energy(state, ch);
     }
-    printf("ic_calc_inv_X_energy\n");
-
+   
     //Adapt H_hat
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         //There's only enough memory to store IC_X_CHANNELS worth of T data and not IC_Y_CHANNELS*IC_X_CHANNELS so the y_channels for loop cannot be run in parallel
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
-            for(int i=0;i<2;i++){
-                printf("Inv_x: %.12f\n", ldexp( state->inv_X_energy_bfp[0].data[i], state->inv_X_energy_bfp[0].exp));
-            }
             ic_compute_T(state, ych, xch);
 
-            // printf("T len: %d\n", state->T_bfp[xch].length);
-            // ic_dump_var_2d(state);
-            // printf("T len: %d\n", state->T_bfp[xch].length);
-
         }
-        printf("ic_compute_T\n");
-
         ic_filter_adapt(state);
-        printf("ic_filter_adapt\n");
-
     }
 
-    //Apply H_hat leakage
+    //Apply H_hat leakage to slowly forget adaption
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         ic_apply_leakage(state, ych);
-        printf("ic_apply_leakage\n");
     }
 }

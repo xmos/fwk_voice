@@ -31,8 +31,6 @@
 
 #include "xs3_math.h"
 
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
-
 void ic_task(const char *input_file_name, const char *output_file_name) {
     //open files
     file_t input_file, output_file, dut_var_file, delay_file;
@@ -136,20 +134,16 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         // }
         prof(2, "start_ic_filter");
         // Call IC functions to process IC_FRAME_ADVANCE new samples of data
-        /* Resuse mic data memory for main filter output
-         * Reuse ref data memory for shadow filter output
-         */ 
         ic_filter(&state,  frame_y, frame_x, output);
         prof(3, "end_ic_filter");
 
         prof(4, "start_vad_estimate");
-        uint8_t vad = 0;
+        uint8_t vad = 0; //0 means full cancellation because we have no voice present
         prof(5, "end_vad_estimate");
 
         prof(6, "start_ic_adapt");
         ic_adapt(&state, vad, output);
         prof(7, "end_ic_adapt");
-
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){
             output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS] = output[i];
