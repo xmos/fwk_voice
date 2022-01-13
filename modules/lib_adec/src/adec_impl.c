@@ -87,12 +87,16 @@ void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_del
 
     if (*mic_delay_samples >= MAX_DELAY_SAMPLES){
         int32_t actual_delay = MAX_DELAY_SAMPLES - 1; //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
         printf("**Warning - too large a delay requested (%ld), setting to %ld\n", *mic_delay_samples, actual_delay);
+#endif
         *mic_delay_samples = actual_delay;
     }
     else if(*mic_delay_samples <= -(MAX_DELAY_SAMPLES)) {
         int32_t actual_delay = -(MAX_DELAY_SAMPLES - 1); //-1 because we cannot support the actual maximum delay in the buffer (it wraps to zero)
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
         printf("**Warning - too large a delay requested (%ld), setting to %ld\n", *mic_delay_samples, actual_delay);
+#endif
         *mic_delay_samples = actual_delay;
     }
     //Write to debug copy of var for logging purposes during simulations
@@ -305,7 +309,11 @@ void adec_process_frame(
   // Note we look for last_n_total > penultimate_n_total so !(penultimate_n_total >= last_n_total)
   // As we want upwards trend not flat
   if (!float_s32_gte(penultimate_n_total, last_n_total)){
-    if (state->peak_to_average_ratio_valid_flag != 1) printf("***WERE ON THE UP MY FRIEND.. ***\n");
+    if (state->peak_to_average_ratio_valid_flag != 1) {
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
+        printf("***WERE ON THE UP MY FRIEND.. ***\n");
+#endif
+    }
     state->peak_to_average_ratio_valid_flag = 1;
   }
   else{
@@ -365,7 +373,9 @@ void adec_process_frame(
 
           //We have a new estimate RELATIVE to current delay settings
           state->last_measured_delay += adec_in->from_de.delay_estimate;
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
+#endif
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           adec_output->reset_all_aec_flag = 1;
           state->mode = state->mode; //Same mode (no change)
@@ -382,7 +392,11 @@ void adec_process_frame(
           state->agm_q24 = calculate_aec_goodness_metric(state, log2erle_q24, peak_power_slope, state->agm_q24);
 
           //Action if force trigger or if agm dips below zero or watchdog when adec enabled - things are totally ruined so do full delay estimate cycle
-          if(float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) printf("less than 2\n");
+          if(float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) {
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
+              printf("less than 2\n");
+#endif
+          }
           unsigned watchdog_triggered = (
                        (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
                       && ((float_s32_gte(state->aec_peak_to_average_good_aec_threshold, state->max_peak_to_average_ratio_since_reset)) ||
@@ -410,7 +424,9 @@ void adec_process_frame(
             if (!state->adec_config.bypass || state->adec_config.force_de_cycle_trigger) {
               if (state->adec_config.force_de_cycle_trigger) {
                 if (state->agm_q24 < 0) state->agm_q24 = 0;//clip negative
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
                 printf("force_de_cycle_trigger\n");
+#endif
               }
 
               //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
@@ -437,7 +453,9 @@ void adec_process_frame(
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
           state->last_measured_delay = adec_in->from_de.delay_estimate - MAX_DELAY_SAMPLES;
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
+#endif
           //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
 
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);

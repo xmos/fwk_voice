@@ -12,6 +12,10 @@
 #include "aec_config.h"
 #include "aec_task_distribution.h"
 
+#if PROFILE_PROCESSING
+#include "profile.h"
+#endif
+
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
@@ -147,7 +151,8 @@ void reset_all_aec(ap_stage_a_state *state){
 }
 
 void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
-    memset(state, 0, sizeof(ap_stage_a_state));
+    memset(state, 0, sizeof(ap_stage_a_state)); 
+    prof(0, "start_pipeline_init"); //Start profiling after memset since the pipeline components do the memset as part of their init functions.
     state->delay_estimator_enabled = 0;
     state->adec_requested_delay_samples = 0;
 
@@ -163,6 +168,7 @@ void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *n
     state->adec_state.adec_config.force_de_cycle_trigger = 1;
 #endif
     aec_switch_configuration(state, &state->aec_non_de_mode_conf);
+    prof(1, "end_pipeline_init");
 }
 
 int framenum = 0;
@@ -172,12 +178,14 @@ void ap_stage_a(ap_stage_a_state *state,
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
     /** Get delayed frame*/
+    prof(2, "start_get_delayed_frame");
     delay_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y_data,
             input_x_data,
             delay_state_ptr
             );
+    prof(3, "end_get_delayed_frame");
     
     //TODO Calculate far_end active
     int is_ref_active = 1;
@@ -188,6 +196,7 @@ void ap_stage_a(ap_stage_a_state *state,
     //printf("frame %d\n",framenum);
 
     /** AEC*/
+    prof(4, "start_aec_process_frame");
     int32_t aec_output_shadow[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     // Writing main filter output to output_data directly
 
@@ -198,7 +207,9 @@ void ap_stage_a(ap_stage_a_state *state,
 #else
         #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
 #endif
+    prof(5, "end_aec_process_frame");
     
+    prof(6, "start_estimate_delay");
     /** Delay estimator*/
     de_output_t de_output;
     estimate_delay(
@@ -207,6 +218,9 @@ void ap_stage_a(ap_stage_a_state *state,
             state->aec_main_state.num_phases
             );
     
+    prof(7, "end_estimate_delay");
+
+    prof(8, "start_adec_process_frame");
     /** ADEC*/
     // Create input to ADEC
     adec_input_t adec_in;
@@ -242,11 +256,16 @@ void ap_stage_a(ap_stage_a_state *state,
             &adec_in
             );
     
+    prof(9, "end_adec_process_frame");
+
+    prof(10, "start_reset_aec");
     //** Reset AEC state if needed*/
     if(adec_output.reset_all_aec_flag) {
         reset_all_aec(state);
     }
+    prof(11, "end_reset_aec");
     
+    prof(12, "start_update_delay_buffer");
     /** Update delay samples if there's a delay change requested by ADEC*/
     if(adec_output.delay_change_request_flag == 1){
         // In case the mode change is requested as a result of force DE cycle trigger, reset force_de_cycle_trigger
@@ -257,11 +276,15 @@ void ap_stage_a(ap_stage_a_state *state,
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
             reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
         }
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
         printf("AP Setting MIC delay to: %ld\n", state->delay_state.delay_samples);
+#endif
     }
+    prof(13, "end_update_delay_buffer");
     
+    prof(14, "start_overwrite_output_in_de_mode");
     /** Overwrite output with mic input if delay estimation enabled*/
     if (state->delay_estimator_enabled) {
         // Send the current frame unprocessed
@@ -271,6 +294,9 @@ void ap_stage_a(ap_stage_a_state *state,
             }
         }
     }
+    prof(15, "end_overwrite_output_in_de_mode");
+
+    prof(16, "start_switch_aec_config");
     /* If a delay change is requested and this request is not accompanied by a AEC -> DE change, update
      * state->adec_requested_delay_samples(bits [0:30]) and toggle last bit (bit31) of
      * state->adec_requested_delay_samples to indicate to the test that a delay change event has occured*/
@@ -295,6 +321,8 @@ void ap_stage_a(ap_stage_a_state *state,
         aec_switch_configuration(state, &state->aec_non_de_mode_conf);
         state->delay_estimator_enabled = 0;
     }
+    prof(17, "end_switch_aec_config");
 
     framenum++;
+    print_prof(0, 18, framenum);
 }

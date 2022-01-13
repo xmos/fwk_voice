@@ -29,6 +29,11 @@
 #include "profile.h"
 #endif
 
+#if !PROFILE_PROCESSING
+    #define prof(n, str)
+    #define print_prof(start, end, framenum)
+#endif
+
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,

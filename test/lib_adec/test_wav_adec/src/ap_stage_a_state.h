@@ -55,4 +55,9 @@ typedef struct {
     int32_t adec_requested_delay_samples; // Delay requested from ADEC in case of a delay change event
 } ap_stage_a_state;
 
+#if !PROFILE_PROCESSING
+    #define prof(n, str)
+    #define print_prof(start, end, framenum)
+#endif
+
 #endif
