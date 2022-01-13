@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  test_wav_adec )
+set( APP_NAME  test_adec )
 
 # Auto-generate schedule and top level config files
 
@@ -40,8 +40,8 @@ list( APPEND  DEP_LIBS
 
 
 ## Sources
-file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_XC src/*.xc )
+file( GLOB_RECURSE SOURCES_TEST_WAV_C ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
+file( GLOB SOURCES_TEST_WAV_XC ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.xc )
 if ( XCORE )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
 else()
@@ -52,17 +52,18 @@ file( GLOB_RECURSE FILE_UTILS_SOURCES ${CMAKE_SOURCE_DIR}/examples/bare-metal/sh
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${FILE_UTILS_SOURCES} ${AUTOGEN_SOURCES} )
+list( APPEND  SOURCES ${SOURCES_TEST_WAV_C} ${SOURCES_AEC_PROCESS_FRAME} ${FILE_UTILS_SOURCES} ${AUTOGEN_SOURCES} )
 unset( SOURCES_XCORE )
-list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
+list( APPEND SOURCES_XCORE ${SOURCES_TEST_WAV_XC} ${XSCOPE_FILEIO_SOURCES} )
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils ${AUTOGEN_DIR})
+list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils ${AUTOGEN_DIR})
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
+
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
