@@ -84,14 +84,16 @@ static inline void get_delayed_frame(
         delay_state_t *delay_state)
 {
     int num_channels = (delay_state->delay_samples) > 0 ? AP_MAX_Y_CHANNELS : AP_MAX_X_CHANNELS;
-    for(int i=0; i<AP_FRAME_ADVANCE; i++) {
+    if (delay_state->delay_samples >= 0) {/** Requested Mic delay +ve => delay mic*/
         for(int ch=0; ch<num_channels; ch++) {
-            if (delay_state->delay_samples > 0) {
-                /* Requested Mic delay +ve => delay mic*/
+            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
                 get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
             }
-            else if (delay_state->delay_samples < 0) {
-                /* Requested Mic delay negative => advance mic which can't be done => delay reference*/
+        }
+    }
+    else if (delay_state->delay_samples < 0) {/* Requested Mic delay negative => advance mic which can't be done, so delay reference*/
+        for(int ch=0; ch<num_channels; ch++) {
+            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
                 get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
             }
         }
