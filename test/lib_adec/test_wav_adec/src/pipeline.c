@@ -12,6 +12,8 @@
 #include "aec_config.h"
 #include "aec_task_distribution.h"
 
+#include "pipeline_state.h"
+
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif
@@ -32,7 +34,6 @@ extern void aec_process_frame_2threads(
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
         int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
 
-#include "ap_stage_a_state.h"
 
 // After aec_init, these values are overwritten to modify convergence behaviour
 //https://github.com/xmos/lib_aec/pull/190
@@ -98,7 +99,7 @@ static inline void get_delayed_frame(
     return;
 }
 
-void aec_switch_configuration(ap_stage_a_state *state, aec_conf_t *conf)
+void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
 {
     aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
             &state->aec_main_memory_pool[0], &state->aec_shadow_memory_pool[0],
@@ -108,7 +109,7 @@ void aec_switch_configuration(ap_stage_a_state *state, aec_conf_t *conf)
 
 
 
-void reset_all_aec(ap_stage_a_state *state){
+void reset_all_aec(pipeline_state_t *state){
     aec_state_t *main_state = &state->aec_main_state;
     aec_state_t *shadow_state = &state->aec_shadow_state;
     aec_shared_state_t *shared_state = (aec_shared_state_t*)state->aec_main_state.shared_state; 
@@ -150,8 +151,8 @@ void reset_all_aec(ap_stage_a_state *state){
     }
 }
 
-void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
-    memset(state, 0, sizeof(ap_stage_a_state)); 
+void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
+    memset(state, 0, sizeof(pipeline_state_t)); 
     prof(0, "start_pipeline_init"); //Start profiling after memset since the pipeline components do the memset as part of their init functions.
     state->delay_estimator_enabled = 0;
     state->adec_requested_delay_samples = 0;
@@ -172,7 +173,7 @@ void ap_stage_a_init(ap_stage_a_state *state, aec_conf_t *de_conf, aec_conf_t *n
 }
 
 int framenum = 0;
-void ap_stage_a(ap_stage_a_state *state,
+void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         int32_t (*output_data)[AP_FRAME_ADVANCE])

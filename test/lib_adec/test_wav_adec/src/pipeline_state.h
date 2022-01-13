@@ -53,7 +53,7 @@ typedef struct {
     aec_conf_t aec_non_de_mode_conf;
     int32_t delay_estimator_enabled;
     int32_t adec_requested_delay_samples; // Delay requested from ADEC in case of a delay change event
-} ap_stage_a_state;
+} pipeline_state_t;
 
 #if !PROFILE_PROCESSING
     #define prof(n, str)
