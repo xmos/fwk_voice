@@ -18,8 +18,8 @@ list( APPEND  DEP_LIBS
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
 file( GLOB SOURCES_XC src/*.xc )
+file( GLOB SOURCES_SHARED ../../../test/lib_aec/test_aec_profile/src/*.c ../shared_src/file_utils/*.c )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
@@ -32,7 +32,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 unset( INCLUDES )
 list( APPEND  INCLUDES src ../shared_src/file_utils )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
+list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api ../../../test/lib_aec/test_aec_profile/src)
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes ${INCLUDES}" )

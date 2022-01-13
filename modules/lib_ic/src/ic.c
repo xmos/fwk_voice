@@ -11,8 +11,36 @@ void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
 
 
-void ic_init(ic_state_t *state){
+static void ic_init_config(ic_config_params_t *config){
+    config->sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
+    config->gamma_log2 = IC_INIT_GAMMA_LOG2;
+    config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
+    config->bypass = 0;
+    config->coeff_index = 0;
+}
 
+static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
+    adaption_controller_state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
+    adaption_controller_state->adaption_mode = IC_ADAPTION_ON;
+
+    adaption_controller_state->vad_counter = 0;
+    adaption_controller_state->smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
+    adaption_controller_state->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
+
+    adaption_controller_state->energy_alpha = double_to_float_s32(IC_INIT_ENERGY_ALPHA);
+    adaption_controller_state->input_energy = double_to_float_s32(0.0);
+    adaption_controller_state->output_energy = double_to_float_s32(0.0);
+
+    adaption_controller_state->energy_alpha0 = double_to_float_s32(IC_INIT_ENERGY_ALPHA0);
+    adaption_controller_state->input_energy0 = double_to_float_s32(0.0);
+    adaption_controller_state->output_energy0 = double_to_float_s32(0.0);
+
+    adaption_controller_state->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
+    adaption_controller_state->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
+    adaption_controller_state->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+}
+
+void ic_init(ic_state_t *state){
     memset(state, 0, sizeof(ic_state_t));
     
     //H_hat
@@ -82,7 +110,6 @@ void ic_init(ic_state_t *state){
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-
     //Initialise ema energy
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         state->y_ema_energy[ch].exp = -1024;
@@ -91,43 +118,19 @@ void ic_init(ic_state_t *state){
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         state->x_ema_energy[ch].exp = -1024;
     }
-    //fractional regularisation scalefactor
+    //fractional regularisation scale factor
     state->delta = double_to_float_s32(IC_INIT_DELTA);
 
-    state->config_params.core_conf.sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
-    state->config_params.core_conf.gamma_log2 = IC_INIT_GAMMA_LOG2;
-    state->config_params.core_conf.ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
-    state->config_params.core_conf.bypass = 0;
-    state->config_params.core_conf.coeff_index = 0;
-
-    state->ic_adaption_controller_state.leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    state->ic_adaption_controller_state.adaption_mode = IC_ADAPTION_ON;
-
-    state->ic_adaption_controller_state.vad_counter = 0;
-    state->ic_adaption_controller_state.smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
-    state->ic_adaption_controller_state.voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
-
-    state->ic_adaption_controller_state.energy_alpha = double_to_float_s32(IC_INIT_ENERGY_ALPHA);
-    state->ic_adaption_controller_state.input_energy = double_to_float_s32(0.0);
-    state->ic_adaption_controller_state.output_energy = double_to_float_s32(0.0);
-
-    state->ic_adaption_controller_state.energy_alpha0 = double_to_float_s32(IC_INIT_ENERGY_ALPHA0);
-    state->ic_adaption_controller_state.input_energy0 = double_to_float_s32(0.0);
-    state->ic_adaption_controller_state.output_energy0 = double_to_float_s32(0.0);
-
-    state->ic_adaption_controller_state.out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
-    state->ic_adaption_controller_state.enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
-    state->ic_adaption_controller_state.instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
-
+    //Mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = double_to_float_s32(IC_INIT_MU);
         }
     }
 
-    //TODO separate these out
-    //Initialise ic config params
-    // ic_priv_init_config_params(&state->config_params);
+    //Initialise ic core config params and adaption controller
+    ic_init_config(&state->config_params);
+    ic_init_adaption_controller(&state->ic_adaption_controller_state);
 }
 
 void ic_filter(

@@ -1,7 +1,7 @@
 #include <limits.h>
 #include "ic_low_level.h"
 
-//Because we are going to heavily borrow from lib_aec..
+//lib_ic heavily reuses functions from lib_aec currently
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
@@ -78,7 +78,6 @@ void ic_frame_init(
 
     //Initialise T
     //At the moment, there's only enough memory for storing IC_X_CHANNELS and not num_y_channels*num_x_channels worth of T.
-    //So T calculation cannot be parallelised across Y channels
     //Reuse X memory for calculating T
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
@@ -108,8 +107,7 @@ void ic_update_td_ema_energy(
     input_chunk.hr = input->hr;
     float_s64_t dot64 = bfp_s32_dot(&input_chunk, &input_chunk);
     float_s32_t dot = float_s64_to_float_s32(dot64);
-    *ema_energy = float_s32_ema(*ema_energy, dot, conf->core_conf.ema_alpha_q30);
-
+    *ema_energy = float_s32_ema(*ema_energy, dot, conf->ema_alpha_q30);
 }
 
 /// FFT single channel real input
@@ -149,7 +147,7 @@ void ic_update_X_fifo_and_calc_sigmaXX(
 
     bfp_s32_t *sigma_XX_ptr = &state->sigma_XX_bfp[ch];
     bfp_complex_s32_t *X_ptr = &state->X_bfp[ch];
-    uint32_t sigma_xx_shift = state->config_params.core_conf.sigma_xx_shift;
+    uint32_t sigma_xx_shift = state->config_params.sigma_xx_shift;
     float_s32_t *sum_X_energy_ptr = &state->sum_X_energy[ch];
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->X_fifo_bfp[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, IC_FILTER_PHASES, sigma_xx_shift);
 
@@ -177,10 +175,9 @@ void ic_calc_Error_and_Y_hat(
     bfp_complex_s32_t *X_fifo = state->X_fifo_1d_bfp;
     bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
 
-    int32_t bypass_enabled = state->config_params.core_conf.bypass;
+    int32_t bypass_enabled = state->config_params.bypass;
     aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
-
 
 /// Window error. Overlap add to create IC output
 void ic_create_output(
@@ -199,7 +196,6 @@ void ic_create_output(
     
 }
 
-
 /// Calculate inverse X-energy
 void ic_calc_inv_X_energy(
         ic_state_t *state,
@@ -212,7 +208,7 @@ void ic_calc_inv_X_energy(
 
     //Make a copy of aec_conf so we can pass the right type
     aec_config_params_t aec_conf; //Only gamma_log2 is accessed in aec_priv_calc_inv_X_energy_denom
-    aec_conf.aec_core_conf.gamma_log2 = state->config_params.core_conf.gamma_log2;
+    aec_conf.aec_core_conf.gamma_log2 = state->config_params.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing);
 }
@@ -232,8 +228,7 @@ void ic_compute_T(
 }
 
 /// Adapt H_hat
-void ic_filter_adapt(
-        ic_state_t *state){
+void ic_filter_adapt(ic_state_t *state){
     if(state == NULL) {
         return;
     }
@@ -264,7 +259,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     if(float_s32_gt(ad_state->input_energy, zero)){ //Protect against div by zero
         ratio = float_s32_div(ad_state->output_energy, ad_state->input_energy);
     }
- if (ad_state->enable_filter_instability_recovery){
+    if(ad_state->enable_filter_instability_recovery){
         if(float_s32_gte(ratio, ad_state->out_to_in_ratio_limit)){
             ic_reset_filter(state);
         }
@@ -325,9 +320,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
 // }
 
-//Untested API TODO add unit tests
-void ic_reset_filter(
-        ic_state_t *state){
+//Clear down filter to init state
+void ic_reset_filter(ic_state_t *state){
     
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
@@ -335,18 +329,17 @@ void ic_reset_filter(
     }
 }
 
-//Untested API TODO add unit tests
-//This mimics vtb_scale_complex_asm
+//This allows the filter to forget some of its training
 void ic_apply_leakage(
-        ic_state_t *state,
-        unsigned y_ch){
+    ic_state_t *state,
+    unsigned y_ch){
 
-        int32_t mant = state->ic_adaption_controller_state.leakage_alpha.mant;
-        exponent_t exp = state->ic_adaption_controller_state.leakage_alpha.exp;
-        float_s32_t leakage = {mant, exp};
+    int32_t mant = state->ic_adaption_controller_state.leakage_alpha.mant;
+    exponent_t exp = state->ic_adaption_controller_state.leakage_alpha.exp;
+    float_s32_t leakage = {mant, exp};
 
-        for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
-            bfp_complex_s32_t *H_hat_ptr = &state->H_hat_bfp[y_ch][ph];
-            bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, leakage); 
-        }
+    for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
+        bfp_complex_s32_t *H_hat_ptr = &state->H_hat_bfp[y_ch][ph];
+        bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, leakage); 
+    }
 }

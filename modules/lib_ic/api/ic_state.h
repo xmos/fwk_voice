@@ -11,18 +11,6 @@ typedef struct {
     uint32_t sigma_xx_shift;
     uint32_t coeff_index;
     fixed_s32_t ema_alpha_q30;
-}ic_core_config_params_t;
-
-typedef struct{
-    int32_t window_mem[32];
-    int32_t window_flpd_mem[32];
-    bfp_s32_t window;
-    bfp_s32_t window_flpd;
-}ic_window_t;
-
-typedef struct {
-    ic_core_config_params_t core_conf;
-    ic_window_t ic_window;
 }ic_config_params_t;
 
 typedef enum {
@@ -118,7 +106,7 @@ typedef struct {
     float_s32_t overall_Y[IC_Y_CHANNELS];
     float_s32_t sum_X_energy[IC_X_CHANNELS]; 
 
-    ic_config_params_t config_params; //control params
+    ic_config_params_t config_params;
     ic_adaption_controller_state_t ic_adaption_controller_state;
 } ic_state_t;
 
