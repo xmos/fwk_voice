@@ -88,9 +88,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     int32_t DWORD_ALIGNED frame_x[IC_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED output[IC_FRAME_ADVANCE];
 
-    int32_t input_y_delay[INPUT_Y_DELAY_SAMPS] = {0};
-    unsigned input_delay_idx = 0;
-
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start ic
@@ -99,7 +96,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     ic_init(&state);
     prof(1, "end_ic_init"); 
 
-    ic_dump_var_2d_start(&state, &dut_var_file, block_count);
+    // ic_dump_var_2d_start(&state, &dut_var_file, block_count);
 
     for(unsigned b=0;b<block_count;b++){
         //printf("frame %d\n",b);
@@ -108,15 +105,8 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* IC_FRAME_ADVANCE);
         for(unsigned f=0; f<IC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<IC_Y_CHANNELS;ch++){
-                unsigned i =(f * (IC_Y_CHANNELS+IC_X_CHANNELS)) + ch;
-                //pack in but apply delay
-                int32_t tmp = input_read_buffer[i];
-                frame_y[f] = input_y_delay[input_delay_idx];
-                input_y_delay[input_delay_idx] = tmp;
-                input_delay_idx++;
-                if(input_delay_idx == INPUT_Y_DELAY_SAMPS){
-                    input_delay_idx = 0;
-                }
+                unsigned i = (f * (IC_Y_CHANNELS+IC_X_CHANNELS)) + ch;
+                frame_y[f] = input_read_buffer[i];
             }
             for(unsigned ch=0;ch<IC_X_CHANNELS;ch++){
                 unsigned i =(f * (IC_Y_CHANNELS+IC_X_CHANNELS)) + IC_Y_CHANNELS + ch;

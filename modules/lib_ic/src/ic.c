@@ -62,6 +62,7 @@ void ic_init(ic_state_t *state){
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->y_bfp[ch], state->y[ch], -1024, IC_FRAME_LENGTH, 0);
         bfp_complex_s32_init(&state->Y_bfp[ch], (complex_s32_t*)state->y[ch], -1024, IC_FD_FRAME_LENGTH, 0);
+        state->y_delay_idx[ch] = 0; //init delay index 
     }
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->prev_y_bfp[ch], state->y_prev_samples[ch], -1024, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, 0);

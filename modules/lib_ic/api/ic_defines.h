@@ -10,16 +10,18 @@
 #include "xs3_math.h"
 
 //User modifiable parameters
-#define IC_INIT_SIGMA_XX_SHIFT                      11 //From XC (no concept of this in Py)
-#define IC_INIT_GAMMA_LOG2                          1 //From Pyhton IC (2^1 = 2.0)
-#define IC_INIT_DELTA                               0.0156249999963620211929 //Python test_wav_ic
-#define IC_INIT_MU                                  0.369566
-#define IC_INIT_EMA_ALPHA                           0.9995117188 //Pyhton
+#define IC_INIT_SIGMA_XX_SHIFT                      11  //From XC and Python AEC
+#define IC_INIT_GAMMA_LOG2                          1   //From Pyhton IC (2^1 = 2.0)
+#define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic
+#define IC_INIT_MU                                  0.369566 //From Python test_wav_ic
+#define IC_INIT_EMA_ALPHA                           0.9995117188 //From Pyhton model
+#define IC_INIT_LEAKAGE_ALPHA                       1.0 //From Pyhton model
+
 #define IC_FILTER_PHASES                            10
-#define IC_INIT_LEAKAGE_ALPHA                       1.0
+#define IC_Y_CHANNEL_DELAY_SAMPS                    180
 
 
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  0
+#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1
 #define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0
 #define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999
 #define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99

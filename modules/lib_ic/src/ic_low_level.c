@@ -17,8 +17,20 @@ void ic_frame_init(
         /* Create 512 samples frame */
         // Copy previous y samples
         memcpy(state->y_bfp[ch].data, state->prev_y_bfp[ch].data, (IC_FRAME_LENGTH-IC_FRAME_ADVANCE)*sizeof(int32_t));
-        // Copy current y samples
-        memcpy(&state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], y_data, IC_FRAME_ADVANCE*sizeof(int32_t));
+        // Copy and apply delay to current y samples
+
+        // memcpy(&state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], y_data, IC_FRAME_ADVANCE*sizeof(int32_t));
+        for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
+            unsigned input_delay_idx = state->y_delay_idx[ch];
+            state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE+i] = state->y_input_delay[ch][input_delay_idx];
+            state->y_input_delay[ch][input_delay_idx] = y_data[i];
+            input_delay_idx++;
+            if(input_delay_idx == IC_Y_CHANNEL_DELAY_SAMPS){
+                input_delay_idx = 0;
+            }
+            state->y_delay_idx[ch] = input_delay_idx;
+        }
+
         // Update exp just in case
         state->y_bfp[ch].exp = -31;
         // Update headroom

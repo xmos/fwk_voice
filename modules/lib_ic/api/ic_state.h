@@ -82,7 +82,6 @@ typedef struct {
     bfp_s32_t error_bfp[IC_Y_CHANNELS];
     complex_s32_t DWORD_ALIGNED Error[IC_Y_CHANNELS][IC_FD_FRAME_LENGTH];
 
-
     bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES];
     complex_s32_t DWORD_ALIGNED H_hat[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH];
 
@@ -101,6 +100,9 @@ typedef struct {
 
     bfp_s32_t overlap_bfp[IC_Y_CHANNELS];
     int32_t DWORD_ALIGNED overlap[IC_Y_CHANNELS][IC_FRAME_OVERLAP];
+
+    int32_t y_input_delay[IC_Y_CHANNELS][IC_Y_CHANNEL_DELAY_SAMPS];
+    int32_t y_delay_idx[IC_Y_CHANNELS];
 
     float_s32_t mu[IC_Y_CHANNELS][IC_X_CHANNELS];
     float_s32_t error_ema_energy[IC_Y_CHANNELS];
