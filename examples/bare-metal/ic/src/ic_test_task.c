@@ -24,7 +24,8 @@
 
 //Optionally quit processing after number of frames processed
 // #define MAX_FRAMES  0
-#define INPUT_Y_DELAY_SAMPS 180
+
+#define PROFILE_PROCESSING 0 //Print profile data about API timing
 
 #if PROFILE_PROCESSING
 #include "profile.h"
@@ -136,7 +137,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * IC_FRAME_ADVANCE * IC_TOTAL_OUTPUT_CHANNELS);
-        print_prof(0,6,b+1);
+        print_prof(0,8,b+1);
     }
     file_close(&input_file);
     file_close(&output_file);

@@ -202,9 +202,6 @@ void ic_adapt(
         ic_state_t *state,
         uint8_t vad,
         int32_t output[IC_FRAME_ADVANCE]){
-
-    //Process vad input
-    ic_update_vad_history(state, output, &vad);
    
     //Calculate leakage and mu for adaption
     ic_adaption_controller(state, vad);

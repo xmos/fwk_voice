@@ -18,7 +18,7 @@
 #define IC_INIT_LEAKAGE_ALPHA                       1.0 //From Python model
 
 #define IC_FILTER_PHASES                            10 //From Python model
-#define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model
+#define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model. The group delay through the filter is 32 + this number
 
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1

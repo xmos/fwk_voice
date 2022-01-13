@@ -11,13 +11,6 @@ void ic_priv_init_config_params(ic_config_params_t *config_params);
 
 void ic_adaption_controller_init(ic_adaption_controller_state_t *state);
 
-//Keeps track of historical VAD values
-void ic_update_vad_history(
-        ic_state_t *state,
-        int32_t output[IC_FRAME_ADVANCE],
-        uint8_t *vad_ptr);
-
-
 //Sets IC mu and leakage depending on VAD probability
 void ic_adaption_controller(
         ic_state_t *state, 

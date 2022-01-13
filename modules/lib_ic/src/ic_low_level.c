@@ -245,31 +245,6 @@ void ic_filter_adapt(
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-
-void ic_update_vad_history(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE], uint8_t *vad_ptr){
-    
-    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-
-    //Slide the window along
-    for(int s = IC_FRAME_LENGTH - 1 - IC_FRAME_ADVANCE; s >= 0;s--){
-        ad_state->vad_data_window[s + IC_FRAME_ADVANCE] = ad_state->vad_data_window[s];
-    }
-
-    //Add the new IC output in
-    for(unsigned s=0; s<IC_FRAME_ADVANCE; s++){
-        ad_state->vad_data_window[s] = output[s];
-    }
-
-    //From https://github.com/xmos/lib_audio_pipelines/blob/2f352c87a058c6f91c43ed4b69e77bd63db24ff4/lib_audio_pipelines/src/dsp/ap_stage_b.xc#L171
-    //Keep VAD zero for first 12 frames
-    //TODO - WHY? check with model!
-    if(ad_state->vad_counter < 12){
-        *vad_ptr = 0;
-        (ad_state->vad_counter)++;
-    }
-}
-
-
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
