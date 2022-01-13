@@ -15,10 +15,10 @@
 #define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic
 #define IC_INIT_MU                                  0.369566 //From Python test_wav_ic
 #define IC_INIT_EMA_ALPHA                           0.9995117188 //From Pyhton model
-#define IC_INIT_LEAKAGE_ALPHA                       1.0 //From Pyhton model
+#define IC_INIT_LEAKAGE_ALPHA                       1.0 //From Python model
 
-#define IC_FILTER_PHASES                            10
-#define IC_Y_CHANNEL_DELAY_SAMPS                    180
+#define IC_FILTER_PHASES                            10 //From Python model
+#define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model
 
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1
@@ -31,22 +31,21 @@
 
 
 //Fixed paramaters - do not edit
-#define IC_Y_CHANNELS (1)
-#define IC_X_CHANNELS (1)
+#define IC_Y_CHANNELS 1
+#define IC_X_CHANNELS 1
 
-#define IC_FRAME_LENGTH (512) 
-#define IC_FRAME_ADVANCE (240)
+#define IC_FRAME_LENGTH 512 
+#define IC_FRAME_ADVANCE 240
 #define IC_FRAME_OVERLAP (IC_FRAME_LENGTH - (2 * IC_FRAME_ADVANCE))
 #define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) //Frequency domain frame length
 
 #define IC_TOTAL_INPUT_CHANNEL_PAIRS ((IC_Y_CHANNELS + IC_X_CHANNELS + 1) / 2)
 #define IC_INPUT_CHANNEL_PAIRS IC_TOTAL_INPUT_CHANNEL_PAIRS
-#define IC_TOTAL_OUTPUT_CHANNEL_PAIRS 1 //FIXME
+#define IC_TOTAL_OUTPUT_CHANNEL_PAIRS 1 //TODO FIXME
 #define IC_TOTAL_OUTPUT_CHANNELS 2
 
 //extra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored after the in-place DFT
 #define FFT_PADDING 2
-
 
 //For unit tests
 #ifdef __XC__ 

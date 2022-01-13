@@ -6,7 +6,7 @@
 #include "ic_low_level.h"
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 
-
+//For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
 
@@ -137,6 +137,10 @@ void ic_filter(
         int32_t output[IC_FRAME_ADVANCE])
 {
 
+    ///Delay y channel, necessary for operation of adaptive filter
+    ic_delay_y_input(state, y_data);
+
+    ///Build a time domain frame of IC_FRAME_LENGTH from IC_FRAME_ADVANCE new samples
     ic_frame_init(state, y_data, x_data);
 
     ///calculate input td ema energy

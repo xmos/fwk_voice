@@ -34,11 +34,12 @@
 
 void ic_task(const char *input_file_name, const char *output_file_name) {
     //open files
-    file_t input_file, output_file, dut_var_file;
+    file_t input_file, output_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     ret = file_open(&output_file, output_file_name, "wb");
-    assert((!ret) && "Failed to open file");
+    assert((!ret) && "Failed to open file");\
+    // file_t dut_var_file;
     // ret = file_open(&dut_var_file, "dut_var.py", "wb"); //Option to dump variables on each frame
     // assert((!ret) && "Failed to open file");
 

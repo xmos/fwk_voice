@@ -169,6 +169,17 @@ void test_adaption_controller() {
         double output_energy0_fp = ldexp(st->output_energy0.mant, st->output_energy0.exp);
         double instability_recovery_leakage_alpha_fp = ldexp(st->instability_recovery_leakage_alpha.mant, st->instability_recovery_leakage_alpha.exp);
 
+        if(iter == 0 || iter == 1000){
+            enable_filter_instability_recovery = 0;
+            st->enable_filter_instability_recovery = 0;
+        }
+
+        if(iter == 20){
+            enable_filter_instability_recovery = 1;
+            st->enable_filter_instability_recovery = 1;
+        }
+
+
         int has_reset = 0;
 
         uint8_t vad = pseudo_rand_int32(&seed) % 256;
@@ -195,14 +206,5 @@ void test_adaption_controller() {
         check_parms_equal("leakage_alpha", iter, leakage_alpha_fp, st->leakage_alpha);
       
 
-        if(iter == 20){
-            enable_filter_instability_recovery = 1;
-            st->enable_filter_instability_recovery = 1;
-        }
-
-        if(iter == 1000){
-            enable_filter_instability_recovery = 0;
-            st->enable_filter_instability_recovery = 0;
-        }
     }
 }

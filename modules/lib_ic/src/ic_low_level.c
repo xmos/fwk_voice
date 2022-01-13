@@ -7,6 +7,25 @@
 #include "aec_priv.h"
 
 
+///Delay y input w.r.t. x input
+void ic_delay_y_input(ic_state_t *state,
+        int32_t y_data[IC_FRAME_ADVANCE]){
+    //Run through delay line
+    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
+        for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
+            unsigned input_delay_idx = state->y_delay_idx[ch];
+            int32_t tmp = state->y_input_delay[ch][input_delay_idx];
+            state->y_input_delay[ch][input_delay_idx] = y_data[i];
+            y_data[i] = tmp;
+            input_delay_idx++;
+            if(input_delay_idx == IC_Y_CHANNEL_DELAY_SAMPS){
+                input_delay_idx = 0;
+            }
+            state->y_delay_idx[ch] = input_delay_idx;
+        }
+    }
+}
+
 /// Sets up IC for processing a new frame
 void ic_frame_init(
         ic_state_t *state,
@@ -18,19 +37,7 @@ void ic_frame_init(
         // Copy previous y samples
         memcpy(state->y_bfp[ch].data, state->prev_y_bfp[ch].data, (IC_FRAME_LENGTH-IC_FRAME_ADVANCE)*sizeof(int32_t));
         // Copy and apply delay to current y samples
-
-        // memcpy(&state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], y_data, IC_FRAME_ADVANCE*sizeof(int32_t));
-        for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
-            unsigned input_delay_idx = state->y_delay_idx[ch];
-            state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE+i] = state->y_input_delay[ch][input_delay_idx];
-            state->y_input_delay[ch][input_delay_idx] = y_data[i];
-            input_delay_idx++;
-            if(input_delay_idx == IC_Y_CHANNEL_DELAY_SAMPS){
-                input_delay_idx = 0;
-            }
-            state->y_delay_idx[ch] = input_delay_idx;
-        }
-
+        memcpy(&state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], y_data, IC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
         state->y_bfp[ch].exp = -31;
         // Update headroom

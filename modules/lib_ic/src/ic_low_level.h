@@ -29,6 +29,9 @@ void ic_filter_adapt(ic_state_t *state);
 //Some nice doxygen comments
 void ic_init(ic_state_t *state);
 
+/// Delays y_channel w.r.t. x_channel
+void ic_delay_y_input(ic_state_t *state,
+        int32_t y_data[IC_FRAME_ADVANCE]);
 
 /// Sets up IC for processing a new frame
 void ic_frame_init(
