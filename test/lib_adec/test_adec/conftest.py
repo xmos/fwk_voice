@@ -6,9 +6,8 @@ import numpy as np
 
 source_wav_file_rate = 48000
 
-pipeline_configs = ['standard']
-#pipeline_configs = ['alt_arch']
-
+# ADEC tests only pass with AEC configured in alt arch mode :(
+pipeline_configs = [{"num_y_channels":1, "num_x_channels":2, "num_main_filter_phases":15, "num_shadow_filter_phases":5}]
 
 def generate_random_delay_changes(number, spacing, min_s, max_s):
   delays = []
@@ -54,7 +53,7 @@ def add_test(test_info, test_list, path_to_regression_files, input_audio_files, 
   test_conf['allowable_false_positives'] = allowable_false_positives
 
   for pipeline_config in pipeline_configs:
-    test_conf['info'] = test_info + "_" + pipeline_config
+    test_conf['info'] = test_info + "_" + "_".join([str(v) for k,v in pipeline_config.items()])
     test_conf['pipeline_config'] = pipeline_config
 
     test_conf_model = test_conf.copy()

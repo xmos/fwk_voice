@@ -46,11 +46,15 @@ def run_test(pipeline_config, info, path_to_regression_files, input_audio_files,
   tmp_dir = tempfile.mkdtemp(prefix='tmp_', dir='.')
   os.chdir(tmp_dir)
 
+  #write runtime arguments into args.bin. TODO send as config from caller
+  with open("args.bin", "wb") as fargs:
+      fargs.write(f"y_channels {pipeline_config['num_y_channels']}\n".encode('utf-8'))
+      fargs.write(f"x_channels {pipeline_config['num_x_channels']}\n".encode('utf-8'))
+      fargs.write(f"main_filter_phases {pipeline_config['num_main_filter_phases']}\n".encode('utf-8'))
+      fargs.write(f"shadow_filter_phases {pipeline_config['num_shadow_filter_phases']}\n".encode('utf-8'))
+
   xe_name = adec_test_xe
   print('xe name = ',xe_name)
-
-  config_file = 'two_mic_stereo.json' if pipeline_config == 'alt_arch' else 'two_mic_stereo_prev_arch.json'
-  print(f'config_file: {config_file}')
 
   ground_truth_file = "ground_truth.txt"
   delay_estimate_file = "delay_estimate.txt"
