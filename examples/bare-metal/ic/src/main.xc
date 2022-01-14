@@ -15,6 +15,11 @@ extern "C" {
 void main_tile0(chanend, chanend);
 void main_tile1(chanend);
 }
+
+#ifndef BURN_THREADS
+#define BURN_THREADS    0 //If set to 1, all other threads on IC tile will run, simulating fully loaded system
+#endif
+
 void burn_div() {
     unsafe {
     while(1) {
@@ -40,16 +45,14 @@ int main (void)
 #endif
     on tile[0]: {
         par {
+            #if BURN_THREADS
             par(int t=0; t<8-1; t++) {
                 {
                     set_core_fast_mode_on();
-                    //../../../../../audio_test_tools/audio_test_tools/src/burners.S:(.text+0x84): Error: byte offset 0xffffff7e for relocation R_XCORE1_REL16_4 is misaligned
-                    //../../../../../audio_test_tools/audio_test_tools/src/burners.S: Error: relocation with respect to 'div_loop'
-                    //att_burn_thread_div();
-                    //while(1) {continue;}
                     burn_div();
                 }
             }
+            #endif
             {
             main_tile0(c_cross_tile, xscope_chan);
             _Exit(0);

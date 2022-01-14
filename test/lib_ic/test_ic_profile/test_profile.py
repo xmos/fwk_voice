@@ -19,7 +19,7 @@ import glob
 import sys
 
 ic_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../../../examples/bare-metal/ic/src".split("/"))
-
+thread_speed_mhz = (600 / 5)
 
 def run_proc_with_output(cmd):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -75,7 +75,7 @@ output: mapping_file contains the profiling index to tag string mapping. This is
 def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_file="worst_case.log", mapping_file="profile_index_to_tag_mapping.log"):
     profile_strings = {}
     profile_regex = re.compile(r'\s*prof\s*\(\s*(\d+)\s*,\s*"(.*)"\s*\)\s*;')
-    #find all aec source files that might have a prof() function call
+    #find all ic source files that might have a prof() function call
     ic_files = glob.glob(f'{ic_src_folder}/**/*.xc', recursive=True)
     ic_files = ic_files + glob.glob(f'{ic_src_folder}/**/*.c', recursive=True)
     for file in ic_files:
@@ -85,7 +85,7 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
             #look for prof(profiling_index, tag_string) type of calls
             m = profile_regex.match(line)
             if m:
-                print("---", line)
+                # print("---", line)
                 if m.group(1) in profile_strings:
                     print(f"Profiling index {m.group(1)} used more than once with tags '{profile_strings[m.group(1)]}' and '{m.group(2)}'.")
                     assert(False)
@@ -105,7 +105,7 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
     frame_regex = re.compile(r'frame\s*(\d+)')
     frame_num = 0
     for line in prof_stdo:
-        print("***", line)
+        # print("***", line)
         m = frame_regex.match(line)
         if m:
             if frame_num:
@@ -121,8 +121,9 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
     
     frame_num = 0
     worst_case_frame = ()
+    init_frame = ()
     with open(profile_file, 'w') as fp:
-        fp.write(f'{"Tag":<44} {"Cycles":<12} {"% of total cycles":<10}\n')
+        fp.write(f'{"Tag":>44} {"Cycles":<12} {"% of total cycles":<10}\n')
         for tags in all_frames: #look at framewise profiling information
             fp.write(f"Frame {frame_num}\n")
             total_cycles = 0
@@ -133,7 +134,10 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
                     end_tag = 'end_' + tag[6:]
                     cycles = tags[end_tag] - tags[tag]
                     this_frame_tags[tag[6:]] = cycles
-                    total_cycles += cycles
+                    if tag.endswith('init'): 
+                        init_frame = cycles
+                    else:
+                        total_cycles += cycles #Note we exclude init as part of our analysis
             #this_frame is a tuple of (dictionary dict[tag_string] = cycles_between_start_and_end, total cycle count, frame_num)
             this_frame = (this_frame_tags, total_cycles, frame_num)
 
@@ -150,17 +154,19 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
 
         with open(worst_case_file, 'w') as fp:
             fp.write(f"Worst case frame = {worst_case_frame[2]}\n")
+            fp.write(f"{'init':<44} {init_frame:<12}\n")
+
             #in the end, print the worst case frame
             for key, value in worst_case_frame[0].items():
                 fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
-            worst_case_timer_cycles = np.float64(worst_case_frame[1])
-            fp.write(f'{"Worst_case_frame_timer(100MHz)_cycles":<32} {worst_case_timer_cycles}\n')
-            worst_case_processor_cycles = (worst_case_timer_cycles/100) * 120
-            fp.write(f'{"Worst_case_frame_processor(120MHz)_cycles":<32} {worst_case_processor_cycles}\n')
+            worst_case_timer_ticks = int(worst_case_frame[1])
+            fp.write(f'{"Worst_case_frame_timer(100MHz)_ticks":<44} {worst_case_timer_ticks}\n')
+            worst_case_processor_cycles = int((worst_case_timer_ticks/100) * thread_speed_mhz)
+            fp.write(f'{f"Worst_case_frame_processor({thread_speed_mhz}MHz)_cycles":<44} {worst_case_processor_cycles}\n')
             #0.015 is seconds_per_frame. 1/0.015 is the frames_per_second.
             #processor_cycles_per_frame * frames_per_sec = processor_cycles_per_sec. processor_cycles_per_sec/1000000 => MCPS
-            mcps = "{:.2f}".format((worst_case_processor_cycles / 0.015) / 1000000)
-            fp.write(f'{"MCPS":<10} {mcps} MIPS\n')
+            mips = "{:.2f}".format((worst_case_processor_cycles / 0.015) / (thread_speed_mhz * 1000000) * thread_speed_mhz)
+            fp.write(f'{"MCPS":<44} {mips} MIPS\n')
 
 
 
@@ -228,7 +234,7 @@ def create_wav_input():
     y_ideal = spsig.convolve(f_ideal, u, 'full')[hN-1:N]
     _, in_leq = leq_smooth(y_ideal, fs, 0.05)
 
-    # run AEC
+    # run IC
     in_data = np.stack((d, u[hN-1:N]), axis=0)
     in_data_32bit = (np.asarray(in_data * np.iinfo(np.int32).max, dtype=np.int32)).T
     scipy.io.wavfile.write("input.wav", 16000, in_data_32bit)
