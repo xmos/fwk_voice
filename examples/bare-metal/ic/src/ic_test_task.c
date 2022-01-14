@@ -25,8 +25,6 @@
 //Optionally quit processing after number of frames processed
 // #define MAX_FRAMES  0
 
-#define PROFILE_PROCESSING 0 //Print profile data about API timing
-
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif

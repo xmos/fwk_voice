@@ -97,7 +97,6 @@ typedef struct {
     float_s32_t max_X_energy[IC_X_CHANNELS]; 
     float_s32_t delta;
 
-
     bfp_s32_t sigma_XX_bfp[IC_X_CHANNELS];
     int32_t DWORD_ALIGNED sigma_XX[IC_X_CHANNELS][IC_FD_FRAME_LENGTH];
 

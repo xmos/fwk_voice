@@ -19,11 +19,16 @@ list( APPEND  DEP_LIBS
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_XC src/*.xc )
-file( GLOB SOURCES_SHARED ../../../test/lib_aec/test_aec_profile/src/*.c ../shared_src/file_utils/*.c )
+file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
+if ( XCORE )
+    file( GLOB PROF_SRCS ../../../test/lib_aec/test_aec_profile/src/*.c )
+    list( APPEND SOURCES_SHARED ${PROF_SRCS})
+endif ()
+
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 
 unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_SHARED})
+list( APPEND SOURCES ${SOURCES_C} ${SOURCES_SHARED})
 unset( SOURCES_XCORE )
 list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
