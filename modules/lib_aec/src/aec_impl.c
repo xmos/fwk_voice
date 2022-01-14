@@ -21,13 +21,14 @@ void aec_init(
     aec_priv_main_init(main_state, shared_state, main_mem_pool, num_y_channels, num_x_channels, num_main_filter_phases);
     aec_priv_shadow_init(shadow_state, shared_state, shadow_mem_pool, num_shadow_filter_phases);
 }
-
+int framenum_lib = 0;
 void aec_frame_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
         const int32_t (*x_data)[AEC_FRAME_ADVANCE])
 {
+    framenum_lib++;
     unsigned num_y_channels = main_state->shared_state->num_y_channels;
     unsigned num_x_channels = main_state->shared_state->num_x_channels;
 

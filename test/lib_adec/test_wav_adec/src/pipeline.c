@@ -195,6 +195,7 @@ void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
+    framenum++;
     /** Get delayed frame*/
     prof(2, "start_get_delayed_frame");
     delay_state_t *delay_state_ptr = &state->delay_state;
@@ -249,6 +250,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     // From AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
+    adec_in.from_aec.shadow_flag = state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0];
     adec_in.from_aec.shadow_better_or_equal_flag = 0;
     if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] > EQUAL) {
         adec_in.from_aec.shadow_better_or_equal_flag = 1;
@@ -260,7 +262,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     // Directly from app
     adec_in.far_end_active_flag = is_ref_active;
     adec_in.num_frames_since_last_call = 1;
-    
+     
     
     // Log current mode for printing later
     adec_mode_t old_mode = state->adec_state.mode;
@@ -294,7 +296,7 @@ void pipeline_process_frame(pipeline_state_t *state,
             reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
         }
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
-        printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
+        printf("!!ADEC STATE CHANGE!! frame %d, old: %s new: %s\n", framenum, old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
         printf("AP Setting MIC delay to: %ld\n", state->delay_state.delay_samples);
 #endif
@@ -340,6 +342,5 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
     prof(19, "end_switch_aec_config");
 
-    framenum++;
     print_prof(0, 20, framenum);
 }

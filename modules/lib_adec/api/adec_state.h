@@ -39,6 +39,7 @@ typedef struct {
     float_s32_t error_ema_energy_ch0; //for erle
     int32_t shadow_better_or_equal_flag; //not passing shadow_flag to avoid sharing shadow_state_e between lib_aec and lib_adec
     int32_t shadow_to_main_copy_flag;
+    int32_t shadow_flag;
 }aec_to_adec_t;
 
 typedef struct {

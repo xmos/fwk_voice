@@ -6,6 +6,7 @@
 #include <math.h>
 #include <limits.h>
 
+int framenum_adec=0;
 void init_pk_ave_ratio_history(adec_state_t *adec_state){
   const float_s32_t float_s32_thousand = {2097160000,-21}; //A large number we never normally see, so it will be clear when we get an actual
   for (int i = 0; i < ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i++){
@@ -234,6 +235,7 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
   //All good if ERLE is high
   if (log2erle_q24 >= state->erle_good_bits_q24){
     // debug_printf("*AGM ERLE ALL GOOD\n");
+    //printf("frame %d, AGM ERLE ALL GOOD\n", framenum_adec);    
     state->convergence_counter = 0;
     state->shadow_flag_counter = 0;
     return ADEC_AGM_ONE;
@@ -272,6 +274,7 @@ void adec_process_frame(
     adec_output_t *adec_output, 
     const adec_input_t *adec_in
 ){
+  framenum_adec++;
   adec_output->reset_all_aec_flag = 0;
   adec_output->delay_change_request_flag = 0;
   adec_output->delay_estimator_enabled_flag = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
@@ -414,7 +417,7 @@ void adec_process_frame(
               (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000));
           }*/
 
-          //printf("state->agm = %d, watchdog_triggered = %d, state->shadow_flag_counter = %d, state->convergence_counter = %d\n", state->agm_q24, watchdog_triggered, state->shadow_flag_counter, state->convergence_counter);
+          //printf("state->agm = %d, erle = %f, shadow_flag = %d, log2erle = %d, watchdog_triggered = %d, state->shadow_flag_counter = %d, state->convergence_counter = %d\n", state->agm_q24, float_s32_to_double(erle_ratio), adec_in->from_aec.shadow_flag, log2erle_q24, watchdog_triggered, state->shadow_flag_counter, state->convergence_counter);
           
           if (state->adec_config.force_de_cycle_trigger ||
               ((state->agm_q24 < 0 || watchdog_triggered) &&

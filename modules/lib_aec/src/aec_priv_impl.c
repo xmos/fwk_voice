@@ -7,6 +7,7 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
+extern int framenum_lib;
 void aec_priv_main_init(
         aec_state_t *state,
         aec_shared_state_t *shared_state,
@@ -587,9 +588,14 @@ void aec_priv_update_total_X_energy(
      */
 
     if(max_X_energy->mant == 0) {
+        //printf("max_X_energy seen as 0 in frame %d\n",framenum_lib);
         X_energy->exp = -1024;
-        // What if I do bfp_s32_add_scalar(X_energy, (float_s32_t){1, X_energy->exp}) instead
     }
+
+    /*float_s32_t min_X_energy = bfp_s32_min(X_energy);
+    if(min_X_energy.mant == 0) {
+        printf("Atleast one X_energy mant is 0!! min mant %d, max_mant %d\n", min_X_energy.mant, max_X_energy->mant);
+    }*/
     return;
 }
 
@@ -763,24 +769,39 @@ void aec_priv_create_output(
     return;
 }
 
+extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+        unsigned shr,
+        unsigned count);
+
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
 #if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+    float_s32_t min_element = bfp_s32_min(input);
+    if(min_element.mant == 0) {
+        //printf("frame %d: 0 denom just before inverse. max: %f (0x%x, %d), min: %f (0x%x, %d)\n",framenum_lib, float_s32_to_double(max_element), max_element.mant, max_element.exp, float_s32_to_double(min_element), min_element.mant, min_element.exp);
+        float_s32_t t;
+        t.mant = 1;
+        t.exp = input->exp;
+        bfp_s32_add_scalar(input, input, t);
+    }
+
     bfp_s32_inverse(input, input);
 #else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = xs3_vect_s32_min(
-                                input->data,
-                                input->length);
- 
+    float_s32_t min_element = bfp_s32_min(input);
+    
+    if(min_element.mant == 0) {
+        printf("0 min element before inv_X_energy calculation!!\n");
+    }
+    
     // HR_S32() gets headroom of a single int32_t
     //old aec would calculate shr as HR_S32(min_element) + 2. Since VPU deals with only signed numbers, increase shr by 1 to account for sign bit in the result of the inverse function.
-    int input_shr = HR_S32(min_element) + 2 + 1;
+    int input_shr = HR_S32(min_element.mant) + 2 + 1;
     //vtb_inv_X_energy
     input->exp = (-input->exp - 32); //TODO work out this mysterious calculation
     input->exp -= (32 - input_shr);
     vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
-    input->hr = 0;
+    bfp_s32_headroom(input);
 #endif
 }
 
@@ -938,9 +959,15 @@ void aec_priv_calc_delta(
         int channels) {
     if(conf->coh_mu_conf.adaption_config == AEC_ADAPTION_AUTO) {
         float_s32_t delta_min = conf->aec_core_conf.delta_min;
-        float_s32_t max = max_X_energy[0];
+        float_s32_t max = max_X_energy[0];        
         for(int i=1; i<channels; i++) {
             max = float_s32_gt(max, max_X_energy[i]) ? max : max_X_energy[i];
+        }
+        for(int i=0; i<channels; i++) {
+            //printf("frame %d, max_X_energy[%d] = %f\n",framenum_lib, i, float_s32_to_double(max_X_energy[i]));
+            /*if(max_X_energy[i].mant == 0) {
+                printf("frame %d, max_X_energy[%d] is 0!!!, (mant 0x%x, exp %d)\n",framenum_lib, i, max_X_energy[i].mant, max_X_energy[i].exp);
+            }*/
         }
         max = float_s32_mul(max, scale);
         *delta = float_s32_gt(max, delta_min) ? max : delta_min;
