@@ -58,6 +58,8 @@ def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
             xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
         
     os.chdir(prev_path)
+    #Save output file
+    shutil.copy2(os.path.join(tmp_folder, audio_out), audio_out)
 
     with open(profile_dump_file, 'w') as fp:
         for line in xcore_stdo:
@@ -226,8 +228,9 @@ def create_wav_input():
     else:
         d = d[hN-1:]
 
-    d = d * 0.01 #20dB attenuation
-    u = u * 0.2
+    sig_level = 0.01  #20dB attenuation
+    d = d * sig_level
+    u = u * sig_level
     
     # ideal results
     f_ideal = h[:fN]
