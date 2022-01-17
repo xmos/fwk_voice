@@ -574,6 +574,12 @@ void aec_priv_update_total_X_energy(
     bfp_s32_add(X_energy, X_energy, &scratch);
 
     aec_priv_bfp_complex_s32_recalc_energy_one_bin(X_energy, X_fifo, X, num_phases, recalc_bin);
+
+    /** Due to fixed point arithmetic we might sometimes see -ve numbers in X_energy, so clamp to a minimum of 0. This
+     * happens if all the energy in X_energy is made of the phase being subtracted out and the new X data energy being
+     * added is 0*/
+    bfp_s32_rect(X_energy, X_energy);
+
     *max_X_energy = bfp_s32_max(X_energy);
     /** To avoid divide by 0 in the inv_X_energy calculation step, set X_energy exp to a really small number if
      * max_X_energy mant is 0. This is a
