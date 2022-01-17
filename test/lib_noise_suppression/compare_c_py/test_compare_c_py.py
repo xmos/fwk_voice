@@ -2,8 +2,8 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
+#from future import standard_library
+#standard_library.install_aliases()
 from builtins import zip
 import pytest
 from compare_c_py import get_attenuation_c_py
