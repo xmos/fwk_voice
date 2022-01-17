@@ -180,9 +180,16 @@ pipeline {
             }
           }
         }
+<<<<<<< HEAD
         stage('NS sup_unit_tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
+=======
+        }
+        stage('NS sup_unit_tests') {
+          steps {
+            dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
+>>>>>>> editing jenkinsfile
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -193,6 +200,20 @@ pipeline {
           }
         }
         stage('NS ns_unit_tests') {
+<<<<<<< HEAD
+=======
+          steps {
+            dir("${REPO}/build/test/lib_noise_supression/ns_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        stage('Meta Data tests') {
+>>>>>>> editing jenkinsfile
           steps {
             dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
               viewEnv() {
