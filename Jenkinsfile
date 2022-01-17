@@ -125,6 +125,18 @@ pipeline {
             }
           }
         }
+        stage('end to end ns') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('Meta Data tests') {
           steps {
             dir("${REPO}/test/lib_meta_data") {
@@ -142,7 +154,7 @@ pipeline {
             dir("${REPO}/test/lib_noise_supression/sup_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "ls -l ${REPO}/build/test/lib_noise_suppression/sup_unit_tests"
+                  sh "ls -l ../../../build/test/lib_noise_suppression/sup_unit_tests"
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
