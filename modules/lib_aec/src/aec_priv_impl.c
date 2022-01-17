@@ -580,7 +580,7 @@ void aec_priv_update_total_X_energy(
      * workaround for an issue where all X_energy mants are 0 but X_energy->exp is something reasonable, like -34. Before inv_X_energy
      * computation we do X_energy + delta to avoid a divide by 0. However, if delta is very small, something like delta
      * exp = -97 which happens when delta is set to delta_min, X_energy + delta will still have the mant = 0.
-     * (zero_mant, -34 exp) + (non_zero mant, -97 exp) is still 0 mant in the result.
+     * For example, the failure that I was seeing, (zero_mant, -34 exp) + (non_zero mant, -97 exp) is still mant=0 in the result.
      * Detecting X_energy being 0 by looking at max_X_energy->mant being 0 will help preventing a divide by 0 when all
      * bins of X_energy have mant = 0, and hence max_X_energy->mant = 0. TODO However, if only some of the X_energy bins mant
      * = 0, then max_X_energy mant will be non-zero and the workaround below will not work, leading to divide by 0.
@@ -588,7 +588,6 @@ void aec_priv_update_total_X_energy(
 
     if(max_X_energy->mant == 0) {
         X_energy->exp = -1024;
-        // What if I do bfp_s32_add_scalar(X_energy, (float_s32_t){1, X_energy->exp}) instead
     }
     return;
 }
@@ -708,8 +707,7 @@ static const int32_t WOLA_window_flpd[32] = {
 void aec_priv_create_output(
         bfp_s32_t *output,
         bfp_s32_t *overlap,
-        bfp_s32_t *error,
-        const aec_config_params_t *conf)
+        bfp_s32_t *error)
 {
     bfp_s32_t win, win_flpd;
     bfp_s32_init(&win, (int32_t*)&WOLA_window[0], -31, 32, 0);

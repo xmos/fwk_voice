@@ -89,8 +89,7 @@ void aec_priv_calc_coherence(
 void aec_priv_create_output(
         bfp_s32_t *output,
         bfp_s32_t *overlap,
-        bfp_s32_t *error,
-        const aec_config_params_t *conf);
+        bfp_s32_t *error);
 
 /// Calculate inverse X energy for a channel over a range of bins
 void aec_priv_calc_inverse(
