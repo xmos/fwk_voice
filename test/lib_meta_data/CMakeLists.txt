@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  meta_data_tests )
+set( APP_NAME  test_meta_data )
 
 # Auto-generate schedule and top level config files
 if( NOT ${Python3_FOUND} )
