@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  test_sup_unit_tests )
+set( APP_NAME  sup_unit_tests )
 
 # Auto-generate schedule and top level config files
 if( NOT ${Python3_FOUND} )
