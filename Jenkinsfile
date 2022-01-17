@@ -142,8 +142,11 @@ pipeline {
             dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "ls -l ."
+                  sh "pwd"
+                  sh "ls -l *"
+                  sh "xrun --xscope --id 0 sup_unit_tests.xe"
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
+
                   junit "pytest_result.xml"
                 }
               }
