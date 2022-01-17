@@ -149,6 +149,7 @@ pipeline {
               }
             }
           }
+        }
         stage('Meta Data tests') {
           steps {
             dir("${REPO}/build/test/lib_meta_data") {
