@@ -127,7 +127,7 @@ pipeline {
         }
         stage('NS sup_unit_tests') {
           steps {
-            dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
+            dir("${REPO}/test/lib_noise_supression/sup_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
