@@ -212,6 +212,7 @@ pipeline {
               }
             }
           }
+        }
         stage('Meta Data tests') {
 >>>>>>> editing jenkinsfile
           steps {
