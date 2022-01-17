@@ -581,7 +581,7 @@ void aec_priv_update_total_X_energy(
     //bfp_s32_rect(X_energy, X_energy);
 
     *max_X_energy = bfp_s32_max(X_energy);
-    bfp_s32_clamp(X_energy, X_energy, 0, max_X_energy->mant, X_energy->exp);
+    bfp_s32_clip(X_energy, X_energy, 0, max_X_energy->mant, X_energy->exp);
     /** To avoid divide by 0 in the inv_X_energy calculation step, set X_energy exp to a really small number if
      * max_X_energy mant is 0. This is a
      * workaround for an issue where all X_energy mants are 0 but X_energy->exp is something reasonable, like -34. Before inv_X_energy
