@@ -255,9 +255,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
         }
-        cleanup {
-          cleanWs()
-        }
+        //cleanup {
+        //  cleanWs()
+        //}
       }
     }//stage xcore.ai Verification
     stage('Update view files') {
