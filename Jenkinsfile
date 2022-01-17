@@ -139,10 +139,10 @@ pipeline {
         }
         stage('NS sup_unit_tests') {
           steps {
-            dir("${REPO}/test/lib_noise_supression/sup_unit_tests") {
+            dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "ls -l ${REPO}/build/test/lib_noise_suppression/sup_unit_tests"
+                  sh "ls -l ."
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
@@ -252,9 +252,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
         }
-        cleanup {
-          cleanWs()
-        }
+        //cleanup {
+        //  cleanWs()
+        //}
       }
     }//stage xcore.ai Verification
     stage('Update view files') {
