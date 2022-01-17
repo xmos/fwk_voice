@@ -192,6 +192,7 @@ pipeline {
 >>>>>>> editing jenkinsfile
               viewEnv() {
                 withVenv {
+                  sh "ls -l ${REPO}/build/test/lib_noise_suppression/sup_unit_tests"
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
