@@ -125,7 +125,6 @@ pipeline {
             }
           }
         }
-        }
         stage('NS sup_unit_tests') {
           steps {
             dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
