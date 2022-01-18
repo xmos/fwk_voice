@@ -12,11 +12,11 @@ make use of functionality provided in ``lib_xs3_math`` to perform DSP operations
 Repository Structure
 --------------------
 
-* `lib_aec/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/>`_ - The actual ``lib_aec`` library directory.
+* ``modules/lib_aec`` - The actual ``lib_aec`` library directory within https://github.com/xmos/sw_avona/. Within ``lib_aec``
 
-  * `api/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/api/>`_ - Headers containing the public API for ``lib_aec``.
-  * `doc/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/doc/>`_ - Library documentation source (for non-embedded documentation) and build directory.
-  * `src/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/src/>`_ - Library source code.
+  * ``api/`` - Headers containing the public API for ``lib_aec``.
+  * ``doc/`` - Library documentation source (for non-embedded documentation) and build directory.
+  * ``src/`` - Library source code.
 
 
 Requirements

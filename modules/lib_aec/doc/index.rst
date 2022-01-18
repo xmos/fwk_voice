@@ -26,7 +26,7 @@ On GitHub
 ---------
 
 ``lib_aec`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
-https://github.com/xmos/sw_avona. ``lib_aec`` is present in https://github.com/xmos/sw_avona/modules/lib_aec
+https://github.com/xmos/sw_avona. ``lib_aec`` is present within the `modules/lib_aec` directory in ``sw_avona``
 
 API
 ---
