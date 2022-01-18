@@ -183,7 +183,7 @@ void sup_process_frame(sup_state_t * state,
     int32_t curr_frame_data[SUP_PROC_FRAME_LENGTH + 2];
     int32_t scratch1[SUP_PROC_FRAME_BINS];
     int32_t scratch2[SUP_PROC_FRAME_BINS];
-    bfp_s32_init(&curr_frame, curr_frame_data, SUP_INT_EXP, SUP_PROC_FRAME_LENGTH, 0);
+    bfp_s32_init(&curr_frame, curr_frame_data, SUP_INT_EXP, SUP_PROC_FRAME_LENGTH + 2, 0);
     bfp_s32_init(&abs_Y_suppressed, scratch1, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
     bfp_s32_init(&abs_Y_original, scratch2, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
