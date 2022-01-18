@@ -788,7 +788,7 @@ void aec_priv_calc_inverse(
      float_s32_t min = bfp_s32_min(input);
      if(min.mant == 0) {
          float_s32_t t = {1, input->exp};
-         bfp_s32_add_scalar(input, input, scalar);
+         bfp_s32_add_scalar(input, input, t);
      }
 
 #if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
