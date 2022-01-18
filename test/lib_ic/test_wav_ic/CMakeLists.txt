@@ -10,6 +10,7 @@ endif()
 ## Depends on libraries
 unset( DEP_LIBS_XCORE )
 list( APPEND  DEP_LIBS_XCORE  ""  )
+list( APPEND  DEP_LIBS_Linux  m   )
 
 unset( DEP_LIBS )
 list( APPEND  DEP_LIBS        
