@@ -38,8 +38,8 @@ def add_test(test_info, test_list, path_to_regression_files, input_audio_files, 
   #if test_info != "limits":
   #    return
 
-  if test_info != "aec_delay_change":
-      return
+  #if test_info != "aec_delay_change":
+  #    return
   test_conf = {}
   test_conf['info'] = test_info
   test_conf['path_to_regression_files'] = path_to_regression_files

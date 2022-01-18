@@ -581,7 +581,7 @@ void aec_priv_update_total_X_energy(
     bfp_s32_rect(X_energy, X_energy);
 
     *max_X_energy = bfp_s32_max(X_energy);
-    /** Steps taken to make sure divide by 0 doesn't happen while calculating inv_X_energy
+    /** Steps taken to make sure divide by 0 doesn't happen while calculating inv_X_energy in aec_priv_calc_inverse()
       * Divide by zero Scenario 1: All X_energy bins are 0 => max_X_energy is 0, but the exponent is something reasonably big, like
       * -34 and delta value ends up as delta min which is (some_non_zero_mant, -97 exp). So we end up with inv_X_energy
       * = 1/denom, where denom is (zero_mant, -34 exp) + (some_non_zero_mant, -97 exp) which is still calculated as 0
@@ -590,8 +590,8 @@ void aec_priv_update_total_X_energy(
       * recreate this situation.
       *
       * Divide by zero Scenrario 2: A few X_energy bins are 0 with exp something reasonably big and delta is delta_min. We'll not be
-      * able to find this happen by checking for max_X_energy->mant == 0. I haven't recreated this situation during my
-      * testing and the fix for this is still pending (TODO);
+      * able to find this happen by checking for max_X_energy->mant == 0. I have addressed this in
+      * aec_priv_calc_inverse()
       */
 
     //Scenario 1 (All bins 0 mant) fix
@@ -785,14 +785,15 @@ void aec_priv_calc_inverse(
      * consumes fewer cycles.
      */
      //Option 1
-     float_s32_t max = bfp_s32_max(input);
-     bfp_s32_clip(input, input, 1, max.mant, input->exp);
-     //Option 2
-     /*float_s32_t min = bfp_s32_min(input);
+     /*float_s32_t max = bfp_s32_max(input);
+     bfp_s32_clip(input, input, 1, max.mant, input->exp);*/
+
+     //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
+     float_s32_t min = bfp_s32_min(input);
      if(min.mant == 0) {
          float_s32_t t = {1, input->exp};
          bfp_s32_add_scalar(input, input, t);
-     }*/
+     }
 
 #if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
     bfp_s32_inverse(input, input);
