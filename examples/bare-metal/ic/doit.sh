@@ -1,0 +1,1 @@
+cd ~/sandboxes/sw_avona_develop/sw_avona/examples/bare-metal/ic ; touch ../../../modules/lib_ic/src/* ; cd ../../../build/examples/bare-metal/ic/ ; make && cd - && python run_xcoreai.py  ../../../build/examples/bare-metal/ic/bin/ic_example.xe 
