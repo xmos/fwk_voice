@@ -769,6 +769,9 @@ void aec_priv_create_output(
     overlap->exp = error->exp;
     return;
 }
+extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+        unsigned shr,
+        unsigned count);
 
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
@@ -795,10 +798,11 @@ void aec_priv_calc_inverse(
          bfp_s32_add_scalar(input, input, t);
      }
 
-#if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+    //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
-#else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = xs3_vect_s32_min(
+    
+    //36323 cycles. 2 x-channels, single thread
+    /*int32_t min_element = xs3_vect_s32_min(
                                 input->data,
                                 input->length);
  
@@ -809,8 +813,7 @@ void aec_priv_calc_inverse(
     input->exp = (-input->exp - 32); //TODO work out this mysterious calculation
     input->exp -= (32 - input_shr);
     vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
-    input->hr = 0;
-#endif
+    input->hr = 0;*/
 }
 
 void aec_priv_calc_inv_X_energy_denom(
@@ -848,6 +851,13 @@ void aec_priv_calc_inv_X_energy_denom(
     }
     else
     {
+        //TODO maybe fix this for AEC?
+        // int32_t temp[AEC_PROC_FRAME_LENGTH/2 + 1];
+        // bfp_s32_t temp_bfp;
+        // bfp_s32_init(&temp_bfp, &temp[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
+
         bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
 }
