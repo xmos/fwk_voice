@@ -11,7 +11,6 @@ list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS     
     lib_ic
-    lib_aec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
@@ -20,10 +19,6 @@ list( APPEND  DEP_LIBS
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
-if ( XCORE )
-    file( GLOB PROF_SRCS ../../../test/lib_aec/test_aec_profile/src/*.c )
-    list( APPEND SOURCES_SHARED ${PROF_SRCS})
-endif ()
 
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
 

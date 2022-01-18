@@ -747,42 +747,8 @@ extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
-#if 0
-    int max_exp = INT_MIN;
-    float_s32_t fl_s32_temp[257];
-    for(int i=0; i<input->length; i++){
-        float_s32_t f;
-        f.mant = input->data[i];
-        f.exp = input->exp;
-         
-        double t = float_s32_to_double(f);
-        double inv = 1.0/t;
-
-        fl_s32_temp[i] = double_to_float_s32(inv);
-        if(fl_s32_temp[i].exp > max_exp) max_exp = fl_s32_temp[i].exp;
-     }
-     for(int i=0; i<input->length; i++){
-         input->data[i] = fl_s32_temp[i].mant >> (max_exp - fl_s32_temp[i].exp);
-     }
-     input->exp = max_exp;
-     input->hr = bfp_s32_headroom(input);
-     return;
-#elif 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+//82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
-#else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = xs3_vect_s32_min(
-                                input->data,
-                                input->length);
- 
-    // HR_S32() gets headroom of a single int32_t
-    //old aec would calculate shr as HR_S32(min_element) + 2. Since VPU deals with only signed numbers, increase shr by 1 to account for sign bit in the result of the inverse function.
-    int input_shr = HR_S32(min_element) + 2 + 1;
-    //vtb_inv_X_energy
-    input->exp = (-input->exp - 32); //TODO work out this mysterious calculation
-    input->exp -= (32 - input_shr);
-    vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
-    input->hr = 0;
-#endif
 }
 
 void aec_priv_calc_inv_X_energy_denom(

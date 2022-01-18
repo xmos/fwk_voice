@@ -13,14 +13,8 @@ typedef struct {
     fixed_s32_t ema_alpha_q30;
 }ic_config_params_t;
 
-typedef enum {
-    IC_ADAPTION_ON,
-    IC_ADAPTION_OFF
-}ic_adaption_mode_t;
 
 typedef struct {
-    ic_adaption_mode_t adaption_mode;
-
     float_s32_t smoothed_voice_chance;
     float_s32_t voice_chance_alpha;
 
@@ -44,6 +38,8 @@ typedef struct {
     float_s32_t out_to_in_ratio_limit;
     float_s32_t instability_recovery_leakage_alpha;
     uint8_t enable_filter_instability_recovery;
+
+    uint8_t enable_adaption;
 } ic_adaption_controller_state_t;
 
 

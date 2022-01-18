@@ -39,11 +39,6 @@
 #define IC_FRAME_OVERLAP (IC_FRAME_LENGTH - (2 * IC_FRAME_ADVANCE))
 #define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) //Frequency domain frame length
 
-#define IC_TOTAL_INPUT_CHANNEL_PAIRS ((IC_Y_CHANNELS + IC_X_CHANNELS + 1) / 2)
-#define IC_INPUT_CHANNEL_PAIRS IC_TOTAL_INPUT_CHANNEL_PAIRS
-#define IC_TOTAL_OUTPUT_CHANNEL_PAIRS 1 //TODO FIXME
-#define IC_TOTAL_OUTPUT_CHANNELS 2
-
 //extra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored after the in-place DFT
 #define FFT_PADDING 2
 

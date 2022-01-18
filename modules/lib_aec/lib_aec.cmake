@@ -1,6 +1,5 @@
 ## Source files
 file( GLOB_RECURSE    LIB_AEC_C_SOURCES       src/*.c )
-file( GLOB_RECURSE    LIB_AEC_ASM_SOURCES     src/*.S   )
 
 ## set LIB_AEC_INCLUDES & LIB_AEC_SOURCES
 set( LIB_AEC_INCLUDES     "${CMAKE_CURRENT_LIST_DIR}/api"           )

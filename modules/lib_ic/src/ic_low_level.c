@@ -12,8 +12,8 @@ void ic_delay_y_input(ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE]){
     //Run through delay line
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
+        unsigned input_delay_idx = state->y_delay_idx[ch];
         for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
-            unsigned input_delay_idx = state->y_delay_idx[ch];
             int32_t tmp = state->y_input_delay[ch][input_delay_idx];
             state->y_input_delay[ch][input_delay_idx] = y_data[i];
             y_data[i] = tmp;
@@ -21,8 +21,8 @@ void ic_delay_y_input(ic_state_t *state,
             if(input_delay_idx == IC_Y_CHANNEL_DELAY_SAMPS){
                 input_delay_idx = 0;
             }
-            state->y_delay_idx[ch] = input_delay_idx;
         }
+        state->y_delay_idx[ch] = input_delay_idx;
     }
 }
 
@@ -232,7 +232,8 @@ void ic_filter_adapt(ic_state_t *state){
     if(state == NULL) {
         return;
     }
-    if(state->ic_adaption_controller_state.adaption_mode != IC_ADAPTION_ON) {
+    if((state->ic_adaption_controller_state.enable_adaption == 0) ||
+       state->config_params.bypass) {
         return;
     }
     bfp_complex_s32_t *T_ptr = &state->T_bfp[0];
@@ -333,6 +334,11 @@ void ic_reset_filter(ic_state_t *state){
 void ic_apply_leakage(
     ic_state_t *state,
     unsigned y_ch){
+
+    if((state->ic_adaption_controller_state.enable_adaption == 0) ||
+       state->config_params.bypass) {
+        return;
+    }
 
     int32_t mant = state->ic_adaption_controller_state.leakage_alpha.mant;
     exponent_t exp = state->ic_adaption_controller_state.leakage_alpha.exp;

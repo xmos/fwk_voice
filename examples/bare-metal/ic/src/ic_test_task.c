@@ -25,6 +25,8 @@
 //Optionally quit processing after number of frames processed
 // #define MAX_FRAMES  0
 
+#define OUTPUT_CHANNELS 2 //0 is IC output and 1 is beamformed output
+
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif
@@ -70,11 +72,10 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     }
 #endif
 
-
     //printf("num frames = %d\n",block_count);
     wav_form_header(&output_header_struct,
             input_header_struct.audio_format,
-            IC_TOTAL_OUTPUT_CHANNELS,
+            OUTPUT_CHANNELS,
             input_header_struct.sample_rate,
             input_header_struct.bit_depth,
             block_count*IC_FRAME_ADVANCE);
@@ -82,7 +83,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
 
     int32_t input_read_buffer[IC_FRAME_ADVANCE * (IC_Y_CHANNELS + IC_X_CHANNELS)] = {0};
-    int32_t output_write_buffer[IC_FRAME_ADVANCE * IC_TOTAL_OUTPUT_CHANNELS] = {0};
+    int32_t output_write_buffer[IC_FRAME_ADVANCE * OUTPUT_CHANNELS] = {0};
 
     int32_t DWORD_ALIGNED frame_y[IC_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED frame_x[IC_FRAME_ADVANCE];
@@ -128,13 +129,13 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         prof(7, "end_ic_adapt");
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){
-            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS] = output[i]; //IC adaptive filter output
+            output_write_buffer[i*OUTPUT_CHANNELS] = output[i]; //IC adaptive filter output
             int32_t y_samp = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 0];
             int32_t x_samp = input_read_buffer[i * (IC_Y_CHANNELS+IC_X_CHANNELS) + 1];
-            output_write_buffer[i*IC_TOTAL_OUTPUT_CHANNELS + 1] = (y_samp >> 1) + (x_samp >> 1); //Beamform with no delay on 2nd channel
+            output_write_buffer[i*OUTPUT_CHANNELS + 1] = (y_samp >> 1) + (x_samp >> 1); //Beamform with no delay on 2nd channel
         }
 
-        file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * IC_FRAME_ADVANCE * IC_TOTAL_OUTPUT_CHANNELS);
+        file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * IC_FRAME_ADVANCE * OUTPUT_CHANNELS);
         print_prof(0,8,b+1);
     }
     file_close(&input_file);

@@ -15,7 +15,6 @@ unset( DEP_LIBS )
 list( APPEND  DEP_LIBS        
     lib_xs3_math
     lib_ic
-    lib_aec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 

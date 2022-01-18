@@ -14,7 +14,7 @@ print(ref_var.shape)
 print(dut_var.shape)
 
         
-pr = 5
+pr = 3
 
 if len(ref_var.shape) == 3:
     for frame in range(ref_var.shape[0]):

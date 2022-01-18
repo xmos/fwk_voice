@@ -21,7 +21,7 @@ static void ic_init_config(ic_config_params_t *config){
 
 static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
     adaption_controller_state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    adaption_controller_state->adaption_mode = IC_ADAPTION_ON;
+    adaption_controller_state->enable_adaption = 1;
 
     adaption_controller_state->vad_counter = 0;
     adaption_controller_state->smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
