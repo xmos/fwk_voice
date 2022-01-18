@@ -49,7 +49,7 @@ This API is still a work in progess and will be fully supported in the future.
 Getting and Building
 ####################
 
-This repo is got as part of the parent `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ repo clone. It is
+This repo is got as part of the parent `sw_avona <https://github.com/xmos/sw_avona/>`_ repo clone. It is
 compiled as a static library as part of ``sw_avona`` compilation process.
 
 To include ``lib_aec`` in an application as a static library, the generated ``lib_aec.a`` can then be linked into the
