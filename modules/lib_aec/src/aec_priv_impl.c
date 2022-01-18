@@ -785,15 +785,15 @@ void aec_priv_calc_inverse(
      * consumes fewer cycles.
      */
      //Option 1
-     /*float_s32_t max = bfp_s32_max(input);
-     bfp_s32_clip(input, input, 1, max.mant, input->exp);*/
+     float_s32_t max = bfp_s32_max(input);
+     bfp_s32_clip(input, input, 1, max.mant, input->exp);
 
      //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
-     float_s32_t min = bfp_s32_min(input);
+     /*float_s32_t min = bfp_s32_min(input);
      if(min.mant == 0) {
          float_s32_t t = {1, input->exp};
          bfp_s32_add_scalar(input, input, t);
-     }
+     }*/
 
 #if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
     bfp_s32_inverse(input, input);
