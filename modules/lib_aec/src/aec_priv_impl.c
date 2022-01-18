@@ -578,21 +578,22 @@ void aec_priv_update_total_X_energy(
     /** Due to fixed point arithmetic we might sometimes see -ve numbers in X_energy, so clamp to a minimum of 0. This
      * happens if all the energy in X_energy is made of the phase being subtracted out and the new X data energy being
      * added is 0*/
-    //bfp_s32_rect(X_energy, X_energy);
+    bfp_s32_rect(X_energy, X_energy);
 
     *max_X_energy = bfp_s32_max(X_energy);
-    bfp_s32_clip(X_energy, X_energy, 0, max_X_energy->mant, X_energy->exp);
-    /** To avoid divide by 0 in the inv_X_energy calculation step, set X_energy exp to a really small number if
-     * max_X_energy mant is 0. This is a
-     * workaround for an issue where all X_energy mants are 0 but X_energy->exp is something reasonable, like -34. Before inv_X_energy
-     * computation we do X_energy + delta to avoid a divide by 0. However, if delta is very small, something like delta
-     * exp = -97 which happens when delta is set to delta_min, X_energy + delta will still have the mant = 0.
-     * For example, the failure that I was seeing, (zero_mant, -34 exp) + (non_zero mant, -97 exp) is still mant=0 in the result.
-     * Detecting X_energy being 0 by looking at max_X_energy->mant being 0 will help preventing a divide by 0 when all
-     * bins of X_energy have mant = 0, and hence max_X_energy->mant = 0. TODO However, if only some of the X_energy bins mant
-     * = 0, then max_X_energy mant will be non-zero and the workaround below will not work, leading to divide by 0.
-     */
+    /** Steps taken to make sure divide by 0 doesn't happen while calculating inv_X_energy
+      * Scenario 1: All X_energy bins are 0 => max_X_energy is 0, but the exponent is something reasonably big, like
+      * -34 and delta value ends up as delta min which is (some_non_zero_mant, -97 exp). So we end up with inv_X_energy
+      * = 1/denom, where denom is (zero_mant, -34 exp) + (some_non_zero_mant, -97 exp) which is still calculated as 0
+      * mant. To avoid this situation, we set X_energy->exp to something much smaller (like -1024) than delta_min->exp so that
+      * (zero_mant, -1024 exp) + (some_non_zero_mant, -97 exp) = (some_non_zero_mant, -97 exp). I haven't been able to
+      * recreate this situation.
+      * Scenrario 2: A few X_energy bins are 0 with exp something reasonably big and delta is delta_min. We'll not be
+      * able to find this happen by checking for max_X_energy->mant == 0. I haven't recreated this situation during my
+      * testing and the fix for this is still pending (TODO);
+      */
 
+    //Scenario 1 (All bins 0 mant) fix
     if(max_X_energy->mant == 0) {
         X_energy->exp = -1024;
     }
