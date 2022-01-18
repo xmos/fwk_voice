@@ -72,7 +72,7 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set ( EXEC ${APP_NAME}_${CONFIG_STR} )
+set ( EXEC ${APP_NAME})
 add_executable( ${EXEC} ${SOURCES} )
 
 target_include_directories( ${EXEC} PRIVATE ${INCLUDES})
