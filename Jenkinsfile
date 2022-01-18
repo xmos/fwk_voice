@@ -125,6 +125,18 @@ pipeline {
             }
           }
         }
+        stage('NS performance tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('NS sup_unit_tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
@@ -140,18 +152,6 @@ pipeline {
         stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('NS performance tests') {
-          steps {
-            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
