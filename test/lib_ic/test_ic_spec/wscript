@@ -1,0 +1,37 @@
+import os
+from waflib import Errors
+
+#def options(ctx):
+#        ctx.add_option('--target', action='store', default='test_wav_ic.xe')
+#
+#def configure(conf):
+#	conf.load('xwaf.compiler_xcc')
+#	conf.env.PROJECT_ROOT = '../../..'
+
+#def build(bld):
+#        target_path = 'bin/' + bld.options.target
+#	bld.env.TARGET_ARCH = 'XCORE-200-EXPLORER'
+#	bld.env.XSCOPE = bld.path.find_resource('config.xscope')
+#
+#	depends_on = ['lib_interference_canceller', 'lib_dsp', 'audio_test_tools']
+#	bld.env.XCC_FLAGS = ['-O2', '-g', '-Wall', '-report']
+#	source = bld.path.ant_glob('src/**/*.xc')
+#	bld.program(source=source, depends_on=depends_on,target=target_path)
+
+def options(opt):
+    print('In options()')
+    opt.add_option('--target', action='store', default='xcore200')
+    opt.load('xwaf.xcommon')
+
+def test(bld):  
+    print('target = ',bld.options.target)
+    os.chdir('../test_wav_ic')
+    os.system(f'waf configure clean build --target={bld.options.target}')
+    os.chdir('../test_ic_spec')
+
+    # Make folders if they don't already exist
+    for folder in ['input_wavs', 'output_wavs']:
+        try:
+            os.mkdir(folder)
+        except OSError:
+            pass
