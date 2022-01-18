@@ -190,9 +190,8 @@ void ic_create_output(
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap_bfp[ch];
     bfp_s32_t *error_ptr = &state->error_bfp[ch];
-    aec_config_params_t aec_conf; //Note unitinitialsed - this struct is not actually used by aec_priv_create_output
 
-    aec_priv_create_output(output_ptr, overlap_ptr, error_ptr, &aec_conf);
+    aec_priv_create_output(output_ptr, overlap_ptr, error_ptr);
     
 }
 
