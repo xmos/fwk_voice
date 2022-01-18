@@ -181,8 +181,9 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
     memcpy(&state->aec_non_de_mode_conf, non_de_conf, sizeof(aec_conf_t));
 
     adec_init(&state->adec_state);
-#if DELAY_ESTIMATION_ENABLED_ON_STARTUP
-    // If DE is enabled only on startup, trigger delay estimation cycle once
+#if DELAY_ESTIMATION_ONLY_ON_STARTUP
+    // If DE is enabled only on startup, bypass adec and set force_de_cycle_trigger to 1
+    state->adec_state.adec_config.bypass = 1;
     state->adec_state.adec_config.force_de_cycle_trigger = 1;
 #endif
     aec_switch_configuration(state, &state->aec_non_de_mode_conf);
@@ -285,9 +286,6 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(14, "start_update_delay_buffer");
     /** Update delay samples if there's a delay change requested by ADEC*/
     if(adec_output.delay_change_request_flag == 1){
-        // In case the mode change is requested as a result of force DE cycle trigger, reset force_de_cycle_trigger
-        state->adec_state.adec_config.force_de_cycle_trigger = 0;
-
         // Update delay_buffer delay_samples with mic delay requested by adec
         state->delay_state.delay_samples = adec_output.requested_mic_delay_samples;
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
@@ -314,6 +312,8 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(17, "end_overwrite_output_in_de_mode");
 
     prof(18, "start_switch_aec_config");
+
+    //For logging for test purposes
     /* If a delay change is requested and this request is not accompanied by a AEC -> DE change, update
      * state->adec_requested_delay_samples(bits [0:30]) and toggle last bit (bit31) of
      * state->adec_requested_delay_samples to indicate to the test that a delay change event has occured*/
@@ -328,6 +328,10 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     /** Switch AEC config if needed*/
     if (adec_output.delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
+        /** Now that a AEC -> DE change has been requested, reset force_de_cycle_trigger in case this transition is
+         * requested as a result of force_de_cycle_trigger being set*/ 
+        state->adec_state.adec_config.force_de_cycle_trigger = 0;
+
         // Initialise AEC for delay estimation config
         aec_switch_configuration(state, &state->aec_de_mode_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
