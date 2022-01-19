@@ -1,10 +1,31 @@
-// Copyright 2021 XMOS LIMITED.
+// Copyright 2021-2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef AGC_PROFILES_H
 #define AGC_PROFILES_H
 
 #include <xs3_math.h>
 
+/**
+ * @page page_agc_profiles_h agc_profiles.h
+ *
+ * This header contains pre-defined profiles for AGC configurations.
+ * These profiles can be used to initialise the `agc_config_t` data
+ * for use with `agc_init()`.
+ *
+ * This header is automatically included by `agc_api.h`.
+ *
+ * @ingroup agc_header_file
+ */
+
+/**
+ * @defgroup agc_profiles   Pre-defined AGC configuration profiles
+ */
+
+/**
+ * @brief AGC profile tuned for Automatic Speech Recognition (ASR).
+ *
+ * @ingroup agc_profiles
+ */
 #define AGC_PROFILE_ASR (agc_config_t){ \
     .adapt = 1, \
     .adapt_on_vad = 1, \
@@ -32,6 +53,11 @@
     .lc_gain_min = float_to_float_s32(0), \
     }
 
+/**
+ * @brief AGC profile tuned for communication with a human listener.
+ *
+ * @ingroup agc_profiles
+ */
 #define AGC_PROFILE_COMMS (agc_config_t){ \
     .adapt = 1, \
     .adapt_on_vad = 1, \
@@ -59,6 +85,11 @@
     .lc_gain_min = float_to_float_s32(0.022387), \
     }
 
+/**
+ * @brief AGC profile tuned to apply a fixed gain.
+ *
+ * @ingroup agc_profiles
+ */
 #define AGC_PROFILE_FIXED_GAIN (agc_config_t){ \
     .adapt = 0, \
     .adapt_on_vad = 0, \
