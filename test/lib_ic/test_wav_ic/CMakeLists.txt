@@ -1,5 +1,8 @@
-## App name
-set( APP_NAME  test_wav_ic )
+## App name supports inclusion of this whole file from different project
+string(COMPARE EQUAL "${APP_NAME}" "" NO_APP_DEFINED)
+if (NO_APP_DEFINED)
+    set( APP_NAME  test_wav_ic )
+endif()
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -73,21 +76,20 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set ( EXEC ${APP_NAME})
-add_executable( ${EXEC} ${SOURCES} )
+add_executable( ${APP_NAME} ${SOURCES} )
 
-target_include_directories( ${EXEC} PRIVATE ${INCLUDES})
+target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES})
 
-target_link_libraries( ${EXEC} ${DEP_LIBS})
+target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
-target_compile_options( ${EXEC} PRIVATE ${COMPILE_FLAGS} )
+target_compile_options( ${APP_NAME} PRIVATE ${COMPILE_FLAGS} )
 
 #(because otherwise the set_target_properties command fails)
 string(REPLACE ";" " " LINKER_FLAGS_STR "${LINKER_FLAGS}")
-set_target_properties( ${EXEC} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
+set_target_properties( ${APP_NAME} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
 
 if ( XCORE )
-    set_target_properties( ${EXEC} PROPERTIES
+    set_target_properties( ${APP_NAME} PROPERTIES
     SUFFIX ".xe"
     LINK_DEPENDS  ${XSCOPE_CONFIG}
     )
