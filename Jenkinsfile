@@ -130,6 +130,13 @@ pipeline {
                 }
               }
             }
+            dir(${REPO}/examples/bare-metal/agc") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc_example.xe"
+                }
+              }
+            }
           }
         }
         stage('AEC test_aec_enhancements') {

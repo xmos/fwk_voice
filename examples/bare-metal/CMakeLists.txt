@@ -9,3 +9,5 @@ add_subdirectory( pipeline_single_threaded )
 if( XCORE )
 add_subdirectory( aec_2_threads )
 endif()
+
+add_subdirectory( agc )
