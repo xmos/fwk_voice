@@ -6,5 +6,5 @@ XMOS Avona Voice Reference Design
    :maxdepth: 2
 
    ./doc/quick_start
-   ./modules/lib_aec/doc/index
+   ./doc/user_guide/index
    
