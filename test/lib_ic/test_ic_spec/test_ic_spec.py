@@ -1,4 +1,4 @@
-# Copyright 2019-2021 XMOS LIMITED.
+# Copyright 2021 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from __future__ import division
 from __future__ import print_function
@@ -27,34 +27,19 @@ import audio_wav_utils as awu
 import pytest
 import subprocess
 import numpy as np
-
 import filters
-import test_wav_ic
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
-xe_path = os.path.join(os.environ['XMOS_ROOT'],
-                       'lib_interference_canceller/tests/test_wav_ic/bin')
-
-#Set the environment variable TARGET to either XCORE200 or XCOREAI depending on which target needs to run.
-#If TARGET is not set, the test will look for all the .xe files in lib_interference_canceller/tests/test_wav_ic/bin directory and run them.
-#.xe files with 'xcoreai' in their name are run with xun
-#.xe files with 'xcore200' in their name are run with axe
-target = os.environ.get('TARGET', 'all_possible')
-print("target = ", target)
-xe_files = []
-if target == 'all_possible':
-    xe_files = [os.path.join(xe_path, i) for i in os.listdir(xe_path) if (os.path.splitext(i))[-1] == '.xe']
-elif target == 'XCOREAI':
-    xe_files = [os.path.join(xe_path, i) for i in os.listdir(xe_path) if (os.path.splitext(i))[-1] == '.xe' and "xcoreai" in (os.path.splitext(i))[0]]
-elif target == 'XCORE200': 
-    xe_files = [os.path.join(xe_path, i) for i in os.listdir(xe_path) if (os.path.splitext(i))[-1] == '.xe' and "xcore200" in (os.path.splitext(i))[0]]
-
-print("xe_file = ",xe_files)
-xe_files.append('py')
-
-print("xe_file = ",xe_files)
+xe_path = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_ic_spec/bin/test_ic_spec.xe')
+try:
+    import test_wav_ic
+    xe_files = ['py', xe_path]
+except ModuleNotFoundError:
+    print("No python IC found, using C version only")
+    print(f"Please install lib_interference_canceller at path {os.environ['XMOS_ROOT']} to support model testing")
+    xe_files = [xe_path]
 
 
 sample_rate = 16000
@@ -70,7 +55,6 @@ class TestCase(object):
         self.aud_y = aud_y
         self._dont_check = dont_check
         self._invert_check = invert_check
-
 
         if aud_x is None:
             self.aud_x = audio_generation.get_noise(duration=10, db=-20)
@@ -135,15 +119,17 @@ test_vectors = [
 
 def write_input(test_name, input_data):
     input_32bit = awu.convert_to_32_bit(input_data)
-    input_filename = os.path.abspath(os.path.join(
-        input_folder, test_name + "-input.wav"))
+    input_filename = os.path.abspath(os.path.join(input_folder, test_name + "-input.wav"))
+    if not os.path.exists(input_folder):
+        os.makedirs(input_folder)
     scipy.io.wavfile.write(input_filename, sample_rate, input_32bit.T)
 
 
 def write_output(test_name, output, xc_or_py):
     output_32bit = awu.convert_to_32_bit(output)
-    output_filename = os.path.abspath(os.path.join(
-        output_folder, test_name + "-output-{}.wav".format(xc_or_py)))
+    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-{}.wav".format(xc_or_py)))
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
     scipy.io.wavfile.write(output_filename, sample_rate, output_32bit.T)
 
 
@@ -159,24 +145,18 @@ def process_py(input_data, test_name):
 
 
 def process_xc(input_data, test_name, xe_name):
-    output_filename = os.path.abspath(os.path.join(
-        output_folder, test_name + "-output-xc.wav"))
+    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-xc.wav"))
     tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(test_name))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
     # Write input data to file
     input_32bit = awu.convert_to_32_bit(input_data)
     scipy.io.wavfile.write('input.wav', sample_rate, input_32bit.T)
-    #run axe if xcore200. run xrun if xcoreai
     err = 0
-    if 'xcoreai' in xe_name:
-        print(f"acquire")
-        with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-            print(f"Running on {adapter_id}")
-            xscope_fileio.run_on_target(adapter_id, xe_name)
-    else:
-        cmd = "axe --args {}".format(xe_name).split(' ')
-        err = subprocess.call(cmd)
+
+    with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
+        # print(f"Running on {adapter_id}")
+        xscope_fileio.run_on_target(adapter_id, xe_name)
 
     try:
         assert err == 0
@@ -206,16 +186,14 @@ def test_input(request):
         warnings.warn("{}: max(abs(Mic 0)) == {}".format(test_name, np.max(np.abs(audio_y))))
     # Write the input audio to file
     input_32bit = awu.convert_to_32_bit(combined_data)
-    write_input(test_name, input_32bit)
     return (test_case, combined_data)
 
 
 def process_audio(model, input_audio, test_name):
-    if 'xcore' in model:
-        return process_xc(input_audio, test_name, model)
-    elif model == 'py':
+    if model == 'py':
         return process_py(input_audio, test_name)
-    return None
+    else:
+        return process_xc(input_audio, test_name, model)
 
 
 def rms(a):
