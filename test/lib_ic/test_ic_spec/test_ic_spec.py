@@ -139,7 +139,7 @@ def process_py(input_data, test_name):
     file_length = input_data.shape[1]
     output = test_wav_ic.test_data(input_data, 16000, file_length, phases,
                                    x_channel_delay, frame_advance=frame_advance,
-                                   proc_frame_length=proc_frame_length)
+                                   proc_frame_length=proc_frame_length, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
@@ -228,11 +228,14 @@ def check_convergence(record_property, test_case, suppression_arr):
     """ Checks the convergence time is less than the spec """
 
     suppressed_frames = np.argwhere(suppression_arr > ICSpec.db_suppression)
+    n_frames_ave = 10
+    final_supression = np.average(suppression_arr[-1-n_frames_ave:-1])
     convergence_frame = np.min(suppressed_frames) if suppressed_frames.size != 0 else suppression_arr.size
     convergence_time = convergence_frame * frame_advance / float(sample_rate)
     check = convergence_time < ICSpec.convergence_time
 
     record_property('Convergence time', str(convergence_time))
+    record_property('Final supression dB', str(final_supression))
 
     # Invert the check if the test vector shouldn't converge
     if not test_case.do_check_convergence:
