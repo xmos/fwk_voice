@@ -47,17 +47,22 @@ Follow the following steps to add a new component.
 FAQ
 ***
 
-Q: Is it possible to possible to build just a subset of the documentation?
+Q: Is it possible to build just a subset of the documentation?
+
 A: Yes, however it is not recommended at this time.
 
 Q: Is it possible to used the ``livehtml`` feature of Sphynx?
+
 A: No, but ``livehtml`` support may be added to the XMOS ``doc_builder`` Docker container in the future.
 
 Q: Where can I learn more about the XMOS ``doc_builder`` Docker container?
+
 A: See the https://github.com/xmos/doc_builder repository.  See the ``doc_builder`` repository README for details on additional build options.  
 
 Q: How do I suggest enhancements to the XMOS ``doc_builder`` Docker container?
+
 A: Create a new issue here: https://github.com/xmos/doc_builder/issues
 
 Q: I don't need to run the link checking, can I disable that to make the build faster?
+
 A: Yes, add ``-e SKIP_LINK=1`` to the ``docker run`` command line above.
