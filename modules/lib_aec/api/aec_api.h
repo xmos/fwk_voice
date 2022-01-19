@@ -356,6 +356,15 @@ void aec_filter_adapt(
 void aec_update_X_fifo_1d(
         aec_state_t *state);
 
+// TODO document
+float_s32_t aec_calc_corr_factor(
+        aec_state_t *state,
+        unsigned ch);
+
+float_s32_t aec_calc_max_ref_energy(
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int num_channels);
+
 /// Estimate delay
 /*int aec_estimate_delay (
         aec_state_t *state);*/
