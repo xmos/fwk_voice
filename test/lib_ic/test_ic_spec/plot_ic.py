@@ -9,25 +9,18 @@ import scipy.io.wavfile
 import matplotlib.pyplot as plt
 import sys
 import scipy.fftpack
+import os
 
 # update PYTHONPATH to avoid using an external script
-sys.path.append('../../python/')
-sys.path.append('../../../audio_test_tools/python/')
-sys.path.append('../../../lib_technology/python')
+sys.path.append('../../../../audio_test_tools/python/')
+sys.path.append('../../../../lib_interference_canceller/python')
 import audio_generation
-USE_IC_OLD = 0
 USE_POLAR_PLOT = 1
 
 import argparse
 
-if USE_IC_OLD == 1:
-    import IC_OLD.ic as ic
-    import audio_wav_utils as awu
-
-else:
-    import IC as ic
-    import icpatch
-    import audio_wav_utils as awu
+import IC as ic
+import audio_wav_utils as awu
 
 
 import matplotlib.pyplot as plt
@@ -67,21 +60,13 @@ if __name__ == "__main__":
     noise_std = 1
     noise_max_delay_samples = int(d/sample_m + 0.5)+1
 
-    # Parameter for the IC
-    if USE_IC_OLD == 1:
-        channel_count = 2
-        frame_advance = 240
-        frame_length = 512
-        ic_phases = 16
-        ic_start_phase = 2
-        output = np.zeros((channel_count, total_samples))
-    else:
-        channel_count = 2
-        frame_length = 512
-        frame_advance = 240
-        phases = 6
-        y_phase_offset = 0
-        output = np.zeros((channel_count-1, total_samples))
+
+    channel_count = 2
+    frame_length = 512
+    frame_advance = 240
+    phases = 10
+    y_phase_offset = 0
+    output = np.zeros((channel_count-1, total_samples))
 
     MAX_SUPPRESSION_DB = -30
     MAX_SUPPRESSION_LIN = np.power(10.0, MAX_SUPPRESSION_DB / 20)
@@ -145,28 +130,24 @@ if __name__ == "__main__":
             mic_wav_data[1][:noise_samples] = noise_1[:noise_samples]#+sine[:noise_samples]
             
             # Save the input in a wav file
+            if not os.path.exists(audiofiles_dir):
+                os.makedirs(audiofiles_dir)
             audio_generation.write_data(mic_wav_data, audiofiles_dir+"test_input_%ddeg_%dHz.wav"%(orient_deg,f))
 
             # Initialize the IC model
-            if USE_IC_OLD == 1:
-                ifc = ic.adaptive_interference_canceller(channel_count, frame_advance, frame_length, ic_phases, ic_start_phase)#, 10, True)
-            else:
-                # ifc = ic.adaptive_interference_canceller(channel_count, frame_advance, frame_length, ic_phases, ic_start_phase)
-                ifc = ic.adaptive_interference_canceller(frame_advance, frame_length, phases, y_phase_offset, mu = 0.1)
-                icpatcher = icpatch.adaptive_interference_patcher(frame_advance, 10.0)
+            ifc = ic.adaptive_interference_canceller(frame_advance, frame_length, phases, 0)
 
             # Process the input files for IC
             for frame_start in range(0, total_samples-frame_length*2, frame_advance):
-                adapt=True
+                adapt = True
                 if frame_start>(noise_samples):
                     adapt=False
                 mic_mix = awu.get_frame(mic_wav_data, frame_start, frame_advance)
-                if USE_IC_OLD == 1:
-                    error, energy_in, energy_out = ifc.process_frame(mic_mix, adapt)
-                else:
-                    error = ifc.process_frame(mic_mix, verbose=False, adapt=adapt)
-
-                output[:, frame_start: frame_start + frame_advance] = error
+                all_channels_output, Error_ap = ifc.process_frame(mic_mix, verbose=False)
+                if adapt:
+                     ifc.adapt(Error_ap, verbose=False)
+           
+                output[:, frame_start: frame_start + frame_advance] = all_channels_output[0]
 
             # Save the output in a wav file
             audio_generation.write_data(output, audiofiles_dir+"test_output_%ddeg_%dHz.wav"%(orient_deg,f))
