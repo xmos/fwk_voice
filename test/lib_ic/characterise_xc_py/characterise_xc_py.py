@@ -1,4 +1,4 @@
-# Copyright 2018-2021 XMOS LIMITED.
+# Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from __future__ import division
 from __future__ import print_function
@@ -6,16 +6,17 @@ from builtins import str
 from builtins import range
 import sys
 import os
+import shutil
+import tempfile
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
-path1 = os.path.join(package_dir,'../../../audio_test_tools/python/')
-path2 = os.path.join(package_dir,'../../python/')
+att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
+py_ic_path = os.path.join(package_dir,'../../../../lib_interference_canceller/python')
 
-sys.path.append(path1)
-sys.path.append(path2)
+sys.path.append(att_path)
+sys.path.append(py_ic_path)
 
 from audio_generation import get_band_limited_noise, write_data
-import test_wav_ic
 import subprocess
 import time
 import numpy as np
@@ -24,6 +25,13 @@ import audio_wav_utils as awu
 import argparse
 import pyroomacoustics as pra
 import scipy
+
+try:
+    import test_wav_ic
+except ModuleNotFoundError:
+    print(f"Please install lib_interference_canceller at root of project to support model testing")
+
+import xtagctl, xscope_fileio
 
 NOISE_FLOOR_dBFS = -63.0
 SIGMA2_AWGN = ((10 ** (float(NOISE_FLOOR_dBFS)/20)) * np.iinfo(np.int32).max) ** 2
@@ -52,7 +60,7 @@ MIC_1_X = MIC_X_POINT + MIC_SPACING / 2
 NOISE_DISTANCE = 1.5
 
 
-IC_XE = os.path.join(package_dir, '../test_wav_ic/bin/test_wav_ic.xe')
+IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_wav_ic/bin/test_wav_ic.xe')
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces
 def get_absorption(x, y, z, rt60):
@@ -87,43 +95,34 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
     mic_output = shoebox.mic_array.signals.T
     z = np.zeros((len(mic_output), 2), dtype=np.float64)
-    combined = np.append(mic_output, z, axis=1)
-    output = np.array(combined, dtype=np.int32)
+    # combined = np.append(mic_output, z, axis=1)
+    # output = np.array(combined, dtype=np.int32)
+    output = np.array(z, dtype=np.int32)
     scipy.io.wavfile.write(file_path, SAMPLE_RATE, output)
 
 
 def process_py(input_file, output_file, x_channel_delay, audio_dir="."):
-    test_wav_ic.test(os.path.join(audio_dir, input_file),
-                     os.path.join(audio_dir, output_file),
-                     PHASES, FRAME_ADVANCE, PROC_FRAME_LENGTH, x_channel_delay)
+    test_wav_ic.test_file(os.path.join(audio_dir, input_file),
+                          os.path.join(audio_dir, output_file),
+                          PHASES, x_channel_delay, FRAME_ADVANCE, PROC_FRAME_LENGTH, verbose=False)
 
 
 def process_xc(input_file, output_file, audio_dir="."):
-    cmd = ["axe", IC_XE]
-    subprocess.check_output(["cp", input_file, "input.wav"], cwd=audio_dir)
-    try:
-        output = subprocess.check_output(cmd, cwd=audio_dir)
-    except subprocess.CalledProcessError as e:
-        msg = """Error! Running XC SUP failed.
-               \ncmd: %
-               \noutput: %s
-               \nreturn_code: %d"""\
-               % (str(e.cmd), e.output, e.returncode)
-        raise Exception(msg)
+    output_file = os.path.abspath(os.path.join(audio_dir, output_file))
+    input_file = os.path.abspath(os.path.join(audio_dir, input_file))
 
-    mv_cmd = ["mv", "output.wav", output_file]
-    try:
-        output = subprocess.check_output(mv_cmd, cwd=audio_dir)
-    except subprocess.CalledProcessError as e:
-        msg = """Error! Running XC SUP failed.
-               \ncmd: %s
-               \noutput: %s
-               \nreturn_code: %d"""\
-               % (str(e.cmd), e.output, e.returncode)
-        raise Exception(msg)
+    tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(__file__))
+    prev_path = os.getcwd()
+    os.chdir(tmp_folder)
 
-    subprocess.check_output(["rm", "input.wav"], cwd=audio_dir)
-
+    shutil.copyfile(input_file, "input.wav")
+    with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
+        # print(f"Running on {adapter_id}")
+        xscope_fileio.run_on_target(adapter_id, IC_XE)
+        shutil.copyfile("output.wav", output_file)
+    
+    os.chdir(prev_path)
+    shutil.rmtree(tmp_folder)
 
 def get_attenuation(input_file, output_file, audio_dir="."):
     in_rate, in_wav_file = wavfile.read(os.path.join(audio_dir, input_file))
