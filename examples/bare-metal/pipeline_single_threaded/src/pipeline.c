@@ -19,18 +19,18 @@ extern void aec_process_frame_1thread(
 void pipeline_init(pipeline_state_t *state) {
     memset(state, 0, sizeof(pipeline_state_t)); 
     
-    // AEC init
+    // Initialise AEC
     aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
             &state->aec_main_memory_pool[0], &state->aec_shadow_memory_pool[0],
             AEC_MAX_Y_CHANNELS, AEC_MAX_X_CHANNELS,
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);
 
-    //AGC init
+    // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 0;
-    agc_conf_comms.adapt_on_vad = 0;
-    agc_conf_comms.lc_enabled = 1;
+    agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
+    agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
+    agc_conf_comms.lc_enabled = 1; // Enable loss control on comms
     agc_init(&state->agc_state[0], &agc_conf_asr);
     for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_init(&state->agc_state[ch], &agc_conf_comms);

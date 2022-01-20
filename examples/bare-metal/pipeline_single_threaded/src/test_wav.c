@@ -63,7 +63,7 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
 
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
     
-    // Initialise pipeline_state
+    // Initialise pipeline
     pipeline_state_t DWORD_ALIGNED pipeline_state;
     pipeline_init(&pipeline_state);
 
@@ -82,7 +82,8 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
                 frame_x[ch][f] = input_read_buffer[i];
             }
         }
-
+        
+        // Process a frame of data through the pipeline
         pipeline_process_frame(&pipeline_state, frame_y, frame_x, pipeline_output);
         
         // Create interleaved output that can be written to wav file
