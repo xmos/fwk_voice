@@ -213,12 +213,10 @@ float_s32_t aec_calc_corr_factor(
 
     // y[240:480] is prev_y[0:240].
     bfp_s32_t y_subset;
-    bfp_s32_init(&y_subset, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE-frame_window, 0);
-    y_subset.hr = state->shared_state->prev_y[ch].hr;
+    bfp_s32_init(&y_subset, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE-frame_window, 1);
 
     bfp_s32_t yhat_subset;
-    bfp_s32_init(&yhat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE-frame_window, 0);
-    yhat_subset.hr = state->y_hat[ch].hr;
+    bfp_s32_init(&yhat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE-frame_window, 1);
 
     float_s32_t corr_factor = aec_priv_calc_corr_factor(&y_subset, &yhat_subset);
     return corr_factor;
