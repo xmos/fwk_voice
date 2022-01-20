@@ -16,12 +16,12 @@ on:
     branches:
       - 'main'
       - 'develop'
-      - 'releases/**'
+      - 'release/**'
   pull_request:
     branches:
       - 'main'
       - 'develop'
-      - 'releases/**'
+      - 'release/**'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
