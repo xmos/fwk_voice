@@ -73,7 +73,7 @@ set( LIB_DSP_PATH ${DEPS_ROOT}/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources
-list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
+list( APPEND  COMMON_SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
 
 ## Includes
 list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
@@ -92,6 +92,8 @@ file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.xc )
 
 # For every source file in aec_unit_tests/src
 foreach( testfile ${TEST_SOURCES} )
+    unset( SOURCES )
+    list( APPEND SOURCES ${COMMON_SOURCES} )
     # Get test name
     #cmake_path( GET testfile STEM TESTNAME )
     get_filename_component(TESTNAME ${testfile} NAME_WLE)
@@ -115,6 +117,9 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating AEC runner" )
     
+    if (${testfile} MATCHES "test_calc_max_ref_energy.xc")
+        set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/calc_max_ref_energy_c_wrapper.c)
+    endif ()
     if (${testfile} MATCHES "test_estimate_delay.xc")
         set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_calc_fd_frame_energy.xc)
     endif()
