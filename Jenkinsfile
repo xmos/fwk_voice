@@ -123,6 +123,13 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe"
+                }
+              }
+            }
           }
         }
         stage('Meta Data tests') {
