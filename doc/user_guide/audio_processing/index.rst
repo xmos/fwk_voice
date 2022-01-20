@@ -8,6 +8,6 @@ A flexible audio signal routing infrastructure and a range of digital inputs and
 
 AUDIO FEATURES
 .. toctree:: 
-   :maxdepth: 1
+   :maxdepth: 2
 
    ../../../modules/lib_aec/doc/index
