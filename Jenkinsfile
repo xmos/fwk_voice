@@ -123,6 +123,13 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/ic") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                }
+              }
+            }
           }
         }
         stage('Meta Data tests') {
