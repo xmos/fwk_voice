@@ -25,7 +25,7 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
     wav_header input_header_struct, output_header_struct;
     unsigned input_header_size;
     if(get_wav_header_details(&input_file, &input_header_struct, &input_header_size) != 0){
-        printf("error in att_get_wav_header_details()\n");
+        printf("error in get_wav_header_details()\n");
         _Exit(1);
     }
 

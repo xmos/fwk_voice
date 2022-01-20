@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Automatic Echo Canceller Library
+Acoustic Echo Canceller Library
 ================================
 
 Introduction
@@ -19,7 +19,7 @@ Introduction
 
    src/reference/index
 
-``lib_aec`` is a library of functions for performing Automatic Echo Cancellation on input data.
+``lib_aec`` is a library of functions for performing Acoustic Echo Cancellation on input data.
 
 
 On GitHub

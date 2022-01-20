@@ -47,7 +47,7 @@ void test_calc_max_ref_energy() {
         int dut = dut_max.mant;
         int ref = att_double_to_int32(ref_max, dut_max.exp);
         //printf("ref 0x%x, dut 0x%x\n", ref, dut);
-        int diff = ref - dut;
+        int32_t diff = ref - dut;
         if(diff < 0) diff = -diff;
         if(diff > max_diff) max_diff = diff;
         TEST_ASSERT_INT32_WITHIN_MESSAGE(1<<5, ref, dut, "Output delta is too large");

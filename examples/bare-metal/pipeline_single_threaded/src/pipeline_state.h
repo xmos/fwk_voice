@@ -15,7 +15,7 @@ typedef struct {
     uint8_t DWORD_ALIGNED aec_shadow_memory_pool[sizeof(aec_shadow_filt_memory_pool_t)];
 
     // AGC
-    agc_state_t DWORD_ALIGNED agc_state[AP_MAX_Y_CHANNELS];
+    agc_state_t agc_state[AP_MAX_Y_CHANNELS];
 } pipeline_state_t;
 
 #endif

@@ -85,7 +85,7 @@ void test_calc_corr_factor() {
             float_s32_t dut_corr = aec_calc_corr_factor(&state, ch); 
             int32_t ref = att_double_to_int32(ref_corr, dut_corr.exp);
             int32_t diff = abs(ref - dut_corr.mant);
-            TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1<<15, diff, "corr_factor diff too large.");
+            TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(1<<15, diff, "corr_factor diff too large.");
             if(diff > max_diff) {max_diff = diff;}
         } 
     }
