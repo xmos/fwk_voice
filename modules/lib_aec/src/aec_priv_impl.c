@@ -668,6 +668,37 @@ void aec_priv_calc_coherence(
     t2 = float_s32_mul(one_minus_slow_alpha, coh_mu_state->coh);
     coh_mu_state->coh_slow = float_s32_add(t1, t2);
 }
+
+float_s32_t aec_priv_calc_corr_factor(bfp_s32_t *y, bfp_s32_t *yhat) {
+    // abs(sigma_yyhat)/(sigma_abs(y)abs(yhat))
+    int32_t DWORD_ALIGNED y_abs_mem[AEC_FRAME_ADVANCE]; 
+    int32_t DWORD_ALIGNED yhat_abs_mem[AEC_FRAME_ADVANCE]; 
+    bfp_s32_t y_abs, yhat_abs;
+
+    bfp_s32_init(&y_abs, &y_abs_mem[0], 0, y->length, 0);
+    bfp_s32_init(&yhat_abs, &yhat_abs_mem[0], 0, yhat->length, 0);
+
+    bfp_s32_abs(&y_abs, y);
+    bfp_s32_abs(&yhat_abs, yhat);
+
+    float_s32_t num, denom;
+    // sigma_yyhat
+    num = float_s64_to_float_s32(bfp_s32_dot(y, yhat));
+    // sigma_abs(y)abs(yhat)
+    denom = float_s64_to_float_s32(bfp_s32_dot(&y_abs, &yhat_abs));
+    
+    // abs(sigma_yyhat)/sigma_abs(y)abs(yhat)
+    if(denom.mant == 0) {
+        /** denom 0 implies sigma_abs(y)abs(yhat) is 0 which in turn means y or y_hat is 0. y 0 means no near end, y_hat
+         * 0 means no far end and for both these, we don't want AGC LC to apply extra attenuation so setting corr_factor
+         * to 0*/
+        return (float_s32_t){0, -31};
+    }
+    float_s32_t corr_factor = float_s32_div(float_s32_abs(num), denom);
+
+    return corr_factor;
+}
+
 // Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
 static const int32_t WOLA_window[32] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,

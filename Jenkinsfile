@@ -123,15 +123,10 @@ pipeline {
                 }
               }
             }
-          }
-        }
-        stage('Meta Data tests') {
-          steps {
-            dir("${REPO}/build/test/lib_meta_data") {
+            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe"
                 }
               }
             }
