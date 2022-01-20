@@ -3,6 +3,4 @@ set(DEPS_ROOT ${CMAKE_SOURCE_DIR}/..)
 
 add_subdirectory( shared )
 
-add_subdirectory( lib_meta_data )
-
 add_subdirectory( lib_aec )
