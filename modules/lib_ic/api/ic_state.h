@@ -7,6 +7,7 @@
 
 typedef struct {
     uint8_t bypass;
+    uint8_t enable_adaption;
     int32_t gamma_log2;
     uint32_t sigma_xx_shift;
     uint32_t coeff_index;
@@ -18,12 +19,12 @@ typedef struct {
     float_s32_t smoothed_voice_chance;
     float_s32_t voice_chance_alpha;
 
-    //Filtered versions
+    //Long term fitered versions
     float_s32_t input_energy;
     float_s32_t output_energy;
     float_s32_t energy_alpha;
 
-    //Instantaneous versions
+    //Short term filtered versions
     float_s32_t input_energy0;
     float_s32_t output_energy0;
     float_s32_t energy_alpha0;
@@ -39,7 +40,8 @@ typedef struct {
     float_s32_t instability_recovery_leakage_alpha;
     uint8_t enable_filter_instability_recovery;
 
-    uint8_t enable_adaption;
+    uint8_t enable_adaption_controller;
+
 } ic_adaption_controller_state_t;
 
 
