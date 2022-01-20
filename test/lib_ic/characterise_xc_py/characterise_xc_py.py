@@ -60,7 +60,7 @@ MIC_1_X = MIC_X_POINT + MIC_SPACING / 2
 NOISE_DISTANCE = 1.5
 
 
-IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_wav_ic/bin/test_wav_ic.xe')
+IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/characterise_xc_py/bin/characterise_xc_py.xe')
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces
 def get_absorption(x, y, z, rt60):
@@ -94,10 +94,10 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
     shoebox.simulate()
 
     mic_output = shoebox.mic_array.signals.T
-    z = np.zeros((len(mic_output), 2), dtype=np.float64)
+    # z = np.zeros((len(mic_output), 2), dtype=np.float64)
     # combined = np.append(mic_output, z, axis=1)
     # output = np.array(combined, dtype=np.int32)
-    output = np.array(z, dtype=np.int32)
+    output = np.array(mic_output, dtype=np.int32)
     scipy.io.wavfile.write(file_path, SAMPLE_RATE, output)
 
 

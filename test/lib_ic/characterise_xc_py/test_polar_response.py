@@ -4,13 +4,14 @@
 from builtins import zip
 import pytest
 from get_polar_response import get_polar_response
+import numpy as np
 
 ANGLE_ROI = 360
 ANGLE_STEP_SIZE = 20
 RT60 = 0.3
 NOISE_BAND = 8000
 NOISE_LEVEL = -20
-IC_DELAY = 80
+IC_DELAY = 180
 
 
 # @pytest.mark.parametrize
@@ -23,8 +24,8 @@ def test_polar_reponse():
                                          RT60,
                                          IC_DELAY)
     for angle, attenuation in zip(angles, results_py):
-        print(angle, attenuation)
-        # assert attenuation > 3
+        all_pass = (np.array(attenuation) > 3).all()
+        assert all_pass
 
 
 def test_compare_polar_reponse():
@@ -37,4 +38,5 @@ def test_compare_polar_reponse():
                                          IC_DELAY,
                                          run_xc=True)
     for (i, atten_py, atten_xc) in zip(angles, results[0], results[1]):
+        print(f"Angle: {i}, PY {atten_py}, XC {atten_xc}")
         assert abs(atten_py - atten_xc) < 1, "Angle: {}, PY {}, XC {}".format(i, atten_py, atten_xc)
