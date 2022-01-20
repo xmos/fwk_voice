@@ -7,6 +7,7 @@ At the core of the Avona Reference Design are high-performance audio processing 
 A flexible audio signal routing infrastructure and a range of digital inputs and outputs enables the Avona Reference Design to be integrated into a wide range of system configurations, that can be configured at start up and during operation through a set of control registers.  In addition, all source code is provided to allow for full customization or the addition of other audio processing algorithms.
 
 AUDIO FEATURES
+
 .. toctree:: 
    :maxdepth: 2
 
