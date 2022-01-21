@@ -18,7 +18,7 @@ list( APPEND  DEP_LIBS
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
-file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_1thread.c )
+file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_2threads.c )
 unset( SOURCES_SHARED )
 list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
 file( GLOB SOURCES_XC src/*.xc )

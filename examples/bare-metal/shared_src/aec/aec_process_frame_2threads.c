@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
-#include "aec_config.h"
 #include "aec_task_distribution.h"
 
 #include "aec_defines.h"

@@ -17,7 +17,7 @@
 #include "aec_memory_pool.h"
 #include "agc_api.h"
 
-extern void aec_process_frame_1thread(
+extern void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
@@ -47,13 +47,15 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t main_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t shadow_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
 
         /** AEC*/
         // Memory optimisation: Don't generate shadow filter output. Use mic input memory for the aec main filter output
-        aec_process_frame_1thread(&aec_main_state, &aec_shadow_state, &frame[0], &frame[AP_MAX_Y_CHANNELS], &frame[0], NULL);
+        aec_process_frame_2threads(&aec_main_state, &aec_shadow_state, &frame[0], &frame[AP_MAX_Y_CHANNELS], &frame[0], &shadow_output[0]);        
         
         // Update metadata
         md.max_ref_energy = aec_calc_max_ref_energy(&frame[AP_MAX_Y_CHANNELS], AP_MAX_X_CHANNELS);
