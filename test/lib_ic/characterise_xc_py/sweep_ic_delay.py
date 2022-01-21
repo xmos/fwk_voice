@@ -30,12 +30,14 @@ def sweep_ic_delay(delay_min, delay_max, delay_step):
             for level in TESTS['noise_level']:
                 for band in TESTS['noise_band']:
                     angles, responses = get_polar_response('test', 360, 20, band, level, rt60, delay)
+                    responses = responses[0]
                     reponses_av = sum(responses) / len(responses)
                     delay_result.append(reponses_av)
+                    # print(delay, rt60, level, band, reponses_av)
 
         delay_result_av = sum(delay_result) / len(delay_result)
         np.set_printoptions(precision=2)
-        print("{}, {}".format(delay, delay_result_av))
+        print("Delay: {}, average result: {}".format(delay, delay_result_av))
         results.append(delay_result_av)
 
     return delays, results
@@ -49,8 +51,8 @@ def plot_results(delays, results):
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--delay_min", nargs="?", default=20, type=int, help="Min IC delay")
-    parser.add_argument("--delay_max", nargs="?", default=200, type=int, help="Max IC delay")
-    parser.add_argument("--step_size", nargs="?", default=60, type=int, help="Delay sweep step size")
+    parser.add_argument("--delay_max", nargs="?", default=220, type=int, help="Max IC delay")
+    parser.add_argument("--step_size", nargs="?", default=40, type=int, help="Delay sweep step size")
     args = parser.parse_args()
     return args
 
