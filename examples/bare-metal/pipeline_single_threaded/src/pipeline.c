@@ -51,7 +51,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
     
     agc_meta_data_t agc_md;
-    agc_md.aec_ref_power = aec_calc_max_ref_energy(input_x_data, AP_MAX_Y_CHANNELS);
+    agc_md.aec_ref_power = aec_calc_max_ref_energy(input_x_data, AP_MAX_X_CHANNELS);
     agc_md.vad_flag = AGC_META_DATA_NO_VAD;
     
     /** AGC*/
