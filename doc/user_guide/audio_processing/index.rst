@@ -12,3 +12,11 @@ AUDIO FEATURES
    :maxdepth: 1
 
    ../../../modules/lib_aec/doc/index
+
+EXAMPLES
+
+.. toctree:: 
+   :maxdepth: 1
+
+   ../../../examples/bare-metal/index
+   
