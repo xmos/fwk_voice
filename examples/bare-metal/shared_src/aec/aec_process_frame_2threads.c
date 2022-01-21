@@ -385,8 +385,13 @@ void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_
             }
             else {
                 if(shadow_state != NULL) {
-                    int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_shadow;
-                    aec_calc_output(shadow_state, &tmp[ch], ch);
+                    if(output_shadow != NULL) {
+                        int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_shadow;
+                        aec_calc_output(shadow_state, &tmp[ch], ch);
+                    }
+                    else {
+                        aec_calc_output(shadow_state, NULL, ch);
+                    }
                 }
             }
         }
