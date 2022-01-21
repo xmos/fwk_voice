@@ -92,7 +92,7 @@ void test_calc_Error_and_Y_hat() {
     unsigned seed = 2;
     int max_diff = 0;
     for(int iter=0; iter<(1<<12)/F; iter++) {
-        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         unsigned is_main = att_random_uint32(seed) % 2;
         aec_state_t *state_ptr;
         if(is_main) {
@@ -115,18 +115,18 @@ void test_calc_Error_and_Y_hat() {
         //Generate H_hat
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int ph=0; ph<num_x_channels*state_ptr->num_phases; ph++) {
-                state_ptr->H_hat_1d[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->H_hat_1d[ch][ph].hr = att_random_uint32(seed) % 3;
+                state_ptr->H_hat[ch][ph].exp = sext(att_random_int32(seed), 6);
+                state_ptr->H_hat[ch][ph].hr = att_random_uint32(seed) % 3;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->H_hat_1d[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat_1d[ch][ph].hr;
-                    state_ptr->H_hat_1d[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat_1d[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
                     if(is_main) {
-                        H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].re, state_ptr->H_hat_1d[ch][ph].exp);
-                        H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].im, state_ptr->H_hat_1d[ch][ph].exp);
+                        H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                     }
                     else {
-                        H_hat_shadow_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].re, state_ptr->H_hat_1d[ch][ph].exp);
-                        H_hat_shadow_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat_1d[ch][ph].data[i].im, state_ptr->H_hat_1d[ch][ph].exp);
+                        H_hat_shadow_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_shadow_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                     }
                 }
             }
@@ -209,7 +209,7 @@ void test_calc_Error_and_Y_hat() {
                     bfp_complex_s32_init(&Y_hat_par[index], &state_ptr->Y_hat[ch].data[start_offset], state_ptr->Y_hat[ch].exp, length, 0);
                     Y_hat_par[index].hr = state_ptr->Y_hat[ch].hr;
 
-                    aec_l2_calc_Error_and_Y_hat(&Error_par[index], &Y_hat_par[index], &state_ptr->shared_state->Y[ch], state_ptr->X_fifo_1d, state_ptr->H_hat_1d[ch], num_x_channels, state_ptr->num_phases, start_offset, length, state_ptr->shared_state->config_params.aec_core_conf.bypass);
+                    aec_l2_calc_Error_and_Y_hat(&Error_par[index], &Y_hat_par[index], &state_ptr->shared_state->Y[ch], state_ptr->X_fifo_1d, state_ptr->H_hat[ch], num_x_channels, state_ptr->num_phases, start_offset, length, state_ptr->shared_state->config_params.aec_core_conf.bypass);
                     //printf("Error: (%d, %d), Y_hat: (%d,%d)\n", Error_par[index].exp, Error_par[index].hr, Y_hat_par[index].exp, Y_hat_par[index].hr);
                 }
             }    

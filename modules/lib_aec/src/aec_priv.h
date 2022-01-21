@@ -135,4 +135,5 @@ void aec_priv_calc_delta(
         aec_config_params_t *conf,
         float_s32_t scale,
         int channels);
+
 #endif

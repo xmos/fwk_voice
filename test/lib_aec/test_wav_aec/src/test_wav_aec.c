@@ -17,10 +17,10 @@
 #include <limits.h>
 
 #include "aec_config.h"
-#include "aec_schedule.h"
+#include "aec_task_distribution.h"
 #include "aec_defines.h"
 #include "aec_api.h"
-#include "aec_testapp.h"
+#include "aec_memory_pool.h"
 #include "fileio.h"
 #include "wav_utils.h"
 #include "dump_H_hat.h"
@@ -28,6 +28,22 @@
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif
+
+extern void aec_process_frame_1thread(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+
+extern void aec_process_frame_2threads(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
 
 #define ARG_NOT_SPECIFIED (-1)
 typedef enum {
@@ -46,7 +62,6 @@ int runtime_args[NUM_RUNTIME_ARGS];
 //valid_tokens_str entries and runtime_args_indexes_t need to maintain the same order so that when a runtime argument token string matches index 'i' string in valid_tokens_str, the corresponding
 //value can be updated in runtime_args[i]
 const char *valid_tokens_str[] = {"y_channels", "x_channels", "main_filter_phases", "shadow_filter_phases", "adaption_mode", "force_adaption_mu", "stop_adapting"}; //TODO autogenerate from runtime_args_indexes_t
-
 
 #define MAX_ARGS_BUF_SIZE (1024)
 void parse_runtime_args(int *runtime_args_arr) {
@@ -89,8 +104,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     //check validity of compile time configuration
     assert(AEC_MAX_Y_CHANNELS <= AEC_LIB_MAX_Y_CHANNELS);
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_MAIN_FILTER_PHASES));
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_Y_CHANNELS * AEC_LIB_MAX_X_CHANNELS * AEC_LIB_SHADOW_FILTER_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     //Initialise default values of runtime arguments
     runtime_args[Y_CHANNELS] = AEC_MAX_Y_CHANNELS;
     runtime_args[X_CHANNELS] = AEC_MAX_X_CHANNELS;
@@ -109,8 +124,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     //Check validity of runtime configuration
     assert(runtime_args[Y_CHANNELS] <= AEC_MAX_Y_CHANNELS);
     assert(runtime_args[X_CHANNELS] <= AEC_MAX_X_CHANNELS);
-    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES));
-    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[SHADOW_FILTER_PHASES]) <= (AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES));
+    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
+    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[SHADOW_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
     
     //open files
     file_t input_file, output_file, H_hat_file, delay_file;
@@ -155,11 +170,11 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
     file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
 
-    int32_t input_read_buffer[AEC_PROC_FRAME_LENGTH*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
+    int32_t input_read_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)] = {0};
     int32_t output_write_buffer[AEC_FRAME_ADVANCE * (AEC_MAX_Y_CHANNELS)];
 
-    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
-    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t DWORD_ALIGNED frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED frame_x[AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start AEC
@@ -183,10 +198,8 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * AEC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
-        file_read (&input_file, (uint8_t*)&input_read_buffer[(AEC_PROC_FRAME_LENGTH-AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS+AEC_MAX_Y_CHANNELS)], bytes_per_frame* AEC_FRAME_ADVANCE);
-        memset(frame_y, 0, sizeof(frame_y));
-        memset(frame_x, 0, sizeof(frame_x));
-        for(unsigned f=0; f<AEC_PROC_FRAME_LENGTH; f++){
+        file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AEC_FRAME_ADVANCE);
+        for(unsigned f=0; f<AEC_FRAME_ADVANCE; f++){
             for(unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
                 unsigned i =(f * (AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS)) + ch;
                 frame_y[ch][f] = input_read_buffer[i];
@@ -205,11 +218,21 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
             }
         }
         prof(2, "start_aec_process_frame");
-        aec_testapp_process_frame(&main_state, &shadow_state, frame_y, frame_x);
+        // Call AEC functions to process AEC_FRAME_ADVANCE new samples of data
+        /* Resuse mic data memory for main filter output
+         * Reuse ref data memory for shadow filter output
+         */ 
+#if (AEC_THREAD_COUNT == 1)
+        aec_process_frame_1thread(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+#elif (AEC_THREAD_COUNT == 2)
+        aec_process_frame_2threads(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
+#else
+        #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
+#endif
         prof(3, "end_aec_process_frame");
 
         prof(4, "start_aec_estimate_delay");
-        int delay = aec_estimate_delay(&main_state);
+        int delay = aec_estimate_delay(&main_state.shared_state->delay_estimator_params, main_state.H_hat[0], main_state.num_phases); //Delay is estimated using 1 x-y pair
         prof(5, "end_aec_estimate_delay");
 
         char strbuf[100];
@@ -218,15 +241,12 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
 
         for (unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){
             for(unsigned i=0;i<AEC_FRAME_ADVANCE;i++){
-                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = main_state.output[ch].data[i];
+                output_write_buffer[i*(AEC_MAX_Y_CHANNELS) + ch] = frame_y[ch][i];
             }
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AEC_FRAME_ADVANCE * AEC_MAX_Y_CHANNELS);
 
-        for(unsigned i=0;i<(AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS);i++){
-            input_read_buffer[i] = input_read_buffer[i + AEC_FRAME_ADVANCE*(AEC_MAX_Y_CHANNELS + AEC_MAX_X_CHANNELS)];
-        }
         print_prof(0,6,b+1);
     }
     file_close(&input_file);

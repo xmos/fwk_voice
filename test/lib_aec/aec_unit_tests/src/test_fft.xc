@@ -11,7 +11,7 @@ extern "C"{
 
 double sine_lut[AEC_PROC_FRAME_LENGTH / 4 + 1];
 //In-place N point complex FFT
-void aec_fft_fp(complex_double_t *input, int length) {
+void aec_forward_fft_fp(complex_double_t *input, int length) {
     att_bit_reverse((dsp_complex_fp*)input, length);
     att_forward_fft((dsp_complex_fp*)input, length, sine_lut);
 }
@@ -30,7 +30,7 @@ void test_fft() {
 
         aec_init(&main_state, &shadow_state, &aec_shared_state, (uint8_t*)&aec_memory_pool, (uint8_t*)&aec_shadow_memory_pool, num_y_channels, num_x_channels, main_filter_phases, shadow_filter_phases);
 
-        int32_t [[aligned(8)]] new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2]; //+2 for post fft unpaking of nyquist bin             
+        int32_t [[aligned(8)]] new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
         complex_double_t [[aligned(8)]] ref[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
         aec_state_t *state_ptr;
         unsigned seed = 83472;
@@ -92,11 +92,11 @@ void test_fft() {
             }
             //DUT FFT
             for(int ch=0; ch<num_channels; ch++) {
-                aec_fft(&fft_out[ch], &fft_in[ch]);
+                aec_forward_fft(&fft_out[ch], &fft_in[ch]);
             }
             //Ref FFT
             for(int ch=0; ch<num_channels; ch++) {
-                aec_fft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
+                aec_forward_fft_fp(&ref[ch][0], AEC_PROC_FRAME_LENGTH);
             }
             //Compare first (N/2+1) complex values
             for(int ch=0; ch<num_channels; ch++) {

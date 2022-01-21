@@ -30,3 +30,5 @@ filesystem_support/target-xn*
 
 # macOS cruft
 .DS_Store
+
+**/*.swp

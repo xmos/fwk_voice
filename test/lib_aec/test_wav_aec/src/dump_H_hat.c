@@ -1,7 +1,7 @@
 // Copyright 2017-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "aec_defines.h"
+#include "aec_state.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -19,7 +19,7 @@ void aec_dump_H_hat(aec_state_t *state, file_t *file_handle){
     file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
     sprintf(strbuf, "max_phase_count = %u\n", state->num_phases);
     file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
-    sprintf(strbuf, "f_bin_count = %u\n", state->H_hat_1d[0][0].length);
+    sprintf(strbuf, "f_bin_count = %u\n", state->H_hat[0][0].length);
     file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
     sprintf(strbuf, "H_hat = np.zeros((y_channel_count, x_channel_count, max_phase_count, f_bin_count), dtype=np.complex128)\n");
     file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
@@ -31,9 +31,9 @@ void aec_dump_H_hat(aec_state_t *state, file_t *file_handle){
                 file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
                 sprintf(strbuf, "np.asarray([");
                 file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
-                for(int i=0; i<state->H_hat_1d[ych][xch*state->num_phases + ph].length; i++) {
-                    sprintf(strbuf, "%.12f + %.12fj, ", ldexp( state->H_hat_1d[ych][xch*state->num_phases + ph].data[i].re, state->H_hat_1d[ych][xch*state->num_phases + ph].exp),
-                    ldexp( state->H_hat_1d[ych][xch*state->num_phases + ph].data[i].im, state->H_hat_1d[ych][xch*state->num_phases + ph].exp));
+                for(int i=0; i<state->H_hat[ych][xch*state->num_phases + ph].length; i++) {
+                    sprintf(strbuf, "%.12f + %.12fj, ", ldexp( state->H_hat[ych][xch*state->num_phases + ph].data[i].re, state->H_hat[ych][xch*state->num_phases + ph].exp),
+                    ldexp( state->H_hat[ych][xch*state->num_phases + ph].data[i].im, state->H_hat[ych][xch*state->num_phases + ph].exp));
                     file_write(file_handle, (uint8_t*)strbuf,  strlen(strbuf));
                 }
                 sprintf(strbuf, "])\n");

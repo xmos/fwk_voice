@@ -22,7 +22,7 @@ static void update_mapping(int *mapping, int num_phases)
     mapping[0] = last_phase;
 }
 
-void aec_update_total_X_energy_fp(
+void aec_calc_X_fifo_energy_fp(
         double (*X_energy)[NUM_BINS],
         double *max_X_energy,
         dsp_complex_fp (*X)[NUM_BINS],
@@ -140,11 +140,11 @@ void test_update_total_X_energy() {
         
         //Calculate X_energy
         for(unsigned ch=0; ch<num_x_channels; ch++) {
-            aec_update_total_X_energy(&state, ch, X_energy_recalc_bin);
-            aec_update_total_X_energy(&shadow_state, ch, X_energy_recalc_bin);
+            aec_calc_X_fifo_energy(&state, ch, X_energy_recalc_bin);
+            aec_calc_X_fifo_energy(&shadow_state, ch, X_energy_recalc_bin);
         }
-        aec_update_total_X_energy_fp(X_energy_fp, &max_X_energy_fp[0], X_fp, X_fifo_fp, mapping, num_x_channels, state.num_phases, X_energy_recalc_bin); 
-        aec_update_total_X_energy_fp(X_energy_shadow_fp, &max_X_energy_shadow_fp[0], X_fp, X_fifo_fp, mapping, num_x_channels, shadow_state.num_phases, X_energy_recalc_bin); 
+        aec_calc_X_fifo_energy_fp(X_energy_fp, &max_X_energy_fp[0], X_fp, X_fifo_fp, mapping, num_x_channels, state.num_phases, X_energy_recalc_bin); 
+        aec_calc_X_fifo_energy_fp(X_energy_shadow_fp, &max_X_energy_shadow_fp[0], X_fp, X_fifo_fp, mapping, num_x_channels, shadow_state.num_phases, X_energy_recalc_bin); 
         //Update X_fifo
         for(unsigned ch=0; ch<num_x_channels; ch++) {
             aec_update_X_fifo_and_calc_sigmaXX(&state, ch);

@@ -27,11 +27,32 @@ void aec_priv_main_init(
     state->shared_state->num_x_channels = num_x_channels;
     //Initialise number of phases
     state->num_phases = num_phases;
+
+    //y
+    for(unsigned ch=0; ch<num_y_channels; ch++) {
+        bfp_s32_init(&state->shared_state->y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->y[ch].length is still AEC_PROC_FRAME_LENGTH though
+    }
+    //x
+    for(unsigned ch=0; ch<num_x_channels; ch++) {
+        bfp_s32_init(&state->shared_state->x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->x[ch].length is still AEC_PROC_FRAME_LENGTH though
+    }
+    //prev_y
+    for(unsigned ch=0; ch<num_y_channels; ch++) {
+        bfp_s32_init(&state->shared_state->prev_y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+    }
+    //prev_x
+    for(unsigned ch=0; ch<num_x_channels; ch++) {
+        bfp_s32_init(&state->shared_state->prev_x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
+    }
     
     //H_hat
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         for(unsigned ph=0; ph<(num_x_channels * num_phases); ph++) {
-            bfp_complex_s32_init(&state->H_hat_1d[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+            bfp_complex_s32_init(&state->H_hat[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
             available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(complex_s32_t)); 
         }
     }
@@ -69,11 +90,6 @@ void aec_priv_main_init(
         available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(int32_t)); 
     }
 
-    //Initialise output
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->output[ch], (int32_t*)available_mem_start, 0, AEC_FRAME_ADVANCE, 0);
-        available_mem_start += (AEC_FRAME_ADVANCE*sizeof(int32_t)); 
-    }
     //overlap
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         bfp_s32_init(&state->overlap[ch], (int32_t*)available_mem_start, -1024, 32, 0);
@@ -136,7 +152,7 @@ void aec_priv_shadow_init(
     //H_hat
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         for(unsigned ph=0; ph<(num_x_channels * num_phases); ph++) {
-            bfp_complex_s32_init(&state->H_hat_1d[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
+            bfp_complex_s32_init(&state->H_hat[ch][ph], (complex_s32_t*)available_mem_start, -1024, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
             available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(complex_s32_t)); 
         }
     }
@@ -167,11 +183,6 @@ void aec_priv_shadow_init(
         available_mem_start += ((AEC_PROC_FRAME_LENGTH/2 + 1)*sizeof(int32_t)); 
     }
 
-    //Initialise output
-    for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->output[ch], (int32_t*)available_mem_start, 0, AEC_FRAME_ADVANCE, 0);
-        available_mem_start += (AEC_FRAME_ADVANCE*sizeof(int32_t)); 
-    }
     //overlap
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         bfp_s32_init(&state->overlap[ch], (int32_t*)available_mem_start, -1024, 32, 0);
@@ -280,7 +291,7 @@ void aec_priv_compare_filters(
         if(float_s32_gt(shadow_state->overall_Error[ch], shared_state->overall_Y[ch]) && shadow_params->shadow_reset_count[ch] >= 0)
         {
             shadow_params->shadow_flag[ch] = ERROR;
-            aec_priv_reset_filter(shadow_state->H_hat_1d[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+            aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
             //Y -> shadow Error
             aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
             shadow_state->overall_Error[ch] = shared_state->overall_Y[ch];
@@ -297,7 +308,7 @@ void aec_priv_compare_filters(
             //shadow Error -> Error
             aec_priv_bfp_complex_s32_copy(&main_state->Error[ch], &shadow_state->Error[ch]);
             //shadow filter -> main filter
-            aec_priv_copy_filter(main_state->H_hat_1d[ch], shadow_state->H_hat_1d[ch], main_state->shared_state->num_x_channels, main_state->num_phases, shadow_state->num_phases);
+            aec_priv_copy_filter(main_state->H_hat[ch], shadow_state->H_hat[ch], main_state->shared_state->num_x_channels, main_state->num_phases, shadow_state->num_phases);
         }
         else if(float_s32_gte(shadow_sigma_thresh_x_Ov_Error, shadow_state->overall_Error[ch]))
         {
@@ -320,7 +331,7 @@ void aec_priv_compare_filters(
             if(shadow_params->shadow_reset_count[ch] > shadow_conf->shadow_zero_thresh) {
                 //# if shadow filter has been reset several times in a row, reset to zeros
                 shadow_params->shadow_flag[ch] = ZERO;
-                aec_priv_reset_filter(shadow_state->H_hat_1d[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+                aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
                 aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
                 //# give the zeroed filter time to reconverge (or redeconverge)
                 shadow_params->shadow_reset_count[ch] = -(int)shadow_conf->shadow_reset_timer;
@@ -328,7 +339,7 @@ void aec_priv_compare_filters(
             else {
                 //debug_printf("Frame %d, main -> shadow filter copy.\n",frame_counter);
                 //# otherwise copy the main filter to the shadow filter
-                aec_priv_copy_filter(shadow_state->H_hat_1d[ch], main_state->H_hat_1d[ch], main_state->shared_state->num_x_channels, shadow_state->num_phases, main_state->num_phases);
+                aec_priv_copy_filter(shadow_state->H_hat[ch], main_state->H_hat[ch], main_state->shared_state->num_x_channels, shadow_state->num_phases, main_state->num_phases);
                 aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &main_state->Error[ch]);
                 shadow_params->shadow_flag[ch] = RESET;
             }
@@ -584,7 +595,7 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     X_fifo[0].hr = X->hr;
     X_fifo[0].length = X->length;
     
-    //update sigma_xx
+    //update sigma_XX
     int32_t DWORD_ALIGNED sigma_scratch_mem[AEC_PROC_FRAME_LENGTH/2 + 1];
     bfp_s32_t scratch;
     bfp_s32_init(&scratch, sigma_scratch_mem, 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
@@ -657,7 +668,7 @@ void aec_priv_calc_coherence(
     t2 = float_s32_mul(one_minus_slow_alpha, coh_mu_state->coh);
     coh_mu_state->coh_slow = float_s32_add(t1, t2);
 }
-
+// Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
 static const int32_t WOLA_window[32] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,
      370590464,  450910459,  536870911,  627693349,  722555272,  820597594,  920932429, 1022651130,
@@ -703,23 +714,25 @@ void aec_priv_create_output(
     error->hr = min_hr;
     
     //copy error to output
-    memcpy(output->data, &error->data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
-    output->length = AEC_FRAME_ADVANCE;
-    output->exp = error->exp;
-    output->hr = error->hr;
+    if(output->data != NULL) {
+        memcpy(output->data, &error->data[AEC_FRAME_ADVANCE], AEC_FRAME_ADVANCE*sizeof(int32_t));
+        output->length = AEC_FRAME_ADVANCE;
+        output->exp = error->exp;
+        output->hr = error->hr;
 
-    //overlap add
-    //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
-    bfp_s32_init(&chunks[0], &output->data[0], output->exp, 32, 0);
-    chunks[0].hr = output->hr;
-    bfp_s32_init(&chunks[1], &output->data[32], output->exp, 240-32, 0);
-    chunks[1].hr = output->hr;
-    
-    //Add previous frame's overlap to first 32 samples of output
-    bfp_s32_add(&chunks[0], &chunks[0], overlap);
-    bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
-    bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
-    output->exp = (chunks[0].exp < chunks[1].exp) ? chunks[0].exp : chunks[1].exp;
+        //overlap add
+        //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
+        bfp_s32_init(&chunks[0], &output->data[0], output->exp, 32, 0);
+        chunks[0].hr = output->hr;
+        bfp_s32_init(&chunks[1], &output->data[32], output->exp, 240-32, 0);
+        chunks[1].hr = output->hr;
+
+        //Add previous frame's overlap to first 32 samples of output
+        bfp_s32_add(&chunks[0], &chunks[0], overlap);
+        bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
+        bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
+        output->hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
+    }
     
     //update overlap
     memcpy(overlap->data, &error->data[480], 32*sizeof(int32_t));
@@ -727,26 +740,15 @@ void aec_priv_create_output(
     overlap->exp = error->exp;
     return;
 }
+extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+        unsigned shr,
+        unsigned count);
 
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
-#if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+//82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
-#else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = xs3_vect_s32_min(
-                                input->data,
-                                input->length);
- 
-    // HR_S32() gets headroom of a single int32_t
-    //old aec would calculate shr as HR_S32(min_element) + 2. Since VPU deals with only signed numbers, increase shr by 1 to account for sign bit in the result of the inverse function.
-    int input_shr = HR_S32(min_element) + 2 + 1;
-    //vtb_inv_X_energy
-    input->exp = (-input->exp - 32); //TODO work out this mysterious calculation
-    input->exp -= (32 - input_shr);
-    vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
-    input->hr = 0;
-#endif
 }
 
 void aec_priv_calc_inv_X_energy_denom(
@@ -780,6 +782,13 @@ void aec_priv_calc_inv_X_energy_denom(
     }
     else
     {
+        //TODO maybe fix this for AEC?
+        // int32_t temp[AEC_PROC_FRAME_LENGTH/2 + 1];
+        // bfp_s32_t temp_bfp;
+        // bfp_s32_init(&temp_bfp, &temp[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
+
         bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
 }

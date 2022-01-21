@@ -1,7 +1,7 @@
 ## App name
 set( APP_NAME  aec_unit_tests )
 
-# Auto-generate schedule and top level config files
+# Auto-generate task distribution scheme and top level config files
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -9,10 +9,10 @@ endif()
 
 #copy conftest.py in the build directory since pytest_collect_file only collects tests from the directory tree where conftest.py is present
 configure_file( conftest.py conftest.py COPYONLY ) 
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_schedule.py )
+set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src/python/generate_task_distribution_scheme.py )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
-set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_schedule.c )
-set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_schedule.h ${AUTOGEN_DIR}/aec_config.h)
+set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
+set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
 message(STATUS "${APP_NAME} aec build config:  ${AEC_UNIT_TESTS_BUILD_CONFIG}" )
 message( STATUS "Unit tests speedup factor ${AEC_UNIT_TESTS_SPEEDUP_FACTOR}" )
@@ -27,7 +27,7 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC schedule and top level config" )
+COMMENT "Generating AEC task distribution and top level config" )
 
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
@@ -76,7 +76,7 @@ list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/
 list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../shared_src ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
+list( APPEND  INCLUDES src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)

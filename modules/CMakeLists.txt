@@ -4,3 +4,7 @@ add_subdirectory( ${LIB_XS3_MATH_PATH} ${CMAKE_CURRENT_BINARY_DIR}/libs/)
 add_subdirectory( lib_meta_data )
 
 add_subdirectory( lib_aec )
+
+add_subdirectory( lib_ic )
+
+add_subdirectory( lib_agc )
