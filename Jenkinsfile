@@ -89,7 +89,7 @@ pipeline {
                   unstash 'cmake_build'
 
                   //For IC spec test and characterisation, we need the Python IC model and xtagctl. Note clone one dir level up
-                  sh "git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git .."
+                  sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
