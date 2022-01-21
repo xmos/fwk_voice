@@ -10,9 +10,12 @@
 #include <xcore/assert.h>
 #include <xcore/hwtimer.h>
 
-#include "aec_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
+
+#include "aec_api.h"
+#include "aec_memory_pool.h"
+#include "agc_api.h"
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
@@ -28,6 +31,8 @@ DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
 
 /// pipeline_stage_1
 void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
+    // Pipeline metadata
+    pipeline_metadata_t md;
     // AEC
     aec_state_t DWORD_ALIGNED aec_main_state;
     aec_state_t DWORD_ALIGNED aec_shadow_state;
@@ -42,38 +47,32 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t aec_output_shadow[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t aec_output_main[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
 
         /** AEC*/
-        aec_process_frame_1thread(&aec_main_state, &aec_shadow_state, &frame[0], &frame[AP_MAX_Y_CHANNELS], aec_output_main, aec_output_shadow);
+        // Memory optimisation: Don't generate shadow filter output. Use mic input memory for the aec main filter output
+        aec_process_frame_1thread(&aec_main_state, &aec_shadow_state, &frame[0], &frame[AP_MAX_Y_CHANNELS], &frame[0], NULL);
         
-        /** Metadata*/
-        float_s32_t ref_power = aec_calc_max_ref_energy(&frame[AP_MAX_Y_CHANNELS], AP_MAX_X_CHANNELS);
-        float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
+        // Update metadata
+        md.max_ref_energy = aec_calc_max_ref_energy(&frame[AP_MAX_Y_CHANNELS], AP_MAX_X_CHANNELS);
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-            aec_corr_factor[ch] = aec_calc_corr_factor(&aec_main_state, ch);
+            md.aec_corr_factor[ch] = aec_calc_corr_factor(&aec_main_state, ch);
         }
-        // Transmit stage 1 metadata
-        float_s32_t stage_1_metadata[1 + AP_MAX_Y_CHANNELS];
-        stage_1_metadata[0] = ref_power;
-        for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-            stage_1_metadata[1+ch] = aec_corr_factor[ch];
-        }
-        chan_out_buf_byte(c_frame_out, (uint8_t*)stage_1_metadata, (1 + AP_MAX_Y_CHANNELS)*sizeof(float_s32_t));
-
+        // Transmit metadata
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Transmit output frame
-        chan_out_buf_word(c_frame_out, (uint32_t*)&aec_output_main[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
     }
 }
 
 
 /// pipeline_stage_2
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
+    // Pipeline metadata
+    pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
@@ -90,25 +89,24 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     agc_meta_data_t agc_md;
     agc_md.vad_flag = AGC_META_DATA_NO_VAD;
 
-    int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t agc_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
-        // Receive metadata from stage 1
-        float_s32_t stage_1_metadata[1 + AP_MAX_Y_CHANNELS];
-        chan_in_buf_byte(c_frame_in, (uint8_t*)stage_1_metadata, (1 + AP_MAX_Y_CHANNELS)*sizeof(float_s32_t));
-        agc_md.aec_ref_power = stage_1_metadata[0];
+        // Receive metadata
+        chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        agc_md.aec_ref_power = md.max_ref_energy;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
 
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-            agc_md.aec_corr_factor = stage_1_metadata[1+ch];
-            agc_process_frame(&agc_state[ch], agc_output[ch], frame[ch], &agc_md);
+            agc_md.aec_corr_factor = md.aec_corr_factor[ch];
+            // Memory optimisation: Reuse input memory for AGC output
+            agc_process_frame(&agc_state[ch], frame[ch], frame[ch], &agc_md);
         }
 
         // Transmit output frame
-        chan_out_buf_word(c_frame_out, (uint32_t*)&agc_output[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
     }
 }
 
