@@ -18,5 +18,5 @@ EXAMPLES
 .. toctree:: 
    :maxdepth: 1
 
-   ../../../examples/bare-metal/index
+   ../../../examples/bare-metal/doc/index
    

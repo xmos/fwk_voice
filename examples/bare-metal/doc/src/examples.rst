@@ -4,8 +4,7 @@
 Example Applications
 ####################
 
-There are two examples offered to demonstrate use of the ``lib_aec`` APIs through actual, simple code examples.
-
+These examples demonstrate the use of one or more audio processing stages to process data through an audio processing pipeline.
 
 Building Examples
 =================

@@ -1,5 +1,0 @@
-Audio Processing Examples
-================================
-
-Introduction
-************

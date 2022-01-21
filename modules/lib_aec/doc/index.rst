@@ -4,17 +4,15 @@ Acoustic Echo Canceller Library
 Introduction
 ************
 
+``lib_aec`` is a library of functions for performing Acoustic Echo Cancellation on input data.
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
     
    src/getting_started
    src/overview
-   src/examples
-
    src/reference/index
-
-``lib_aec`` is a library of functions for performing Acoustic Echo Cancellation on input data.
 
 
 On GitHub
