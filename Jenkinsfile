@@ -55,10 +55,10 @@ pipeline {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DAEC_UNIT_TESTS_SPEEDUP_FACTOR=4'
                       }
                   }
-                  sh "make"
+                  sh "make -j4"
                   sh 'rm CMakeCache.txt'
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5"'
-                  sh "make"
+                  sh "make -j4"
                 }
               }
             }
