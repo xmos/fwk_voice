@@ -36,6 +36,7 @@ extern "C" {
 // Set F to a power of 2 greater than 1 to speedup testing by a Fx
 #undef F
 #ifdef SPEEDUP_FACTOR
+    //TODO Fix
     // #define F (SPEEDUP_FACTOR)
     #define F 1
 #else
