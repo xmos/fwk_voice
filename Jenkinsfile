@@ -110,14 +110,14 @@ pipeline {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread_example.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread_example.xe --input ../shared_src/test_streams/aec_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/aec_2_threads") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   // Make sure 1 thread and 2 threads output is bitexact
                   sh "diff output.wav ../aec_1_thread/output.wav"
                 }
@@ -126,7 +126,16 @@ pipeline {
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/pipeline_multi_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  // Make sure single thread and multi threads pipeline output is bitexact
+                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
               }
             }

@@ -2,6 +2,7 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import xscope_fileio
 import argparse
+import shutil
 import io
 import sh
 import os
@@ -72,6 +73,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("xe", nargs='?',
                         help=".xe file to run")
+    parser.add_argument('--input', type=str, default="input.wav",
+                        help="input wav file. Default: input.wav")
     args = parser.parse_args()
     return args
 
@@ -80,6 +83,16 @@ if __name__ == "__main__":
     assert args.xe is not None, "Specify vaild .xe file"
     adapter_id = get_adapter_id()
     print("Running on adapter_id ",adapter_id)
+    
+    print(f"args.input = {args.input}")
+
+    try:
+        shutil.copy2(args.input, "input.wav")
+    except shutil.SameFileError as e:
+        pass
+    except IOError as e:
+         print('Error: %s' % e.strerror)
+         assert False, "Invalid input file"
 
     xscope_fileio.run_on_target(adapter_id, args.xe)
 
