@@ -136,7 +136,7 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
                     end_tag = 'end_' + tag[6:]
                     cycles = tags[end_tag] - tags[tag]
                     this_frame_tags[tag[6:]] = cycles
-                    if tag.endswith('init'): 
+                    if tag.endswith('init'):  #Exclude init processing
                         init_frame = cycles
                     else:
                         total_cycles += cycles #Note we exclude init as part of our analysis
@@ -160,7 +160,8 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
 
             #in the end, print the worst case frame
             for key, value in worst_case_frame[0].items():
-                fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
+                if not "init" in key: #Exclude init processing
+                    fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
             worst_case_timer_ticks = int(worst_case_frame[1])
             fp.write(f'{"Worst_case_frame_timer(100MHz)_ticks":<44} {worst_case_timer_ticks}\n')
             worst_case_processor_cycles = int((worst_case_timer_ticks/100) * thread_speed_mhz)
@@ -245,8 +246,8 @@ def create_wav_input():
 
 
 xe_files = glob.glob('../../../build/test/lib_ic/test_ic_profile/bin/*.xe')
-#create wav input
 create_wav_input()
+
 @pytest.fixture(scope="session", params=xe_files)
 def setup(request):
     xe = os.path.abspath(request.param) #get .xe filename including path

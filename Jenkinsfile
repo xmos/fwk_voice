@@ -144,6 +144,30 @@ pipeline {
             }
           }
         }
+        stage('IC ic_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_ic/ic_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test profile') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_ic_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
@@ -230,6 +254,9 @@ pipeline {
       }//stages
       post {
         always {
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/ic/output.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
+
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
