@@ -20,10 +20,10 @@
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 DECLARE_JOB(pipeline_stage_1, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
@@ -53,7 +53,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         /** AEC*/
         // Memory optimisation: Don't generate shadow filter output. Use mic input memory for the aec main filter output
-        aec_process_frame_2threads(&aec_main_state, &aec_shadow_state, &frame[0], &frame[AP_MAX_Y_CHANNELS], &frame[0], NULL);        
+        aec_process_frame_2threads(&aec_main_state, &aec_shadow_state, &frame[0], NULL, &frame[0], &frame[AP_MAX_Y_CHANNELS]);        
         
         // Update metadata
         md.max_ref_energy = aec_calc_max_ref_energy(&frame[AP_MAX_Y_CHANNELS], AP_MAX_X_CHANNELS);
