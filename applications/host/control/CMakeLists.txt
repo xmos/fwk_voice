@@ -49,14 +49,14 @@ target_include_directories(${TARGET_NAME} PRIVATE ${APP_INCLUDES} ${DEVICE_CONTR
 
 message(STATUS "Building with ${CMAKE_C_COMPILER_ID}")
 
-if (${CMAKE_C_COMPILER_ID} EQUAL "MSVC")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 	# TODO: Currently building with default compile options
 	# These were originally here:
     # target_compile_options(${TARGET_NAME} PRIVATE /O2 /W4)
 	
 	# These are Windows args used in app_xvf3610/host/dfu_control:
 	# target_compile_options(${TARGET_NAME} PUBLIC /RTC1 /nologo /W4 /WX- /O2 /EHa /_CRT_SECURE_NO_WARNINGS)
-    
+
 	target_link_options(${TARGET_NAME} PRIVATE "")
 else ()
     target_compile_options(${TARGET_NAME} PRIVATE -O2 -Wall)
