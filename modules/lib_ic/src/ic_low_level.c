@@ -297,31 +297,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     } 
 }
 
-//TODO these are not used in lib_aec so not needed here?
-
-// /// Unify bfp_complex_s32_t chunks into a single exponent and headroom
-// void ic_l2_bfp_complex_s32_unify_exponent(
-//         bfp_complex_s32_t *chunks,
-//         int *final_exp,
-//         int *final_hr,
-//         const int *mapping,
-//         int array_len,
-//         int desired_index,
-//         int min_headroom){
-
-// }
-
-// /// Unify bfp_s32_t chunks into a single exponent and headroom
-// void ic_l2_bfp_s32_unify_exponent(
-//         bfp_s32_t *chunks,
-//         int *final_exp,
-//         int *final_hr,
-//         const int *mapping,
-//         int array_len,
-//         int desired_index,
-//         int min_headroom){
-
-// }
 
 //Clear down filter to init state
 void ic_reset_filter(ic_state_t *state){

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "ic_low_level.h"
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
+#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead when implemented
 
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
