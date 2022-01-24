@@ -9,7 +9,7 @@ DOXYGEN_OUTPUT      =$(BUILDDIR)/_doxygen
 DOXYGEN_OUTPUT_DIR  =$(DOXYGEN_OUTPUT)/xml
 export DOXYGEN_OUTPUT # this is needed for the doxyfile OUTPUT_DIRECTORY
 
-BREATHE_PROJECT=lib_aec
+BREATHE_PROJECT=lib_ic
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.

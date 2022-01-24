@@ -1,9 +1,9 @@
 # This file provides overrides to the Doxyfile configuration
 
-PROJECT_NAME           = lib_aec
-PROJECT_BRIEF          = "Library providing functions for performing Automatic Echo Cancellation"
+PROJECT_NAME           = lib_ic
+PROJECT_BRIEF          = "Library providing functions for Cancelling Interference from point noise sources"
 
-INPUT                  = ../api ../../../examples/bare-metal/shared_src/aec ../doc/src
+INPUT                  = ../api ../../../examples/bare-metal/shared_src/ic ../doc/src
 
 PREDEFINED             = C_API= EXTERN_C= 
 

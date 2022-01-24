@@ -21,8 +21,8 @@ from sphinx.builders.html import StandaloneHTMLBuilder
 
 # -- Project information -----------------------------------------------------
 
-project = u"lib_aec"
-copyright = u"2021, XMOS"
+project = u"lib_ic"
+copyright = u"2022, XMOS"
 author = "XMOS"
 
 # The full version, including alpha/beta/rc tags
@@ -49,8 +49,8 @@ extensions = [
 ]
 
 # Breathe Configuration
-breathe_projects = {"lib_aec": "_build/_doxygen/xml/"}
-breathe_default_project = "lib_aec"
+breathe_projects = {"lib_ic": "_build/_doxygen/xml/"}
+breathe_default_project = "lib_ic"
 
 breathe_domain_by_extension = { "h" : "c" }
 

@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Automatic Echo Canceller Library
-================================
+Interference Canceller Library
+==============================
 
 Introduction
 ************
@@ -19,19 +19,19 @@ Introduction
 
    src/reference/index
 
-``lib_aec`` is a library of functions for performing Automatic Echo Cancellation on input data.
+``lib_ic`` is a library of functions for performing Cancellation of Interference of point noise sources in a two channel microphone source.
 
 
 On GitHub
 ---------
 
-``lib_aec`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
-https://github.com/xmos/sw_avona. ``lib_aec`` is present in https://github.com/xmos/sw_avona/modules/lib_aec
+``lib_ic`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
+https://github.com/xmos/sw_avona. ``lib_ic`` is present in https://github.com/xmos/sw_avona/modules/lib_ic
 
 API
 ---
 
-To use the functions in this library in an application, include :ref:`aec_api_h` in the application source file
+To use the functions in this library in an application, include :ref:`ic_api_h` in the application source file
 
 
 Indices and tables
