@@ -12,6 +12,9 @@ configure_file( conftest.py conftest.py COPYONLY )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 
 message(STATUS "${APP_NAME} ic build config:  ${IC_UNIT_TESTS_BUILD_CONFIG}" )
+if (NOT DEFINED IC_UNIT_TESTS_SPEEDUP_FACTOR)
+    set (IC_UNIT_TESTS_SPEEDUP_FACTOR 1)
+endif()
 message( STATUS "Unit tests speedup factor ${IC_UNIT_TESTS_SPEEDUP_FACTOR}" )
 
 file(MAKE_DIRECTORY ${AUTOGEN_DIR})
