@@ -33,7 +33,7 @@ void test_apply_leakage() {
     unsigned seed = 45;
     double max_diff_percentage = 0.0;
 
-    for(int iter=0; iter<(1<<11)/F; iter++) {
+    for(int iter=0; iter<(1<<8)/F; iter++) {
         for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
             for(int ph=0; ph<IC_FILTER_PHASES*IC_X_CHANNELS;ph++){
                 state.H_hat_bfp[ch][ph].exp = pseudo_rand_int32(&seed) % 10;
