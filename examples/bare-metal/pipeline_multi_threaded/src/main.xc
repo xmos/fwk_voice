@@ -20,7 +20,6 @@ int main(){
         on tile[0]: 
         {
           xscope_io_init(xscope_chan);
-          //pipeline_wrapper("input.wav", "output.wav");
           main_tile0("input.wav", "output.wav");
           _Exit(0);
         }

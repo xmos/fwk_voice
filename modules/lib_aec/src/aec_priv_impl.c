@@ -576,9 +576,9 @@ void aec_priv_update_total_X_energy(
       * (zero_mant, -1024 exp) + (some_non_zero_mant, -97 exp) = (some_non_zero_mant, -97 exp). I haven't been able to
       * recreate this situation.
       *
-      * Divide by zero Scenrario 2: A few X_energy bins are 0 with exp something reasonably big and delta is delta_min. We'll not be
-      * able to find this happen by checking for max_X_energy->mant == 0. I have addressed this in
-      * aec_priv_calc_inverse()
+      * Divide by zero Scenario 2: A few X_energy bins are 0 with exp something reasonably big and delta is delta_min.
+      * We'll not be able to find this happen by checking for max_X_energy->mant == 0. I have addressed this in
+      * aec_priv_calc_inv_X_energy_denom()
       */
 
     //Scenario 1 (All bins 0 mant) fix
@@ -791,29 +791,7 @@ void aec_priv_create_output(
 
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
-{
-    /**Fix for divide by 0 scenario 2 discussed in a comment in aec_priv_update_total_X_energy()
-     * We have 2 options.
-     * Option 1: Clamp the denom values between max:(denom_max mant, denom->exp exp) and min (1 mant, denom->exp exp).
-     * This will change all the (0, exp) bins to (1, exp) while leaving other bins unchanged. This could be done without
-     * checking if (bfp_s32_min(denom))->mant is 0, since if there are no zero bins, the bfp_s32_clamp() would change
-     * nothing in the denom vector.
-     * Option 2: Add a (1 mant, denom->exp) scalar to the denom vector. I'd do this after checking if
-     * (bfp_s32_min(denom))->mant is 0 to avoid adding an offset to the denom vector unnecessarily.
-     * Since this is not a recreatable scenario I'm not sure which option is better. Going with option 2 since it
-     * consumes fewer cycles.
-     */
-     //Option 1 (3220 cycles)
-     /*float_s32_t max = bfp_s32_max(input);
-     bfp_s32_clip(input, input, 1, max.mant, input->exp);*/
-
-     //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
-     float_s32_t min = bfp_s32_min(input);
-     if(min.mant == 0) {
-         float_s32_t t = {1, input->exp};
-         bfp_s32_add_scalar(input, input, t);
-     }
-    
+{ 
 #if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
     bfp_s32_inverse(input, input);
 #else //36323 cycles. 2 x-channels, single thread
@@ -865,6 +843,31 @@ void aec_priv_calc_inv_X_energy_denom(
     {
         bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
+
+    /**Fix for divide by 0 scenario 2 discussed in a comment in aec_priv_update_total_X_energy()
+     * We have 2 options.
+     * Option 1: Clamp the denom values between max:(denom_max mant, denom->exp exp) and min (1 mant, denom->exp exp).
+     * This will change all the (0, exp) bins to (1, exp) while leaving other bins unchanged. This could be done without
+     * checking if (bfp_s32_min(denom))->mant is 0, since if there are no zero bins, the bfp_s32_clamp() would change
+     * nothing in the denom vector.
+     * Option 2: Add a (1 mant, denom->exp) scalar to the denom vector. I'd do this after checking if
+     * (bfp_s32_min(denom))->mant is 0 to avoid adding an offset to the denom vector unnecessarily.
+     * Since this is not a recreatable scenario I'm not sure which option is better. Going with option 2 since it
+     * consumes fewer cycles.
+     */
+     //Option 1 (3220 cycles)
+     /*float_s32_t max = bfp_s32_max(inv_X_energy_denom);
+     bfp_s32_clip(inv_X_energy_denom, inv_X_energy_denom, 1, max.mant, inv_X_energy_denom->exp);*/
+
+     //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
+     float_s32_t min = bfp_s32_min(inv_X_energy_denom);
+     if(min.mant == 0) {
+         /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
+          * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
+          * of bfp_s32_add_scalar() making t.mant 0*/
+         float_s32_t t = {1, inv_X_energy_denom->exp};
+         bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, t);
+     }
 }
 
 void aec_priv_calc_inv_X_energy(

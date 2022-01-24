@@ -2,7 +2,6 @@
 #define AP_STAGE_A_STATE_H
 
 #include "pipeline_config.h"
-#include "bfp_math.h"
 #include "xs3_math.h"
 
 typedef struct {
