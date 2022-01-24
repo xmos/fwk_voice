@@ -1,5 +1,7 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+#include <limits.h>
+
 #include <bfp_math.h>
 #include <agc_api.h>
 #include "agc_defines.h"
@@ -130,6 +132,8 @@ void agc_process_frame(agc_state_t *agc,
         }
     }
 
+    bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
+
     // Update loss control state
 
     if (float_s32_gte(agc->lc_far_power_est, meta_data->aec_ref_power)) {
@@ -211,25 +215,39 @@ void agc_process_frame(agc_state_t *agc,
             lc_target_gain = agc->config.lc_gain_double_talk;
         }
 
+        // When changing from one value of lc_target_gain to a different one, the change
+        // is applied gradually, sample-by-sample in the frame, using lc_gamma_inc/dec.
+        // The lc_scale array is initially set to the target value and then overwritten
+        // from the beginning as required to transition from the previous lc_gain value.
+        // This will create a BFP array representing the gradual scale changes which
+        // can be applied by multiplying element-wise using the VPU.
+        int32_t lc_scale[AGC_FRAME_ADVANCE];
+        bfp_s32_t lc_scale_bfp;
+        bfp_s32_init(&lc_scale_bfp, lc_scale, lc_target_gain.exp, AGC_FRAME_ADVANCE, 0);
+        bfp_s32_set(&lc_scale_bfp, lc_target_gain.mant, lc_target_gain.exp);
+        // Add some headroom to avoid changing the exponent when gradually transitioning from
+        // previous lc_gain to lc_target_gain. Anyway, 32 bits of precision is unnecessary.
+        bfp_s32_shl(&lc_scale_bfp, &lc_scale_bfp, -8);
+
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
             if (float_s32_gt(agc->lc_gain, lc_target_gain)) {
                 agc->lc_gain = float_s32_mul(agc->lc_gain, agc->config.lc_gamma_dec);
                 if (float_s32_gt(lc_target_gain, agc->lc_gain)) {
                     agc->lc_gain = lc_target_gain;
                 }
+                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_target_gain.exp);
             } else if (float_s32_gt(lc_target_gain, agc->lc_gain)) {
                 agc->lc_gain = float_s32_mul(agc->lc_gain, agc->config.lc_gamma_inc);
                 if (float_s32_gt(agc->lc_gain, lc_target_gain)) {
                     agc->lc_gain = lc_target_gain;
                 }
+                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_target_gain.exp);
+            } else {
+                break;
             }
-            float_s32_t fl_input = {input[idx], input_bfp.exp};
-            float_s32_t total_gain = float_s32_mul(agc->lc_gain, agc->config.gain);
-            float_s32_t gained_input = float_s32_mul(fl_input, total_gain);
-            output[idx] = use_exp_float(gained_input, input_bfp.exp);
         }
-    } else {
-        bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
+
+        bfp_s32_mul(&output_bfp, &output_bfp, &lc_scale_bfp);
     }
 
     if (agc->config.soft_clipping) {
@@ -237,6 +255,9 @@ void agc_process_frame(agc_state_t *agc,
             output[idx] = apply_soft_clipping(output[idx], output_bfp.exp);
         }
     }
+
+    // Clip to avoid over/underflow when changing to the output frame exponent
+    bfp_s32_clip(&output_bfp, &output_bfp, INT_MIN, INT_MAX, FRAME_EXP);
 
     bfp_s32_use_exponent(&output_bfp, FRAME_EXP);
 }
