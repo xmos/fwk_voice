@@ -33,7 +33,7 @@ Pull the docker container:
 Building
 ========
 
-Build documentation:
+To build the documentation, from the folder sw_avona/modules directory, run the following command:
 
 .. code-block:: console
 
