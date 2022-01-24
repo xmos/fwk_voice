@@ -1,7 +1,20 @@
-// Copyright 2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef IC_DEFINES_H
 #define IC_DEFINES_H
+
+/**
+ * @page page_ic_defines_h ic_defines.h
+ * 
+ * This header contains lib_ic public defines 
+ *
+ * @ingroup ic_header_file
+ */
+
+/**
+ * @defgroup ic_defines   IC #define constants
+ */ 
+
 
 #include <stdio.h>
 #include <limits.h>

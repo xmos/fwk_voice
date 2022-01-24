@@ -1,9 +1,22 @@
-// Copyright 2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef IC_STATE_H
 #define IC_STATE_H
 
 #include "ic_defines.h"
+
+
+/**
+ * @page page_ic_state_h ic_state.h
+ * 
+ * This header contains definitions for data structures used in lib_ic.
+ *
+ * @ingroup ic_header_file
+ */
+
+/**
+ * @defgroup ic_types   IC Data Structures
+ */ 
 
 typedef struct {
     uint8_t bypass;

@@ -1,4 +1,4 @@
-// Copyright 2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef IC_API_H
 #define IC_API_H
@@ -9,7 +9,18 @@
 #include "bfp_math.h"
 #include "ic_state.h"
 
-/* IC public API */
+/**
+ * @page page_ic_api_h ic_api.h
+ * 
+ * lib_ic public functions API.
+ *
+ * @ingroup ic_header_file
+ */
+
+/**
+ * @defgroup ic_func     High Level API Functions
+ * @defgroup ic_low_level_func   Low Level API Functions
+ */ 
 
 /**
  * @brief Initialise IC data structures and set parameters according to ic_defines.h
@@ -22,7 +33,7 @@
  */void ic_init(ic_state_t *state);
 
 /**
- * @brief Filter one frame of data inside the IC
+ * @brief Filter one frame of audio data inside the IC
  *
  * This should be called once per frame of IC_FRAME_ADVANCE samples
  *
@@ -31,8 +42,9 @@
  * @param[in] x_data reference to mic 1 input buffer array
  * @param[out] output reference to IC output buffer array
  *
- * @ingroup aec_func
- */void ic_filter(ic_state_t *state,
+ * @ingroup ic_func
+ */
+void ic_filter(ic_state_t *state,
                       int32_t y_data[IC_FRAME_ADVANCE],
                       int32_t x_data[IC_FRAME_ADVANCE],
                       int32_t output[IC_FRAME_ADVANCE]);
@@ -47,8 +59,9 @@
  * @param[in] vad probability between 0 (0% VAD probability) and 255 (100% VAD probability)
  * @param[in] output pointer to previously filtered output samples.
  *
- * @ingroup aec_func
- */void ic_adapt(ic_state_t *state,
+ * @ingroup ic_func
+ */
+void ic_adapt(ic_state_t *state,
                       uint8_t vad,
                       int32_t output[IC_FRAME_ADVANCE]);
 
