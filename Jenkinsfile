@@ -52,12 +52,13 @@ pipeline {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DAEC_UNIT_TESTS_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4'
                       }
                   }
                   sh "make -j4"
                   sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5"'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
                   sh "make -j4"
                 }
               }
@@ -219,6 +220,18 @@ pipeline {
                   sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
                   sh "cp pytest_result.xml results_final.xml"
                   junit "results_final.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('AGC tests') {
+          steps {
+            dir("${REPO}/test/lib_agc/test_process_frame") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
