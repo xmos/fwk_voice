@@ -27,7 +27,7 @@
  *
  * This function initializes AEC data structures for a given configuration.
  * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are
- * passed in as input arguments. More details about top level AEC configuration are in @ref aec_overview.
+ * passed in as input arguments.
  *
  * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *

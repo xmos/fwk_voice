@@ -10,10 +10,10 @@
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 
 void pipeline_init(pipeline_state_t *state) {
@@ -48,10 +48,10 @@ void pipeline_process_frame(pipeline_state_t *state,
     int32_t aec_output_shadow[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     int32_t aec_output_main[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
-    aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, aec_output_main, aec_output_shadow);
+    aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, aec_output_main, aec_output_shadow, input_y_data, input_x_data);
     
     agc_meta_data_t agc_md;
-    agc_md.aec_ref_power = aec_calc_max_ref_energy(input_x_data, AP_MAX_Y_CHANNELS);
+    agc_md.aec_ref_power = aec_calc_max_ref_energy(input_x_data, AP_MAX_X_CHANNELS);
     agc_md.vad_flag = AGC_META_DATA_NO_VAD;
     
     /** AGC*/

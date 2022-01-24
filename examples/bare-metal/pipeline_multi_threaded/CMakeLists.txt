@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  aec_1_thread )
+set( APP_NAME  pipeline_multi_threaded )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -10,14 +10,15 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
-    lib_aec 
+    lib_aec
+    lib_agc
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
-file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_1thread.c )
+file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_2threads.c )
 unset( SOURCES_SHARED )
 list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
 file( GLOB SOURCES_XC src/*.xc )

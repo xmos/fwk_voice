@@ -132,6 +132,7 @@ void agc_process_frame(agc_state_t *agc,
         }
     }
 
+    float_s32_t frame_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
     bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
 
     // Update loss control state
@@ -153,7 +154,6 @@ void agc_process_frame(agc_state_t *agc,
         agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
     }
 
-    float_s32_t frame_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
     if (float_s32_gte(agc->lc_near_power_est, frame_power)) {
         agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_DEC);
     } else {

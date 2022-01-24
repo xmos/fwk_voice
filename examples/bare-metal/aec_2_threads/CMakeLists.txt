@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  aec_2_threads_example )
+set( APP_NAME  aec_2_threads )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 

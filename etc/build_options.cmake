@@ -7,7 +7,7 @@ include(CMakeDependentOption)
 #### BUILD OPTIONS ####  
 
 ## If enabled, the unit tests will be added as build targets
-set(BUILD_TESTS    ON CACHE BOOL "Include tests as CMake targets." )
+set(BUILD_TESTS    OFF CACHE BOOL "Include tests as CMake targets." )
 set(BUILD_EXAMPLES ON CACHE BOOL "Include examples as CMake targets." )
 set( TEST_WAV_AEC_BUILD_CONFIG "2 2 2 10 5" CACHE STRING "AEC build configuration for test_wav_aec in <threads> <ychannels> <xchannels> <num_main_phases> <num_shadow_phases> format" )
 set( TEST_AEC_ENHANCEMENTS_BUILD_CONFIG "2 2 2 10 5" CACHE STRING "AEC build configuration for test_aec_enhancements in <threads> <ychannels> <xchannels> <num_main_phases> <num_shadow_phases> format" )
