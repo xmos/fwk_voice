@@ -5,7 +5,7 @@ PROJECT_BRIEF          = "Library providing functions for Cancelling Interferenc
 
 INPUT                  = ../api ../../../examples/bare-metal/shared_src/ic ../doc/src
 
-PREDEFINED             = C_API= EXTERN_C= 
+PREDEFINED             = C_API= EXTERN_C= DWORD_ALIGNED=
 
 USE_MATHJAX            = YES
 MATHJAX_FORMAT         = HTML-CSS

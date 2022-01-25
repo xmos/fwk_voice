@@ -36,11 +36,12 @@
 
 #define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1
 #define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0
-#define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999
 #define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99
-#define IC_INIT_ENERGY_ALPHA                        0.999
-#define IC_INIT_ENERGY_ALPHA0                       0.98
+#define IC_INIT_ENERGY_ALPHA_SLOW                   0.999
+#define IC_INIT_ENERGY_ALPHA_FAST                   0.98
 #define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995
+
+#define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999
 
 
 //Fixed paramaters - do not edit

@@ -16,28 +16,35 @@ static void ic_init_config(ic_config_params_t *config){
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
     config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
-    config->coeff_index = 0;
+}
+
+
+
+static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
+    config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
+    config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
+    config->energy_alpha_slow = double_to_float_s32(IC_INIT_ENERGY_ALPHA_SLOW);
+    config->energy_alpha_fast = double_to_float_s32(IC_INIT_ENERGY_ALPHA_FAST);
+
+    config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
+    config->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
+    config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+
+    config->enable_adaption = 1;
+
 }
 
 static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
-    adaption_controller_state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    adaption_controller_state->enable_adaption = 1;
-
-    adaption_controller_state->vad_counter = 0;
     adaption_controller_state->smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
-    adaption_controller_state->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
 
-    adaption_controller_state->energy_alpha = double_to_float_s32(IC_INIT_ENERGY_ALPHA);
-    adaption_controller_state->input_energy = double_to_float_s32(0.0);
-    adaption_controller_state->output_energy = double_to_float_s32(0.0);
 
-    adaption_controller_state->energy_alpha0 = double_to_float_s32(IC_INIT_ENERGY_ALPHA0);
-    adaption_controller_state->input_energy0 = double_to_float_s32(0.0);
-    adaption_controller_state->output_energy0 = double_to_float_s32(0.0);
+    adaption_controller_state->input_energy_slow = double_to_float_s32(0.0);
+    adaption_controller_state->output_energy_slow = double_to_float_s32(0.0);
 
-    adaption_controller_state->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
-    adaption_controller_state->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
-    adaption_controller_state->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+    adaption_controller_state->input_energy_fast = double_to_float_s32(0.0);
+    adaption_controller_state->output_energy_fast = double_to_float_s32(0.0);
+
+    ic_init_adaption_controller_config(&adaption_controller_state->adaption_controller_config);
 }
 
 void ic_init(ic_state_t *state){
@@ -64,7 +71,6 @@ void ic_init(ic_state_t *state){
     //Initiaise Y_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->Y_hat_bfp[ch], state->Y_hat[ch], -1024, IC_FD_FRAME_LENGTH, 0);
-        bfp_s32_init(&state->y_hat_bfp[ch], (int32_t *)state->Y_hat[ch], -1024, IC_FRAME_LENGTH, 0);
     }
     //X_energy 
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
@@ -185,10 +191,9 @@ void ic_filter(
         ic_calc_Error_and_Y_hat(state, ch);
     }
 
-    //IFFT Error and Y_hat
+    //IFFT Error (output)
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
-        ic_ifft(&state->y_hat_bfp[ch], &state->Y_hat_bfp[ch]);
     }
 
     //Note the model supports noise minimisation but we have not ported this
