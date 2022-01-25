@@ -31,8 +31,9 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
+                  sh "git submodule update --init"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e ${env.WORKSPACE}/xscope_fileio"
+                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
               }
             }
@@ -85,7 +86,8 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "pip install -e ${env.WORKSPACE}/xscope_fileio"
+                  sh "git submodule update --init"
+                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build'
                 }
               }

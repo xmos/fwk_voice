@@ -17,12 +17,12 @@ list( APPEND  DEP_LIBS
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED_FILEIO ../shared_src/file_utils/*.c )
-file( GLOB SOURCES_SHARED_AEC ../shared_src/aec/aec_process_frame_1thread.c )
+file( GLOB SOURCES_SHARED_FILEIO ${SHARED_SRC_PATH}/file_utils/*.c )
+file( GLOB SOURCES_SHARED_AEC ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
 unset( SOURCES_SHARED )
 list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
 file( GLOB SOURCES_XC src/*.xc )
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
+file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES ${XSCOPE_FILEIO_PATH}/src/*.c )
 
 unset( SOURCES )
 list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_SHARED})
@@ -32,9 +32,9 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ../shared_src/file_utils ../shared_src/aec )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${SHARED_SRC_PATH}/aec )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 # set( XSCOPE_CONFIG config.xscope )
