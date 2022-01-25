@@ -12,6 +12,7 @@ AUDIO FEATURES
    :maxdepth: 1
 
    ../../../modules/lib_aec/doc/index
+   ../../../modules/lib_agc/doc/index
 
 EXAMPLES
 
@@ -19,4 +20,3 @@ EXAMPLES
    :maxdepth: 1
 
    ../../../examples/bare-metal/doc/index
-   
