@@ -168,11 +168,10 @@ void agc_init(agc_state_t *agc, agc_config_t *config);
 typedef struct {
     /** Boolean to indicate the detection of voice activity in the current frame. */
     int vad_flag;
-    /** The power of the most powerful reference channel. This is calculated by `lib_aec` in
-     *  `aec_calc_max_ref_energy()`. */
+    /** The power of the most powerful reference channel. */
     float_s32_t aec_ref_power;
     /** Correlation factor between the microphone input and the AEC's estimated microphone
-     *  signal. This is calculated by `lib_aec` in `aec_calc_corr_factor()`. */
+     *  signal. */
     float_s32_t aec_corr_factor;
 } agc_meta_data_t;
 

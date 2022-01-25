@@ -30,8 +30,9 @@ AGC instance by calling ``agc_init()``. Then for each frame,
 ``agc_process_frame()`` will update the AGC instance's internal state and produce
 the output frame by applying the AGC algorithm to the input frame.
 
-The AGC gain values are multiplicative factors that are applied to scale the input
-frame. Therefore, a gain value of 1.0 will create no change to the input.
+The gain values in this module for AGC gain and Loss Control gain are
+multiplicative factors that are applied to scale the input frame. Therefore, a
+fixed gain value of 1.0 (without loss control) will create no change to the input.
 
 If multiple channels need to be processed by the application, or multiple outputs
 are required, an independent instance of the AGC must be run for each channel.
