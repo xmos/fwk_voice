@@ -11,3 +11,5 @@ add_subdirectory( aec_2_threads )
 
 add_subdirectory( pipeline_multi_threaded )
 endif()
+
+add_subdirectory( agc )
