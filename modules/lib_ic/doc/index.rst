@@ -1,8 +1,3 @@
-.. lib_xs3_math documentation master file, created by
-   sphinx-quickstart on Mon Jul 12 11:09:43 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Interference Canceller Library
 ==============================
 
@@ -16,8 +11,7 @@ Introduction
    src/getting_started
    src/overview
    src/examples
-
-..   src/reference/index
+   src/reference/index
 
 ``lib_ic`` is a library of functions for performing Cancellation of Interference of point noise sources in a two channel microphone source.
 
@@ -32,6 +26,12 @@ API
 ---
 
 To use the functions in this library in an application, include :ref:`ic_api_h` in the application source file
+
+.. toctree::
+   :maxdepth: 1
+    
+   src/reference/header_files
+
 
 
 Indices and tables

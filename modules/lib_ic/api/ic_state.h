@@ -15,7 +15,7 @@
  */
 
 /**
- * @defgroup ic_types   IC Data Structures
+ * @defgroup ic_state   IC Data Structures
  */ 
 
 typedef struct {

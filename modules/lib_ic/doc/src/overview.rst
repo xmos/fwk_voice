@@ -1,4 +1,7 @@
-### IC Overview ###              {#ic_overview}
+.. _overview:
+
+IC Overview
+===========
 
 The lib_aec library provides functions that can be put together to perform Automatic Echo Cancellation on input
 microphone data by using input reference data to model the echo characteristics of the room.
