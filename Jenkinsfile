@@ -24,6 +24,9 @@ pipeline {
       agent {
         label 'x86_64 && brew'
       }
+      environment {
+        XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+      }
       stages {
         stage('Get view') {
           steps {
@@ -50,10 +53,10 @@ pipeline {
                   sh "cmake --version"
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
                       }
                   }
                   sh "make -j4"
