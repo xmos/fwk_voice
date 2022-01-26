@@ -1,19 +1,5 @@
 .. _examples:
 
-####################
-Example Applications
-####################
-
-These examples demonstrate the use of one or more audio processing stages to process data through an audio processing pipeline.
-
-Building Examples
-=================
-
-After configuring the CMake project (with the ``BUILD_EXAMPLES`` enabled), all the examples can
-be built by using the ``make`` command within the build directory.  Individual examples can be built
-using ``make EXAMPLE_NAME``, where ``EXAMPLE_NAME`` is the example to build. 
-
-
 Example App: aec_1_thread
 =========================
 
