@@ -3,43 +3,43 @@
 IC Overview
 ===========
 
-The lib_aec library provides functions that can be put together to perform Automatic Echo Cancellation on input
-microphone data by using input reference data to model the echo characteristics of the room.
+The Interference Canceller (IC) suppresses static noise from point sources such as cooker hoods, washing machines,
+or radios for which there is no reference audio signal available. When the Voice Activity Detector (VAD) input
+indicates the absence of voice, the IC adapts to remove noise from point sources in the environment. When the VAD 
+signal indicates the presence of voice, the IC suspends adaptation which maintains suppression of the interfering 
+noise sources previously adapted to.
 
-The echo canceller takes in one or more channels of microphone (mic) input and one or more channels of reference input
-data. The mic input is the input captured by the device microphones. Reference input is the audio that is played out of
-the device speakers. The echo canceller uses the reference input to model the room echo characteristics for each
-mic-loudspeaker pair and outputs an echo cancelled version of the mic input. AEC uses adaptive filters, one per
-mic-speaker pair to constantly remove echo from the the mic input. The filters continually adapt to the acoustic
-environment to accommodate changes in the room created by events such as doors opening or closing and people moving
-about.
+The echo canceller is based on an AEC architecture and attempts to cancel one microphone signal from the other in
+the absence of voice. In this way, it builds an estimate of the difference in transfer functions between the two
+microphones for any present noise sources. Since the transfer function includes spatial information about the noise
+sources, applying this filter to the mic input allows any signals originating from the noise source to be cancelled.
 
-Echo cancellation is performed on a frame by frame basis. Each frame is made of 15msec chunks of data, which is 240
-samples at 16kHz input sampling frequency, per input channel. For example, for a 2 mic channel and 2 reference channel
-input configuration, an input frame is made of 2x240 samples of mic data and 2x240 samples of reference data. Input data
-is expected to be in fixed point 32bit 1.31 format. Further, in this example, there will be a total of 4 adaptive
-filters; \\(\hat{H}_{y0x0}\\), \\(\hat{H}_{y0x1}\\), \\(\hat{H}_{y1x0}\\) and \\(\hat{H}_{y1x1}\\), monitoring the echo
-seen in mic channel 0 from reference channel 0 and 1 and echo seen in mic channel 1 from reference channel 0 and 1.
+The IC uses an adaptive filter which continually adapts to the acoustic environment to accommodate changes in the room
+created by events such as doors opening or closing and people moving about, or even the presence of intermittent 
+noise sources such as kitchen applinces.
+However it will hold the current transfer function in the presence of voice meaning it does not adapt to desired 
+audio sources, which in this case is a person speaking.
 
-Microphone data is referred to as \\(y\\) when in time domain and \\(Y\\) when in frequency
-domain. In general throughout the code, names starting with lower case represent time domain and those beginning with
-upper case represent frequency domain. For example \\(error\\) is the filter error and \\(Error\\) is the spectrum of
-the filter error.
-Reference input is referred to as \\(x\\) in time domain and \\(X\\) when in frequency domain.
-Filter is referred to as \\(\hat{h}\\) in time domain and \\(\hat{H}\\) in frequency domain.
+The cancellation is performed on a frame by frame basis. Each frame is made of 15msec chunks of data, which is 240
+new samples at 16kHz input sampling frequency, per input channel. This is combined with previous audio data to form
+a 512 sample frame which allows for sufficient overlap for effective operation of the filter.
 
-A filter has multiple phases. The term phases refers to the tail length of the filter. A filter with more phases or a
-longer tail length will be able to model a more reverberant room response leading to better echo cancellation.
+The first channel of input microphone data is referred to as `y` when in time domain and `Y` when in frequency
+domain. The second channel of input microphone data is referred to as `x` when in time domain and `X` when in frequency
+domain. The y signal is effectively used as the signal containing noise that needs to be cancelled and the x signal
+is the refernce from which the transfer function is estimated and consequently the noise signal estimated before it
+is subtracted from y.
 
-There are 2 types of adaptive filters used in the AEC. These are referred to as main filter and shadow filter. The main
-filter as the name suggests is the main filter that is used to generate the echo cancelled output of the AEC. Shadow
-filter is a filter that used to quickly detect and respond to changes in the room transfer function. There is one main
-filter and one shadow filter per \\(x\\)-\\(y\\) pair. Typically the main filter has more phases than the shadow
-filter. Fewer phases in the shadow filter enable it to rapidly detect and respond to changes while more phases in main
-filter lead to deeper convergence and hence better echo cancellation at the AEC output.
+In general throughout the code, names starting with lower case represent time domain and those beginning with
+upper case represent frequency domain. For example `error` is the filter error and `Error` is the spectrum of
+the filter error. The filter coefficient array referred to as `h_hat` in time domain and `H_hat` in frequency domain.
 
-Before starting AEC processing or every time there's a configuration change, the user needs to call aec_init() to
-initialise the echo canceller for a desired configuration. Once the AEC is initialised, the library functions can be
-called in a logical order to perform echo cancellation on a frame by frame basis. Refer to the aec_1_thread and
-aec_2_threads examples to see how the functions are called to perform echo cancellation using one thread or 2 threads. 
+The filter has multiple phases. The term phases refers to the tail length of the filter. A filter with more phases or a
+longer tail length will be able to model a more reverberant room response leading to better interference cancellation
+but, as with all normalised LMS based architectures, will be slower to converge in the case of a transfer function change.
+
+Before starting the IC processing the user must call ic_init() to initialise the IC. If the configuration parameters are
+to be set to non-defaults please eith modify these after ic_init() or in the ic_defines.h file.
+Once the IC is initialised, the library functions can be called in a order to perform interference cancellation on 
+a frame by frame basis. Please see the `Example Application`. 
 
