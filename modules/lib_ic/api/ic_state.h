@@ -46,6 +46,9 @@ typedef struct {
     uint32_t sigma_xx_shift;
     /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy. */
     fixed_s32_t ema_alpha_q30;
+    /** Delta value used in denominator to avoid large values when calculating inverse
+     * X energy. */
+    float_s32_t delta;
 }ic_config_params_t;
 
 
@@ -206,8 +209,6 @@ typedef struct {
     float_s32_t error_ema_energy[IC_Y_CHANNELS];
     /** Used to keep track of peak X energy. */
     float_s32_t max_X_energy[IC_X_CHANNELS]; 
-    /** Delta value used in denominator to avoid large values when calculating 1/x. */
-    float_s32_t delta;
 
     /** BFP array pointing to the EMA filtered X input energy. */
     bfp_s32_t sigma_XX_bfp[IC_X_CHANNELS];

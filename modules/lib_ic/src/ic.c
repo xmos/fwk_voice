@@ -16,6 +16,8 @@ static void ic_init_config(ic_config_params_t *config){
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
     config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
+    config->delta = double_to_float_s32(IC_INIT_DELTA);
+
 }
 
 
@@ -124,8 +126,6 @@ void ic_init(ic_state_t *state){
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         state->x_ema_energy[ch].exp = -1024;
     }
-    //fractional regularisation scale factor
-    state->delta = double_to_float_s32(IC_INIT_DELTA);
 
     //Mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
