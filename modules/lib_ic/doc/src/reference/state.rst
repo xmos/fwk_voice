@@ -1,7 +1,7 @@
 .. _ic_state:
 
-IC API State Structure
-======================
+`lib_ic` API State Structure
+============================
 
  .. doxygengroup:: ic_state
      :members:

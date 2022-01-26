@@ -1,7 +1,7 @@
 .. _ic_func:
 
-IC API Functions
-================
+`lib_ic` API Functions
+======================
 
  .. doxygengroup:: ic_func
      :content-only:

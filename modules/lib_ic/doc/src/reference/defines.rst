@@ -1,7 +1,7 @@
 .. _ic_defines:
 
-IC API Definitions
-==================
+`lib_ic` API Definitions
+========================
 
  .. doxygengroup:: ic_defines
      :members:

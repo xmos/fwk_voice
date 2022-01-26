@@ -1,4 +1,4 @@
-.. _ic_heard_files:
+.. _ic_header_files:
 
 `lib_ic` Header Files
 =====================
