@@ -9,6 +9,9 @@ indicates the absence of voice, the IC adapts to remove noise from point sources
 signal indicates the presence of voice, the IC suspends adaptation which maintains suppression of the interfering 
 noise sources previously adapted to.
 
+It can offer much greater, and automatic, cancellation of broad-band noise sources when compared to beam forming 
+techniques.
+
 It is designed to work at a sample rate of 16kHz and has a fixed configuration of two input microphones and a single
 output channel.
 
