@@ -21,6 +21,7 @@ filesystem_support/spanning-xn*
 filesystem_support/target-xn*
 
 # Python cruft
+**/.python-version
 **/*.pyc
 **/__pycache__/*
 
@@ -29,3 +30,5 @@ filesystem_support/target-xn*
 
 # macOS cruft
 .DS_Store
+
+**/*.swp

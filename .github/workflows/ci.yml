@@ -15,9 +15,13 @@ on:
   push:
     branches:
       - 'main'
+      - 'develop'
+      - 'release/**'
   pull_request:
     branches:
       - 'main'
+      - 'develop'
+      - 'release/**'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
