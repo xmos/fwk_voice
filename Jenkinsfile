@@ -14,7 +14,8 @@ pipeline {
     VIEW = getViewName(REPO)
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
-                    || env.BRANCH_NAME == 'main') ? 1 : 0}"""
+                    || env.BRANCH_NAME == 'main'
+                    || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -59,10 +60,10 @@ pipeline {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
                       }
                   }
-                  sh "make -j4"
+                  sh "make -j8"
                   sh 'rm CMakeCache.txt'
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
-                  sh "make -j4"
+                  sh "make -j8"
                 }
               }
             }
