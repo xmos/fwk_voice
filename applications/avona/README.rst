@@ -64,14 +64,6 @@ Run the following commands to build the avona firmware:
 
 After building the firmware, you need to create the filesystem, which includes the wakeword models, and flash the device with the following commands:
 
-Note, MacOS users will need to install `dosfstools`.
-
-.. tab:: MacOS
-
-    .. code-block:: console
-
-        $ brew install dosfstools
-
 Flash the filesystem with the following command:
 
 .. tab:: Linux and MacOS
