@@ -7,4 +7,5 @@ add_subdirectory( aec_1_thread )
 ## AEC 2 thread example builds only on XCORE
 if( XCORE )
 add_subdirectory( aec_2_threads )
+add_subdirectory( vad )
 endif()
