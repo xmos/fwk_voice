@@ -4,7 +4,7 @@ Getting Started
 Overview
 --------
 
-``lib_aec`` is a library which provides functions that can be put together to perform Automatic Echo Cancellation (AEC)
+``lib_aec`` is a library which provides functions that can be put together to perform Acoustic Echo Cancellation (AEC)
 on input mic data using the input reference data to model the room echo characteristics. ``lib_aec`` library functions
 make use of functionality provided in ``lib_xs3_math`` to perform DSP operations. For more details refer to
 :ref:`aec_overview`.
@@ -12,20 +12,19 @@ make use of functionality provided in ``lib_xs3_math`` to perform DSP operations
 Repository Structure
 --------------------
 
-* `lib_aec/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/>`_ - The actual ``lib_aec`` library directory.
+* ``modules/lib_aec`` - The actual ``lib_aec`` library directory within ``https://github.com/xmos/sw_avona/``. Within ``lib_aec``
 
-  * `api/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/api/>`_ - Headers containing the public API for ``lib_aec``.
-  * `doc/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/doc/>`_ - Library documentation source (for non-embedded documentation) and build directory.
-  * `src/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/src/>`_ - Library source code.
+  * ``api/`` - Headers containing the public API for ``lib_aec``.
+  * ``doc/`` - Library documentation source (for non-embedded documentation) and build directory.
+  * ``src/`` - Library source code.
 
 
 Requirements
 ------------
 
-``lib_aec`` is included as part of the `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ github repository
+``lib_aec`` is included as part of the ``sw_avona`` github repository
 and all requirements for cloning and building ``sw_avona`` apply. ``lib_aec`` is compiled as a static library as part of
-overall ``sw_avona`` build. It depends on `lib_xs3_math
-<https://github.com/xmos/sw_avona/tree/develop/modules/lib_xs3_math/>`_. 
+overall ``sw_avona`` build. It depends on `lib_xs3_math <https://github.com/xmos/lib_xs3_math/>`_.
 
 API Structure
 -------------
@@ -49,8 +48,8 @@ This API is still a work in progess and will be fully supported in the future.
 Getting and Building
 ####################
 
-This repo is got as part of the parent `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ repo clone. It is
-compiled as a static library as part of ``sw_avona`` compilation process.
+This repo is got as part of the parent ``sw_avona`` repo clone. It is compiled as a static library as part of sw_avona
+compilation process.
 
 To include ``lib_aec`` in an application as a static library, the generated ``lib_aec.a`` can then be linked into the
 application. Be sure to also add ``lib_aec/api`` as an include directory for the application.

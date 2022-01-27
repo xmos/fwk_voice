@@ -117,6 +117,19 @@ void aec_calc_time_domain_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
 }
 
+float_s32_t aec_calc_max_ref_energy(const int32_t (*x_data)[AEC_FRAME_ADVANCE], int num_channels) {
+    bfp_s32_t ref;
+
+    bfp_s32_init(&ref, (int32_t*)&x_data[0][0], -31, AEC_FRAME_ADVANCE, 1);
+    float_s32_t max = float_s64_to_float_s32(bfp_s32_energy(&ref));
+    for(int ch=1; ch<num_channels; ch++) {
+        bfp_s32_init(&ref, (int32_t*)&x_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        float_s32_t current = float_s64_to_float_s32(bfp_s32_energy(&ref));
+        if(float_s32_gt(current, max)){max = current;}
+    }
+    return max;
+}
+
 void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input)
@@ -190,6 +203,23 @@ void aec_inverse_fft(
 
     input->length = len;
     return;
+}
+
+float_s32_t aec_calc_corr_factor(
+        aec_state_t *state,
+        unsigned ch) {
+    // We need yhat[240:480-32] and y[240:480-32]
+    int frame_window = 32;
+
+    // y[240:480] is prev_y[0:240].
+    bfp_s32_t y_subset;
+    bfp_s32_init(&y_subset, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE-frame_window, 1);
+
+    bfp_s32_t yhat_subset;
+    bfp_s32_init(&yhat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE-frame_window, 1);
+
+    float_s32_t corr_factor = aec_priv_calc_corr_factor(&y_subset, &yhat_subset);
+    return corr_factor;
 }
 
 void aec_calc_coherence(

@@ -4,7 +4,7 @@
 #define AEC_MEMORY_POOL_H
 
 #include "xs3_math.h"
-#include "aec_config.h"
+
 //Memory pool definition
 typedef struct {
     /** Memory pointed to by aec_shared_state_t::y and aec_shared_state_t::Y*/
