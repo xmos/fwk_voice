@@ -152,18 +152,6 @@ pipeline {
             }
           }
         }
-        stage('Meta Data tests') {
-          steps {
-            dir("${REPO}/build/test/lib_meta_data") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
         stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
@@ -220,6 +208,18 @@ pipeline {
                   //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
                   //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
                   // sh "python sweep_ic_delay.py"
+                }
+              }
+            }
+          }
+        }
+        stage('Meta Data tests') {
+          steps {
+            dir("${REPO}/build/test/lib_meta_data") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
