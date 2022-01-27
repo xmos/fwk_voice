@@ -21,11 +21,12 @@ file( GLOB SOURCES_XC src/*.xc )
 file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
 
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
+file( GLOB_RECURSE PROFILE_SOURCES ../../../test/lib_aec/test_aec_profile/src/*.c )
 
 unset( SOURCES )
 list( APPEND SOURCES ${SOURCES_C} ${SOURCES_SHARED})
 unset( SOURCES_XCORE )
-list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
+list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${PROFILE_SOURCES})
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
@@ -44,7 +45,7 @@ get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
 unset(COMPILE_FLAGS)
 unset(COMPILE_FLAGS_XCORE)
 
-list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 )
+list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 -DPROFILE_PROCESSING=1)
 
 unset(COMPILE_FLAGS_Linux)
 list( APPEND  COMPILE_FLAGS_Linux   ""  )

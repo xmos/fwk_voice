@@ -55,7 +55,7 @@ int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
     return sum / div;
 }
 
-void vad_init_state(vad_state_t &state) {
+void vad_init(vad_state_t &state) {
     memset(&state, 0, sizeof(state));
 }
 

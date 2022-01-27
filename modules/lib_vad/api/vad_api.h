@@ -17,7 +17,7 @@ typedef struct {
  *                             declared as int32_t state[VAD_STATE_LENGTH()].
  *
  */
-void vad_init_state(vad_state_t &state);
+void vad_init(vad_state_t *state);
 
 /** Function that classifies whether a current set of samples is voice or not. 
  *
@@ -36,8 +36,7 @@ void vad_init_state(vad_state_t &state);
  *                             likely voice
  */
 int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
-        vad_state_t &state);
+        vad_state_t *state);
 
-void vad_test_task(chanend app_to_vad, chanend vad_to_app, chanend ?c_control);
 
 #endif
