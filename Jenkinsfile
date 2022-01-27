@@ -14,7 +14,8 @@ pipeline {
     VIEW = getViewName(REPO)
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
-                    || env.BRANCH_NAME == 'main') ? 1 : 0}"""
+                    || env.BRANCH_NAME == 'main'
+                    || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -24,6 +25,9 @@ pipeline {
       agent {
         label 'x86_64 && brew'
       }
+      environment {
+        XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+      }
       stages {
         stage('Get view') {
           steps {
@@ -31,8 +35,9 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
+                  sh "git submodule update --init"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e ${env.WORKSPACE}/xscope_fileio"
+                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
               }
             }
@@ -49,16 +54,16 @@ pipeline {
                   sh "cmake --version"
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY"'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -G"Unix Makefiles" -DPython3_FIND_VIRTUALENV="ONLY" -DAEC_UNIT_TESTS_SPEEDUP_FACTOR=4'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
                       }
                   }
-                  sh "make -j4"
+                  sh "make -j8"
                   sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5"'
-                  sh "make -j4"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
+                  sh "make -j8"
                 }
               }
             }
@@ -85,11 +90,13 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "pip install -e ${env.WORKSPACE}/xscope_fileio"
+                  sh "git submodule update --init"
+                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build'
 
-                  //For IC spec test and characterisation, we need the Python IC model and xtagctl. Note clone one dir level up
+                  //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
+                  sh "cd .. && git@github.com:xmos/lib_voice_toolbox.git && cd -"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
@@ -113,26 +120,33 @@ pipeline {
         }
         stage('Examples') {
           steps {
-            dir("${REPO}/examples/bare-metal/aec_1_thread") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread_example.xe"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/aec_2_threads") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads_example.xe"
-                  // Make sure 1 thread and 2 threads output is bitexact
-                  sh "diff output.wav ../aec_1_thread/output.wav"
-                }
-              }
-            }
             dir("${REPO}/examples/bare-metal/ic") {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/pipeline_multi_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  // Make sure single thread and multi threads pipeline output is bitexact
+                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/agc") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
             }
@@ -289,6 +303,18 @@ pipeline {
                   sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
                   sh "cp pytest_result.xml results_final.xml"
                   junit "results_final.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('AGC tests') {
+          steps {
+            dir("${REPO}/test/lib_agc/test_process_frame") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
