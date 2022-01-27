@@ -213,18 +213,6 @@ pipeline {
             }
           }
         }
-        stage('Meta Data tests') {
-          steps {
-            dir("${REPO}/build/test/lib_meta_data") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
