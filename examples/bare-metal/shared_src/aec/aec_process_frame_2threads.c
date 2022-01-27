@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
-#include "aec_config.h"
 #include "aec_task_distribution.h"
 
 #include "aec_defines.h"
@@ -36,10 +35,10 @@ static int framenum = 0;
 void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE])    
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],    
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE])
 {
     // Read number of mic and reference channels. These are specified as part of the configuration when aec_init() is called.
     int num_y_channels = main_state->shared_state->num_y_channels; //Number of mic channels
@@ -386,8 +385,13 @@ void calc_output_task(par_tasks_and_channels_t *s, aec_state_t *main_state, aec_
             }
             else {
                 if(shadow_state != NULL) {
-                    int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_shadow;
-                    aec_calc_output(shadow_state, &tmp[ch], ch);
+                    if(output_shadow != NULL) {
+                        int32_t (*tmp)[AEC_FRAME_ADVANCE] = (int32_t(*)[AEC_FRAME_ADVANCE])output_shadow;
+                        aec_calc_output(shadow_state, &tmp[ch], ch);
+                    }
+                    else {
+                        aec_calc_output(shadow_state, NULL, ch);
+                    }
                 }
             }
         }

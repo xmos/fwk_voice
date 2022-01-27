@@ -1,21 +1,13 @@
-######################
+####################
+Documentation Source
+####################
+
+This folder contains source files for the **Avona Reference Design** documentation.  The sources do not render well in GitHub or an RST viewer.  In addition, some information 
+is not visible at all and some links will not be functional.
+
+**********************
 Building Documentation
-######################
-
-Instructions are given below to build the documentation.  The recommended method is using Docker, 
-however, alternative instructions are provided in case using Docker in not an option.
-
-To develop the content of this repository, it is recommended to launch a `sphinx-autobuild`
-server as per the instructions below. Once started, point a web-browser at
-http://127.0.0.1:8000. If running the server within a VM, remember to configure
-port forwarding.
-
-You can now edit the .rst documentation, and your web-browser content will automatically
-update.
-
-************
-Using Docker
-************
+**********************
 
 =============
 Prerequisites
@@ -33,52 +25,44 @@ Pull the docker container:
 Building
 ========
 
-Build documentation:
+To build the documentation, run the following command in the root of the repository:
 
 .. code-block:: console
 
-    $ docker run --rm -t -v $(pwd):/build -u "$(id -u):$(id -g)" -e REPO:/build ghcr.io/xmos/doc_builder:main
+    $ docker run --rm -t -u "$(id -u):$(id -g)" -v $(pwd):/build -e REPO:/build -e DOXYGEN_INCLUDE=/build/doc/Doxyfile.inc -e EXCLUDE_PATTERNS=/build/doc/exclude_patterns.inc -e DOXYGEN_INPUT=ignore ghcr.io/xmos/doc_builder:main
 
-********************
-Without Using Docker
-********************
+HTML document output is saved in the ``doc/_build/latest/html`` folder.  Open ``index.html`` to preview the saved documentation.
 
-=============
-Prerequisites
-=============
+**********************
+Adding a New Component
+**********************
 
-Install `Doxygen <https://www.doxygen.nl/index.html>`_.
+Follow the following steps to add a new component.
 
-Install the required Python packages:
+- Add an entry for the new component's top-level document to the appropriate TOC in the documents tree.
+- If the new component uses `Doxygen`, append the appropriate path(s) to the INPUT variable in `Doxyfile.inc`.
+- If the new component includes `.rst` files that should **not** be part of the documentation build, append the appropriate pattern(s) to `exclude_patterns.inc`.
 
-.. code-block:: console
+***
+FAQ
+***
 
-    $ pip install -r requirements.txt
+Q: Is it possible to build just a subset of the documentation?
 
-========
-Building
-========
+A: Yes, however it is not recommended at this time.
 
-Build documentation:
+Q: Is it possible to used the ``livehtml`` feature of Sphynx?
 
-.. code-block:: console
+A: No, but ``livehtml`` support may be added to the XMOS ``doc_builder`` Docker container in the future.
 
-    $ make html
+Q: Where can I learn more about the XMOS ``doc_builder`` Docker container?
 
-Launch sphinx-autobuild server:
+A: See the https://github.com/xmos/doc_builder repository.  See the ``doc_builder`` repository README for details on additional build options.  
 
-.. code-block:: console
+Q: How do I suggest enhancements to the XMOS ``doc_builder`` Docker container?
 
-    $ make livehtml
+A: Create a new issue here: https://github.com/xmos/doc_builder/issues
 
-Clean documentation:
+Q: I don't need to run the link checking, can I disable that to make the build faster?
 
-.. code-block:: console
-
-    $ make clean
-
-Clean and build documentation with link check:
-
-.. code-block:: console
-    
-    $ make clean html linkcheck SPHINXOPTS="-W --keep-going"
+A: Yes, add ``-e SKIP_LINK=1`` to the ``docker run`` command line above.
