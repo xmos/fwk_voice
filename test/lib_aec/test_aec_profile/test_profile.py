@@ -11,7 +11,6 @@ import xscope_fileio
 import xtagctl
 import io
 import glob
-from contextlib import redirect_stdout
 import re
 import argparse
 import pytest
