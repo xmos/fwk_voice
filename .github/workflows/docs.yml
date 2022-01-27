@@ -15,11 +15,11 @@ on:
   push:
     branches:
       - 'main'
-      - 'develop'
+#      - 'develop'
   pull_request:
     branches:
       - 'main'
-      - 'develop'
+#      - 'develop'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
@@ -38,7 +38,7 @@ jobs:
       
       - name: Build documentation
         run: |
-          docker run --rm -t -v ${{ github.workspace }}:/build -u "$(id -u):$(id -g)" -e REPO:/build -e PDF=1 ghcr.io/xmos/doc_builder:main
+          #docker run --rm -t -v ${{ github.workspace }}:/build -u "$(id -u):$(id -g)" -e REPO:/build -e PDF=1 ghcr.io/xmos/doc_builder:main
       
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
