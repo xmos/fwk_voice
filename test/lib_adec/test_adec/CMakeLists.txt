@@ -43,13 +43,13 @@ list( APPEND  DEP_LIBS
 file( GLOB_RECURSE SOURCES_TEST_WAV_C ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
 file( GLOB SOURCES_TEST_WAV_XC ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.xc )
 if ( XCORE )
-    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/*.c )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 else()
     ## Only 1 thread process_frame() builds for x86
-    file( GLOB SOURCES_AEC_PROCESS_FRAME ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec/aec_process_frame_1thread.c )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
 endif()
-file( GLOB_RECURSE FILE_UTILS_SOURCES ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils/*.c )
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
+file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/*.c )
+file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES ${XSCOPE_FILEIO_PATH}/src/*.c )
 
 unset( SOURCES )
 list( APPEND  SOURCES ${SOURCES_TEST_WAV_C} ${SOURCES_AEC_PROCESS_FRAME} ${FILE_UTILS_SOURCES} ${AUTOGEN_SOURCES} )
@@ -59,9 +59,9 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/aec ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/file_utils ${AUTOGEN_DIR})
+list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR})
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 

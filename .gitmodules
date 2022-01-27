@@ -1,0 +1,3 @@
+[submodule "examples/bare-metal/shared_src/xscope_fileio"]
+	path = examples/bare-metal/shared_src/xscope_fileio
+	url = git@github.com:xmos/xscope_fileio

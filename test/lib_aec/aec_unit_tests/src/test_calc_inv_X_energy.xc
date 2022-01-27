@@ -97,6 +97,43 @@ void aec_calc_normalisation_spectrum_fp(double *inv_X_energy, double *X_energy, 
     }
 }
 
+void test_aec_inv_X_energy_div_by_zero() {
+    unsafe {
+        unsigned num_y_channels = 1;
+        unsigned num_x_channels = 1;
+        unsigned main_filter_phases = 6;
+        unsigned shadow_filter_phases = 2;
+        
+        aec_state_t main_state, shadow_state;
+        aec_memory_pool_t aec_memory_pool;
+        aec_shadow_filt_memory_pool_t aec_shadow_memory_pool;
+        aec_shared_state_t aec_shared_state;
+
+        aec_init(&main_state, &shadow_state, &aec_shared_state, (uint8_t*)&aec_memory_pool, (uint8_t*)&aec_shadow_memory_pool, num_y_channels, num_x_channels, main_filter_phases, shadow_filter_phases);
+        unsigned seed = 3507;
+
+        aec_state_t *state_ptr = &shadow_state;
+        for(int ch=0; ch<num_x_channels; ch++) {
+            state_ptr->X_energy[ch].exp = sext(att_random_int32(seed), 6);
+            state_ptr->X_energy[ch].hr = 0;
+            for(int i=0; i<NUM_BINS; i++) {
+                unsigned is_zero = att_random_uint32(seed) % 2;
+                if(is_zero) {
+                    state_ptr->X_energy[ch].data[i] = 0;
+                }
+                else {
+                    state_ptr->X_energy[ch].data[i] = INT_MAX;
+                }
+            }
+        }
+        state_ptr->delta.mant = 0;
+        state_ptr->delta.exp = -1024;
+        unsigned is_shadow = 1; // to just test inv_X_energy = 1/(X_energy + delta) 
+        for(int ch=0; ch<num_x_channels; ch++) {
+            aec_calc_normalisation_spectrum(state_ptr, ch, 1);
+        }
+    }
+}
 void test_aec_calc_normalisation_spectrum() {
     unsafe {
         unsigned num_y_channels = 1;

@@ -21,18 +21,18 @@
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 
 // After aec_init, these values are overwritten to modify convergence behaviour
@@ -192,9 +192,10 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
 
 int framenum = 0;
 void pipeline_process_frame(pipeline_state_t *state,
+        int32_t (*output_data)[AP_FRAME_ADVANCE],
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
-        int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-        int32_t (*output_data)[AP_FRAME_ADVANCE])
+        int32_t (*input_x_data)[AP_FRAME_ADVANCE]
+        )
 {
     /** Get delayed frame*/
     prof(2, "start_get_delayed_frame");
@@ -219,9 +220,9 @@ void pipeline_process_frame(pipeline_state_t *state,
     // Writing main filter output to output_data directly
 
 #if (AEC_THREAD_COUNT == 1)
-        aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, output_data, aec_output_shadow);
+        aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, output_data, aec_output_shadow, input_y_data, input_x_data);
 #elif (AEC_THREAD_COUNT == 2)
-        aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, input_y_data, input_x_data, output_data, aec_output_shadow);
+        aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, output_data, aec_output_shadow, input_y_data, input_x_data);
 #else
         #error "C app only supported for AEC_THREAD_COUNT range [1, 2]"
 #endif

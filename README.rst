@@ -73,6 +73,13 @@ Note, MacOS users will need to install `dosfstools`.
         $ cd filesystem_support
         $ ./flash_image.sh
 
+.. tab:: Windows XTC Tools CMD prompt
+
+    .. code-block:: console
+    
+        $ cd filesystem_support
+        $ flash_image.bat
+
 
 ********************
 Running the Firmware
@@ -83,3 +90,4 @@ From the root folder of the example run:
     .. code-block:: console
 
         $ xrun --xscope bin/sw_avona.xe
+=======

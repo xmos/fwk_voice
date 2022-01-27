@@ -47,6 +47,24 @@ add_compile_options( ${COMPILE_FLAGS} )
 #file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/deps)
 #include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
 
+# The path to the xcore_sdk must be set either as the CMake variable XCORE_SDK_PATH or as an
+# environment variable XCORE_SDK_PATH
+if(NOT DEFINED XCORE_SDK_PATH)
+  if(NOT DEFINED ENV{XCORE_SDK_PATH})
+    message(FATAL_ERROR "XCORE_SDK_PATH environment variable must be set")
+  endif()
+
+  set(XCORE_SDK_PATH $ENV{XCORE_SDK_PATH})
+endif()
+
+get_filename_component(XCORE_SDK_PATH ${XCORE_SDK_PATH} ABSOLUTE BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+
+if(NOT EXISTS ${XCORE_SDK_PATH})
+  message(FATAL_ERROR "xcore_sdk not present at ${XCORE_SDK_PATH}")
+endif()
+
+message(STATUS "xcore_sdk in ${XCORE_SDK_PATH}")
+
 ## Add libs and apps
 add_subdirectory( modules )
 

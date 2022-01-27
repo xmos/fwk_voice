@@ -135,4 +135,8 @@ void aec_priv_calc_delta(
         float_s32_t scale,
         int channels);
 
+float_s32_t aec_priv_calc_corr_factor(
+        bfp_s32_t *y,
+        bfp_s32_t *yhat);
+
 #endif

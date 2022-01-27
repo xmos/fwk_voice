@@ -15,7 +15,7 @@ set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
 message(STATUS "${APP_NAME} aec build config:  ${AEC_UNIT_TESTS_BUILD_CONFIG}" )
-message( STATUS "Unit tests speedup factor ${AEC_UNIT_TESTS_SPEEDUP_FACTOR}" )
+message( STATUS "Unit tests speedup factor ${TEST_SPEEDUP_FACTOR}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 
 unset(GEN_SCHEDULE_SCRIPT_ARGS) 
@@ -56,7 +56,7 @@ list( APPEND  LINKER_FLAGS_XCORE  "-report"                     )
 
 
 list( APPEND  LINKER_FLAGS ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} -DSPEEDUP_FACTOR=${AEC_UNIT_TESTS_SPEEDUP_FACTOR} )
+list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} -DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR} )
 
 ## Sources
 # Unity
@@ -68,8 +68,7 @@ set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
 list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
 
 #lib_dsp
-#set( LIB_DSP_PATH ${DEPS_ROOT}/xcore_sdk/modules/lib_dsp/lib_dsp )  ## For fetching dependencies using cmake
-set( LIB_DSP_PATH ${DEPS_ROOT}/lib_dsp/lib_dsp )
+set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources

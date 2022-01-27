@@ -10,9 +10,9 @@
 
 extern void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf);
 extern void pipeline_process_frame(pipeline_state_t *state,
+    int32_t (*output_data)[AP_FRAME_ADVANCE],
     int32_t (*input_y_data)[AP_FRAME_ADVANCE],
-    int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-    int32_t (*output_data)[AP_FRAME_ADVANCE]);
+    int32_t (*input_x_data)[AP_FRAME_ADVANCE]);
 
 #define ARG_NOT_SPECIFIED (-1)
 typedef enum {
@@ -177,7 +177,7 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
             }
         }
 
-        pipeline_process_frame(&stage_a_state, frame_y, frame_x, stage_a_output);
+        pipeline_process_frame(&stage_a_state, stage_a_output, frame_y, frame_x);
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AP_MAX_Y_CHANNELS;ch++){

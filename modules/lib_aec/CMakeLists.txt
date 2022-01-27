@@ -13,13 +13,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
 ## Deliverable is a static library
 add_library( ${LIB_NAME}  STATIC      ${LIB_AEC_SOURCES} )
 
-## Build lib_xs3_math
-#set(LIB_XS3_MATH_PATH ${CMAKE_BINARY_DIR}/deps/xcore_sdk/modules/lib_xs3_math/lib_xs3_math)  ## For fetching dependencies using cmake
-
-target_include_directories( ${LIB_NAME} PUBLIC
-    ${LIB_AEC_INCLUDES}
-    ${LIB_XS3_MATH_PATH}/api 
-    )
+target_include_directories( ${LIB_NAME} PUBLIC ${LIB_AEC_INCLUDES} )
 
 target_link_libraries(${LIB_NAME} lib_xs3_math)
 

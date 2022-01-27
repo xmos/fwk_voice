@@ -4,7 +4,6 @@
 
 @echo off
 
-
 :: Create directory for intended files and Copy renamed files into directory
 if exist "%temp%\fatmktmp\" (
     :: Exit with error
@@ -18,7 +17,7 @@ if exist "%temp%\fatmktmp\" (
     cp "%WW_PATH%\models\common\WS_50k.en-US.alexa.bin" %temp%\fatmktmp\ww\50kenUS.bin
 
     :: Run fatfs_mkimage.exe on the directory to create filesystem file
-    start ..\..\host\fatfs\fatfs_mkimage.exe --input=%temp%\fatmktmp\ww --output=fat.fs
+    start fatfs_mkimage.exe --input=%temp%\fatmktmp\ww --output=fat.fs
 
     echo Filesystem created. Deleting temp files . . .
     :: File fat.fs is also deleted in cleanup without this:
