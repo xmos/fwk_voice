@@ -78,7 +78,6 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
     agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
     agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.lc_enabled = 1; // Enable loss control on comms
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);

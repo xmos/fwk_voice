@@ -33,7 +33,6 @@ void test_loss_control() {
     agc_state_t agc_near;
     agc_config_t conf_near = AGC_PROFILE_COMMS;
     conf_near.adapt_on_vad = 0;
-    conf_near.lc_enabled = 1;
 
     agc_meta_data_t md_near;
     md_near.vad_flag = AGC_META_DATA_NO_VAD;
@@ -42,7 +41,6 @@ void test_loss_control() {
     agc_state_t agc_far;
     agc_config_t conf_far = AGC_PROFILE_COMMS;
     conf_far.adapt_on_vad = 0;
-    conf_far.lc_enabled = 1;
 
     agc_meta_data_t md_far;
     md_far.vad_flag = AGC_META_DATA_NO_VAD;
@@ -51,7 +49,6 @@ void test_loss_control() {
     agc_state_t agc_double_talk;
     agc_config_t conf_double_talk = AGC_PROFILE_COMMS;
     conf_double_talk.adapt_on_vad = 0;
-    conf_double_talk.lc_enabled = 1;
 
     agc_meta_data_t md_double_talk;
     md_double_talk.vad_flag = AGC_META_DATA_NO_VAD;
@@ -60,7 +57,6 @@ void test_loss_control() {
     agc_state_t agc_silence;
     agc_config_t conf_silence = AGC_PROFILE_COMMS;
     conf_silence.adapt_on_vad = 0;
-    conf_silence.lc_enabled = 1;
 
     agc_meta_data_t md_silence;
     md_silence.vad_flag = AGC_META_DATA_NO_VAD;
