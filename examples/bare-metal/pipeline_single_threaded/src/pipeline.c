@@ -30,7 +30,6 @@ void pipeline_init(pipeline_state_t *state) {
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
     agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
     agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.lc_enabled = 1; // Enable loss control on comms
     agc_init(&state->agc_state[0], &agc_conf_asr);
     for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_init(&state->agc_state[ch], &agc_conf_comms);
