@@ -125,9 +125,9 @@ def write_input(test_name, input_data):
     scipy.io.wavfile.write(input_filename, sample_rate, input_32bit.T)
 
 
-def write_output(test_name, output, xc_or_py):
+def write_output(test_name, output, c_or_py):
     output_32bit = awu.convert_to_32_bit(output)
-    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-{}.wav".format(xc_or_py)))
+    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-{}.wav".format(c_or_py)))
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     scipy.io.wavfile.write(output_filename, sample_rate, output_32bit.T)
@@ -144,8 +144,8 @@ def process_py(input_data, test_name):
     return output
 
 
-def process_xc(input_data, test_name, xe_name):
-    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-xc.wav"))
+def process_c(input_data, test_name, xe_name):
+    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-c.wav"))
     tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(test_name))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
@@ -161,7 +161,7 @@ def process_xc(input_data, test_name, xe_name):
     try:
         assert err == 0
         rate, output = scipy.io.wavfile.read('output.wav', 'r')
-        write_output(test_name, output.T, 'xc')
+        write_output(test_name, output.T, 'c')
         os.system("rm input.wav output.wav")
     finally:
         os.chdir(prev_path)
@@ -193,7 +193,7 @@ def process_audio(model, input_audio, test_name):
     if model == 'py':
         return process_py(input_audio, test_name)
     else:
-        return process_xc(input_audio, test_name, model)
+        return process_c(input_audio, test_name, model)
 
 
 def rms(a):

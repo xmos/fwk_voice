@@ -36,7 +36,7 @@ def test_compare_polar_reponse():
                                          NOISE_LEVEL,
                                          RT60,
                                          IC_DELAY,
-                                         run_xc=True)
-    for (i, atten_py, atten_xc) in zip(angles, results[0], results[1]):
-        print(f"Angle: {i}, PY {atten_py}, XC {atten_xc}")
-        assert abs(atten_py - atten_xc) < 1, "Angle: {}, PY {}, XC {}".format(i, atten_py, atten_xc)
+                                         run_c=True)
+    for (i, atten_py, atten_c) in zip(angles, results[0], results[1]):
+        print(f"Angle: {i}, PY {atten_py}, C {atten_c}")
+        assert abs(atten_py - atten_xc) < 1, "Angle: {}, PY {}, C {}".format(i, atten_py, atten_c)

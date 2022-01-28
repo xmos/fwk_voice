@@ -60,7 +60,7 @@ MIC_1_X = MIC_X_POINT + MIC_SPACING / 2
 NOISE_DISTANCE = 1.5
 
 
-IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/characterise_xc_py/bin/characterise_xc_py.xe')
+IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/characterise_c_py/bin/characterise_c_py.xe')
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces
 def get_absorption(x, y, z, rt60):
@@ -107,7 +107,7 @@ def process_py(input_file, output_file, x_channel_delay, audio_dir="."):
                           PHASES, x_channel_delay, FRAME_ADVANCE, PROC_FRAME_LENGTH, verbose=False)
 
 
-def process_xc(input_file, output_file, audio_dir="."):
+def process_c(input_file, output_file, audio_dir="."):
     output_file = os.path.abspath(os.path.join(audio_dir, output_file))
     input_file = os.path.abspath(os.path.join(audio_dir, input_file))
 
@@ -151,23 +151,23 @@ def get_attenuation(input_file, output_file, audio_dir="."):
 
     return attenuation
 
-def get_attenuation_xc_py(test_id, noise_band, noise_db, angle_theta, rt60, x_channel_delay):
+def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60, x_channel_delay):
     input_file = "input_{}.wav".format(test_id) # Required by test_wav_suppression.xe
     output_file_py = "output_{}_py.wav".format(test_id)
-    output_file_xc = "output_{}_xc.wav".format(test_id)
+    output_file_c = "output_{}_c.wav".format(test_id)
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_theta, rt60)
     process_py(input_file, output_file_py, x_channel_delay, audio_dir)
-    process_xc(input_file, output_file_xc, audio_dir)
+    process_c(input_file, output_file_c, audio_dir)
 
     attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)
-    attenuation_xc = get_attenuation(input_file, output_file_xc, audio_dir)
+    attenuation_c = get_attenuation(input_file, output_file_c, audio_dir)
 
     print("PYTHON SUP: {}".format(["%.2f"%item for item in attenuation_py]))
-    print("    XC SUP: {}".format(["%.2f"%item for item in attenuation_xc]))
+    print("     C SUP: {}".format(["%.2f"%item for item in attenuation_c]))
 
-    return attenuation_xc, attenuation_py
+    return attenuation_c, attenuation_py
 
 
 def angle_type(x):
@@ -199,7 +199,7 @@ def main():
     start_time = time.time()
     args = parse_arguments()
     angle_theta = args.angle * np.pi/180
-    get_attenuation_xc_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60, args.ic_delay)
+    get_attenuation_c_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60, args.ic_delay)
     print("--- {0:.2f} seconds ---".format(time.time() - start_time))
 
 
