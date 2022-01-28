@@ -189,7 +189,7 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AP_FRAME_ADVANCE * AP_MAX_Y_CHANNELS);
         
         char strbuf[100];
-        sprintf(strbuf, "%ld\n", stage_a_state.adec_requested_delay_samples);
+        sprintf(strbuf, "%d\n", stage_a_state.adec_requested_delay_samples);
         file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
     }
     file_close(&input_file);
@@ -197,3 +197,14 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     file_close(&delay_file);
     shutdown_session();
 }
+#if X86_BUILD
+int main(int argc, char **argv) {
+    /*if(argc < 3) {
+        printf("Arguments missing. Expected: <input file name> <output file name>\n");
+        assert(0);
+    }*/
+    stage_a_wrapper("input.wav", "output.wav");
+    //aec_task(argv[1], argv[2]);
+    return 0;
+}
+#endif

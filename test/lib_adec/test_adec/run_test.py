@@ -19,8 +19,8 @@ import glob
 import xscope_fileio
 import xtagctl
 import io
-from contextlib import redirect_stdout
 import re
+import subprocess
 
 
 source_wav_file_rate = 48000
@@ -31,7 +31,6 @@ delay_output_file_name = "delay.bin"
 xcore_working_dir = '../test_wav_ap'
 
 aec_input_file = "stage_a_input_16k.wav"
-adec_test_xe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/*.xe')[0])
 
 
 def generate_random_delay_changes(number, spacing, min_s, max_s):
@@ -42,7 +41,13 @@ def generate_random_delay_changes(number, spacing, min_s, max_s):
     delays.append((int(this_time_samps), int(this_delay)))
   return delays
 
-def run_test(pipeline_config, info, path_to_regression_files, input_audio_files, far_end_delay_changes, test_length_s=70, run_xcore=False, volume_changes=None):
+def run_test(pipeline_config, info, path_to_regression_files, input_audio_files, far_end_delay_changes, test_length_s=70, run_target="xcore", volume_changes=None, run_x86=False):
+  if run_target == "xcore":
+    test_exe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/*.xe')[0])
+  elif run_target == "x86":
+    test_exe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/test_adec')[0])
+  else:
+    assert(False)
   tmp_dir = tempfile.mkdtemp(prefix='tmp_', dir='.')
   os.chdir(tmp_dir)
 
@@ -52,9 +57,6 @@ def run_test(pipeline_config, info, path_to_regression_files, input_audio_files,
       fargs.write(f"x_channels {pipeline_config['num_x_channels']}\n".encode('utf-8'))
       fargs.write(f"main_filter_phases {pipeline_config['num_main_filter_phases']}\n".encode('utf-8'))
       fargs.write(f"shadow_filter_phases {pipeline_config['num_shadow_filter_phases']}\n".encode('utf-8'))
-
-  xe_name = adec_test_xe
-  print('xe name = ',xe_name)
 
   ground_truth_file = "ground_truth.txt"
   delay_estimate_file = "delay_estimate.txt"
@@ -74,35 +76,37 @@ def run_test(pipeline_config, info, path_to_regression_files, input_audio_files,
 
     gt_changes = 0
     test_name = info + ", " + input_audio_files.split('/')[-1]
-
+    
+  print ("run_target = ", run_target, ", tmp_dir = ", tmp_dir)
+  copyfile("stage_a_input_16k.wav", "input.wav") #Axe sim has fixed file name input
   # Run xcore/axe version of simulator
-  if run_xcore:
+  if run_target == "xcore":
     #Run hardware in loop simulation (debug only as requires attached board. Also requires xplay to be on system path)
-    print ("run_xcore = ", run_xcore, ", tmp_dir = ", tmp_dir)
-    copyfile("stage_a_input_16k.wav", "input.wav") #Axe sim has fixed file name input
-
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id}")
-        xscope_fileio.run_on_target(adapter_id, xe_name)
-        # Read estimated delay samples for every frame
-        with open(delay_output_file_name, 'r') as f:
-            estimated_delay_samples = np.array([int(l) for l in f.readlines()], dtype=float)
+        xscope_fileio.run_on_target(adapter_id, test_exe)
+  elif run_target == "x86":
+    subprocess.run([f"{test_exe}"])
 
-        estimates = estimated_delay_samples / float(voice_sample_rate)
+  # Read estimated delay samples for every frame
+  with open(delay_output_file_name, 'r') as f:
+    estimated_delay_samples = np.array([int(l) for l in f.readlines()], dtype=float)
+  estimates = estimated_delay_samples / float(voice_sample_rate)
     
-    #Scale estimates file to seconds
-    xc_sim_de_file = "xc_sim_delays_s.txt"
-    print("estimates = ",estimates)
-    estimates.tofile(xc_sim_de_file, sep="\n")
+    
+  #Scale estimates file to seconds
+  xc_sim_de_file = "xc_sim_delays_s.txt"
+  print("estimates = ",estimates)
+  estimates.tofile(xc_sim_de_file, sep="\n")
 
-    xcore_delay_analyser = delay_analyser(FRAME_ADVANCE, ground_truth_file, xc_sim_de_file)
-    report_summary = xcore_delay_analyser.analyse_events()
-    report_summary['test_name'] = "Xcore: " + test_name
-    report_summary['gt_changes'] = gt_changes
+  xcore_delay_analyser = delay_analyser(FRAME_ADVANCE, ground_truth_file, xc_sim_de_file)
+  report_summary = xcore_delay_analyser.analyse_events()
+  report_summary['test_name'] = "Xcore: " + test_name
+  report_summary['gt_changes'] = gt_changes
 
-    graph_file_name = test_name + "_xcore.png"
-    xcore_delay_analyser.graph_delays(file_name=graph_file_name)
-    copyfile(graph_file_name, "../" + graph_file_name)
+  graph_file_name = test_name + "_xcore.png"
+  xcore_delay_analyser.graph_delays(file_name=graph_file_name)
+  copyfile(graph_file_name, "../" + graph_file_name)
 
   os.chdir("..")
   rmtree(tmp_dir)
