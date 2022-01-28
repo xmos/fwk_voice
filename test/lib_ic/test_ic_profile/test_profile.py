@@ -20,19 +20,6 @@ import sys
 ic_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../../../examples/bare-metal/ic/src".split("/"))
 thread_speed_mhz = (600 / 5)
 
-def run_proc_with_output(cmd):
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout = proc.stdout.readlines()
-    return [str(line, 'utf-8') for line in stdout]
-
-def extract_memory_stats(stdout):
-    memory_used = None
-    for line in stdout:
-        rs = re.search(r"Memory\savailable:\s+(\d+),\s+used:\s+(\d+).+", line)
-        if rs:
-            memory_used = int(rs.group(2))
-    return memory_used
-
 in_file_name = "input.wav"
 out_file_name = "output.wav"
 def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
@@ -45,17 +32,15 @@ def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id} binary {ic_xe}")
-        with open("dut.log", "w") as ff:
-            xscope_fileio.run_on_target(adapter_id, ic_xe, stdout=ff)
+        stdout = xscope_fileio.run_on_target(adapter_id, ic_xe)
 
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-        with open("dut.log", "r") as ff:
-            for line in ff.read().splitlines():
-                m = re.search(r'^\s*\[DEVICE\]', line)
-                if m is not None:
-                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
-        
+        for line in stdout:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+
     os.chdir(prev_path)
     #Save output file
     shutil.copy2(os.path.join(tmp_folder, audio_out), audio_out)
@@ -245,7 +230,9 @@ def create_wav_input():
 
 
 xe_files = glob.glob('../../../build/test/lib_ic/test_ic_profile/bin/*.xe')
+assert xe_files, "xe binary not found"
 create_wav_input()
+
 
 @pytest.fixture(scope="session", params=xe_files)
 def setup(request):
