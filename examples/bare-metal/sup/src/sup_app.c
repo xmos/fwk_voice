@@ -56,6 +56,8 @@ void sup_task(const char *input_file_name, const char *output_file_name){
             input_header_struct.bit_depth,
             block_count * SUP_FRAME_ADVANCE);
 
+    file_write(&output_file, (uint8_t*)(&output_header_struct),  WAV_HEADER_BYTES);
+
     int32_t input_read_buffer[SUP_FRAME_ADVANCE * MAX_CHANNELS] = {0}; // Array for storing interleaved input read from wav file
     int32_t output_write_buffer[SUP_FRAME_ADVANCE * MAX_CHANNELS];
 

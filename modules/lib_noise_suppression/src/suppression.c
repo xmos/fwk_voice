@@ -105,7 +105,7 @@ void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
 void sup_init_state(sup_state_t * state){
     memset(state, 0, sizeof(sup_state_t));
 
-    sup_bfp_init(&state->S, state->data_S,SUP_PROC_FRAME_BINS, INT_MAX);
+    sup_bfp_init(&state->S, state->data_S, SUP_PROC_FRAME_BINS, INT_MAX);
     sup_bfp_init(&state->S_min, state->data_S_min, SUP_PROC_FRAME_BINS, INT_MAX);
     sup_bfp_init(&state->S_tmp, state->data_S_tmp, SUP_PROC_FRAME_BINS, INT_MAX);
     sup_bfp_init(&state->p, state->data_p, SUP_PROC_FRAME_BINS, 0);
@@ -115,7 +115,7 @@ void sup_init_state(sup_state_t * state){
     sup_bfp_init(&state->prev_frame, state->data_prev_frame, SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE, 0);
     sup_bfp_init(&state->overlap, state->data_ovelap, SUP_FRAME_ADVANCE, 0);
 
-    sup_fill_rev_wind(state->data_rev_wind, SUP_SQRT_HANN_LUT, SUPPRESSION_WINDOW_LENGTH / 4);
+    sup_fill_rev_wind(state->data_rev_wind, SUP_SQRT_HANN_LUT, SUPPRESSION_WINDOW_LENGTH / 2);
 
     bfp_s32_init(&state->wind, SUP_SQRT_HANN_LUT, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
     bfp_s32_init(&state->rev_wind, state->data_rev_wind, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
@@ -124,7 +124,6 @@ void sup_init_state(sup_state_t * state){
     state->alpha_d = float_to_float_s32(0.95);
     state->alpha_s = float_to_float_s32(0.8);
     state->alpha_p = float_to_float_s32(0.2);
-    state->noise_floor = float_to_float_s32(0.1258925412); // -18dB
     state->delta = float_to_float_s32(1.5);
 }
 
@@ -196,7 +195,7 @@ void sup_process_frame(sup_state_t * state,
 
     bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);
 
-    memcpy(&abs_Y_original.data, &abs_Y_suppressed.data, sizeof(abs_Y_suppressed.data));
+    memcpy(abs_Y_original.data, abs_Y_suppressed.data, sizeof(int32_t) * SUP_PROC_FRAME_BINS);
     abs_Y_original.exp = abs_Y_suppressed.exp;
     abs_Y_original.hr = abs_Y_suppressed.hr;
 

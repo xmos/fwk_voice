@@ -27,8 +27,10 @@ import xscope_fileio
 
 parser = configparser.ConfigParser()
 parser.read("config.cfg")
-sup_xe =os.path.abspath(glob.glob(f'{parser.get("Binaries", "xe_path")}/bin/*.xe')[0])
-print(os.path.abspath(sup_xe))
+c_sup_xe = os.path.abspath(glob.glob(f'{parser.get("Binaries", "c_path")}/bin/*.xe')[0])
+xc_sup_xe = os.path.abspath(glob.glob(f'{parser.get("Binaries", "xc_path")}/bin/*.xe')[0])
+print(os.path.abspath(c_sup_xe))
+print(os.path.abspath(xc_sup_xe))
 
 X_CH_COUNT = 0
 Y_CH_COUNT = 1
@@ -46,17 +48,19 @@ def generate_test_audio(filename, audio_dir, max_freq, db=-20, samples=SAMPLE_CO
     write_data(noise, os.path.join(audio_dir, filename), sample_rate=SAMPLE_RATE)
 
 
-def process_c(filemane, output_file, audio_dir):
-    #shutil.copy2(input_file, os.path.join(audio_dir, filemane))
+def process_xe(filemane, output_file, audio_dir, sup_xe):
 
     prev_path = os.getcwd()
-    os.chdir(audio_dir)    
-    
+    os.chdir(audio_dir)
+
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         xscope_fileio.run_on_target(adapter_id, sup_xe)
 
-    os.chdir(prev_path)    
-    #shutil.copy2(os.path.join(tmp_folder, "output.wav"), output_file)
+    old_file = os.path.join(prev_path, audio_dir, 'output.wav')
+    new_file = os.path.join(prev_path, audio_dir, output_file)
+    os.rename(old_file, new_file)
+
+    os.chdir(prev_path)  
 
 
 def get_attenuation(input_file, output_file, audio_dir="."):
@@ -83,20 +87,25 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     return attenuation
 
 
-def get_attenuation_c_py(test_id, noise_band, noise_db):
+def get_attenuation_c_xc(test_id, noise_band, noise_db):
     input_file = "input.wav" # Required by test_wav_suppression.xe
 
-    output_file_c = "output.wav"
+    output_file_c = "output_c.wav"
+    output_file_xc = "output_xc.wav"
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, db=noise_db)
 
-    process_c(input_file, output_file_c, audio_dir)
+    process_xe(input_file, output_file_c, audio_dir, c_sup_xe)
+    process_xe(input_file, output_file_xc, audio_dir, xc_sup_xe)
 
     attenuation_c = get_attenuation(input_file, output_file_c, audio_dir)
-    print("    C SUP: {}".format(["%.2f"%item for item in attenuation_c]))
+    attenuation_xc = get_attenuation(input_file, output_file_xc, audio_dir)
 
-    return attenuation_c
+    print("    C SUP: {}".format(["%.2f"%item for item in attenuation_c]))
+    print("    XC SUP: {}".format(["%.2f"%item for item in attenuation_xc]))
+
+    return attenuation_c, attenuation_xc
 
 
 def parse_arguments():
@@ -112,7 +121,7 @@ def parse_arguments():
 def main():
     start_time = time.time()
     args = parse_arguments()
-    #get_attenuation_xc_py("test", args.noise_band, args.noise_level)
+    get_attenuation_c_xc("test", args.noise_band, args.noise_level)
     print(("--- {0:.2f} seconds ---" .format(time.time() - start_time)))
 
 

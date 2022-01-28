@@ -19,10 +19,6 @@ void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main){
 
     bfp_s32_use_exponent(A, main->exp);
     bfp_s32_use_exponent(B, main->exp);
-    int min_hr = (A->hr <= B->hr) ? A->hr : B->hr;
-    min_hr = (min_hr <= main->hr) ? min_hr : main->hr;
-    A->hr = min_hr;
-    B->hr = min_hr;
 }
 
 //    A = min (B, C) - element wise
@@ -35,12 +31,12 @@ void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
     bfp_s32_headroom(dst);
 }
 
-//    S = alpha_s*S + (1.0-alpha_s)*(abs(Y)**2)
+//    S = alpha_s * S + (1.0 - alpha_s) * (abs(Y)**2)
 void ns_update_S(sup_state_t *state, const bfp_s32_t * abs_Y){
     int32_t scratch[SUP_PROC_FRAME_BINS];
     bfp_s32_t tmp;
     float_s32_t t;
-    bfp_s32_init(&tmp, scratch, INT_MAX, state->S.length, 0);
+    bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     bfp_s32_mul(&tmp, abs_Y, abs_Y);
 
@@ -54,36 +50,36 @@ void ns_update_S(sup_state_t *state, const bfp_s32_t * abs_Y){
     bfp_s32_add(&state->S, &state->S, &tmp);
 }
 
-//    S_r = S/S_min
+//    S_r = S / S_min
 //    I = S_r > delta
 //    p = alpha_p * p + (1.0 - alpha_p) * I
 void ns_update_p(sup_state_t * state){
 
-    bfp_s32_t tmp;
+    bfp_s32_t tmp, tmp2;
     float_s32_t t;
     int32_t scratch [SUP_PROC_FRAME_BINS];
     int32_t one_zero [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
-    bfp_s32_inverse(&tmp, &state->S_min);
-    bfp_s32_mul(&tmp, &tmp, &state->S);
+
+    bfp_s32_scale(&tmp, &state->S_min, state->delta);
+    bfp_s32_use_exponent(&tmp, state->S.exp);
 
     for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-        t.mant = tmp.data[v];
-        t.exp = tmp.exp;
-        one_zero[v] = INT_MAX * float_s32_gt(t, state->delta);
+        one_zero[v] = (state->S.data[v] > tmp.data[v]) ? (int)(0.8*INT_MAX) : 0;
     }
 
-    bfp_s32_init(&tmp, one_zero, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 1);
+    bfp_s32_init(&tmp2, one_zero, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 1);
 
-    t.mant = one_mant;
-    t.exp = one_exp; // t = 1
+    //t.mant = one_mant;
+    //t.exp = one_exp; // t = 1
 
-    t = float_s32_sub(t, state->alpha_p);
+    //t = float_s32_sub(t, state->alpha_p);
 
-    bfp_s32_scale(&tmp, &tmp, t);
+    //bfp_s32_scale(&tmp, &tmp, t);
+
 
     bfp_s32_scale(&state->p, &state->p, state->alpha_p);
-    bfp_s32_add(&state->p, &state->p, &tmp);
+    bfp_s32_add(&state->p, &state->p, &tmp2);
 }
 
 //    alpha_d_tilde = alpha_d + (1.0 - alpha_d) * p
@@ -92,7 +88,7 @@ void ns_update_alpha_d_tilde(sup_state_t * state){
     float_s32_t t;
     int32_t scratch [SUP_PROC_FRAME_BINS];
 
-    bfp_s32_init(&tmp, scratch, state->p.exp, state->p.length, 0);
+    bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     t.mant = one_mant;
     t.exp = one_exp; //t = 1
@@ -104,7 +100,7 @@ void ns_update_alpha_d_tilde(sup_state_t * state){
     bfp_s32_add_scalar(&state->alpha_d_tilde, &tmp, state->alpha_d);
 }
 
-//    lambda_hat = alpha_d_tilde[i]*lambda_hat + (1.0 - alpha_d_tilde)*np.square(np.absolute(Y))
+//    lambda_hat = alpha_d_tilde * lambda_hat + (1.0 - alpha_d_tilde) * (abs(Y)**2)
 void ns_update_lambda_hat(sup_state_t * state, const bfp_s32_t * abs_Y){
     bfp_s32_t tmp1, tmp2;
     float_s32_t t;
@@ -143,65 +139,58 @@ int ns_update_and_test_reset(sup_state_t * state){
 #define LUT_SIZE 64
 #define LUT_INPUT_MULTIPLIER 4
 const int32_t LUT[LUT_SIZE] = {
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2278108010,  1767165807,  1370819547,  1063367242,  
-824871438,  639866325,  496354819,  385030587,  
-298674552,  231686756,  179723223,  139414256,  
-108145929,  83890573,  65075296,  50479976,  
-39158146,  30375617,  23562865,  18278102,  
-14178624,  10998591,  8531788,  6618248,  
-5133883,  3982438,  3089242,  2396376,  
-1858908,  1441985,  1118572,  867694,  
-673085,  522123,  405019,  314180,  
-243714,  189053,  146651,  113760,  
-88245,  68453,  53100,  41191,  
-31952,  24786,  19227,  14914,  
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1139054005, 883582904, 685409774, 531683621,
+412435719, 319933163, 248177410, 192515294,
+149337276, 115843378, 89861612, 69707128,
+54072965, 41945287, 32537648, 25239988,
+19579073, 15187809, 11781433, 9139051,
+7089312, 5499296, 4265894, 3309124,
+2566942, 1991219, 1544621, 1198188,
+929454, 720993, 559286, 433847,
+336543, 261062, 202510, 157090,
+121857, 94527, 73326, 56880,
+44123, 34227, 26550, 20596,
+15976, 12393, 9614, 7457
 };
 
-//    sqrt_lamda = np.sqrt(self.lamda_hat)
-//    denom = sqrt_lamda/self.lut_input_multiplier
-//    lut_index = np.asarray(input_spectrum / (denom + 1e-99), dtype=np.uint32)
-//    lut_index = np.minimum(lut_index, len(self.sub_limit_curve_y)-1)
-//    r = self.sub_limit_curve_y[lut_index]
-//    desired_mag_limited =  np.maximum(input_spectrum  - (sqrt_lamda * r), 0)
+//    sqrt_lamda = sqrt(lamda_hat)
+//    denom = sqrt_lamda / lut_input_multiplier
+//    lut_index = input_spectrum / denom
+//    lut_index = min(lut_index, len(LUT) - 1)
+//    r = LUT[lut_index]
+//    desired_mag_limited =  max(input_spectrum  - (sqrt_lamda * r), 0)
 void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, sup_state_t * state){
-    bfp_s32_t sqrt_lambda, tmp, comp;
+    bfp_s32_t sqrt_lambda, r;
     int32_t scratch1 [SUP_PROC_FRAME_BINS];
-    int32_t scratch2 [SUP_PROC_FRAME_BINS];
-    float_s32_t t;
-    int32_t t_data;
+    int32_t r_data [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&sqrt_lambda, scratch1, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
-    bfp_s32_init(&tmp, scratch2, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     bfp_s32_sqrt(&sqrt_lambda, &state->lambda_hat);
 
-    t.mant = one_mant;
-    t.exp = one_exp - 2; // t = 0.25
+    if (abs_Y->exp < sqrt_lambda.exp) bfp_s32_use_exponent(abs_Y, sqrt_lambda.exp);
+    else bfp_s32_use_exponent(&sqrt_lambda, abs_Y->exp);
 
-    bfp_s32_scale(&sqrt_lambda, &sqrt_lambda, t);
+    for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
+        int32_t num, den, lut_index;
+        num = abs_Y->data[v];
+        den = sqrt_lambda.data[v] / LUT_INPUT_MULTIPLIER;
+        if(den != 0){
+            lut_index = num / den;
+            r_data[v] = (lut_index > (LUT_SIZE - 1)) ? 0 : LUT[lut_index];
+        }
+        else r_data[v] = 0;
 
-    bfp_s32_inverse(&tmp, &sqrt_lambda);
-    bfp_s32_mul(&tmp, &tmp, abs_Y);
+        sqrt_lambda.data[v] = (sqrt_lambda.data[v] > abs_Y->data[v]) ? abs_Y->data[v] : sqrt_lambda.data[v];
+    }
+    bfp_s32_headroom(&sqrt_lambda);
+    bfp_s32_init(&r, r_data, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 1);
 
-    t.mant = one_mant;
-    t.exp = one_exp + 2; // t = 4
-
-    bfp_s32_scale(&sqrt_lambda, &sqrt_lambda, t);
-
-    t = bfp_s32_min(&tmp);
-    t_data = t.mant;
-    bfp_s32_init(&comp, &t_data, t.exp, 1, 1);
-    bfp_s32_use_exponent(&comp, 0);
-
-    int32_t index = (comp.data[0] < (LUT_SIZE - 1)) ? comp.data[0] : (LUT_SIZE - 1);
-    t.mant = LUT[index];
-    t.exp = SUP_INT_EXP;
-
-    bfp_s32_scale(&tmp, &sqrt_lambda, t);
-    bfp_s32_sub(abs_Y, abs_Y, &tmp);
+    bfp_s32_mul(&r, &sqrt_lambda, &r);
+    bfp_s32_sub(abs_Y, abs_Y, &r);
     bfp_s32_rect(abs_Y, abs_Y);
 }
 
@@ -218,9 +207,9 @@ void ns_process_frame(bfp_s32_t * abs_Y, sup_state_t * state){
 
     if(ns_update_and_test_reset(state)){
         ns_minimum(&state->S_min, &state->S_tmp, &state->S);
-        memcpy(&state->S_tmp.data, &state->S.data, sizeof(state->S.length));
+        memcpy(state->S_tmp.data, state->S.data, sizeof(int32_t) * SUP_PROC_FRAME_BINS);
         state->S_tmp.exp = state->S.exp;
-        bfp_s32_headroom(&state->S_min);
+        state->S_tmp.hr = state->S.hr;
     } else {
         ns_minimum(&state->S_min, &state->S_min, &state->S);
         ns_minimum(&state->S_tmp, &state->S_tmp, &state->S);
