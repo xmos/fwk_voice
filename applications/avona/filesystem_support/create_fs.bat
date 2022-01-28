@@ -4,7 +4,6 @@
 
 @echo off
 
-
 :: Create directory for intended files and Copy renamed files into directory
 if exist "%temp%\fatmktmp\" (
     :: Exit with error

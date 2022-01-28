@@ -17,6 +17,7 @@
 extern "C" {
 #include "aec_defines.h"
 }
+#include "aec_config.h"
 #include "aec_memory_pool.h"
 
 #define TEST_ASM 1

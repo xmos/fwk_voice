@@ -2,36 +2,17 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import xscope_fileio
 import argparse
-import io
-import sh
-import os
+import shutil
+import subprocess
 
 def get_adapter_id():
-    xrun_bin = "xrun" 
-    xrun_timeout = 20
     try:
-        xrun_out_buf = io.StringIO()
-        xrun_out_proc = sh.Command(xrun_bin)(
-            "-l", _bg=True, _bg_exc=False, _out=xrun_out_buf, _err_to_out=True
-        )
+        xrun_out = subprocess.check_output(['xrun', '-l'], text=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        print('Error: %s' % e.output)
+        assert False
 
-        try:
-            xrun_out_proc.wait(timeout=xrun_timeout)
-        except sh.TimeoutException:
-            # Kill the process group
-            try:
-                xrun_out_proc.kill_group()
-                xrun_out_proc.wait()
-            except sh.SignalException:
-                # Killed
-                pass
-            # Raise an exception
-            raise RuntimeError("Error: Call to xrun timed out")            
-
-        xrun_out = xrun_out_buf.getvalue().split("\n")
-    except sh.CommandNotFound:
-        raise RuntimeError(f"Error: xrun command not found: {xrun_bin}")        
-    
+    xrun_out = xrun_out.split('\n')
     # Check that the first 4 lines of xrun_out match the expected lines
     expected_header = ["", "Available XMOS Devices", "----------------------", ""]
     if len(xrun_out) < len(expected_header):
@@ -66,12 +47,14 @@ def get_adapter_id():
             continue
     print("adapter_id = ",adapterID)
     return adapterID
-    
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("xe", nargs='?',
                         help=".xe file to run")
+    parser.add_argument('--input', type=str, default="input.wav",
+                        help="input wav file. Default: input.wav")
     args = parser.parse_args()
     return args
 
@@ -80,8 +63,15 @@ if __name__ == "__main__":
     assert args.xe is not None, "Specify vaild .xe file"
     adapter_id = get_adapter_id()
     print("Running on adapter_id ",adapter_id)
+    print(f"args.input = {args.input}")
+
+    try:
+        shutil.copy2(args.input, "input.wav")
+    except shutil.SameFileError as e:
+        pass
+    except IOError as e:
+         print('Error: %s' % e.strerror)
+         assert False, "Invalid input file"
 
     xscope_fileio.run_on_target(adapter_id, args.xe)
-
-
 

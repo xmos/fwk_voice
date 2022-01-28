@@ -19,10 +19,10 @@
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE]);
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 void aec_task(const char *input_file_name, const char *output_file_name) {
     // Ensure configuration is a subset of the maximum configuration the library supports
