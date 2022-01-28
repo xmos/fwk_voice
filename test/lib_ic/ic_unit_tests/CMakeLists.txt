@@ -12,7 +12,10 @@ configure_file( conftest.py conftest.py COPYONLY )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 
 message(STATUS "${APP_NAME} ic build config:  ${IC_UNIT_TESTS_BUILD_CONFIG}" )
-message( STATUS "Unit tests speedup factor ${IC_UNIT_TESTS_SPEEDUP_FACTOR}" )
+if (NOT DEFINED TESTS_SPEEDUP_FACTOR)
+    set (TESTS_SPEEDUP_FACTOR 1)
+endif()
+message( STATUS "Unit tests speedup factor ${TESTS_SPEEDUP_FACTOR}" )
 
 file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 
@@ -44,7 +47,7 @@ list( APPEND  LINKER_FLAGS_XCORE  "-report"                     )
 
 
 list( APPEND  LINKER_FLAGS ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} -DSPEEDUP_FACTOR=${IC_UNIT_TESTS_SPEEDUP_FACTOR} )
+list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} -DSPEEDUP_FACTOR=${TESTS_SPEEDUP_FACTOR} )
 
 ## Sources
 # Unity
@@ -57,7 +60,7 @@ list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${
 
 #lib_dsp
 #set( LIB_DSP_PATH ${DEPS_ROOT}/xcore_sdk/modules/lib_dsp/lib_dsp )  ## For fetching dependencies using cmake
-set( LIB_DSP_PATH ${DEPS_ROOT}/lib_dsp/lib_dsp )
+set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources

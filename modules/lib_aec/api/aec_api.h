@@ -27,7 +27,7 @@
  *
  * This function initializes AEC data structures for a given configuration.
  * The configuration parameters num_y_channels, num_x_channels, num_main_filter_phases and num_shadow_filter_phases are
- * passed in as input arguments. More details about top level AEC configuration are in @ref aec_overview.
+ * passed in as input arguments.
  *
  * This function needs to be called at startup to first initialise the AEC and subsequently whenever the AEC configuration changes.
  *
@@ -355,6 +355,39 @@ void aec_filter_adapt(
  */
 void aec_update_X_fifo_1d(
         aec_state_t *state);
+
+/** @brief Calculate a correlation metric between the microphone input and estimated microphone signal
+ *
+ * This function calculates a metric of resemblence between the mic input and the estimated mic signal. The correlation
+ * metric, along with reference signal energy is used to infer presence of near and far end signals in the AEC mic
+ * input.
+ *
+ * @param[in] state AEC state structure. `state->y` and `state->y_hat` are used to calculate the correlation metric
+ * @param[in] ch mic channel index for which to calculate the metric
+ * @returns correlation metric in float_s32_t format
+ *
+ * @ingroup aec_func
+ *
+ */
+float_s32_t aec_calc_corr_factor(
+        aec_state_t *state,
+        unsigned ch);
+
+/** @brief Calculate the energy of the reference input signal 
+ *
+ * This function calculates the sum of the energy across all samples of the time domain reference input channel and
+ * returns the maximum energy across all channels. 
+ *
+ * @param[in] x_data Pointer to the reference (x) data buffer. The input is assumed to be in Q1.31 fixed point format.
+ * @param[in] num_channels Number of reference input channels.
+ * @returns Maximum reference energy in float_s32_t format.
+ *
+ * @ingroup aec_func
+ *
+ */
+float_s32_t aec_calc_max_ref_energy(
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+        int num_channels);
 
 /// Estimate delay
 /*int aec_estimate_delay (
