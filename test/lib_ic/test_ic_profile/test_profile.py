@@ -20,19 +20,6 @@ import sys
 ic_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../../../examples/bare-metal/ic/src".split("/"))
 thread_speed_mhz = (600 / 5)
 
-def run_proc_with_output(cmd):
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout = proc.stdout.readlines()
-    return [str(line, 'utf-8') for line in stdout]
-
-def extract_memory_stats(stdout):
-    memory_used = None
-    for line in stdout:
-        rs = re.search(r"Memory\savailable:\s+(\d+),\s+used:\s+(\d+).+", line)
-        if rs:
-            memory_used = int(rs.group(2))
-    return memory_used
-
 in_file_name = "input.wav"
 out_file_name = "output.wav"
 def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
@@ -45,17 +32,15 @@ def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id} binary {ic_xe}")
-        with open("dut.log", "w") as ff:
-            xscope_fileio.run_on_target(adapter_id, ic_xe, stdout=ff)
+        stdout = xscope_fileio.run_on_target(adapter_id, ic_xe)
 
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-        with open("dut.log", "r") as ff:
-            for line in ff.read().splitlines():
-                m = re.search(r'^\s*\[DEVICE\]', line)
-                if m is not None:
-                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
-        
+        for line in stdout:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+
     os.chdir(prev_path)
     #Save output file
     shutil.copy2(os.path.join(tmp_folder, audio_out), audio_out)
@@ -135,7 +120,7 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
                     end_tag = 'end_' + tag[6:]
                     cycles = tags[end_tag] - tags[tag]
                     this_frame_tags[tag[6:]] = cycles
-                    if tag.endswith('init'): 
+                    if tag.endswith('init'):  #Exclude init processing
                         init_frame = cycles
                     else:
                         total_cycles += cycles #Note we exclude init as part of our analysis
@@ -159,7 +144,8 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
 
             #in the end, print the worst case frame
             for key, value in worst_case_frame[0].items():
-                fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
+                if not "init" in key: #Exclude init processing
+                    fp.write(f'{key:<44} {value:<12} {round((value/float(worst_case_frame[1]))*100,2):>10}% \n')
             worst_case_timer_ticks = int(worst_case_frame[1])
             fp.write(f'{"Worst_case_frame_timer(100MHz)_ticks":<44} {worst_case_timer_ticks}\n')
             worst_case_processor_cycles = int((worst_case_timer_ticks/100) * thread_speed_mhz)
@@ -244,8 +230,10 @@ def create_wav_input():
 
 
 xe_files = glob.glob('../../../build/test/lib_ic/test_ic_profile/bin/*.xe')
-#create wav input
+assert xe_files, "xe binary not found"
 create_wav_input()
+
+
 @pytest.fixture(scope="session", params=xe_files)
 def setup(request):
     xe = os.path.abspath(request.param) #get .xe filename including path
