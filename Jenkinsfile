@@ -214,7 +214,7 @@ pipeline {
         }
         stage('IC characterisation') {
           steps {
-            dir("${REPO}/test/lib_ic/characterise_xc_py") {
+            dir("${REPO}/test/lib_ic/characterise_c_py") {
               viewEnv() {
                 withVenv {
                   //This test compares the suppression performance across angles between model and C implementation
