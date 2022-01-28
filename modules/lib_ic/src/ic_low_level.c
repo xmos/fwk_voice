@@ -229,9 +229,6 @@ void ic_compute_T(
 
 /// Adapt H_hat
 void ic_filter_adapt(ic_state_t *state){
-    if(state == NULL) {
-        return;
-    }
     if((state->ic_adaption_controller_state.adaption_controller_config.enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
@@ -242,11 +239,10 @@ void ic_filter_adapt(ic_state_t *state){
 }
 
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
-
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
-    if(!ad_state->enable_adaption_controller){ //skip this function if adaption controller not enabled
+    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
         return;
     }
     float_s32_t r = {vad, -8}; //convert to float between 0 and 0.99609375

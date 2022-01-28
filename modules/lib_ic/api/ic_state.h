@@ -81,10 +81,14 @@ typedef struct {
     /** Setting of H_hat leakage which gets set if fast ratio exceeds a threshold. */
     float_s32_t instability_recovery_leakage_alpha;
 
-    /** Boolean which controls whether to enable detection and recovery from instability. */
-    uint8_t enable_filter_instability_recovery;
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
+    /** Boolean which controls whether Mu is automatically adjusted from the VAD input. */
+    uint8_t enable_adaption_controller;
+    /** Boolean which controls whether to enable detection and recovery from instability
+     * in the case when the adaption controller is enabled. */
+    uint8_t enable_filter_instability_recovery;
+
 }ic_adaption_controller_config_t;
 
 

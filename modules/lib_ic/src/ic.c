@@ -21,7 +21,6 @@ static void ic_init_config(ic_config_params_t *config){
 }
 
 
-
 static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
     config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
     config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
@@ -29,10 +28,11 @@ static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *
     config->energy_alpha_fast = double_to_float_s32(IC_INIT_ENERGY_ALPHA_FAST);
 
     config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
-    config->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
     config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
 
     config->enable_adaption = 1;
+    config->enable_adaption_controller = 1;
+    config->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
 
 }
 
@@ -145,6 +145,9 @@ void ic_filter(
         int32_t x_data[IC_FRAME_ADVANCE],
         int32_t output[IC_FRAME_ADVANCE])
 {
+    if(state == NULL) {
+        return;
+    }
 
     ///Delay y channel, necessary for operation of adaptive filter
     ic_delay_y_input(state, y_data);
@@ -210,6 +213,10 @@ void ic_adapt(
         ic_state_t *state,
         uint8_t vad,
         int32_t output[IC_FRAME_ADVANCE]){
+
+    if(state == NULL) {
+        return;
+    }
    
     //Calculate leakage and mu for adaption
     ic_adaption_controller(state, vad);
