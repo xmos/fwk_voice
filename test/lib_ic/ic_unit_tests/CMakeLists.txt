@@ -59,8 +59,7 @@ set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
 list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
 
 #lib_dsp
-#set( LIB_DSP_PATH ${DEPS_ROOT}/xcore_sdk/modules/lib_dsp/lib_dsp )  ## For fetching dependencies using cmake
-set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
+set( LIB_DSP_PATH ${MODULES_DIR}/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources
