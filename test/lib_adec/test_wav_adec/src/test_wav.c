@@ -207,6 +207,8 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
     sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.shared_state->y_ema_energy[0]));
     file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.peak_to_average_ratio));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
 #endif
         
         // Create interleaved output that can be written to wav file

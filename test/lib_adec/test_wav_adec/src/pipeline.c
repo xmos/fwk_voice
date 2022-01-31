@@ -247,6 +247,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     adec_in.from_de.peak_power_phase_index = de_output.peak_power_phase_index;
     adec_in.from_de.peak_phase_power = de_output.peak_phase_power;
     adec_in.from_de.peak_to_average_ratio = de_output.peak_to_average_ratio;
+    state->peak_to_average_ratio = adec_in.from_de.peak_to_average_ratio;
     // From AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
