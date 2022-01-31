@@ -180,52 +180,6 @@ pipeline {
             }
           }
         }
-<<<<<<< HEAD
-        stage('NS sup_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
-=======
-        }
-        stage('NS sup_unit_tests') {
-          steps {
-            dir("${REPO}/build/test/lib_noise_supression/sup_unit_tests") {
->>>>>>> editing jenkinsfile
-              viewEnv() {
-                withVenv {
-                  sh "ls -l ${REPO}/build/test/lib_noise_suppression/sup_unit_tests"
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('NS ns_unit_tests') {
-<<<<<<< HEAD
-=======
-          steps {
-            dir("${REPO}/build/test/lib_noise_supression/ns_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('NS performance tests') {
-          steps {
-            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
         stage('NS sup_unit_tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
@@ -241,23 +195,6 @@ pipeline {
         stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('Meta Data tests') {
->>>>>>> editing jenkinsfile
-          steps {
-<<<<<<< HEAD
-            dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
-=======
-            dir("${REPO}/test/lib_meta_data") {
->>>>>>> 970e2635770172fb83461568ff37b4ea07086bc9
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
