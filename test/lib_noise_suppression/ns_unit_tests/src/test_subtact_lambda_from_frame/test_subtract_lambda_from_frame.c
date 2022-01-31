@@ -23,22 +23,22 @@
 #define LUT_SIZE 64
 #define LUT_INPUT_MULTIPLIER 4
 const int32_t LUT_TEST[LUT_SIZE] = {
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2936779382,  2936779382,  2936779382,  2936779382,  
-2278108010,  1767165807,  1370819547,  1063367242,  
-824871438,  639866325,  496354819,  385030587,  
-298674552,  231686756,  179723223,  139414256,  
-108145929,  83890573,  65075296,  50479976,  
-39158146,  30375617,  23562865,  18278102,  
-14178624,  10998591,  8531788,  6618248,  
-5133883,  3982438,  3089242,  2396376,  
-1858908,  1441985,  1118572,  867694,  
-673085,  522123,  405019,  314180,  
-243714,  189053,  146651,  113760,  
-88245,  68453,  53100,  41191,  
-31952,  24786,  19227,  14914,  
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1468389691, 1468389691, 1468389691, 1468389691,
+1139054005, 883582904, 685409774, 531683621,
+412435719, 319933163, 248177410, 192515294,
+149337276, 115843378, 89861612, 69707128,
+54072965, 41945287, 32537648, 25239988,
+19579073, 15187809, 11781433, 9139051,
+7089312, 5499296, 4265894, 3309124,
+2566942, 1991219, 1544621, 1198188,
+929454, 720993, 559286, 433847,
+336543, 261062, 202510, 157090,
+121857, 94527, 73326, 56880,
+44123, 34227, 26550, 20596,
+15976, 12393, 9614, 7457
 };
 
 TEST_GROUP_RUNNER(ns_subtract_lambda_from_frame){
@@ -62,13 +62,17 @@ TEST(ns_subtract_lambda_from_frame, case0){
     int32_t lambda_int [SUP_PROC_FRAME_BINS];
     float_s32_t lambda_fl;
 
+    double r_data_db;
+    int32_t r_data_int;
+    float_s32_t r_data_fl;
+
     for(int i = 0; i < 100; i++){
 
         sup_state_t state;
         sup_init_state(&state);
 
         float_s32_t t;
-        int32_t min = INT_MAX;
+        int lut_index;
 
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             abs_Y_int[v] = pseudo_rand_int(&seed, 0x10000000, 0x7fffffff);
@@ -81,20 +85,18 @@ TEST(ns_subtract_lambda_from_frame, case0){
             lambda_fl.exp = EXP;
             lambda_db[v] = float_s32_to_double(lambda_fl);
 
-            expected[v] = sqrt(lambda_db[v]) / (double)LUT_INPUT_MULTIPLIER;
-            expected[v] = abs_Y_db[v] / (expected[v] + ldexp(1, -50));
+            lut_index = sqrt(lambda_db[v]) / LUT_INPUT_MULTIPLIER;
+            lut_index = abs_Y_db[v] / lut_index;
 
-            if ((int32_t)expected[v] < min){min = (int32_t)expected[v];}
-        }
-        if(min < (LUT_SIZE - 1)){t.mant = min; t.exp = EXP;}
-        else{t.mant = LUT_SIZE - 1; t.exp = 0;}
+            r_data_int = (lut_index > (LUT_SIZE - 1)) ? 0 : LUT_TEST[lut_index];
+            r_data_fl.mant = r_data_int;
+            r_data_fl.exp = EXP;
+            r_data_db = float_s32_to_double(r_data_fl);
 
-        t.mant = LUT_TEST[(int32_t)float_s32_to_double(t)];
-        t.exp = EXP;
-
-        for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-            expected[v] = abs_Y_db[v] - (sqrt(lambda_db[v]) * float_s32_to_double(t));
-            if(expected[v] < 0){expected[v] = 0;}
+            expected[v] = (sqrt(lambda_db[v]) > abs_Y_db[v]) ? abs_Y_db[v] : sqrt(lambda_db[v]);
+            expected[v] *= r_data_db;
+            expected[v] = abs_Y_db[v] - expected[v];
+            if(expected[v] < 0) expected[v] = 0;
         }
 
         bfp_s32_t abs_Y_bfp;
@@ -122,7 +124,7 @@ TEST(ns_subtract_lambda_from_frame, case0){
         }
 
         double rel_error = fabs(abs_diff/(expected[id] + ldexp(1, -40)));
-        double thresh = ldexp(1, -28);
+        double thresh = ldexp(1, -26);
         TEST_ASSERT(rel_error < thresh);
     }
 }

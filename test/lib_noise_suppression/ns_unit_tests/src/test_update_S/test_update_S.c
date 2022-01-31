@@ -32,7 +32,6 @@ TEST(ns_update_S, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
 
     double alpha_s;
-    float_s32_t alpha_s_fl;
 
     double expected [SUP_PROC_FRAME_BINS];
     double actual;
@@ -45,10 +44,8 @@ TEST(ns_update_S, case0){
 
         sup_state_t state;
         sup_init_state(&state);
-        alpha_s_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
-        alpha_s_fl.exp = EXP;
-        state.alpha_s = alpha_s_fl;
-        alpha_s = float_s32_to_double(alpha_s_fl);
+
+        alpha_s = 0.8;
 
         for (int v = 0; v < SUP_PROC_FRAME_BINS; v++){
 

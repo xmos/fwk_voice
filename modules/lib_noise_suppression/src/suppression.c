@@ -119,12 +119,24 @@ void sup_init_state(sup_state_t * state){
 
     bfp_s32_init(&state->wind, SUP_SQRT_HANN_LUT, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
     bfp_s32_init(&state->rev_wind, state->data_rev_wind, SUP_INT_EXP, SUPPRESSION_WINDOW_LENGTH / 2, 1);
-    
+
+    state->reset_counter = 0;
     state->reset_period = (unsigned)(16000.0 * 0.15);
-    state->alpha_d = float_to_float_s32(0.95);
-    state->alpha_s = float_to_float_s32(0.8);
-    state->alpha_p = float_to_float_s32(0.2);
-    state->delta = float_to_float_s32(1.5);
+    //alpha_d = 0.95 to 9 d.p.
+    state->alpha_d.mant = 2040109466;
+    state->alpha_d.exp = -31;
+    // 1 - 0.95 to 9 d.p
+    state->one_minus_aplha_d.mant = 26843546;
+    state->one_minus_aplha_d.exp = -29;
+    //alpha_s = 0.8 to 9 d.p.
+    state->alpha_s.mant = 1717986919;
+    state->alpha_s.exp = -31;
+    //alpha_p = 0.2 to 10 d.p.
+    state->alpha_p.mant = 1717986919;
+    state->alpha_p.exp = -33;
+    //delta = 1.5 exactly
+    state->delta.mant = 1610612736;
+    state->delta.exp = -30;
 }
 
 void sup_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_window, const unsigned frame_length, const unsigned window_length){

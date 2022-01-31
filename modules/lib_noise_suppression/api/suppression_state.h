@@ -37,10 +37,10 @@ typedef struct {
     int32_t data_rev_wind [SUPPRESSION_WINDOW_LENGTH / 2];
 
     float_s32_t delta;
-    float_s32_t noise_floor;
     float_s32_t alpha_d;
     float_s32_t alpha_s;
     float_s32_t alpha_p;
+    float_s32_t one_minus_aplha_d;
 
     unsigned reset_period;
     unsigned reset_counter;

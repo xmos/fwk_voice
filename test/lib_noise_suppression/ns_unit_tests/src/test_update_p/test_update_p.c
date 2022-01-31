@@ -35,9 +35,6 @@ TEST(ns_update_p, case0){
     double alpha_p;
     double delta;
 
-    float_s32_t alpha_p_fl;
-    float_s32_t delta_fl;
-
     int32_t S_int [SUP_PROC_FRAME_BINS];
     int32_t S_min_int [SUP_PROC_FRAME_BINS];
     int32_t p_int [SUP_PROC_FRAME_BINS];
@@ -50,22 +47,13 @@ TEST(ns_update_p, case0){
     double expected [SUP_PROC_FRAME_BINS];
     double actual;
 
-
     for(int i = 0; i < 100; i++){
 
         sup_state_t state;
         sup_init_state(&state);
         
-        alpha_p_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
-        alpha_p_fl.exp = EXP;
-        state.alpha_p = alpha_p_fl;
-        alpha_p = float_s32_to_double(alpha_p_fl);
-
-        delta_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
-        delta_fl.exp = EXP;
-        delta_fl = float_s32_add(delta_fl, float_to_float_s32(1.0));
-        state.delta = delta_fl;
-        delta = float_s32_to_double(delta_fl);
+        alpha_p = 0.2;
+        delta = 1.5;
 
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             

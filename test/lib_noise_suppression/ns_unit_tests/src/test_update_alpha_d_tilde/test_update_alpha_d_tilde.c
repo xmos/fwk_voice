@@ -35,7 +35,6 @@ TEST(ns_update_alpha_d_tilde, case0){
     double actual;
 
     double alpha_d;
-    float_s32_t alpha_d_fl;
 
     int32_t p_int [SUP_PROC_FRAME_BINS];
     float_s32_t p_fl;
@@ -46,10 +45,7 @@ TEST(ns_update_alpha_d_tilde, case0){
         sup_state_t state;
         sup_init_state(&state);
 
-        alpha_d_fl.mant = pseudo_rand_int(&seed, 0, INT_MAX);
-        alpha_d_fl.exp = EXP;
-        state.alpha_d = alpha_d_fl;
-        alpha_d = float_s32_to_double(alpha_d_fl);
+        alpha_d = 0.95;
 
         for (int v = 0; v < SUP_PROC_FRAME_BINS; v++){
 

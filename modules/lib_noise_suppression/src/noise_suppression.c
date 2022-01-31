@@ -35,15 +35,12 @@ void ns_minimum(bfp_s32_t * dst, bfp_s32_t * src1, bfp_s32_t * src2){
 void ns_update_S(sup_state_t *state, const bfp_s32_t * abs_Y){
     int32_t scratch[SUP_PROC_FRAME_BINS];
     bfp_s32_t tmp;
-    float_s32_t t;
     bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
     bfp_s32_mul(&tmp, abs_Y, abs_Y);
 
-    t.mant = one_mant;
-    t.exp = one_exp; // t = 1
-
-    bfp_s32_scale(&tmp, &tmp, float_s32_sub(t, state->alpha_s));
+    //since alpha_s = 0.8 and 1 - 0.8 = 0.2, we can use alpha_p value here
+    bfp_s32_scale(&tmp, &tmp, state->alpha_p);
     
     bfp_s32_scale(&state->S, &state->S, state->alpha_s);
 
@@ -56,7 +53,6 @@ void ns_update_S(sup_state_t *state, const bfp_s32_t * abs_Y){
 void ns_update_p(sup_state_t * state){
 
     bfp_s32_t tmp, tmp2;
-    float_s32_t t;
     int32_t scratch [SUP_PROC_FRAME_BINS];
     int32_t one_zero [SUP_PROC_FRAME_BINS];
     bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
@@ -64,19 +60,12 @@ void ns_update_p(sup_state_t * state){
     bfp_s32_scale(&tmp, &state->S_min, state->delta);
     bfp_s32_use_exponent(&tmp, state->S.exp);
 
+    //since alpha_p = 0.2 and 1 - 0.2 = 0.8, we can use alpha_s value here
     for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
-        one_zero[v] = (state->S.data[v] > tmp.data[v]) ? (int)(0.8*INT_MAX) : 0;
+        one_zero[v] = (state->S.data[v] > tmp.data[v]) ? state->alpha_s.mant : 0;
     }
 
-    bfp_s32_init(&tmp2, one_zero, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 1);
-
-    //t.mant = one_mant;
-    //t.exp = one_exp; // t = 1
-
-    //t = float_s32_sub(t, state->alpha_p);
-
-    //bfp_s32_scale(&tmp, &tmp, t);
-
+    bfp_s32_init(&tmp2, one_zero, state->alpha_s.exp, SUP_PROC_FRAME_BINS, 1);
 
     bfp_s32_scale(&state->p, &state->p, state->alpha_p);
     bfp_s32_add(&state->p, &state->p, &tmp2);
@@ -85,17 +74,11 @@ void ns_update_p(sup_state_t * state){
 //    alpha_d_tilde = alpha_d + (1.0 - alpha_d) * p
 void ns_update_alpha_d_tilde(sup_state_t * state){
     bfp_s32_t tmp;
-    float_s32_t t;
     int32_t scratch [SUP_PROC_FRAME_BINS];
 
     bfp_s32_init(&tmp, scratch, SUP_INT_EXP, SUP_PROC_FRAME_BINS, 0);
 
-    t.mant = one_mant;
-    t.exp = one_exp; //t = 1
-
-    t = float_s32_sub(t, state->alpha_d);
-
-    bfp_s32_scale(&tmp, &state->p, t);
+    bfp_s32_scale(&tmp, &state->p, state->one_minus_aplha_d);
 
     bfp_s32_add_scalar(&state->alpha_d_tilde, &tmp, state->alpha_d);
 }
