@@ -46,28 +46,20 @@ pipeline {
         stage('CMake') {
           steps {
             dir("${REPO}") {
-              sh "mkdir build"
-            }
-            dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
-                  sh "cmake --version"
                   script {
-                      if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
-                      }
-                      else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
-                      }
+                    if (env.FULL_TEST == "1") {
+                      sh 'cmake -B build -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON .'
+                    } else {
+                      sh 'cmake -B build -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
+                    }
                   }
-                  sh "make -j8"
-                  sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
-                  sh "make -j8"
+                  sh "make -C build -j8"
+                  sh 'cmake -B build-x86 -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON -DBUILD_NATIVE=ON .'
+                  sh "make -C build-x86 -j8"
                 }
               }
-            }
-            dir("${REPO}") {
               stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py, build/**/test_wav_aec_c_app'
             }
           }
