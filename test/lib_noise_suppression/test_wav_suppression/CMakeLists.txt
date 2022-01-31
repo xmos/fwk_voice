@@ -14,12 +14,11 @@ list( APPEND  DEP_LIBS
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
-
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED ../../../examples/bare-metal/shared_src/file_utils/*.c )
+file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/*.c )
 file( GLOB SOURCES_XC src/*.xc )
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
+file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 
 unset( SOURCES )
 list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_SHARED})
@@ -29,9 +28,9 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/shared_src/file_utils ${AUTOGEN_DIR} )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api )
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes ${INCLUDES}" )
