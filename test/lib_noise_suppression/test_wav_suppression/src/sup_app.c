@@ -11,7 +11,7 @@
 #include <fileio.h>
 #include <wav_utils.h>
 
-#define MAX_CHANNELS 2
+#define MAX_CHANNELS 1
 
 extern void sup_process_frame(sup_state_t * state,
                         int32_t output [SUP_FRAME_ADVANCE],
@@ -42,7 +42,7 @@ void sup_task(const char *input_file_name, const char *output_file_name){
     }
     // Ensure input wav file contains correct number of channels 
     if(input_header_struct.num_channels != MAX_CHANNELS){
-        printf("Error: wav num channels(%d) does not match aec(%u)\n", input_header_struct.num_channels, MAX_CHANNELS);
+        printf("Error: wav num channels(%d) does not match sup(%u)\n", input_header_struct.num_channels, MAX_CHANNELS);
         _Exit(1);
     }
 
@@ -70,7 +70,7 @@ void sup_task(const char *input_file_name, const char *output_file_name){
     //sup_state_t DWORD_ALIGNED ch2_state;
 
     sup_init_state(&ch1_state);
-    sup_init_state(&ch2_state);
+    //sup_init_state(&ch2_state);
 
     for(int b = 0; b < block_count; b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * SUP_FRAME_ADVANCE, input_header_size);
@@ -86,7 +86,7 @@ void sup_task(const char *input_file_name, const char *output_file_name){
         // Call Noise Suppression functions to process SUP_FRAME_ADVANCE new samples of data
         // Reuse mic data memory for main filter output
         sup_process_frame(&ch1_state, frame[0], frame[0]);
-        sup_process_frame(&ch2_state, frame[1], frame[1]);
+        //sup_process_frame(&ch2_state, frame[1], frame[1]);
 
         // Create interleaved output that can be written to wav file
         for (unsigned ch = 0; ch < MAX_CHANNELS; ch++){
