@@ -19,9 +19,9 @@ args = parse_arguments()
 assert args.xe is not None, "Specify vaild .xe file"
 #example code to set runtime config in args.bin
 with open("args.bin", "wb") as fp:
-    fp.write("main_filter_phases 10\n".encode('utf-8'))
+    fp.write("main_filter_phases 15\n".encode('utf-8'))
     fp.write("shadow_filter_phases 5\n".encode('utf-8'))
-    fp.write("y_channels 2\n".encode('utf-8'))
+    fp.write("y_channels 1\n".encode('utf-8'))
     fp.write("x_channels 2\n".encode('utf-8'))
 #Create an empty args.bin file. xscope_open_file() doesn't handle file not present. Ideally, would like
 #to use posix open with O_CREAT flag 

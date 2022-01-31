@@ -32,8 +32,8 @@ def scale_vol_changes(vols):
 
 def add_test(test_info, test_list, path_to_regression_files, input_audio_files, far_end_delay_changes, limit_test_length_s, gt_changes, \
              allowable_false_negatives, allowable_false_positives, run_target=False, volume_changes=False):
-  #if test_info != "delay_at_start":
-  #    return
+  if test_info != "small_mic_increase":
+      return
 
   #if test_info != "limits":
   #    return

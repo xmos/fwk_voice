@@ -4,6 +4,7 @@
 #include "aec_config.h"
 #include "pipeline_state.h"
 
+#define LOG_DEBUG_INFO (1)
 #define AP_MAX_Y_CHANNELS (2)
 #define AP_MAX_X_CHANNELS (2)
 #define AP_FRAME_ADVANCE (240)
@@ -102,6 +103,11 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     ret = file_open(&delay_file, "delay.bin", "wb");
     assert((!ret) && "Failed to open file");
 
+#if LOG_DEBUG_INFO
+    file_t debug_log_file;
+    ret = file_open(&debug_log_file, "debug_log.bin", "wb");
+#endif
+
     wav_header input_header_struct, output_header_struct;
     unsigned input_header_size;
     if(get_wav_header_details(&input_file, &input_header_struct, &input_header_size) != 0){
@@ -161,6 +167,10 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     pipeline_state_t DWORD_ALIGNED stage_a_state;
     pipeline_init(&stage_a_state, &aec_de_mode_conf, &aec_non_de_mode_conf);
 
+#if LOG_DEBUG_INFO
+    //bypass adec since we only want to log aec behaviour
+    stage_a_state.adec_state.adec_config.bypass = 1;
+#endif
     for(unsigned b=0;b<block_count;b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * AP_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
@@ -178,6 +188,26 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
         }
 
         pipeline_process_frame(&stage_a_state, stage_a_output, frame_y, frame_x);
+
+#if LOG_DEBUG_INFO
+    char buf[100];
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.overall_Error[0]));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_shadow_state.overall_Error[0]));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.shared_state->overall_Y[0]));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_reset_count[0]);
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_better_count[0]);
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.error_ema_energy[0]));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.shared_state->y_ema_energy[0]));
+    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+#endif
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AP_MAX_Y_CHANNELS;ch++){
