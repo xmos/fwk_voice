@@ -8,3 +8,6 @@ unset(NS_SOURCES)
 list( APPEND  NS_SOURCES   ${NS_C_SOURCES}    )
 
 list( APPEND  NS_SOURCES  ${NS_SOURCES_${CMAKE_SYSTEM_NAME}}        )
+
+## cmake doesn't recognize .S files as assembly by default
+set_source_files_properties( ${LIB_XS3_MATH_ASM_SOURCES} PROPERTIES LANGUAGE ASM )
