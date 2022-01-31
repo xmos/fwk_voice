@@ -3,11 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
-#include <xs3_math.h>
-#include <bfp_init.h>
-#include <bfp_s32.h>
-#include <bfp_fft.h>
-#include <bfp_complex_s32.h>
+#include <bfp_math.h>
 
 #include <suppression.h>
 #include "suppression_ns.h"
