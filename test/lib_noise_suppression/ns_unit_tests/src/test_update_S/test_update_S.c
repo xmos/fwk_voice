@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <xs3_math.h>
-#include <bfp_init.h>
+#include <bfp_math.h>
 
 #include <suppression.h>
 #include <suppression_testing.h>
