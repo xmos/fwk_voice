@@ -170,7 +170,7 @@ pipeline {
         }
         stage('NS performance tests') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_xc") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
