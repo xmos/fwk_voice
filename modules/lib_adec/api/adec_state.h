@@ -17,6 +17,15 @@ typedef struct {
 }adec_config_params_t;
 
 typedef struct {
+    int32_t measured_delay; ///< Estimated delay in samples
+    int32_t peak_power_phase_index; ///< H_hat phase index with the maximum energy
+    float_s32_t peak_phase_power; ///< Maximum energy across all H_hat phases
+    float_s32_t sum_phase_powers; ///< Sum of filter energy across all filter phases. Used in peak_to_average_ratio calculation. 
+    float_s32_t peak_to_average_ratio; ///< peak to average ratio of H_hat phase energy.
+    float_s32_t phase_power[DE_LIB_MAX_PHASES]; ///< Energy for every H_hat phase
+}de_output_t;
+
+typedef struct {
     int32_t delay_change_request_flag; ///< ADEC is requesting a change in the delay applied at the input
     int32_t requested_mic_delay_samples; ///< Mic delay in samples requested by ADEC. Relevant when delay_change_request_flag is 1
     /** flag indicating ADEC requesting an AEC reset. This is one when there's a delay
@@ -26,6 +35,7 @@ typedef struct {
     int32_t delay_estimator_enabled_flag; ///< Flag indicating whether or not AEC should run in delay estimator mode
     int32_t requested_delay_samples_debug; ///< Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used in tests.
 } adec_output_t;
+
 
 typedef struct {
     int32_t peak_power_phase_index;

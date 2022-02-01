@@ -1,7 +1,7 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "de_api.h"
+#include "adec_api.h"
 
 #define DE_PROC_FRAME_LENGTH (512)
 void de_calc_freq_domain_energy(

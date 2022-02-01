@@ -7,8 +7,6 @@ add_subdirectory( shared )
 
 add_subdirectory( lib_aec )
 
-add_subdirectory( lib_de )
-
 add_subdirectory( lib_adec )
 
 add_subdirectory( lib_ic )

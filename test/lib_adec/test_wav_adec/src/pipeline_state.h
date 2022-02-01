@@ -2,7 +2,6 @@
 #define AP_STAGE_A_STATE_H
 
 #include "aec_api.h"
-#include "de_api.h"
 #include "adec_state.h"
 
 #include "aec_memory_pool.h"

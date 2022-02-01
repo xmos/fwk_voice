@@ -5,7 +5,6 @@
 
 #include "aec_defines.h"
 #include "aec_api.h"
-#include "de_api.h"
 #include "adec_api.h"
 
 #include "aec_config.h"
@@ -34,11 +33,6 @@ extern void aec_process_frame_2threads(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 
-// After aec_init, these values are overwritten to modify convergence behaviour
-//https://github.com/xmos/lib_aec/pull/190
-//const fixed_s32_t fixed_mu_delay_est_mode = (int)(0.4 * (1<<30)); //TODO this will probably need tuning. 0.4 is the value that works with delay_est tests in lib_aec
-
-
 void delay_buffer_init(delay_state_t *state, int default_delay_samples) {
     memset(state->delay_buffer, 0, sizeof(state->delay_buffer));
     memset(&state->curr_idx[0], 0, sizeof(state->curr_idx));
@@ -58,6 +52,9 @@ void get_delayed_sample(delay_state_t *delay_state, int32_t *sample, int32_t ch)
 }
 
 void reset_partial_delay_buffer(delay_state_t *delay_state, int32_t ch, int32_t num_samples) {
+    if(!num_samples) {
+        return;
+    }
     num_samples = (num_samples < 0) ? -num_samples : num_samples;
     //Reset num_samples samples before curr_idx
     int32_t reset_start = (
@@ -108,63 +105,6 @@ void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
             conf->num_main_filt_phases, conf->num_shadow_filt_phases);
 }
 
-/*def is_frame_active(new_frame, threshold):
-    abs_max_ref = abs(np.max(new_frame))
-    return abs_max_ref > threshold*/
-int32_t is_frame_active(pipeline_state_t *state, int32_t (*input_x_data)[AP_FRAME_ADVANCE], int32_t num_x_channels) {
-    bfp_s32_t ref;
-    int32_t ref_active_flag = 0; 
-    for(int ch=0; ch<num_x_channels; ch++) {
-        bfp_s32_init(&ref, &input_x_data[ch][0], -31, AP_FRAME_ADVANCE, 1);
-        float_s32_t max = bfp_s32_max(&ref);
-        max = float_s32_abs(max);
-        ref_active_flag = ref_active_flag | (float_s32_gt(max, state->ref_active_threshold));
-    }
-    return ref_active_flag;
-}
-
-
-void reset_all_aec(pipeline_state_t *state){
-    aec_state_t *main_state = &state->aec_main_state;
-    aec_state_t *shadow_state = &state->aec_shadow_state;
-    aec_shared_state_t *shared_state = (aec_shared_state_t*)state->aec_main_state.shared_state; 
-    int y_channels = shared_state->num_y_channels;
-    int x_channels = shared_state->num_x_channels;
-    int main_phases = main_state->num_phases;
-    int shadow_phases = shadow_state->num_phases;
-    //Main H_hat
-    for(int ch=0; ch<y_channels; ch++) {
-        for(int ph=0; ph<x_channels*main_phases; ph++) {
-            //memset(main_state->H_hat[ch][ph].data, 0, main_state->H_hat[ch][ph].length*sizeof(complex_s32_t));
-            main_state->H_hat[ch][ph].exp = -1024;
-            main_state->H_hat[ch][ph].hr = 31;
-        }
-    }
-    //Shadow H_hat
-    for(int ch=0; ch<y_channels; ch++) {
-        for(int ph=0; ph<x_channels*shadow_phases; ph++) {
-            //memset(shadow_state->H_hat[ch][ph].data, 0, shadow_state->H_hat[ch][ph].length*sizeof(complex_s32_t));
-            shadow_state->H_hat[ch][ph].exp = -1024;
-            shadow_state->H_hat[ch][ph].hr = 31;
-        }
-    }
-    //X_fifo
-    for(int ch=0; ch<x_channels; ch++) {
-        for(int ph=0; ph<main_phases; ph++) {
-            shared_state->X_fifo[ch][ph].exp = -1024;
-            shared_state->X_fifo[ch][ph].hr = 31;
-        }
-    }
-    //X_energy, sigma_XX
-    for(int ch=0; ch<x_channels; ch++) {
-        main_state->X_energy[ch].exp = -1024;
-        main_state->X_energy[ch].hr = 31;
-        shadow_state->X_energy[ch].exp = -1024;
-        shadow_state->X_energy[ch].hr = 31;
-        shared_state->sigma_XX[ch].exp = -1024;
-        shared_state->sigma_XX[ch].hr = 31;
-    }
-}
 
 void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
     memset(state, 0, sizeof(pipeline_state_t)); 
@@ -208,7 +148,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     
     prof(4, "start_is_frame_active");
     // Calculate far_end active
-    int is_ref_active = is_frame_active(state, input_x_data, state->aec_main_state.shared_state->num_x_channels);
+    int is_ref_active = aec_detect_ref_activity(input_x_data, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
     prof(5, "end_is_frame_active");
 
     //printf("frame %d\n",framenum);
@@ -280,7 +220,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(12, "start_reset_aec");
     //** Reset AEC state if needed*/
     if(adec_output.reset_all_aec_flag) {
-        reset_all_aec(state);
+        reset_aec_state(&state->aec_main_state, &state->aec_shadow_state);
     }
     prof(13, "end_reset_aec");
     

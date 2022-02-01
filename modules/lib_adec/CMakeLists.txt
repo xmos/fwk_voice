@@ -24,6 +24,3 @@ set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
                                                 SUFFIX      ".a"        )
 
 target_compile_options( ${LIB_NAME} PRIVATE ${COMPILE_FLAGS} )
-
-target_compile_options( ${LIB_NAME} PRIVATE "$<$<CONFIG:DEBUG>:-DDEBUGG=1>" )
-

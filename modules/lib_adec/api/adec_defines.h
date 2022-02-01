@@ -1,5 +1,8 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+#define DE_LIB_MAX_PHASES (40)
+#define DE_FRAME_ADVANCE (240)
+
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
 

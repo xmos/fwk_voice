@@ -6,7 +6,7 @@
 #include <assert.h>
 extern "C"{
     #include "aec_api.h"
-    #include "de_api.h"
+    #include "adec_api.h"
 }
 
 //Note this is larger than AEC_LIB_MAIN_FILTER_PHASES but AEC_LIB_MAX_Y_CHANNELS and AEC_LIB_MAX_X_CHANNELS are 2 so it works..

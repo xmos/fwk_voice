@@ -13,3 +13,9 @@ void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
     const adec_input_t *adec_in);
+
+/// Estimate delay
+void estimate_delay (
+        de_output_t *de_state,
+        const bfp_complex_s32_t* H_hat, 
+        unsigned num_phases);

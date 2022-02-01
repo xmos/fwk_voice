@@ -376,21 +376,54 @@ void aec_update_X_fifo_1d(
     }
 }
 
-#if 0
-#include <xclib.h>
-unsigned mk_mask(unsigned m){
-    //(1<<m)-1
-    asm volatile("mkmsk %0, %1":"=r"(m): "r"(m));
-    return m;
-}
-
-void bfp_s32_calculate_min_mask(
-        bfp_s32_t *input,
-        unsigned *min_mask)
-{
-    *min_mask = 0;
-    for(unsigned i=0; i<input->length; i++) {
-        *min_mask |= mk_mask(clz(input->data[i]));
+void reset_aec_state(aec_state_t *main_state, aec_state_t *shadow_state){
+    aec_shared_state_t *shared_state = main_state->shared_state; 
+    int32_t y_channels = shared_state->num_y_channels;
+    int32_t x_channels = shared_state->num_x_channels;
+    int32_t main_phases = main_state->num_phases;
+    int32_t shadow_phases = shadow_state->num_phases;
+    //Main H_hat
+    for(int ch=0; ch<y_channels; ch++) {
+        for(int ph=0; ph<x_channels*main_phases; ph++) {
+            main_state->H_hat[ch][ph].exp = -1024;
+            main_state->H_hat[ch][ph].hr = 31;
+        }
+    }
+    //Shadow H_hat
+    for(int ch=0; ch<y_channels; ch++) {
+        for(int ph=0; ph<x_channels*shadow_phases; ph++) {
+            shadow_state->H_hat[ch][ph].exp = -1024;
+            shadow_state->H_hat[ch][ph].hr = 31;
+        }
+    }
+    //X_fifo
+    for(int ch=0; ch<x_channels; ch++) {
+        for(int ph=0; ph<main_phases; ph++) {
+            shared_state->X_fifo[ch][ph].exp = -1024;
+            shared_state->X_fifo[ch][ph].hr = 31;
+        }
+    }
+    //X_energy, sigma_XX
+    for(int ch=0; ch<x_channels; ch++) {
+        main_state->X_energy[ch].exp = -1024;
+        main_state->X_energy[ch].hr = 31;
+        shadow_state->X_energy[ch].exp = -1024;
+        shadow_state->X_energy[ch].hr = 31;
+        shared_state->sigma_XX[ch].exp = -1024;
+        shared_state->sigma_XX[ch].hr = 31;
     }
 }
-#endif
+
+int32_t aec_detect_ref_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels) {
+    /*abs_max_ref = abs(np.max(new_frame))
+    return abs_max_ref > threshold*/
+    bfp_s32_t ref;
+    int32_t ref_active_flag = 0; 
+    for(int ch=0; ch<num_x_channels; ch++) {
+        bfp_s32_init(&ref, (int32_t*)&input_x_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        float_s32_t max = bfp_s32_max(&ref);
+        max = float_s32_abs(max);
+        ref_active_flag = ref_active_flag | (float_s32_gt(max, active_threshold));
+    }
+    return ref_active_flag;
+}

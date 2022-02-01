@@ -389,6 +389,17 @@ float_s32_t aec_calc_max_ref_energy(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int num_channels);
 
+/** @brief Reset parts of aec state structure
+ *
+ * This function resets AEC state so as to start adapting from a zero filter.
+ */
+void reset_aec_state(aec_state_t *main_state, aec_state_t *shadow_state);
+
+/** @brief Quick check to see if there is any activity on the reference channel input
+ *
+ */
+int32_t aec_detect_ref_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels);
+
 //TODO pending documentation and examples for L2 APIs
 /**
  * @brief Calculate Error and Y_hat for a channel over a range of bins.

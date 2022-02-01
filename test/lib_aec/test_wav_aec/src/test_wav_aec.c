@@ -19,7 +19,7 @@
 #include "aec_config.h"
 #include "aec_task_distribution.h"
 #include "aec_api.h"
-#include "de_api.h"
+#include "adec_api.h"
 #include "aec_memory_pool.h"
 #include "fileio.h"
 #include "wav_utils.h"

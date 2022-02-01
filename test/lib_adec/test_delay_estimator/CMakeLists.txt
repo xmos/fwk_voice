@@ -31,7 +31,7 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 
 list( APPEND  DEP_LIBS        
     lib_aec 
-    lib_de
+    lib_adec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
