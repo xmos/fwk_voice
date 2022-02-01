@@ -175,11 +175,9 @@ void ns_subtract_lambda_from_frame(bfp_s32_t * abs_Y, sup_state_t * state){
     bfp_s32_rect(abs_Y, abs_Y);
 }
 
-/*
- * abs_Y is the current estimated mag of Y, i.e. it may have been echo suppressed or dereverbed.
- * Y_exp is the exponent of abs_Y
- *
- */
+//    abs_Y is the current estimation magnitude of Y
+//    this function will estimate the noise level 
+//    and subrtact it from abs_Y
 void ns_process_frame(bfp_s32_t * abs_Y, sup_state_t * state){
 
     ns_update_S(state, abs_Y);
