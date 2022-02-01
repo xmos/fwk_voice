@@ -21,8 +21,9 @@
 #define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model. The group delay through the filter is 32 + this number
 
 
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1
-#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0
+#define IC_INIT_ENABLE_ADAPTION_CONTROLLER          1   //By default, adapt mu according to vad input
+#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1   //Look for filter adding noise and reset if so
+#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0 //Limit for triggering reset
 #define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999
 #define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99
 #define IC_INIT_ENERGY_ALPHA                        0.999

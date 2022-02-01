@@ -11,7 +11,6 @@ import xscope_fileio
 import xtagctl
 import io
 import glob
-from contextlib import redirect_stdout
 import re
 import argparse
 import pytest
@@ -54,16 +53,14 @@ def run_aec_xe(aec_xe, run_config, threads, audio_in, audio_out, profile_dump_fi
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id}")
-        with open("dut.log", "w") as ff:
-            xscope_fileio.run_on_target(adapter_id, aec_xe, stdout=ff)
+        stdout = xscope_fileio.run_on_target(adapter_id, aec_xe)
 
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-        with open("dut.log", "r") as ff:
-            for line in ff.read().splitlines():
-                m = re.search(r'^\s*\[DEVICE\]', line)
-                if m is not None:
-                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+        for line in stdout:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
         
     os.chdir(prev_path)
 

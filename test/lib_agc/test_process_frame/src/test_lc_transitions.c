@@ -9,9 +9,12 @@
 // double-talk or silence. The loss-control is expected to transition to the new state
 // within a fixed number of frames.
 //
-// Transitions between every pair of states is tested, except near-end to far-end, and
-// double-talk to far-end. The code in the AGC implementation doesn't appear to be able
-// to transition between these states without a period of silence between (Issue #111).
+// Transitions between every pair of states is tested, except:
+//   - near-end to far-end
+//   - double-talk to far-end
+// These direct transitions aren't possible because a period of silence is required to move
+// to the far-end state, otherwise the gain would produce a bad experience during double-talk
+// because it would keep switching between near-end and far-end on the gaps between words.
 
 // Expect the LC state to transition within this number of frames
 #define TRANSITION_FRAMES 50
@@ -91,7 +94,6 @@ void test_lc_transitions() {
     agc_state_t agc;
     agc_config_t conf = AGC_PROFILE_COMMS;
     conf.adapt_on_vad = 0;
-    conf.lc_enabled = 1;
 
     for (unsigned iter = 0; iter < (1<<10)/F; ++iter) {
         agc_init(&agc, &conf);

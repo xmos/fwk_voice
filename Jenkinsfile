@@ -93,6 +93,13 @@ pipeline {
                   sh "git submodule update --init"
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build'
+
+                  //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
+                  sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
+                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"
+                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
+                  //For IC characterisation we need some additional modules
+                  sh "pip install pyroomacoustics"
                 }
               }
             }
@@ -129,6 +136,13 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/ic") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                }
+              }
+            }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
@@ -149,6 +163,67 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+          }
+        }
+        stage('IC ic_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_ic/ic_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test profile') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_ic_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test specification') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_ic_spec") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the model and C implementation over a range of scenarious for:
+                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
+                  //and expected group delay. It will fail if these are not met.
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                  sh "python print_stats.py > ic_spec_summary.txt"
+                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
+                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
+                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
+                  // sh "python plot_ic.py"
+                }
+              }
+            }
+          }
+        }
+        stage('IC characterisation') {
+          steps {
+            dir("${REPO}/test/lib_ic/characterise_c_py") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the suppression performance across angles between model and C implementation
+                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
+                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
+                  junit "pytest_result.xml"
+                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+                  // sh "python sweep_ic_delay.py"
                 }
               }
             }
@@ -296,7 +371,14 @@ pipeline {
       }//stages
       post {
         always {
+          //IC artefacts
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/ic/output.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
+          //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
+          
+          //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
         }

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "ic_low_level.h"
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
+#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead when implemented
 
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
@@ -16,12 +16,12 @@ static void ic_init_config(ic_config_params_t *config){
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
     config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
+    config->enable_adaption = 1;
     config->coeff_index = 0;
 }
 
 static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
     adaption_controller_state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    adaption_controller_state->enable_adaption = 1;
 
     adaption_controller_state->vad_counter = 0;
     adaption_controller_state->smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
@@ -38,6 +38,8 @@ static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption
     adaption_controller_state->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
     adaption_controller_state->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
     adaption_controller_state->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+
+    adaption_controller_state->enable_adaption_controller = IC_INIT_ENABLE_ADAPTION_CONTROLLER;
 }
 
 void ic_init(ic_state_t *state){

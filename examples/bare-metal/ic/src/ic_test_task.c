@@ -18,6 +18,7 @@
 
 #include "ic_api.h"
 
+#include "xs3_math.h"
 #include "fileio.h"
 #include "wav_utils.h"
 #include "dump_var_py.h"
@@ -30,8 +31,6 @@
 #if PROFILE_PROCESSING
 #include "profile.h"
 #endif
-
-#include "xs3_math.h"
 
 void ic_task(const char *input_file_name, const char *output_file_name) {
     //open files
@@ -72,7 +71,6 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     }
 #endif
 
-    //printf("num frames = %d\n",block_count);
     wav_form_header(&output_header_struct,
             input_header_struct.audio_format,
             OUTPUT_CHANNELS,
@@ -97,10 +95,13 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     ic_init(&state);
     prof(1, "end_ic_init"); 
 
-    // ic_dump_var_2d_start(&state, &dut_var_file, block_count);
+    #if DISABLE_ADAPTION_CONTROLLER
+    state.ic_adaption_controller_state.enable_adaption_controller = 0;
+    #endif
 
+    
     for(unsigned b=0;b<block_count;b++){
-        //printf("frame %d\n",b);
+        //printf("frame %d of %d\n", b, block_count);
         long input_location =  wav_get_frame_start(&input_header_struct, b * IC_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* IC_FRAME_ADVANCE);

@@ -231,7 +231,7 @@ void ic_filter_adapt(ic_state_t *state){
     if(state == NULL) {
         return;
     }
-    if((state->ic_adaption_controller_state.enable_adaption == 0) ||
+    if((state->config_params.enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
     }
@@ -243,7 +243,9 @@ void ic_filter_adapt(ic_state_t *state){
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-
+    if(!ad_state->enable_adaption_controller){ //skip this function if adaption controller not enabled
+        return;
+    }
     float_s32_t r = {vad, -8}; //convert to float between 0 and 0.99609375
 
     ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_state->voice_chance_alpha);
@@ -294,31 +296,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     } 
 }
 
-//TODO these are not used in lib_aec so not needed here?
-
-// /// Unify bfp_complex_s32_t chunks into a single exponent and headroom
-// void ic_l2_bfp_complex_s32_unify_exponent(
-//         bfp_complex_s32_t *chunks,
-//         int *final_exp,
-//         int *final_hr,
-//         const int *mapping,
-//         int array_len,
-//         int desired_index,
-//         int min_headroom){
-
-// }
-
-// /// Unify bfp_s32_t chunks into a single exponent and headroom
-// void ic_l2_bfp_s32_unify_exponent(
-//         bfp_s32_t *chunks,
-//         int *final_exp,
-//         int *final_hr,
-//         const int *mapping,
-//         int array_len,
-//         int desired_index,
-//         int min_headroom){
-
-// }
 
 //Clear down filter to init state
 void ic_reset_filter(ic_state_t *state){
@@ -334,7 +311,7 @@ void ic_apply_leakage(
     ic_state_t *state,
     unsigned y_ch){
 
-    if((state->ic_adaption_controller_state.enable_adaption == 0) ||
+    if((state->config_params.enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
     }
