@@ -847,7 +847,7 @@ void aec_priv_calc_inv_X_energy_denom(
         //TODO 3610 AEC calculates norm_denom as normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma 
         //instead of normDenom = self.X_energy[:,k] + self.sigma_xx*gamma and ADEC tests pass only with the former.
         bfp_s32_t temp = *X_energy;
-        //temp.exp = temp.exp+1;
+        temp.exp = temp.exp+1;
         bfp_s32_add(&norm_denom, &sigma_times_gamma, &temp);
 
         //self.taps = [0.5, 1, 1, 1, 0.5] 

@@ -4,7 +4,9 @@
 #include "aec_config.h"
 #include "pipeline_state.h"
 
-#define LOG_DEBUG_INFO (1)
+#ifndef LOG_DEBUG_INFO 
+    #define LOG_DEBUG_INFO (0)
+#endif
 #define AP_MAX_Y_CHANNELS (2)
 #define AP_MAX_X_CHANNELS (2)
 #define AP_FRAME_ADVANCE (240)
