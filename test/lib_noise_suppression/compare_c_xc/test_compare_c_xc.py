@@ -6,7 +6,7 @@ from __future__ import print_function
 #standard_library.install_aliases()
 from builtins import zip
 import pytest
-from compare_c_py import get_attenuation_c_xc
+from compare_c_xc import get_attenuation_c_xc
 import configparser
 import numpy as np
 

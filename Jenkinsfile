@@ -168,9 +168,21 @@ pipeline {
             }
           }
         }
+        stage('NS profile test') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/test_sup_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('NS performance tests') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/compare_c_py") {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_xc") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
