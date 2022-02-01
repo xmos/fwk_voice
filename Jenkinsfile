@@ -62,7 +62,7 @@ pipeline {
                   }
                   sh "make -j8"
                   sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DTEST_ADEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
