@@ -13,6 +13,10 @@
 
 #define MAX_CHANNELS 1
 
+#if PROFILE_PROCESSING
+#include "profile.h"
+#endif
+
 extern void sup_process_frame(sup_state_t * state,
                         int32_t output [SUP_FRAME_ADVANCE],
                         const int32_t input[SUP_FRAME_ADVANCE]);
@@ -66,11 +70,17 @@ void sup_task(const char *input_file_name, const char *output_file_name){
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Initialise noise suppressor
+#if PROFILE_PROCESSING
+    prof(0, "start_sup_init");
+#endif
     sup_state_t DWORD_ALIGNED ch1_state;
     //sup_state_t DWORD_ALIGNED ch2_state;
 
     sup_init_state(&ch1_state);
     //sup_init_state(&ch2_state);
+#if PROFILE_PROCESSING
+    prof(1, "end_sup_init");
+#endif
 
     for(int b = 0; b < block_count; b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * SUP_FRAME_ADVANCE, input_header_size);
@@ -85,8 +95,14 @@ void sup_task(const char *input_file_name, const char *output_file_name){
         }
         // Call Noise Suppression functions to process SUP_FRAME_ADVANCE new samples of data
         // Reuse mic data memory for main filter output
+#if PROFILE_PROCESSING
+        prof(2, "start_sup_process_frame");
+#endif
         sup_process_frame(&ch1_state, frame[0], frame[0]);
         //sup_process_frame(&ch2_state, frame[1], frame[1]);
+#if PROFILE_PROCESSING
+        prof(3, "start_sup_process_frame");
+#endif
 
         // Create interleaved output that can be written to wav file
         for (unsigned ch = 0; ch < MAX_CHANNELS; ch++){
@@ -96,6 +112,9 @@ void sup_task(const char *input_file_name, const char *output_file_name){
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * SUP_FRAME_ADVANCE * MAX_CHANNELS);
+#if PROFILE_PROCESSING
+        print_prof(0, 4, b+1);
+#endif
     }
     file_close(&input_file);
     file_close(&output_file);
