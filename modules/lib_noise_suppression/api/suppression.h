@@ -9,9 +9,9 @@
 /** Function that resets the noise suppressor. Does not affect
  * any parameters that have been set, such as enable, alphas etc.
  *
- * \param[in,out] sup      Suppressor state, initialised
+ * \param[in,out] state      Suppressor state, initialised
  */
-void sup_reset_noise_suppression(sup_state_t * sup);
+void sup_reset_noise_suppression(sup_state_t * state);
 
 
 
@@ -19,15 +19,13 @@ void sup_reset_noise_suppression(sup_state_t * sup);
  *
  * It initialises the noise suppressor with the following settings:
  *
- *   * reset period:  2400
+ *   * reset period:  2400 (10 frames)
  *
- *   * alpha_d:       0.95 (represented by 4080218931, 0.95* 0xFFFFFFFF)
+ *   * alpha_d:       0.95 (represented to 9 d.p.)
  *
- *   * alpha_p:       0.2  (represented by 858993459,  0.2 * 0xFFFFFFFF)
+ *   * alpha_p:       0.2  (represented to 10 d.p.)
  *
- *   * alpha_s:       0.8  (represetned by 3435973837, 0.8 * 0xFFFFFFFF)
- *
- *   * noise_floor: -18 dB
+ *   * alpha_s:       0.8  (represetned to 9 d.p.)
  *
  *   * delta:         1.5  
  *

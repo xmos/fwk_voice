@@ -52,15 +52,15 @@ void sup_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned lengt
 	}
 }
 
-void sup_reset_noise_suppression(sup_state_t * sup) {
+void sup_reset_noise_suppression(sup_state_t * state) {
     
-    sup->reset_counter = 0;
+    state->reset_counter = 0;
 
-    bfp_s32_set(&sup->S, INT_MAX, SUP_INT_EXP);
-    bfp_s32_set(&sup->S_tmp, INT_MAX, SUP_INT_EXP);
-    bfp_s32_set(&sup->S_min, INT_MAX, SUP_INT_EXP);
-    bfp_s32_set(&sup->p, 0, SUP_INT_EXP);
-    bfp_s32_set(&sup->lambda_hat, 0, SUP_INT_EXP);
+    bfp_s32_set(&state->S, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&state->S_tmp, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&state->S_min, INT_MAX, SUP_INT_EXP);
+    bfp_s32_set(&state->p, 0, SUP_INT_EXP);
+    bfp_s32_set(&state->lambda_hat, 0, SUP_INT_EXP);
 }
 
 void sup_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value){

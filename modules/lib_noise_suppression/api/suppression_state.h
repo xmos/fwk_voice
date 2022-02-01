@@ -13,6 +13,7 @@
 
 typedef struct {
 
+    //Dynamic MCRA filter coefficients
     bfp_s32_t S;
     bfp_s32_t S_min;
     bfp_s32_t S_tmp;
@@ -27,6 +28,7 @@ typedef struct {
     int32_t data_adt [SUP_PROC_FRAME_BINS];
     int32_t data_lambda_hat [SUP_PROC_FRAME_BINS];
 
+    //Data needed for the frame packing and windowing
     bfp_s32_t prev_frame;
     bfp_s32_t overlap;
     bfp_s32_t wind;
@@ -36,6 +38,7 @@ typedef struct {
     int32_t data_ovelap [SUP_FRAME_ADVANCE];
     int32_t data_rev_wind [SUPPRESSION_WINDOW_LENGTH / 2];
 
+    //Static MCRA filter coefficients
     float_s32_t delta;
     float_s32_t alpha_d;
     float_s32_t alpha_s;
