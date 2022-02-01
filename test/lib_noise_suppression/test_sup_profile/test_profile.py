@@ -163,7 +163,7 @@ def generate_test_audio(max_freq = 8000, db=-20):
     noise = get_band_limited_noise(0, max_freq, samples=SAMPLE_COUNT, db=db, sample_rate=SAMPLE_RATE)
     write_data(noise, "input.wav", sample_rate=SAMPLE_RATE)
 
-xe_files = glob.glob('../../../build/test/lib_noise_suppressor/test_sup_profile/bin/*.xe')
+xe_files = glob.glob('../../../build/test/lib_noise_suppression/test_sup_profile/bin/*.xe')
 assert xe_files, "xe binary not found"
 generate_test_audio()
 
