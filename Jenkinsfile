@@ -229,9 +229,9 @@ pipeline {
             }
           }
         }
-        stage('DE de_unit_tests') {
+        stage('ADEC de_unit_tests') {
           steps {
-            dir("${REPO}/test/lib_de/de_unit_tests") {
+            dir("${REPO}/test/lib_adec/de_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
@@ -241,9 +241,9 @@ pipeline {
             }
           }
         }
-        stage('DE test_delay_estimator') {
+        stage('ADEC test_delay_estimator') {
           steps {
-            dir("${REPO}/test/lib_de/test_delay_estimator") {
+            dir("${REPO}/test/lib_adec/test_delay_estimator") {
               viewEnv() {
                 withVenv {
                   sh 'mkdir -p ./input_wavs/'
