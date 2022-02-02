@@ -5,7 +5,7 @@
 #define _vad_mel_h_
 
 #include <stdint.h>
-#include "dsp_complex.h"
+#include "dsp.h"
 
 #define VAD_MEL_BITS 24
 #define VAD_MEL_MAX (1 << VAD_MEL_BITS)
