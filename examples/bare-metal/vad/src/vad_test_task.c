@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "vad_api.h"
+#include "vad.h"
 
 #include "fileio.h"
 #include "wav_utils.h"

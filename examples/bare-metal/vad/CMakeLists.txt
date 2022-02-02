@@ -26,7 +26,7 @@ file( GLOB_RECURSE PROFILE_SOURCES ../../../test/lib_aec/test_aec_profile/src/*.
 unset( SOURCES )
 list( APPEND SOURCES ${SOURCES_C} ${SOURCES_SHARED})
 unset( SOURCES_XCORE )
-list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${PROFILE_SOURCES})
+list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${PROFILE_SOURCES} ${LIB_DSP_SOURCES})
 list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
@@ -36,7 +36,7 @@ unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api ../../../test/lib_aec/test_aec_profile/src)
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
-message( STATUS "Includes ${INCLUDES}" )
+message( STATUS "Includes for VAD example ${INCLUDES}" )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
