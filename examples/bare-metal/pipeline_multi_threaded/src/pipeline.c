@@ -76,7 +76,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     //Initialise NS
-    sup_state_t DWORD_ALIGNED sup_stage[AP_MAX_Y_CHANNELS];
+    sup_state_t DWORD_ALIGNED sup_state[AP_MAX_Y_CHANNELS];
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         sup_init_state(&sup_state[ch]);
     }
@@ -93,7 +93,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         /**NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
             //the frame buffer will be used for both input and output here
-            sup_process_frame(&sup_stage[ch], frame[ch], frame[ch]);
+            sup_process_frame(&sup_state[ch], frame[ch], frame[ch]);
         }
 
         // Transmit output frame
