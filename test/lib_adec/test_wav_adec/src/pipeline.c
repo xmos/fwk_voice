@@ -192,9 +192,7 @@ void pipeline_process_frame(pipeline_state_t *state,
         adec_in.from_aec.shadow_to_main_copy_flag = 1;
     }
     // Directly from app
-    adec_in.far_end_active_flag = is_ref_active;
-    adec_in.num_frames_since_last_call = 1;
-    
+    adec_in.far_end_active_flag = is_ref_active; 
     
     // Log current mode for printing later
     adec_mode_t old_mode = state->adec_state.mode;

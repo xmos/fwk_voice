@@ -47,7 +47,6 @@ typedef struct {
     de_output_t from_de;
     aec_to_adec_t from_aec;
     int32_t far_end_active_flag;
-    int32_t num_frames_since_last_call;
 }adec_input_t;
 
 typedef struct {

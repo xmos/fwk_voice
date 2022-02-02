@@ -101,7 +101,7 @@ void test_delay_estimate() {
         // printf("test_delay_estimate: %d (%d), fin\n", measured_delay, actual_delay);
 
         //Now check some things. First actual delay estimate vs expected
-        TEST_ASSERT_EQUAL_INT32_MESSAGE(de_output.measured_delay, actual_delay, "DUT Delay estimate incorrect");
+        TEST_ASSERT_EQUAL_INT32_MESSAGE(de_output.measured_delay_samples, actual_delay, "DUT Delay estimate incorrect");
         TEST_ASSERT_EQUAL_INT32_MESSAGE(measured_delay_fp, actual_delay, "REF Delay estimate incorrect");
 
         //Now check accuracy
