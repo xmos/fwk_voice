@@ -6,7 +6,6 @@ import sys
 import os
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
-#path1 = os.path.join(package_dir,'../../../audio_test_tools/python/')
 
 from audio_generation import get_band_limited_noise, write_data
 import subprocess
