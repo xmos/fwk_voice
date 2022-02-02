@@ -33,7 +33,7 @@ sample_rate = 16000
 proc_frame_length = 2**9 # = 512
 frame_advance = 240
 
-xe_path = os.path.abspath(glob.glob('../../../build/test/lib_de/test_delay_estimator/bin/*.xe')[0])
+xe_path = os.path.abspath(glob.glob('../../../build/test/lib_adec/test_delay_estimator/bin/*.xe')[0])
 
 class TestCase(object):
     def __init__(self, name, h_x, h_y, aud_x=None, aud_y=None, dont_check=[], invert_check=[]):

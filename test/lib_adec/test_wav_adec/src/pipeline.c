@@ -183,19 +183,14 @@ void pipeline_process_frame(pipeline_state_t *state,
     // Create input to ADEC from AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
-    adec_in.from_aec.shadow_better_or_equal_flag = 0;
-    if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] > EQUAL) {
-        adec_in.from_aec.shadow_better_or_equal_flag = 1;
-    }
-    adec_in.from_aec.shadow_to_main_copy_flag = 0;
-    if(state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0] == COPY) {
-        adec_in.from_aec.shadow_to_main_copy_flag = 1;
-    }
+    adec_in.from_aec.shadow_flag_ch0 = state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0];
     // Directly from app
     adec_in.far_end_active_flag = is_ref_active; 
     
     // Log current mode for printing later
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
     adec_mode_t old_mode = state->adec_state.mode;
+#endif
     
     // Call ADEC
     adec_output_t adec_output;

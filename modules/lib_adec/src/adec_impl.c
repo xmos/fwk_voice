@@ -2,6 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "adec_api.h"
+#include "aec_state.h" // For shadow_state_e enum
 #include <string.h>
 #include <math.h>
 #include <limits.h>
@@ -352,7 +353,7 @@ void adec_process_frame(
 
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):
-        if (adec_in->from_aec.shadow_better_or_equal_flag) {
+        if (adec_in->from_aec.shadow_flag_ch0 > EQUAL) {
           reset_stuff_on_AEC_mode_start(state, 0);
           ++state->shadow_flag_counter;
           state->convergence_counter = 0;
@@ -360,7 +361,7 @@ void adec_process_frame(
           ++state->convergence_counter;
         }
 
-        if (adec_in->from_aec.shadow_to_main_copy_flag) {
+        if (adec_in->from_aec.shadow_flag_ch0 == COPY) {
           state->sf_copy_flag = 1;
         }
 

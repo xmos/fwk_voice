@@ -14,10 +14,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
 add_library( ${LIB_NAME}  STATIC      ${LIB_ADEC_SOURCES} )
 
 target_include_directories( ${LIB_NAME} PUBLIC
+    ${LIB_AEC_INCLUDES}
     ${LIB_ADEC_INCLUDES}
     )
 
-target_link_libraries(${LIB_NAME} lib_xs3_math)
+target_link_libraries(${LIB_NAME} lib_xs3_math lib_aec)
 
 set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
                                                 OUTPUT_NAME ${LIB_NAME}

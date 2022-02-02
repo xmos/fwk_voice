@@ -37,10 +37,9 @@ typedef struct {
 } adec_output_t;
 
 typedef struct {
-    float_s32_t y_ema_energy_ch0; //for erle
-    float_s32_t error_ema_energy_ch0; //for erle
-    int32_t shadow_better_or_equal_flag; //not passing shadow_flag to avoid sharing shadow_state_e between lib_aec and lib_adec
-    int32_t shadow_to_main_copy_flag;
+    float_s32_t y_ema_energy_ch0; ///< AEC input mic signal channel 0 EWMA energy
+    float_s32_t error_ema_energy_ch0; ///< AEC error signal channel 0 EWMA energy
+    int32_t shadow_flag_ch0; ///< mic channel 0 shadow flag
 }aec_to_adec_t;
 
 typedef struct {
