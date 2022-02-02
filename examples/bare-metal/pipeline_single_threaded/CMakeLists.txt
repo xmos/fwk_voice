@@ -11,6 +11,7 @@ list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
     lib_aec
+    lib_noise_suppression
     lib_agc
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
