@@ -369,11 +369,11 @@ void adec_process_frame(
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
           (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
           (state->peak_to_average_ratio_valid_flag == 1) &&
-          (adec_in->from_de.delay_estimate > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
+          (adec_in->from_de.measured_delay_samples > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (!state->adec_config.bypass)){
 
           //We have a new estimate RELATIVE to current delay settings
-          state->last_measured_delay += adec_in->from_de.delay_estimate;
+          state->last_measured_delay += adec_in->from_de.measured_delay_samples;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
 #endif
@@ -453,7 +453,7 @@ void adec_process_frame(
 
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
-          state->last_measured_delay = adec_in->from_de.delay_estimate - MAX_DELAY_SAMPLES;
+          state->last_measured_delay = adec_in->from_de.measured_delay_samples - MAX_DELAY_SAMPLES;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
 #endif

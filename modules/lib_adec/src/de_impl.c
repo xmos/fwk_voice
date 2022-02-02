@@ -51,5 +51,5 @@ void estimate_delay (
     }else{
         de_output->peak_to_average_ratio = one;
     }
-    de_output->measured_delay = DE_FRAME_ADVANCE * peak_power_phase_index;
+    de_output->measured_delay_samples = DE_FRAME_ADVANCE * peak_power_phase_index;
 }

@@ -244,7 +244,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         prof(5, "end_estimate_delay");
 
         char strbuf[100];
-        sprintf(strbuf, "%ld\n", de_output.measured_delay);
+        sprintf(strbuf, "%ld\n", de_output.measured_delay_samples);
         file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
 
         for (unsigned ch=0;ch<runtime_args[Y_CHANNELS];ch++){

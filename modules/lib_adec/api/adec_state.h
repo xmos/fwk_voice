@@ -17,7 +17,7 @@ typedef struct {
 }adec_config_params_t;
 
 typedef struct {
-    int32_t measured_delay; ///< Estimated delay in samples
+    int32_t measured_delay_samples; ///< Estimated delay in samples
     int32_t peak_power_phase_index; ///< H_hat phase index with the maximum energy
     float_s32_t peak_phase_power; ///< Maximum energy across all H_hat phases
     float_s32_t sum_phase_powers; ///< Sum of filter energy across all filter phases. Used in peak_to_average_ratio calculation. 
@@ -36,14 +36,6 @@ typedef struct {
     int32_t requested_delay_samples_debug; ///< Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used in tests.
 } adec_output_t;
 
-
-typedef struct {
-    int32_t peak_power_phase_index;
-    float_s32_t peak_phase_power;
-    float_s32_t  peak_to_average_ratio;
-    uint32_t delay_estimate;
-}de_to_adec_t;
-
 typedef struct {
     float_s32_t y_ema_energy_ch0; //for erle
     float_s32_t error_ema_energy_ch0; //for erle
@@ -52,7 +44,7 @@ typedef struct {
 }aec_to_adec_t;
 
 typedef struct {
-    de_to_adec_t from_de;
+    de_output_t from_de;
     aec_to_adec_t from_aec;
     int32_t far_end_active_flag;
     int32_t num_frames_since_last_call;

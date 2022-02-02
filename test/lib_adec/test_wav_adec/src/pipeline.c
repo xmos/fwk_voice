@@ -169,9 +169,9 @@ void pipeline_process_frame(pipeline_state_t *state,
     
     prof(8, "start_estimate_delay");
     /** Delay estimator*/
-    de_output_t de_output;
+    adec_input_t adec_in;
     estimate_delay(
-            &de_output,
+            &adec_in.from_de,
             state->aec_main_state.H_hat[0],
             state->aec_main_state.num_phases
             );
@@ -180,15 +180,7 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     prof(10, "start_adec_process_frame");
     /** ADEC*/
-    // Create input to ADEC
-    adec_input_t adec_in;
-    // From DE
-    adec_in.from_de.delay_estimate = de_output.measured_delay;
-    adec_in.from_de.peak_power_phase_index = de_output.peak_power_phase_index;
-    adec_in.from_de.peak_phase_power = de_output.peak_phase_power;
-    adec_in.from_de.peak_to_average_ratio = de_output.peak_to_average_ratio;
-    state->peak_to_average_ratio = adec_in.from_de.peak_to_average_ratio;
-    // From AEC
+    // Create input to ADEC from AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
     adec_in.from_aec.shadow_better_or_equal_flag = 0;
