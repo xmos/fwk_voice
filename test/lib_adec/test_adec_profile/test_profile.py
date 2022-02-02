@@ -56,15 +56,14 @@ def run_pipeline_xe(pipeline_xe, run_config, threads, audio_in, audio_out, profi
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id}")
-        with open("dut.log", "w") as ff:
-            xscope_fileio.run_on_target(adapter_id, pipeline_xe)
+        stdout = xscope_fileio.run_on_target(adapter_id, pipeline_xe)
+
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-        with open("dut.log", "r") as ff:
-            for line in ff.read().splitlines():
-                m = re.search(r'^\s*\[DEVICE\]', line)
-                if m is not None:
-                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+        for line in stdout:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
         
     os.chdir(prev_path)
 
