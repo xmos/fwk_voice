@@ -145,6 +145,27 @@ void pipeline_process_frame(pipeline_state_t *state,
             delay_state_ptr
             );
     prof(3, "end_get_delayed_frame");
+
+    prof(18, "start_switch_aec_config");
+    /** Switch AEC config if needed. We're doing it at the beginning of current frame instead of end of previous
+     * frame to be able to read relevant outputs from the state in the test_wav code for logging. Switching at the 
+     * end of last frame would have reset the state.*/
+    if (state->adec_output_delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
+        /** Now that a AEC -> DE change has been requested, reset force_de_cycle_trigger in case this transition is
+         * requested as a result of force_de_cycle_trigger being set*/ 
+        state->adec_state.adec_config.force_de_cycle_trigger = 0;
+
+        // Initialise AEC for delay estimation config
+        aec_switch_configuration(state, &state->aec_de_mode_conf);
+        state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
+        //state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
+        state->delay_estimator_enabled = 1;
+    } else if ((!state->adec_output_delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
+        // Start AEC for normal aec config
+        aec_switch_configuration(state, &state->aec_non_de_mode_conf);
+        state->delay_estimator_enabled = 0;
+    }
+    prof(19, "end_switch_aec_config");
     
     prof(4, "start_is_frame_active");
     // Calculate far_end active
@@ -204,7 +225,7 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     prof(12, "start_reset_aec");
     //** Reset AEC state if needed*/
-    if(adec_output.reset_all_aec_flag) {
+    if(adec_output.reset_aec_flag) {
         reset_aec_state(&state->aec_main_state, &state->aec_shadow_state);
     }
     prof(13, "end_reset_aec");
@@ -235,9 +256,10 @@ void pipeline_process_frame(pipeline_state_t *state,
             }
         }
     }
+    state->adec_output_delay_estimator_enabled_flag = adec_output.delay_estimator_enabled_flag; //Keep a copy so we can use it in next frame
+    state->de_output_measured_delay_samples = adec_in.from_de.measured_delay_samples;
     prof(17, "end_overwrite_output_in_de_mode");
 
-    prof(18, "start_switch_aec_config");
 
     //For logging for test purposes
     /* If a delay change is requested and this request is not accompanied by a AEC -> DE change, update
@@ -251,24 +273,6 @@ void pipeline_process_frame(pipeline_state_t *state,
          state->adec_requested_delay_samples = adec_output.requested_delay_samples_debug;
          state->adec_requested_delay_samples = (state->adec_requested_delay_samples & 0xfffffffe) | new_bottom_bit;
     }
-
-    /** Switch AEC config if needed*/
-    if (adec_output.delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
-        /** Now that a AEC -> DE change has been requested, reset force_de_cycle_trigger in case this transition is
-         * requested as a result of force_de_cycle_trigger being set*/ 
-        state->adec_state.adec_config.force_de_cycle_trigger = 0;
-
-        // Initialise AEC for delay estimation config
-        aec_switch_configuration(state, &state->aec_de_mode_conf);
-        state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
-        //state->aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = fixed_mu_delay_est_mode;
-        state->delay_estimator_enabled = 1;
-    } else if ((!adec_output.delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
-        // Start AEC for normal aec config
-        aec_switch_configuration(state, &state->aec_non_de_mode_conf);
-        state->delay_estimator_enabled = 0;
-    }
-    prof(19, "end_switch_aec_config");
 
     framenum++;
     print_prof(0, 20, framenum);

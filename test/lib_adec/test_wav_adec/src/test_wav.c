@@ -100,7 +100,7 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     // Open output wav file that will contain the AEC output
     ret = file_open(&output_file, output_file_name, "wb");
     assert((!ret) && "Failed to open file");
-    ret = file_open(&delay_file, "delay.bin", "wb");
+    ret = file_open(&delay_file, "requested_delay_samples.bin", "wb");
     assert((!ret) && "Failed to open file");
 
 #if LOG_DEBUG_INFO

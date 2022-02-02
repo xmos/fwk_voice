@@ -32,7 +32,7 @@ typedef struct {
     /** flag indicating ADEC requesting an AEC reset. This is one when there's a delay
     change requested that is not accompanied by an AEC mode change. A change in AEC mode would anyway reinitialise the
     AEC so no need to do an extra reset*/
-    int32_t reset_all_aec_flag; 
+    int32_t reset_aec_flag; 
     int32_t delay_estimator_enabled_flag; ///< Flag indicating whether or not AEC should run in delay estimator mode
     int32_t requested_delay_samples_debug; ///< Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used in tests.
 } adec_output_t;

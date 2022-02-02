@@ -26,7 +26,7 @@ import glob
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_files")
 
-delay_calc_output_file_name = "delay.bin"
+delay_calc_output_file_name = "measured_delay_samples.bin"
 
 
 sample_rate = 16000

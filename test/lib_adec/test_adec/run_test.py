@@ -25,7 +25,7 @@ import subprocess
 
 source_wav_file_rate = 48000
 voice_sample_rate = 16000
-delay_output_file_name = "delay.bin"
+delay_output_file_name = "requested_delay_samples.bin"
 
 #Locations of the xcore version of the code
 xcore_working_dir = '../test_wav_ap'

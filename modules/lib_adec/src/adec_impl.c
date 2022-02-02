@@ -273,7 +273,7 @@ void adec_process_frame(
     adec_output_t *adec_output, 
     const adec_input_t *adec_in
 ){
-  adec_output->reset_all_aec_flag = 0;
+  adec_output->reset_aec_flag = 0;
   adec_output->delay_change_request_flag = 0;
   adec_output->delay_estimator_enabled_flag = (state->mode == ADEC_NORMAL_AEC_MODE) ? 0 : 1;
 
@@ -379,7 +379,7 @@ void adec_process_frame(
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
 #endif
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
-          adec_output->reset_all_aec_flag = 1;
+          adec_output->reset_aec_flag = 1;
           state->mode = state->mode; //Same mode (no change)
 
           //printf("Mode Change requested 1\n");          

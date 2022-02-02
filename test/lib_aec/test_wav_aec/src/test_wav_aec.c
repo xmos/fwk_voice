@@ -140,7 +140,7 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert((!ret) && "Failed to open file");
     ret = file_open(&H_hat_file, "H_hat.bin", "wb");
     assert((!ret) && "Failed to open file");
-    ret = file_open(&delay_file, "delay.bin", "wb");
+    ret = file_open(&delay_file, "measured_delay_samples.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct, output_header_struct;
