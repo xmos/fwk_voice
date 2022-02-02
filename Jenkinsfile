@@ -67,6 +67,9 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}") {
+              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+            }
           }
         }
       }

@@ -1,6 +1,3 @@
-// Copyright 2019-2021 XMOS LIMITED.
-// This Software is subject to the terms of the XMOS Public Licence: Version 1.
-
 #include "adec_api.h"
 #include "aec_state.h" // For shadow_state_e enum
 #include <string.h>
@@ -15,7 +12,6 @@ void init_pk_ave_ratio_history(adec_state_t *adec_state){
 }
 
 void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle){
-  //printf("In reset_stuff_on_AEC_mode_start()\n");
   adec_state->agm_q24 = ADEC_AGM_HALF;
 
   init_pk_ave_ratio_history(adec_state);
@@ -200,7 +196,6 @@ float_s32_t linear_regression_get_slope(float_s32_t pk_energies[], unsigned n, f
     sumy = float_s32_add(sumy, y_value);//sumy += sequence[i]
     //Unused                                        //sumysq += sequence[i] * sequence[i]
   }
-
   tmp = float_s32_mul(sumx, sumx);//denom = (len(sequence) * sumxsq - (sumx * sumx)) * scale_factor
 
   float_s32_t denom;
@@ -257,7 +252,6 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
   peak_slope_q24 = multiply_q24_no_saturation(peak_slope_q24, state->peak_phase_energy_trend_gain_q24); 
   
   fixed_s32_t new_agm_q24 = (agm_q24 + erle_agm_delta_q24 + peak_slope_q24);
-  //printf("new_agm %d, agm %d, erle_agm_delta_q24 %d, peak_slope %d\n",new_agm, agm_q24, erle_agm_delta_q24, peak_slope_q24);
 
   //Clip positive - negative will be captured by mode change logic
   if (new_agm_q24 > ADEC_AGM_ONE){
@@ -382,7 +376,6 @@ void adec_process_frame(
           adec_output->reset_aec_flag = 1;
           state->mode = state->mode; //Same mode (no change)
 
-          //printf("Mode Change requested 1\n");          
           adec_output->delay_change_request_flag = 1; //But we want to reset AEC even though we are staying in the same mode
           break;
         }
@@ -406,18 +399,6 @@ void adec_process_frame(
                          )
                                         );
 
-          //Do some debug printing if the watchdog has triggered.
-          //TODO Fix debug prints
-          /*if (watchdog_triggered && !state->adec_config.bypass){
-            printf("Watchdog, max_pk_ave_b: %d thresh: %d time: %d limit: %d\n",
-              float_to_frac_bits(state->max_peak_to_average_ratio_since_reset),
-              float_to_frac_bits(state->aec_peak_to_average_good_aec_threshold),
-              state->gated_milliseconds_since_mode_change,
-              (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000));
-          }*/
-
-          //printf("state->agm = %d, watchdog_triggered = %d, state->shadow_flag_counter = %d, state->convergence_counter = %d\n", state->agm_q24, watchdog_triggered, state->shadow_flag_counter, state->convergence_counter);
-          
           if (state->adec_config.force_de_cycle_trigger ||
               ((state->agm_q24 < 0 || watchdog_triggered) &&
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
@@ -438,7 +419,6 @@ void adec_process_frame(
 
               state->mode = ADEC_DELAY_ESTIMATOR_MODE;
               state->gated_milliseconds_since_mode_change = 0;
-              //printf("Mode Change requested 2\n");              
               adec_output->delay_change_request_flag = 1;
             }
           }
@@ -447,7 +427,6 @@ void adec_process_frame(
 
     case(ADEC_DELAY_ESTIMATOR_MODE):
         //track peak to average ratio and minimum time with far end energy to know when to change
-        // printf("peak:ave * 1024: %d\n", vtb_denormalise_and_saturate_u32(state->peak_to_average_ratio, -10));
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
           float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold) &&
           (state->peak_to_average_ratio_valid_flag == 1)){
@@ -458,12 +437,9 @@ void adec_process_frame(
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.delay_estimate); //+ve means MIC delay
 #endif
-          //printf("pkave bits: %d, val * 1024: %d\n", vtb_u32_float_to_bits(adec_in->from_de.peak_to_average_ratio), vtb_denormalise_and_saturate_u32(adec_in->from_de.peak_to_average_ratio, -10));
-
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled_flag = 0;
-          //printf("Mode Change requested 3\n");
            
           adec_output->delay_change_request_flag = 1;
         }
