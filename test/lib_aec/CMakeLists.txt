@@ -3,7 +3,6 @@
 
 ## The unit test apps
 
-add_subdirectory( test_wav_aec )
 if( XCORE )
     add_subdirectory( test_aec_enhancements )
     add_subdirectory( test_aec_spec )

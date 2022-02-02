@@ -38,8 +38,8 @@ list( APPEND  DEP_LIBS
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
 ## Sources
-file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/test_wav_aec/src/*.c )
-file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/test_wav_aec/src/*.xc )
+file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
+file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.xc )
 if ( XCORE )
     file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/*.c )
 else()

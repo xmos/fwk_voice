@@ -11,7 +11,7 @@
 #endif
 
 extern "C" {
-    extern void stage_a_wrapper(const char *input_file_name, const char* output_file_name);
+    extern void pipeline_wrapper(const char *input_file_name, const char* output_file_name);
 }
 
 int main(){
@@ -28,7 +28,7 @@ int main(){
 #if TEST_WAV_XSCOPE
         xscope_io_init(xscope_chan);
 #endif 
-          stage_a_wrapper("input.wav", "output.wav");
+          pipeline_wrapper("input.wav", "output.wav");
           _Exit(0);
         }
     }

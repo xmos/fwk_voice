@@ -46,8 +46,8 @@ foreach( BUILD_CONFIG ${TEST_AEC_PROFILE_BUILD_CONFIG} )
 
     ## Sources
     file( GLOB SOURCES_PROF  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
-    file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.c )
-    file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.xc )
+    file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/*.c )
+    file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/*.xc )
 if ( XCORE )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 else()
@@ -69,7 +69,7 @@ endif()
     ## Compile flags
     unset(COMPILE_FLAGS)
     unset(COMPILE_FLAGS_XCORE)
-    list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 -DPROFILE_PROCESSING=1)
+    list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 -DPROFILE_PROCESSING=1 -DBYPASS_ADEC=1)
 
     ##Linker flags
     unset(LINKER_FLAGS)

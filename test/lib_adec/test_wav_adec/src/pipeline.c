@@ -120,6 +120,9 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
     memcpy(&state->aec_non_de_mode_conf, non_de_conf, sizeof(aec_conf_t));
 
     adec_init(&state->adec_state);
+#if BYPASS_ADEC
+    state->adec_state.adec_config.bypass = 1;
+#endif
 #if DELAY_ESTIMATION_ONLY_ON_STARTUP
     // If DE is enabled only on startup, bypass adec and set force_de_cycle_trigger to 1
     state->adec_state.adec_config.bypass = 1;

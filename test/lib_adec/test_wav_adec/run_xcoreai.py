@@ -23,6 +23,8 @@ with open("args.bin", "wb") as fp:
     fp.write("shadow_filter_phases 5\n".encode('utf-8'))
     fp.write("y_channels 1\n".encode('utf-8'))
     fp.write("x_channels 2\n".encode('utf-8'))
+    fp.write("stop_adapting -1\n".encode('utf-8'))
+    fp.write("adaption_mode 0\n".encode('utf-8'))
 #Create an empty args.bin file. xscope_open_file() doesn't handle file not present. Ideally, would like
 #to use posix open with O_CREAT flag 
 #fp = open("args.bin", "wb")

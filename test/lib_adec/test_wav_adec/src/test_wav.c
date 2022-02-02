@@ -3,6 +3,8 @@
 #include "wav_utils.h"
 #include "aec_config.h"
 #include "pipeline_state.h"
+#include "dump_H_hat.h"
+#include <limits.h>
 
 #ifndef LOG_DEBUG_INFO 
     #define LOG_DEBUG_INFO (0)
@@ -23,13 +25,16 @@ typedef enum {
     X_CHANNELS,
     MAIN_FILTER_PHASES,
     SHADOW_FILTER_PHASES,
+    ADAPTION_MODE,
+    FORCE_ADAPTION_MU,
+    STOP_ADAPTING,
     NUM_RUNTIME_ARGS
 }runtime_args_indexes_t;
 
 int runtime_args[NUM_RUNTIME_ARGS];
 //valid_tokens_str entries and runtime_args_indexes_t need to maintain the same order so that when a runtime argument token string matches index 'i' string in valid_tokens_str, the corresponding
 //value can be updated in runtime_args[i]
-const char *valid_tokens_str[] = {"y_channels", "x_channels", "main_filter_phases", "shadow_filter_phases"}; //TODO autogenerate from runtime_args_indexes_t
+const char *valid_tokens_str[] = {"y_channels", "x_channels", "main_filter_phases", "shadow_filter_phases", "adaption_mode", "force_adaption_mu", "stop_adapting"}; //TODO autogenerate from runtime_args_indexes_t
 
 #define MAX_ARGS_BUF_SIZE (1024)
 void parse_runtime_args(int *runtime_args_arr) {
@@ -67,7 +72,8 @@ void parse_runtime_args(int *runtime_args_arr) {
     }
 }
 
-void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
+#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f))
+void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
 {
     //check validity of compile time configuration
     assert(AEC_MAX_Y_CHANNELS <= AEC_LIB_MAX_Y_CHANNELS);
@@ -79,6 +85,9 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     runtime_args[X_CHANNELS] = AEC_MAX_X_CHANNELS;
     runtime_args[MAIN_FILTER_PHASES] = AEC_MAIN_FILTER_PHASES;
     runtime_args[SHADOW_FILTER_PHASES] = AEC_SHADOW_FILTER_PHASES;
+    runtime_args[ADAPTION_MODE] = AEC_ADAPTION_AUTO;
+    runtime_args[FORCE_ADAPTION_MU] = Q1_30(1.0);
+    runtime_args[STOP_ADAPTING] = -1;
 
     parse_runtime_args(runtime_args);
     printf("runtime args = ");
@@ -93,14 +102,18 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[SHADOW_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
 
-    file_t input_file, output_file, delay_file;
+    file_t input_file, output_file, req_delay_file, H_hat_file, measured_delay_file;
     // Open input wav file containing mic and ref channels of input data
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
     // Open output wav file that will contain the AEC output
     ret = file_open(&output_file, output_file_name, "wb");
     assert((!ret) && "Failed to open file");
-    ret = file_open(&delay_file, "requested_delay_samples.bin", "wb");
+    ret = file_open(&H_hat_file, "H_hat.bin", "wb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&req_delay_file, "requested_delay_samples.bin", "wb");
+    assert((!ret) && "Failed to open file");
+    ret = file_open(&measured_delay_file, "measured_delay_samples.bin", "wb");
     assert((!ret) && "Failed to open file");
 
 #if LOG_DEBUG_INFO
@@ -145,7 +158,7 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
 
     int32_t DWORD_ALIGNED frame_y[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED frame_x[AP_MAX_X_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED stage_a_output[2][AP_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED pipeline_output[2][AP_FRAME_ADVANCE];
 
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
     
@@ -163,13 +176,13 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
     aec_non_de_mode_conf.num_main_filt_phases = runtime_args[MAIN_FILTER_PHASES];
     aec_non_de_mode_conf.num_shadow_filt_phases = runtime_args[SHADOW_FILTER_PHASES];
     
-    //Initialise ap_stage_a
-    pipeline_state_t DWORD_ALIGNED stage_a_state;
-    pipeline_init(&stage_a_state, &aec_de_mode_conf, &aec_non_de_mode_conf);
+    // Initialise pipeline
+    pipeline_state_t DWORD_ALIGNED pipeline_state;
+    pipeline_init(&pipeline_state, &aec_de_mode_conf, &aec_non_de_mode_conf);
 
 #if LOG_DEBUG_INFO
     //bypass adec since we only want to log aec behaviour
-    stage_a_state.adec_state.adec_config.bypass = 1;
+    pipeline_state.adec_state.adec_config.bypass = 1;
 #endif
     for(unsigned b=0;b<block_count;b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * AP_FRAME_ADVANCE, input_header_size);
@@ -187,46 +200,57 @@ void stage_a_wrapper(const char *input_file_name, const char* output_file_name)
             }
         }
 
-        pipeline_process_frame(&stage_a_state, stage_a_output, frame_y, frame_x);
+        if (runtime_args[STOP_ADAPTING] > 0) {
+            runtime_args[STOP_ADAPTING]--;
+            if (runtime_args[STOP_ADAPTING] == 0) {
+                aec_dump_H_hat(&pipeline_state.aec_main_state, &H_hat_file);
+                //turn off adaption
+                pipeline_state.aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_OFF;
+            }
+        }
+        pipeline_process_frame(&pipeline_state, pipeline_output, frame_y, frame_x);
 
 #if LOG_DEBUG_INFO
-    char buf[100];
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.overall_Error[0]));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_shadow_state.overall_Error[0]));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.shared_state->overall_Y[0]));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_reset_count[0]);
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%d\n", stage_a_state.aec_main_state.shared_state->shadow_filter_params.shadow_better_count[0]);
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.error_ema_energy[0]));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.aec_main_state.shared_state->y_ema_energy[0]));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
-    sprintf(buf, "%f\n", float_s32_to_float(stage_a_state.peak_to_average_ratio));
-    file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        char buf[100];
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.aec_main_state.overall_Error[0]));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.aec_shadow_state.overall_Error[0]));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.aec_main_state.shared_state->overall_Y[0]));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%d\n", pipeline_state.aec_main_state.shared_state->shadow_filter_params.shadow_flag[0]);
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%d\n", pipeline_state.aec_main_state.shared_state->shadow_filter_params.shadow_reset_count[0]);
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%d\n", pipeline_state.aec_main_state.shared_state->shadow_filter_params.shadow_better_count[0]);
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.aec_main_state.error_ema_energy[0]));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.aec_main_state.shared_state->y_ema_energy[0]));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
+        sprintf(buf, "%f\n", float_s32_to_float(pipeline_state.peak_to_average_ratio));
+        file_write(&debug_log_file, (uint8_t*)buf,  strlen(buf));
 #endif
         
         // Create interleaved output that can be written to wav file
         for (unsigned ch=0;ch<AP_MAX_Y_CHANNELS;ch++){
             for(unsigned i=0;i<AP_FRAME_ADVANCE;i++){
-                output_write_buffer[i*(AP_MAX_Y_CHANNELS) + ch] = stage_a_output[ch][i];
+                output_write_buffer[i*(AP_MAX_Y_CHANNELS) + ch] = pipeline_output[ch][i];
             }
         }
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * AP_FRAME_ADVANCE * AP_MAX_Y_CHANNELS);
         
         char strbuf[100];
-        sprintf(strbuf, "%ld\n", stage_a_state.adec_requested_delay_samples);
-        file_write(&delay_file, (uint8_t*)strbuf,  strlen(strbuf));
+        sprintf(strbuf, "%ld\n", pipeline_state.adec_requested_delay_samples);
+        file_write(&req_delay_file, (uint8_t*)strbuf,  strlen(strbuf));
+
+        sprintf(strbuf, "%ld\n", pipeline_state.de_output_measured_delay_samples);
+        file_write(&measured_delay_file, (uint8_t*)strbuf,  strlen(strbuf));
     }
     file_close(&input_file);
     file_close(&output_file);
-    file_close(&delay_file);
+    file_close(&req_delay_file);
     shutdown_session();
 }
 #if X86_BUILD
@@ -235,7 +259,7 @@ int main(int argc, char **argv) {
         printf("Arguments missing. Expected: <input file name> <output file name>\n");
         assert(0);
     }*/
-    stage_a_wrapper("input.wav", "output.wav");
+    pipeline_wrapper("input.wav", "output.wav");
     //aec_task(argv[1], argv[2]);
     return 0;
 }
