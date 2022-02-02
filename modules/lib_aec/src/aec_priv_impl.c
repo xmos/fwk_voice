@@ -833,7 +833,8 @@ void aec_priv_calc_inv_X_energy_denom(
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow) {
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2) {
     
     int gamma_log2 = conf->aec_core_conf.gamma_log2;
     if(!is_shadow) { //frequency smoothing
@@ -847,7 +848,9 @@ void aec_priv_calc_inv_X_energy_denom(
         //TODO 3610 AEC calculates norm_denom as normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma 
         //instead of normDenom = self.X_energy[:,k] + self.sigma_xx*gamma and ADEC tests pass only with the former.
         bfp_s32_t temp = *X_energy;
-        temp.exp = temp.exp+1;
+        if(normdenom_apply_factor_of_2) {
+            temp.exp = temp.exp+1;
+        }
         bfp_s32_add(&norm_denom, &sigma_times_gamma, &temp);
 
         //self.taps = [0.5, 1, 1, 1, 0.5] 
@@ -898,16 +901,21 @@ void aec_priv_calc_inv_X_energy_denom(
      }
 }
 
+// For aec, to get adec tests passing norm_denom in aec_priv_calc_inv_X_energy_denom is calculated as
+// normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma while in IC its done as
+// normDenom = self.X_energy[:,k] + self.sigma_xx*gamma. To work around this, an extra argument normdenom_apply_factor_of_2
+// is added to aec_priv_calc_inv_X_energy. When set to 1, X_energy is multiplied by 2 in the inverse energy calculation.
 void aec_priv_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
         const bfp_s32_t *X_energy,
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow)
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2)
 {
-    //Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
-    aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow);
+    // Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
+    aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow, normdenom_apply_factor_of_2);
     aec_priv_calc_inverse(inv_X_energy);
 
     return;

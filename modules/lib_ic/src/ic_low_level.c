@@ -209,7 +209,8 @@ void ic_calc_inv_X_energy(
     aec_config_params_t aec_conf; //Only gamma_log2 is accessed in aec_priv_calc_inv_X_energy_denom
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing);
+    const unsigned normdenom_apply_factor_of_2 = 0;
+    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
 }
 
 /// Calculate T (mu * inv_X_energy * Error)
