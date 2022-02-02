@@ -6,11 +6,10 @@
 #include <stdlib.h>
 #include <xs1.h>
 #include <xclib.h>
-#include <dsp.h>
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-#include <ai.h>
+// #include "ai.h"
 #include "vad.h"
 #include "vad_parameters.h"
 #include "vad_nn_coefficients.h"
@@ -55,15 +54,15 @@ int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
     return sum / div;
 }
 
-void vad_init(vad_state_t &state) {
-    memset(&state, 0, sizeof(state));
+void vad_init(vad_state_t *state) {
+    memset(state, 0, sizeof(vad_state_t));
 }
 
 #define PRINT_ME 0
 #define PRINT_ALL 0
 
 int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
-        vad_state_t &state) {
+        vad_state_t *state) {
     dsp_complex_t input[VAD_WINDOW_LENGTH];
     int32_t mel[VAD_N_MEL_SCALE+1];
     int32_t dct_input[VAD_N_DCT];
@@ -160,13 +159,13 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
         features[i+2] = dct_output[i+1];
     }
-    features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state.old_features[VAD_N_OLD_FEATURES - 1];
+    features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
     for(int i = VAD_N_OLD_FEATURES - 2;
             i >= VAD_N_OLD_FEATURES - VAD_FRAME_STRIDE;
             i--) {
-        state.old_features[i+1] = state.old_features[i];
+        state->old_features[i+1] = state->old_features[i];
     }
-    state.old_features[VAD_N_OLD_FEATURES-VAD_FRAME_STRIDE] = dct_output[0] ;
+    state->old_features[VAD_N_OLD_FEATURES-VAD_FRAME_STRIDE] = dct_output[0] ;
 #if PRINT_ME
     printf("Old DCT0: ");
     for(int i = VAD_N_OLD_FEATURES - VAD_FRAME_STRIDE;
@@ -195,7 +194,7 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     // Old data has to be picked up strided
     for(int i = (VAD_FRAME_STRIDE-1) * VAD_N_FEATURES_PER_FRAME; i < VAD_N_OLD_FEATURES-1-VAD_FRAME_STRIDE; i += VAD_FRAME_STRIDE * VAD_N_FEATURES_PER_FRAME) {
         for(int j = 0; j < VAD_N_FEATURES_PER_FRAME; j++) {
-            nn_features[oindex] = state.old_features[i + j];
+            nn_features[oindex] = state->old_features[i + j];
             oindex++;
         }
     }
@@ -211,10 +210,10 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     // Now copy old data back; keeping an extra dMFCC0.
     //old_features[VAD_N_OLD_FEATURES-1] = old_features[VAD_N_OLD_FEATURES-2];
     for(int i = VAD_N_OLD_FEATURES - VAD_N_FEATURES_PER_FRAME-1-VAD_FRAME_STRIDE; i >= 0; i--) {
-        state.old_features[i+VAD_N_FEATURES_PER_FRAME] = state.old_features[i];
+        state->old_features[i+VAD_N_FEATURES_PER_FRAME] = state->old_features[i];
     }
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME; i++) {
-        state.old_features[i] = features[i];
+        state->old_features[i] = features[i];
     }
 
 #if PRINT_ME
@@ -226,18 +225,18 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     printf("\n");
 #endif
 
-    nn_layer_fc(hidden_nodes_full, N_VAD_HIDDEN,
-                nn_features,       N_VAD_INPUTS,
-                hidden_coeffs);
-    nn_reduce_relu(hidden_nodes_normal,
-                   hidden_nodes_full,
-                   N_VAD_HIDDEN);
-    nn_layer_fc(outputs_nodes_full,    N_VAD_OUTPUTS,
-                hidden_nodes_normal, N_VAD_HIDDEN,
-                outputs_coeffs);
-    nn_reduce_sigmoid(outputs_nodes_normal,
-                      outputs_nodes_full,
-                      N_VAD_OUTPUTS);
+    // nn_layer_fc(hidden_nodes_full, N_VAD_HIDDEN,
+    //             nn_features,       N_VAD_INPUTS,
+    //             hidden_coeffs);
+    // nn_reduce_relu(hidden_nodes_normal,
+    //                hidden_nodes_full,
+    //                N_VAD_HIDDEN);
+    // nn_layer_fc(outputs_nodes_full,    N_VAD_OUTPUTS,
+    //             hidden_nodes_normal, N_VAD_HIDDEN,
+    //             outputs_coeffs);
+    // nn_reduce_sigmoid(outputs_nodes_normal,
+    //                   outputs_nodes_full,
+    //                   N_VAD_OUTPUTS);
     
     for(int i = 0; i < N_VAD_HIDDEN; i++) {
 //        printf("Hidden node %d pre RELU %7.4f, post RELU %7.4f\n", i, hidden_nodes_full[i]/(float)(1LL << 48), hidden_nodes_normal[i]/(float)(1<<24));
