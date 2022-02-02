@@ -1,8 +1,8 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#ifndef SUPPRESSION_H_
-#define SUPPRESSION_H_
+#ifndef SUP_API_H
+#define SUP_API_H
 
 #include "suppression_state.h"
 
