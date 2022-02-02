@@ -101,7 +101,7 @@ void sup_task(const char *input_file_name, const char *output_file_name){
         sup_process_frame(&ch1_state, frame[0], frame[0]);
         //sup_process_frame(&ch2_state, frame[1], frame[1]);
 #if PROFILE_PROCESSING
-        prof(3, "start_sup_process_frame");
+        prof(3, "end_sup_process_frame");
 #endif
 
         // Create interleaved output that can be written to wav file
