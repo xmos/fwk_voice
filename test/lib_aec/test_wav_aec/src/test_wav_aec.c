@@ -111,7 +111,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert(AEC_MAX_X_CHANNELS <= AEC_LIB_MAX_X_CHANNELS);
     assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (DE_LIB_MAX_PHASES));
     //Initialise default values of runtime arguments
     runtime_args[Y_CHANNELS] = AEC_MAX_Y_CHANNELS;
     runtime_args[X_CHANNELS] = AEC_MAX_X_CHANNELS;
@@ -132,7 +131,6 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
     assert(runtime_args[X_CHANNELS] <= AEC_MAX_X_CHANNELS);
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
     assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[SHADOW_FILTER_PHASES]) <= (AEC_LIB_MAX_PHASES));
-    assert((runtime_args[Y_CHANNELS] * runtime_args[X_CHANNELS] * runtime_args[MAIN_FILTER_PHASES]) <= (DE_LIB_MAX_PHASES));
     
     //open files
     file_t input_file, output_file, H_hat_file, delay_file;
