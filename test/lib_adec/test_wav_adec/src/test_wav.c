@@ -180,6 +180,18 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
     pipeline_state_t DWORD_ALIGNED pipeline_state;
     pipeline_init(&pipeline_state, &aec_de_mode_conf, &aec_non_de_mode_conf);
 
+    pipeline_state.aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = runtime_args[ADAPTION_MODE];
+    pipeline_state.aec_main_state.shared_state->config_params.coh_mu_conf.force_adaption_mu_q30 = runtime_args[FORCE_ADAPTION_MU];
+#if BYPASS_ADEC
+    // All AEC module tests are run in this mode only
+    pipeline_state.adec_state.adec_config.bypass = 1;
+#endif
+#if TRIGGER_DE_ONLY_ON_STARTUP
+    // If DE is enabled only on startup, bypass adec and set force_de_cycle_trigger to 1
+    pipeline_state.adec_state.adec_config.bypass = 1;
+    pipeline_state.adec_state.adec_config.force_de_cycle_trigger = 1;
+#endif
+
 #if LOG_DEBUG_INFO
     //bypass adec since we only want to log aec behaviour
     pipeline_state.adec_state.adec_config.bypass = 1;
