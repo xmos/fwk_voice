@@ -6,4 +6,5 @@ API Reference
     :maxdepth: 1
 
     api
+    defines
     header_files

@@ -1,7 +1,7 @@
 .. _sup_func:
 
-AGC API Functions
-=================
+NS API Functions
+================
 
 .. doxygengroup:: sup_func
     :content-only:
