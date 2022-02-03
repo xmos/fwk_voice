@@ -42,7 +42,7 @@ void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
 }
 
 
-void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf) {
+void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf, adec_config_t *adec_config) {
     memset(state, 0, sizeof(pipeline_state_t)); 
     prof(0, "start_pipeline_init"); //Start profiling after memset since the pipeline components do the memset as part of their init functions.
     state->delay_estimator_enabled = 0;
@@ -55,7 +55,7 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
     memcpy(&state->aec_de_mode_conf, de_conf, sizeof(aec_conf_t));
     memcpy(&state->aec_non_de_mode_conf, non_de_conf, sizeof(aec_conf_t));
 
-    adec_init(&state->adec_state);
+    adec_init(&state->adec_state, adec_config);
     aec_switch_configuration(state, &state->aec_non_de_mode_conf);
     prof(1, "end_pipeline_init");
 }

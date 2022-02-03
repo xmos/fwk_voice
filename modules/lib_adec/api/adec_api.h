@@ -4,7 +4,7 @@
 
 /** Function that initialises ADEC state
  */
-void adec_init(adec_state_t *state);
+void adec_init(adec_state_t *state, adec_config_t *config);
 
 /** Function that takes statistics about the signals and decides if a delay
  *  estimation and/or a delay change and AEC reset is required

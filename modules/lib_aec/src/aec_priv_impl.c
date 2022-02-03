@@ -949,25 +949,11 @@ void aec_priv_compute_T(
     //followed by T = T * mu
     bfp_complex_s32_real_mul(T, Error, inv_X_energy);
     bfp_complex_s32_real_scale(T, T, mu);
-    /*for(int i=0; i<5; i++) {
-      int j = i+200;
-      float_s32_t re, im;
-      re.mant = T->data[j].re;
-      re.exp = T->exp;
-      im.mant = T->data[j].im;
-      im.exp = T->exp;
-
-      float_s32_t inv;
-      inv.mant = inv_X_energy->data[j];
-      inv.exp = inv_X_energy->exp;
-
-      printf("T[%d] = %f, %f\n", j, float_s32_to_double(re), float_s32_to_double(im));
-      printf("Inv_X_energy[%d] = %f\n",j, float_s32_to_double(inv));
-    }*/
 
     //bfp_complex_s32_real_scale(T, Error, mu);
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
 }
+
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)

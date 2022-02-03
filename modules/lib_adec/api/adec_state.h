@@ -15,7 +15,7 @@ typedef enum {
 typedef struct {
     int32_t bypass;
     int32_t force_de_cycle_trigger; 
-}adec_config_params_t;
+}adec_config_t;
 
 typedef struct {
     int32_t measured_delay_samples; ///< Estimated delay in samples
@@ -70,7 +70,7 @@ typedef struct {
     int32_t sf_copy_flag;
     int32_t convergence_counter;
     int32_t shadow_flag_counter;
-    adec_config_params_t adec_config;
+    adec_config_t adec_config;
 } adec_state_t;
 
 

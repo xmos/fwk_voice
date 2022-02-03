@@ -6,9 +6,9 @@
 #include "aec_state.h" // For shadow_state_e enum
 
 
-void adec_init(adec_state_t *adec_state){
-  adec_state->adec_config.bypass = 0;
-  adec_state->adec_config.force_de_cycle_trigger = 0;
+void adec_init(adec_state_t *adec_state, adec_config_t *config){
+  adec_state->adec_config.bypass = config->bypass;
+  adec_state->adec_config.force_de_cycle_trigger = config->force_de_cycle_trigger;
   adec_state->agm_q24 = ADEC_AGM_HALF;
 
   //Using bits log2(erle) with q7_28 gives us up to 10log(2^127) = 382dB ERLE measurement range.. 
