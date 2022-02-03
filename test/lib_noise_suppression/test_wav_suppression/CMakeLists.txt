@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  pipeline_multi_threaded )
+set( APP_NAME  test_wav_suppression )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -10,18 +10,13 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
-    lib_aec
-    lib_noise_suppression
-    lib_agc
+    lib_noise_suppression 
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED_FILEIO ${SHARED_SRC_PATH}/file_utils/*.c )
-file( GLOB SOURCES_SHARED_AEC ${SHARED_SRC_PATH}/aec/aec_process_frame_2threads.c )
-unset( SOURCES_SHARED )
-list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
+file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/*.c )
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 
@@ -33,10 +28,12 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${SHARED_SRC_PATH}/aec )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
+
+message( STATUS "Includes ${INCLUDES}" )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
@@ -70,9 +67,12 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable( ${APP_NAME} ${SOURCES} ${SOURCES_C_APP} )
+add_executable( ${APP_NAME} ${SOURCES} )
 
-target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
+target_include_directories( ${APP_NAME} PRIVATE 
+    ${INCLUDES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/bare-matal/shared_src
+     )
 
 target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 

@@ -4,6 +4,7 @@
 #include "pipeline_config.h"
 #include "aec_state.h"
 #include "aec_memory_pool.h"
+#include "suppression_state.h"
 #include "agc_api.h"
 
 typedef struct {
@@ -13,7 +14,8 @@ typedef struct {
     aec_shared_state_t DWORD_ALIGNED aec_shared_state;
     uint8_t DWORD_ALIGNED aec_main_memory_pool[sizeof(aec_memory_pool_t)];
     uint8_t DWORD_ALIGNED aec_shadow_memory_pool[sizeof(aec_shadow_filt_memory_pool_t)];
-
+    // NS
+    sup_state_t DWORD_ALIGNED sup_state[AP_MAX_Y_CHANNELS];
     // AGC
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
 } pipeline_state_t;

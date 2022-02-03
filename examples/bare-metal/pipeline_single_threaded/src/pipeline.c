@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "aec_api.h"
+#include "suppression.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 
@@ -25,6 +26,11 @@ void pipeline_init(pipeline_state_t *state) {
             AEC_MAX_Y_CHANNELS, AEC_MAX_X_CHANNELS,
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);
 
+    // Initialise NS
+    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        sup_init_state(&state->sup_state[ch]);
+    }
+    
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
@@ -34,8 +40,6 @@ void pipeline_init(pipeline_state_t *state) {
     for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_init(&state->agc_state[ch], &agc_conf_comms);
     }
-    
-    
 }
 
 void pipeline_process_frame(pipeline_state_t *state,
@@ -48,14 +52,21 @@ void pipeline_process_frame(pipeline_state_t *state,
     int32_t aec_output_main[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
     aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, aec_output_main, aec_output_shadow, input_y_data, input_x_data);
+
+    /**NS*/
+    int32_t sup_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+
+    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        sup_process_frame(&state->sup_state[ch], sup_output[ch], aec_output_main[ch]);
+    }
     
+    /** AGC*/
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = aec_calc_max_ref_energy(input_x_data, AP_MAX_X_CHANNELS);
     agc_md.vad_flag = AGC_META_DATA_NO_VAD;
-    
-    /** AGC*/
+
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = aec_calc_corr_factor(&state->aec_main_state, ch);
-        agc_process_frame(&state->agc_state[ch], output_data[ch], aec_output_main[ch], &agc_md);
+        agc_process_frame(&state->agc_state[ch], output_data[ch], sup_output[ch], &agc_md);
     }
 }
