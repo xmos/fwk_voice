@@ -1,5 +1,16 @@
 // Copyright 2019-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
+#define ADEC_CONFIG_DE_ONLY_AT_STARTUP (adec_config_t){ \
+    .bypass = 1, \
+    .force_de_cycle_trigger = 1 \
+}
+
+#define ADEC_CONFIG_AUTOMATIC_DE_CONTROL (adec_config_t){ \
+    .bypass = 0, \
+    .force_de_cycle_trigger = 0 \
+}
+
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
 

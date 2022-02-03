@@ -174,16 +174,14 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
     aec_non_de_mode_conf.num_main_filt_phases = runtime_args[MAIN_FILTER_PHASES];
     aec_non_de_mode_conf.num_shadow_filt_phases = runtime_args[SHADOW_FILTER_PHASES];
     
-    adec_config_t adec_conf;
-    memset(&adec_conf, 0, sizeof(adec_config_t));
+    adec_config_t adec_conf = ADEC_CONFIG_AUTOMATIC_DE_CONTROL;
 #if BYPASS_ADEC
     // All AEC module tests are run in this mode only
     adec_conf.bypass = 1;
 #endif
 #if TRIGGER_DE_ONLY_ON_STARTUP
     // If DE is enabled only on startup, bypass adec and set force_de_cycle_trigger to 1
-    adec_conf.bypass = 1;
-    adec_conf.force_de_cycle_trigger = 1;
+    adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP; 
 #endif
 #if LOG_DEBUG_INFO
     //bypass adec since we only want to log aec behaviour
@@ -267,11 +265,11 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
 }
 #if X86_BUILD
 int main(int argc, char **argv) {
-    /*if(argc < 3) {
+    if(argc < 3) {
         printf("Arguments missing. Expected: <input file name> <output file name>\n");
         assert(0);
-    }*/
-    pipeline_wrapper("input.wav", "output.wav");
+    }
+    pipeline_wrapper(argv[1], argv[2]);
     //aec_task(argv[1], argv[2]);
     return 0;
 }
