@@ -1,6 +1,6 @@
 set( LIB_NAME   lib_noise_suppression  )
 
-add_library( ${LIB_NAME} STATIC src/suppression.c src/noise_suppression.c )
+add_library( ${LIB_NAME} STATIC src/sup_impl.c src/sup_noise.c )
 
 target_include_directories( ${LIB_NAME} PUBLIC api src )
 

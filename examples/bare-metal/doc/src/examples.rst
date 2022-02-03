@@ -104,11 +104,13 @@ Example App: pipeline_single_threaded
 This example demonstrates how the audio processing stages are put together in a pipeline
 
 In it, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline stages frame by frame. The
-example currently demonstrates a pipeline having AEC and AGC stages.
+example currently demonstrates a pipeline having AEC, NS and AGC stages.
 
 AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
 filter. AEC stage generates the echo cancelled version of the mic input that is then sent for processing through the
-AGC.
+NS.
+
+NS is configured in the same way for both ASR and Comms. NS stage generated noise suppressed version of the AGC output and then sent to AGC. 
 
 AGC is configured for ASR engine suitable gain control on channel 0 and Comms suitable gain control on channel 1. The
 output of AGC stage is the pipeline output which is written into a 2 channel output wav file.
@@ -144,16 +146,18 @@ This example demonstrates how the audio processing stages are put together in a 
 parallel on separate hardware threads.
 
 In it, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline stages frame by frame. The
-example currently demonstrates a pipeline having AEC and AGC stages.
+example currently demonstrates a pipeline having AEC, NS and AGC stages.
 
 AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
 filter. This example calls AEC functions using 2 threads to process a frame through the AEC stage. AEC stage generates
-the echo cancelled version of the mic input that is then sent for processing through the AGC.
+the echo cancelled version of the mic input that is then sent for processing through the NS.
+
+NS is configured in the same way for both ASR and Comms. NS stage generated noise suppressed version of the AGC output and then sent to AGC. 
 
 AGC is configured for ASR engine suitable gain control on channel 0 and Comms suitable gain control on channel 1. The
 output of AGC stage is the pipeline output which is written into a 2 channel output wav file.
 
-In total, the audio processing stages consume 3 hardware threads; 2 for AEC stage and 1 for AGC stage.
+In total, the audio processing stages consume 4 hardware threads; 2 for AEC stage, 1 for NS state and 1 for AGC stage.
 
 The input file input.wav has 2 channels of mic input followed by 2 channels of reference input. Output is written to the output.wav file.
 

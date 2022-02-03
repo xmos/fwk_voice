@@ -1,7 +1,7 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <stdint.h>
-#include <limits.h>
+//#include <stdint.h>
+//#include <limits.h>
 #include <string.h>
 #include <bfp_math.h>
 #include <stdio.h>

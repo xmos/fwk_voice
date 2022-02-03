@@ -6,10 +6,23 @@
 
 #include "sup_state.h"
 
+/**
+ * @page page_sup_api_h sup_api.h
+ * 
+ * This header should be included in application source code to gain access to the
+ * lib_noise_suppression public functions API.
+ */
 
-/** Function that initialises the suppression state.
+/**
+ * @defgroup sup_func NS API functions 
+ */
+
+/** 
+ * @brief Initialise the NS
  *
- * It initialises the noise suppressor with the following settings:
+ * This function initialises the NS state with the provided configuration. It must be called
+ * at startup to initialise the NS before processing any frames, and can be called at any time
+ * after that to reset the NS instance, returning the internal NS state to its defaults.
  *
  *   * reset period:  2400 (10 frames)
  *
@@ -21,21 +34,43 @@
  *
  *   * delta:         1.5  
  *
- * \param[out] state       structure that holds the state. For each instance
- *                         of the noise suppressor a state must be declared.
- *                         this is then passed to the other functions to be
- *                         updated
- *
- * \param[in,out] sup      Suppressor state
- */
-void sup_init(sup_state_t * state);
-
-
-/** Function that suppresses residual noise in a frame
- *
+ * @param[out] sup    NS state structure
  * 
+ * @par Example
+ * @code{.c}
+ *      sup_state_t sup;
+ *      sup_init(&sup);
+ * @endcode
+ * 
+ * @ingroup sup_func
  */
-void sup_process_frame(sup_state_t * state,
+void sup_init(sup_state_t * sup);
+
+
+/**
+ * @brief Perform NS processing on a frame of input data
+ * 
+ * This function updates the NS's internal state based on the input frame, and
+ * returns an output containing the result of the NS algorithm applied to the input.
+ *
+ * The `input` and `output` pointers can be equal to perform the processing in-place.
+ * 
+ * @param[inout] sup     NS state structure
+ * @param[out] output    Array to return the resulting frame of data
+ * @param[in] input      Array of frame data on which to perform the NS
+ * 
+ * @par Example
+ * @code{.c}
+ *      int32_t input[SUP_FRAME_ADVANCE];
+ *      int32_t output[SUP_FRAME_ADVANCE];
+ *      sup_state_t sup;
+ *      sup_init(&sup);
+ *      sup_process_frame(&sup, output, input);
+ * @endcode
+ * 
+ * @ingroup sup_func
+ */
+void sup_process_frame(sup_state_t * sup,
                         int32_t output [SUP_FRAME_ADVANCE],
                         const int32_t input[SUP_FRAME_ADVANCE]);
 

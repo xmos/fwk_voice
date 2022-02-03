@@ -5,47 +5,119 @@
 
 #include <bfp_math.h>
 
+/**
+ * @page page_sup_state_h sup_state.h 
+ * 
+ * This header contains definitions for data structure and defines.
+ */
+
+/**
+ * @defgroup sup_defs   NS API structure definitions
+ */
+
+/**
+ * @brief Length of the frame of data on which the NS will operate.
+ *
+ * @ingroup sup_defs
+ */
 #define SUP_FRAME_ADVANCE           (240)
-#define SUP_PROC_FRAME_LENGTH      (512) 
+
+/** Time domain samples block length used internally.
+ *
+ * @ingroup sup_defs
+ */
+#define SUP_PROC_FRAME_LENGTH (512)
+
+/** Number of bins of spectrum data computed when doing a DFT of a SUP_PROC_FRAME_LENGTH length time domain vector. The
+ * SUP_PROC_FRAME_BINS spectrum values represent the bins from DC to Nyquist.
+ *
+ * @ingroup sup_defs
+ */   
 #define SUP_PROC_FRAME_BINS        ((SUP_PROC_FRAME_LENGTH / 2) + 1)
+
+/** The exponent used internally to keep q1.31 format.
+ *
+ * @ingroup sup_defs
+ */
 #define SUP_INT_EXP (-31)
+
+/** The length of the window applyed in time domain
+ * 
+ * @ingroup sup_defs
+ */
 #define SUPPRESSION_WINDOW_LENGTH (480)
 
+/** 
+ * @brief NS state structure
+ * 
+ * This structure holds the current state of the NS instance and members are updated each
+ * time that `sup_process_frame()` runs. Many of these members are exponentially-weighted
+ * moving averages (EWMA) which influence the behaviour of the NS filter. 
+ * The user should not directly modify any of these members. 
+ * 
+ * @ingroup sup_defs
+ */
 typedef struct {
 
     //Dynamic MCRA filter coefficients
+    /** BFP structure to hold the local energy. */
     bfp_s32_t S;
+    /** BFP structure to hold the minimun local energy whithin 10 frames. */
     bfp_s32_t S_min;
+    /** BFP structure to hold the temporary local energy. */
     bfp_s32_t S_tmp;
+    /** BFP structure to hold the conditional signal presence probability*/
     bfp_s32_t p;
+    /** BFP structure to hold the time-varying smoothing parameter. */
     bfp_s32_t alpha_d_tilde;
+    /** BFP structure to hold the noise estimanion. */
     bfp_s32_t lambda_hat;
 
+    /** int32_t array to hold the data for S. */
     int32_t data_S [SUP_PROC_FRAME_BINS];
+    /** int32_t array to hold the data for S_min. */
     int32_t data_S_min [SUP_PROC_FRAME_BINS];
+    /** int32_t array to hold the data for S_tmp. */
     int32_t data_S_tmp [SUP_PROC_FRAME_BINS];
+    /** int32_t array to hold the data for p. */
     int32_t data_p [SUP_PROC_FRAME_BINS];
+    /** int32_t array to hold the data for alpha_d_tilde. */
     int32_t data_adt [SUP_PROC_FRAME_BINS];
+    /** int32_t array to hold the data for lambda_hat. */
     int32_t data_lambda_hat [SUP_PROC_FRAME_BINS];
 
     //Data needed for the frame packing and windowing
+    /** BFP structure to hold the previous frame. */
     bfp_s32_t prev_frame;
+    /** BFP structure to hold the overlap. */
     bfp_s32_t overlap;
+    /** BFP structure to hold the first part of the window. */
     bfp_s32_t wind;
+    /** BFP structure to hold the second part of the window. */
     bfp_s32_t rev_wind;
 
+    /** int32_t array to hold the data for prev_frame. */
     int32_t data_prev_frame [SUP_PROC_FRAME_LENGTH - SUP_FRAME_ADVANCE];
+    /** int32_t array to hold the data for overlap. */
     int32_t data_ovelap [SUP_FRAME_ADVANCE];
+    /** int32_t array to hold the data for rev_wind. */
     int32_t data_rev_wind [SUPPRESSION_WINDOW_LENGTH / 2];
 
     //Static MCRA filter coefficients
+    /** EWMA of the energy ratio to calculate p. */
     float_s32_t delta;
+    /** EWMA of the smoothing parameter for alpha_d_tilde. */
     float_s32_t alpha_d;
+    /** EWMA of the smoothing parameter for S. */
     float_s32_t alpha_s;
+    /** EWMA of the smoohting parameter for p. */
     float_s32_t alpha_p;
+    /** EWMA of the 1 - alpha_d parameter. */
     float_s32_t one_minus_aplha_d;
 
+    /** Filter reset period value for auto-reset. */
     unsigned reset_period;
+    /** Filter reset counter. */
     unsigned reset_counter;
 
 } sup_state_t;
