@@ -4,7 +4,7 @@
 #include "pipeline_config.h"
 #include "aec_state.h"
 #include "aec_memory_pool.h"
-#include "suppression_state.h"
+#include "sup_state.h"
 #include "agc_api.h"
 
 typedef struct {

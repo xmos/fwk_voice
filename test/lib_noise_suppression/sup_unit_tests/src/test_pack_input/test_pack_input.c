@@ -9,8 +9,8 @@
 #include <bfp_math.h>
 #include <math.h>
 
-#include <suppression.h>
-#include <suppression_testing.h>
+#include <sup_api.h>
+#include <sup_test.h>
 #include <unity.h>
 
 #include "unity_fixture.h"

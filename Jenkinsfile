@@ -383,7 +383,7 @@ pipeline {
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           //NS artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/**/*.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
           //AEC artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true

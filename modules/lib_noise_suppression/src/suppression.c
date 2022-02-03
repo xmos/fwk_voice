@@ -5,9 +5,9 @@
 #include <limits.h>
 #include <bfp_math.h>
 
-#include <suppression.h>
-#include "suppression_ns.h"
-#include "suppression_testing.h"
+#include <sup_api.h>
+#include "sup_ns.h"
+#include "sup_test.h"
 
 #define SUP_SQRT_HANN_LUT           sqrt_hanning_480
 
@@ -87,7 +87,7 @@ void sup_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     bfp_s32_use_exponent(overlap, SUP_INT_EXP);
 }
 
-void sup_init_state(sup_state_t * state){
+void sup_init(sup_state_t * state){
     memset(state, 0, sizeof(sup_state_t));
 
     sup_bfp_init(&state->S, state->data_S, SUP_PROC_FRAME_BINS, INT_MAX);

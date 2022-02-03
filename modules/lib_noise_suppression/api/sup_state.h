@@ -3,7 +3,7 @@
 #ifndef SUP_STATE_H
 #define SUP_STATE_H
 
-#include <xs3_math_types.h>
+#include <bfp_math.h>
 
 #define SUP_FRAME_ADVANCE           (240)
 #define SUP_PROC_FRAME_LENGTH      (512) 

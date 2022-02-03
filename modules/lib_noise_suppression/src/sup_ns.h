@@ -3,7 +3,7 @@
 #ifndef _suppression_ns_h
 #define _suppression_ns_h
 
-#include <suppression_state.h>
+#include <sup_state.h>
 
 void ns_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main);
 

@@ -8,8 +8,8 @@
 #include <assert.h>
 #include <bfp_math.h>
 
-#include <suppression.h>
-#include <suppression_testing.h>
+#include <sup_api.h>
+#include <sup_test.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -42,7 +42,7 @@ TEST(ns_update_lambda_hat, case0){
     for(int i = 0; i < 100; i++){
 
         sup_state_t state;
-        sup_init_state(&state);
+        sup_init(&state);
 
         for(int v = 0; v < SUP_PROC_FRAME_BINS; v++){
             abs_Y_int[v] = pseudo_rand_int(&seed, 0x10000000, 0x7fffffff);

@@ -4,7 +4,7 @@
 #ifndef SUP_API_H
 #define SUP_API_H
 
-#include "suppression_state.h"
+#include "sup_state.h"
 
 
 /** Function that initialises the suppression state.
@@ -28,7 +28,7 @@
  *
  * \param[in,out] sup      Suppressor state
  */
-void sup_init_state(sup_state_t * state);
+void sup_init(sup_state_t * state);
 
 
 /** Function that suppresses residual noise in a frame
