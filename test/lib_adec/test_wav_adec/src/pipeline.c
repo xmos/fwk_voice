@@ -33,70 +33,6 @@ extern void aec_process_frame_2threads(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 
-void delay_buffer_init(delay_state_t *state, int default_delay_samples) {
-    memset(state->delay_buffer, 0, sizeof(state->delay_buffer));
-    memset(&state->curr_idx[0], 0, sizeof(state->curr_idx));
-    state->delay_samples = default_delay_samples;
-}
-
-void get_delayed_sample(delay_state_t *delay_state, int32_t *sample, int32_t ch) {
-    delay_state->delay_buffer[ch][delay_state->curr_idx[ch]] = *sample;
-    int32_t abs_delay_samples = (delay_state->delay_samples < 0) ? -delay_state->delay_samples : delay_state->delay_samples;
-    // Send back the samples with the correct delay
-    uint32_t delay_idx = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - abs_delay_samples)
-            % MAX_DELAY_SAMPLES
-            );
-    *sample = delay_state->delay_buffer[ch][delay_idx];
-    delay_state->curr_idx[ch] = (delay_state->curr_idx[ch] + 1) % MAX_DELAY_SAMPLES;
-}
-
-void reset_partial_delay_buffer(delay_state_t *delay_state, int32_t ch, int32_t num_samples) {
-    if(!num_samples) {
-        return;
-    }
-    num_samples = (num_samples < 0) ? -num_samples : num_samples;
-    //Reset num_samples samples before curr_idx
-    int32_t reset_start = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - num_samples)
-            % MAX_DELAY_SAMPLES
-            );
-    if(reset_start < delay_state->curr_idx[ch]) {
-        //reset_start hasn't wrapped around
-        memset(&delay_state->delay_buffer[ch][reset_start], 0, num_samples*sizeof(int32_t));
-    }
-    else {
-        //reset_start has wrapped around
-        memset(&delay_state->delay_buffer[ch][0], 0, delay_state->curr_idx[ch]*sizeof(int32_t));
-        int remaining = num_samples - delay_state->curr_idx[ch];
-        memset(&delay_state->delay_buffer[ch][MAX_DELAY_SAMPLES - remaining], 0, remaining*sizeof(int32_t));
-    }
-}
-
-
-static inline void get_delayed_frame(
-        int32_t (*input_y_data)[AP_FRAME_ADVANCE],
-        int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-        delay_state_t *delay_state)
-{
-    int num_channels = (delay_state->delay_samples) > 0 ? AP_MAX_Y_CHANNELS : AP_MAX_X_CHANNELS;
-    if (delay_state->delay_samples >= 0) {/** Requested Mic delay +ve => delay mic*/
-        for(int ch=0; ch<num_channels; ch++) {
-            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
-                get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
-            }
-        }
-    }
-    else if (delay_state->delay_samples < 0) {/* Requested Mic delay negative => advance mic which can't be done, so delay reference*/
-        for(int ch=0; ch<num_channels; ch++) {
-            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
-                get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
-            }
-        }
-    }
-    return;
-}
-
 void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
 {
     aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
@@ -124,6 +60,29 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
     prof(1, "end_pipeline_init");
 }
 
+static inline void get_delayed_frame(
+        int32_t (*input_y_data)[AP_FRAME_ADVANCE],
+        int32_t (*input_x_data)[AP_FRAME_ADVANCE],
+        delay_buf_state_t *delay_state)
+{
+    int num_channels = (delay_state->delay_samples) > 0 ? AP_MAX_Y_CHANNELS : AP_MAX_X_CHANNELS;
+    if (delay_state->delay_samples >= 0) {/** Requested Mic delay +ve => delay mic*/
+        for(int ch=0; ch<num_channels; ch++) {
+            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
+                get_delayed_sample(delay_state, &input_y_data[ch][i], ch);
+            }
+        }
+    }
+    else if (delay_state->delay_samples < 0) {/* Requested Mic delay negative => advance mic which can't be done, so delay reference*/
+        for(int ch=0; ch<num_channels; ch++) {
+            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
+                get_delayed_sample(delay_state, &input_x_data[ch][i], ch);
+            }
+        }
+    }
+    return;
+}
+
 int framenum = 0;
 void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*output_data)[AP_FRAME_ADVANCE],
@@ -133,7 +92,7 @@ void pipeline_process_frame(pipeline_state_t *state,
 {
     /** Get delayed frame*/
     prof(2, "start_get_delayed_frame");
-    delay_state_t *delay_state_ptr = &state->delay_state;
+    delay_buf_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y_data,
             input_x_data,
@@ -229,9 +188,9 @@ void pipeline_process_frame(pipeline_state_t *state,
     /** Update delay samples if there's a delay change requested by ADEC*/
     if(adec_output.delay_change_request_flag == 1){
         // Update delay_buffer delay_samples with mic delay requested by adec
-        state->delay_state.delay_samples = adec_output.requested_mic_delay_samples;
+        update_delay_samples(&state->delay_state, adec_output.requested_mic_delay_samples);
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-            reset_partial_delay_buffer(&state->delay_state, ch, state->delay_state.delay_samples);
+            reset_partial_delay_buffer(&state->delay_state, ch);
         }
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
         printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");

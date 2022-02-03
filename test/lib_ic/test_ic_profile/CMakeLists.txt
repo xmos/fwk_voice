@@ -21,7 +21,7 @@ list( APPEND  DEP_LIBS
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
 ## Sources
-file( GLOB SOURCES_PROF ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/test_aec_profile/src/*.c )
+file( GLOB SOURCES_PROF ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src/*.c )
 file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/ic/src//*.c )
 file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/ic/src/*.xc )
 file( GLOB SOURCES_IC_PROCESS_FRAME  ${SHARED_SRC_PATH}/ic/*.c )
@@ -40,7 +40,7 @@ list( APPEND  INCLUDES
     ${XSCOPE_FILEIO_PATH} 
     ${XSCOPE_FILEIO_PATH}/api 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/test_aec_profile/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src
     )
 
 # set( XSCOPE_CONFIG config.xscope )

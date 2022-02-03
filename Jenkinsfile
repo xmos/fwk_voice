@@ -305,18 +305,6 @@ pipeline {
             }
           }
         }
-        //stage('AEC test_aec_profile') {
-        //  steps {
-        //    dir("${REPO}/test/lib_aec/test_aec_profile") {
-        //      viewEnv() {
-        //        withVenv {
-        //          sh "pytest -n 1 --junitxml=pytest_result.xml"
-        //          junit "pytest_result.xml"
-        //        }
-        //      }
-        //    }
-        //  }
-        //}
         stage('AEC aec_unit_tests') {
           steps {
             dir("${REPO}/test/lib_aec/aec_unit_tests") {
@@ -379,7 +367,6 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           
           //AEC aretfacts
-          //archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
         }
         cleanup {

@@ -32,7 +32,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 unset( INCLUDES )
 list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../../../test/lib_aec/test_aec_profile/src)
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../../../test/lib_adec/test_adec_profile/src)
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes ${INCLUDES}" )

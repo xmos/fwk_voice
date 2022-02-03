@@ -5,6 +5,7 @@
 #include "adec_state.h"
 
 #include "aec_memory_pool.h"
+#include "delay_buffer.h"
 
 #define AP_FRAME_ADVANCE           (240)
 #define AP_MAX_Y_CHANNELS (2)
@@ -17,14 +18,6 @@
 #ifndef INITIAL_DELAY_ESTIMATION
 #define INITIAL_DELAY_ESTIMATION (0)
 #endif
-
-typedef struct {
-    // Circular buffer to store the samples
-    int32_t delay_buffer[AP_MAX_CHANNELS][MAX_DELAY_SAMPLES];
-    // index of the value for the samples to be stored in the buffer
-    int32_t curr_idx[AP_MAX_CHANNELS];
-    int32_t delay_samples;
-} delay_state_t;
 
 typedef struct {
     uint8_t num_x_channels;
@@ -45,7 +38,7 @@ typedef struct {
     adec_state_t DWORD_ALIGNED adec_state;
  
     // Delay Buffer
-    delay_state_t delay_state;
+    delay_buf_state_t delay_state;
 
     //Top level
     aec_conf_t aec_de_mode_conf;
