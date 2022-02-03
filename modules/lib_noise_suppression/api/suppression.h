@@ -6,14 +6,6 @@
 
 #include "suppression_state.h"
 
-/** Function that resets the noise suppressor. Does not affect
- * any parameters that have been set, such as enable, alphas etc.
- *
- * \param[in,out] state      Suppressor state, initialised
- */
-void sup_reset_noise_suppression(sup_state_t * state);
-
-
 
 /** Function that initialises the suppression state.
  *

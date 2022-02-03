@@ -183,9 +183,10 @@ pipeline {
         stage('NS performance tests') {
           steps {
             dir("${REPO}/test/lib_noise_suppression/compare_c_xc") {
+              copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }
