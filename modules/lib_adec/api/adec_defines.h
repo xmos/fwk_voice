@@ -3,15 +3,15 @@
 #define MAX_DELAY_MS                ( 150 )
 #define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
 
-#define ADEC_AGM_ONE                            (1<<24)           //7Q24 1.0 MAX AGM
-#define ADEC_AGM_HALF                           (1<<23)           //7Q24 0.5 INITIAL AGM
+#define ADEC_AGM_ONE                            (1<<24)           //Q24 1.0 MAX AGM
+#define ADEC_AGM_HALF                           (1<<23)           //Q24 0.5 INITIAL AGM
 #define ADEC_ERLE_BAD_BITS                      -0.066            //-0.2dB -> 0.95 -> -0.066b
 #define ADEC_ERLE_GOOD_BITS                     2.0              //6dB
 #define ADEC_ERLE_BAD_GAIN                      0.0625           //When ERLE goes below the threshold, how steep is the curve that reduces goodness
 #define ADEC_PEAK_PHASE_ENERGY_TREND_GAIN       3.0              //How sensitve we are to the peak phase energy trend, multiplier
-#define ADEC_PEAK_TO_AVERAGE_GOOD_AEC           {0x7fffffff, -29}//Denormalised 4.0 - AEC only has 10 phases so pk:ave 
-#define ADEC_PEAK_TO_AVERAGE_GOOD_DE            {0x7fffffff, -28}//Denormalised 8.0 - With 30 phases, it's easier to get a strong pk
-#define ADEC_PEAK_TO_AVERAGE_RUINED_AEC         {0x7fffffff, -30}//Denormalised 2.0 - Used with watchdog.
+#define ADEC_PEAK_TO_AVERAGE_GOOD_AEC           float_to_float_s32(4.0)//Denormalised 4.0 - AEC only has 10 phases so pk:ave 
+#define ADEC_PEAK_TO_AVERAGE_GOOD_DE            float_to_float_s32(8.0)//Denormalised 8.0 - With 30 phases, it's easier to get a strong pk
+#define ADEC_PEAK_TO_AVERAGE_RUINED_AEC         float_to_float_s32(2.0)//Denormalised 2.0 - Used with watchdog.
 
 #define ADEC_PEAK_TO_RAGE_HISTORY_DEPTH         8                //How far we look back to smooth the pk:ave ratio history
 
