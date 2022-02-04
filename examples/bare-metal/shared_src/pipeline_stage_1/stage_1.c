@@ -42,29 +42,23 @@ static inline void get_delayed_frame(
 }
 
 void stage_1_init(stage_1_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf, adec_config_t *adec_config) {
-    printf("init 1\n");
     state->delay_estimator_enabled = 0;
     state->ref_active_threshold =  double_to_float_s32(pow(10, -60/20.0));
 
-    printf("init 2\n");
     delay_buffer_init(&state->delay_state, 0/*Initialise with 0 delay_samples*/);
     memcpy(&state->aec_de_mode_conf, de_conf, sizeof(aec_conf_t));
     memcpy(&state->aec_non_de_mode_conf, non_de_conf, sizeof(aec_conf_t));
-    printf("init 3\n");
 
     adec_init(&state->adec_state, adec_config);
-    printf("init 4\n");
     aec_switch_configuration(state, &state->aec_non_de_mode_conf);
-    printf("init 5\n");
 }
 
 static int framenum = 0;
 void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FRAME_ADVANCE], float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t (*input_frame)[AP_FRAME_ADVANCE])
 {
-    printf("frame %d\n",framenum);
+    //printf("frame %d\n",framenum);
     framenum++;
     
-    printf("here 1\n");
     int32_t (*input_y)[AP_FRAME_ADVANCE] = input_frame;    
     int32_t (*input_x)[AP_FRAME_ADVANCE] = &input_frame[AP_MAX_Y_CHANNELS];    
 
@@ -75,22 +69,18 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
             delay_state_ptr
             );
     
-    printf("here 2\n");
     /** Detect if there's activity on the reference channels*/
     int is_ref_active = aec_detect_ref_activity(input_x, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
 
-    printf("here 3\n");
     /** AEC*/
     aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, output_frame, NULL, input_y, input_x);
 
-    printf("here 4\n");
     /** Update metadata*/
     *max_ref_energy = aec_calc_max_ref_energy(input_x, state->aec_main_state.shared_state->num_x_channels);
     for(int ch=0; ch<state->aec_main_state.shared_state->num_y_channels; ch++) {
         aec_corr_factor[ch] = aec_calc_corr_factor(&state->aec_main_state, ch);
     }
 
-    printf("here 5\n");
     /** Delay Estimation*/
     adec_input_t adec_in;
     estimate_delay(
@@ -99,7 +89,7 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
             state->aec_main_state.num_phases
             );
 
-    printf("here 6\n");
+
     /** ADEC*/
     // Create input to ADEC from AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
@@ -115,16 +105,14 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
             &adec_in
             );
 
-    printf("here 7\n");
     //** Reset AEC state if needed*/
     if(adec_output.reset_aec_flag) {
         reset_aec_state(&state->aec_main_state, &state->aec_shadow_state);
     }
 
-    printf("here 8\n");
     /** Update delay buffer if there's a delay change requested by ADEC*/
     if(adec_output.delay_change_request_flag == 1){
-        printf("here 8 1. %d\n", adec_output.requested_mic_delay_samples);
+        printf("Frame %d: Set delay to %d\n", framenum, adec_output.requested_mic_delay_samples);
         // Update delay_buffer delay_samples with mic delay requested by adec
         update_delay_samples(&state->delay_state, adec_output.requested_mic_delay_samples);
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
@@ -132,7 +120,6 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         }
     }
 
-    printf("here 9\n");
     /** Overwrite output with mic input if delay estimation enabled*/
     if (state->delay_estimator_enabled) {
         // Send the current frame unprocessed
@@ -143,10 +130,8 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         }
     }
 
-    printf("here 10\n");
     /** Switch AEC config if needed*/
     if (adec_output.delay_estimator_enabled_flag && !state->delay_estimator_enabled) {
-        printf("here 10 0\n");
         /** Now that a AEC -> DE change has been requested, reset force_de_cycle_trigger in case this transition is
          * requested as a result of force_de_cycle_trigger being set*/ 
         state->adec_state.adec_config.force_de_cycle_trigger = 0;
@@ -155,13 +140,12 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         aec_switch_configuration(state, &state->aec_de_mode_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
         state->delay_estimator_enabled = 1;
-        printf("here 10 1\n");
+        printf("framenum %d: switch to de mode", framenum);
     } else if ((!adec_output.delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
-        printf("here 10 2\n");
         // Start AEC for normal aec config
         aec_switch_configuration(state, &state->aec_non_de_mode_conf);
         state->delay_estimator_enabled = 0;
-        printf("here 10 3\n");
+        printf("framenum %d: switch to aec mode", framenum);
+
     }
-    printf("here 11\n");
 }

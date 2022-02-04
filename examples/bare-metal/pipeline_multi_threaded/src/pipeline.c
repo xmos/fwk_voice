@@ -33,7 +33,6 @@ DECLARE_JOB(pipeline_stage_3, (chanend_t, chanend_t));
 // Stage 1 state
 stage_1_state_t DWORD_ALIGNED stage_1_state;
 void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
-    printf("ps1 1\n");
     // Pipeline metadata
     pipeline_metadata_t md;
 
@@ -48,7 +47,6 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     aec_de_mode_conf.num_main_filt_phases = 30;
     aec_de_mode_conf.num_shadow_filt_phases = 0;
     
-    printf("ps1 2\n");
     adec_config_t adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP;
     
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
@@ -64,7 +62,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Transmit output frame
-        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        chan_out_buf_word(c_frame_out, (uint32_t*)&stage_1_out[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
 
     }
 }
@@ -89,10 +87,10 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
 
         /**NS*/
-        /*for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
             //the frame buffer will be used for both input and output here
             sup_process_frame(&sup_state[ch], frame[ch], frame[ch]);
-        }*/
+        }
 
         // Transmit output frame
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
