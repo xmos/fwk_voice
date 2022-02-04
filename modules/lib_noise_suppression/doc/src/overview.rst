@@ -18,7 +18,7 @@ Noise Suppression is performed on a frame-by-frame basis. Each frame consists of
 expected to be in a fixed-point 32-bit 1.31 format.
 
 Before processing any frames, the application must configure and initialise the
-NS instance by calling ``sup_init_state()``. Then for each frame,
+NS instance by calling ``sup_init()``. Then for each frame,
 ``sup_process_frame()`` will update the NS instance's internal state and produce
 the output frame by applying the NS algorithm to the input frame.
 

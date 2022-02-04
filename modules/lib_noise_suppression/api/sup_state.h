@@ -9,6 +9,8 @@
  * @page page_sup_state_h sup_state.h 
  * 
  * This header contains definitions for data structure and defines.
+ * 
+ * This header is automatically included by `sup_api.h`
  */
 
 /**
