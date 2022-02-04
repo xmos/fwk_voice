@@ -19,11 +19,11 @@ include(etc/build_options.cmake)
 find_package( Python3 COMPONENTS Interpreter )
 
 ## Compile flags for C/C++ for all libs and apps (for all platforms)
-list(APPEND   COMPILE_FLAGS        -Os -g -MMD   )
+list(APPEND   COMPILE_FLAGS        -Os -g -MMD )
 list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
 ## Platform-specific C/C++ compile flags
-list( APPEND   COMPILE_FLAGS_XCORE  -march=xs3a )
+list( APPEND   COMPILE_FLAGS_XCORE  -march=xs3a -mcmodel=large )
 list( APPEND   COMPILE_FLAGS_Linux  -DX86_BUILD=1 )
 
 list(APPEND   COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} )

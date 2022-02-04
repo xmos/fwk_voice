@@ -11,6 +11,7 @@ list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
     lib_aec
+    lib_adec
     lib_noise_suppression
     lib_agc
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
@@ -20,8 +21,10 @@ list( APPEND  DEP_LIBS
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_SHARED_FILEIO ${SHARED_SRC_PATH}/file_utils/*.c )
 file( GLOB SOURCES_SHARED_AEC ${SHARED_SRC_PATH}/aec/aec_process_frame_2threads.c )
+file( GLOB SOURCES_DELAY_BUFFER  ${SHARED_SRC_PATH}/delay_buffer/*.c )
+file( GLOB SOURCES_PIPELINE_STAGE_1  ${SHARED_SRC_PATH}/pipeline_stage_1/*.c )
 unset( SOURCES_SHARED )
-list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
+list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} ${SOURCES_DELAY_BUFFER} ${SOURCES_PIPELINE_STAGE_1})
 file( GLOB SOURCES_XC src/*.xc )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 
@@ -33,7 +36,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${SHARED_SRC_PATH}/aec )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/delay_buffer ${SHARED_SRC_PATH}/pipeline_stage_1 )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
@@ -58,6 +61,7 @@ list( APPEND  LINKER_FLAGS  "" )
 unset(LINKER_FLAGS_XCORE)
 list( APPEND  LINKER_FLAGS_XCORE  "-target=${XCORE_TARGET}"     )
 list( APPEND  LINKER_FLAGS_XCORE  "-report"                     )
+list( APPEND  LINKER_FLAGS_XCORE  "-mcmodel=large"              )
 list( APPEND  LINKER_FLAGS_XCORE  "${XSCOPE_CONFIG}"            )
 
 unset(LINKER_FLAGS_Linux)

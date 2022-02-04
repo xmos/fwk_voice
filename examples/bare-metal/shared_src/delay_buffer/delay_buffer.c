@@ -6,6 +6,7 @@ void delay_buffer_init(delay_buf_state_t *state, int default_delay_samples) {
     memset(state->delay_buffer, 0, sizeof(state->delay_buffer));
     memset(&state->curr_idx[0], 0, sizeof(state->curr_idx));
     state->delay_samples = default_delay_samples;
+
 }
 
 void get_delayed_sample(delay_buf_state_t *delay_state, int32_t *sample, int32_t ch) {
@@ -13,11 +14,11 @@ void get_delayed_sample(delay_buf_state_t *delay_state, int32_t *sample, int32_t
     int32_t abs_delay_samples = (delay_state->delay_samples < 0) ? -delay_state->delay_samples : delay_state->delay_samples;
     // Send back the samples with the correct delay
     uint32_t delay_idx = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - abs_delay_samples)
-            % MAX_DELAY_SAMPLES
+            (DELAY_BUF_MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - abs_delay_samples)
+            % DELAY_BUF_MAX_DELAY_SAMPLES
             );
     *sample = delay_state->delay_buffer[ch][delay_idx];
-    delay_state->curr_idx[ch] = (delay_state->curr_idx[ch] + 1) % MAX_DELAY_SAMPLES;
+    delay_state->curr_idx[ch] = (delay_state->curr_idx[ch] + 1) % DELAY_BUF_MAX_DELAY_SAMPLES;
 }
 
 void update_delay_samples(delay_buf_state_t *delay_state, int32_t num_samples) {
@@ -34,8 +35,8 @@ void reset_partial_delay_buffer(delay_buf_state_t *delay_state, int32_t ch) {
     num_samples = (num_samples < 0) ? -num_samples : num_samples;
     // Reset num_samples samples before curr_idx
     int32_t reset_start = (
-            (MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - num_samples)
-            % MAX_DELAY_SAMPLES
+            (DELAY_BUF_MAX_DELAY_SAMPLES + delay_state->curr_idx[ch] - num_samples)
+            % DELAY_BUF_MAX_DELAY_SAMPLES
             );
     if(reset_start < delay_state->curr_idx[ch]) {
         //reset_start hasn't wrapped around
@@ -45,6 +46,6 @@ void reset_partial_delay_buffer(delay_buf_state_t *delay_state, int32_t ch) {
         //reset_start has wrapped around
         memset(&delay_state->delay_buffer[ch][0], 0, delay_state->curr_idx[ch]*sizeof(int32_t));
         int remaining = num_samples - delay_state->curr_idx[ch];
-        memset(&delay_state->delay_buffer[ch][MAX_DELAY_SAMPLES - remaining], 0, remaining*sizeof(int32_t));
+        memset(&delay_state->delay_buffer[ch][DELAY_BUF_MAX_DELAY_SAMPLES - remaining], 0, remaining*sizeof(int32_t));
     }
 }
