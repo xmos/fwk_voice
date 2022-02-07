@@ -377,7 +377,7 @@ void aec_update_X_fifo_1d(
     }
 }
 
-void reset_aec_state(aec_state_t *main_state, aec_state_t *shadow_state){
+void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     aec_shared_state_t *shared_state = main_state->shared_state; 
     int32_t y_channels = shared_state->num_y_channels;
     int32_t x_channels = shared_state->num_x_channels;

@@ -87,7 +87,7 @@ void test_delay_estimate() {
             H_hat[ch][ph][i].im = att_int32_to_double(state.H_hat[ch][ph].data[i].im, state.H_hat[ch][ph].exp);
 
         }
-        estimate_delay(&de_output, state.H_hat[0], state.num_phases);
+        adec_estimate_delay(&de_output, state.H_hat[0], state.num_phases);
 
         double sum_phase_powers;
         double phase_powers[NUM_PHASES_DELAY_EST];
@@ -136,7 +136,7 @@ void test_delay_estimate() {
     int32_t peak_power_phase_index;
     int measured_delay_fp = estimate_delay_fp(H_hat, NUM_PHASES_DELAY_EST, PHASE_CMPLX_AIR_LEN,
                                 &sum_phase_powers, phase_powers, &peak_to_average_ratio, &peak_phase_power, &peak_power_phase_index);
-    estimate_delay(&de_output, state.H_hat[0], state.num_phases);
+    adec_estimate_delay(&de_output, state.H_hat[0], state.num_phases);
     double dut_peak_to_average_ratio_fp = att_int32_to_double(de_output.peak_to_average_ratio.mant, de_output.peak_to_average_ratio.exp);
     printf("peak_to_average_ratio ref: %lf dut: %lf\n", peak_to_average_ratio, dut_peak_to_average_ratio_fp);
 

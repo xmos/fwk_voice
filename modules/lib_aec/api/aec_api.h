@@ -393,7 +393,7 @@ float_s32_t aec_calc_max_ref_energy(
  *
  * This function resets AEC state so as to start adapting from a zero filter.
  */
-void reset_aec_state(aec_state_t *main_state, aec_state_t *shadow_state);
+void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
 
 /** @brief Quick check to see if there is any activity on the reference channel input
  *
