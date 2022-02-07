@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include "bfp_math.h"
+#include "dsp.h"
 
 #define VAD_MEL_BITS 24
 #define VAD_MEL_MAX (1 << VAD_MEL_BITS)
