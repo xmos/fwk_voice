@@ -6,9 +6,9 @@ NS Overview
 The ``lib_noise_suppression`` library provides an API to implement Noise 
 Suppression within an application. 
 
-The noise suppressor estimates the porbability of speech presence and dynamically 
-adapts it's coefficients to estimate the loise levels to subtract from the input. 
-The filter will automatically reset it's noise estimations every 10 frames.
+The noise suppressor estimates the probability of speech presence and dynamically 
+adapts its coefficients to estimate the noise levels to subtract from the input. 
+The filter will automatically reset its noise estimations every 10 frames.
 
 The NS takes as input a frame of data from an audio channel. This could be the
 microphone input or the output of another module in the application.

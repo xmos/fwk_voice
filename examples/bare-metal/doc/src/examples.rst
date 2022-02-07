@@ -157,7 +157,7 @@ NS is configured in the same way for both ASR and Comms. NS stage generated nois
 AGC is configured for ASR engine suitable gain control on channel 0 and Comms suitable gain control on channel 1. The
 output of AGC stage is the pipeline output which is written into a 2 channel output wav file.
 
-In total, the audio processing stages consume 4 hardware threads; 2 for AEC stage, 1 for NS state and 1 for AGC stage.
+In total, the audio processing stages consume 4 hardware threads; 2 for AEC stage, 1 for NS stage and 1 for AGC stage.
 
 The input file input.wav has 2 channels of mic input followed by 2 channels of reference input. Output is written to the output.wav file.
 

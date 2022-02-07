@@ -24,16 +24,6 @@
  * at startup to initialise the NS before processing any frames, and can be called at any time
  * after that to reset the NS instance, returning the internal NS state to its defaults.
  *
- *   * reset period:  2400 (10 frames)
- *
- *   * alpha_d:       0.95 (represented to 9 d.p.)
- *
- *   * alpha_p:       0.2  (represented to 10 d.p.)
- *
- *   * alpha_s:       0.8  (represetned to 9 d.p.)
- *
- *   * delta:         1.5  
- *
  * @param[out] sup    NS state structure
  * 
  * @par Example
@@ -50,8 +40,8 @@ void sup_init(sup_state_t * sup);
 /**
  * @brief Perform NS processing on a frame of input data
  * 
- * This function updates the NS's internal state based on the input frame, and
- * returns an output containing the result of the NS algorithm applied to the input.
+ * This function updates the NS's internal state based on the input 1.31 frame, and
+ * returns an output 1.31 frame containing the result of the NS algorithm applied to the input.
  *
  * The `input` and `output` pointers can be equal to perform the processing in-place.
  * 
