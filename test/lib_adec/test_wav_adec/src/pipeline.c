@@ -145,7 +145,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(8, "start_estimate_delay");
     /** Delay estimator*/
     adec_input_t adec_in;
-    estimate_delay(
+    adec_estimate_delay(
             &adec_in.from_de,
             state->aec_main_state.H_hat[0],
             state->aec_main_state.num_phases
@@ -180,7 +180,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(12, "start_reset_aec");
     //** Reset AEC state if needed*/
     if(adec_output.reset_aec_flag) {
-        reset_aec_state(&state->aec_main_state, &state->aec_shadow_state);
+        aec_reset_state(&state->aec_main_state, &state->aec_shadow_state);
     }
     prof(13, "end_reset_aec");
     

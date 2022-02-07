@@ -4,7 +4,7 @@
 #include "aec_api.h"
 #include "adec_api.h"
 
-void estimate_delay (
+void adec_estimate_delay (
         de_output_t *de_output,
         const bfp_complex_s32_t* H_hat, 
         unsigned num_phases)
