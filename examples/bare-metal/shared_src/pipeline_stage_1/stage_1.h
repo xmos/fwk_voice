@@ -36,5 +36,5 @@ typedef struct {
 } stage_1_state_t;
 
 void stage_1_init(stage_1_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_de_conf, adec_config_t *adec_config);
-void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FRAME_ADVANCE], float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t (*input_frame)[AP_FRAME_ADVANCE]);
+void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FRAME_ADVANCE], float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t (*input_y)[AP_FRAME_ADVANCE], int32_t (*input_x)[AP_FRAME_ADVANCE]);
 #endif

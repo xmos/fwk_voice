@@ -55,8 +55,9 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
-
-        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0]);
+        
+        // AEC, DE ADEC
+        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0], &frame[AP_MAX_Y_CHANNELS]);
 
         // Transmit metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));

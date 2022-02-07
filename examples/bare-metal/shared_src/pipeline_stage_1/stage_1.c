@@ -10,6 +10,14 @@ extern void aec_process_frame_2threads(
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
         const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
+extern void aec_process_frame_1thread(
+        aec_state_t *main_state,
+        aec_state_t *shadow_state,
+        int32_t (*output_main)[AEC_FRAME_ADVANCE],
+        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
+        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
+
 static void aec_switch_configuration(stage_1_state_t *state, aec_conf_t *conf)
 {
     aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
@@ -54,14 +62,11 @@ void stage_1_init(stage_1_state_t *state, aec_conf_t *de_conf, aec_conf_t *non_d
 }
 
 static int framenum = 0;
-void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FRAME_ADVANCE], float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t (*input_frame)[AP_FRAME_ADVANCE])
+void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FRAME_ADVANCE], float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t (*input_y)[AP_FRAME_ADVANCE], int32_t (*input_x)[AP_FRAME_ADVANCE])
 {
     //printf("frame %d\n",framenum);
     framenum++;
     
-    int32_t (*input_y)[AP_FRAME_ADVANCE] = input_frame;    
-    int32_t (*input_x)[AP_FRAME_ADVANCE] = &input_frame[AP_MAX_Y_CHANNELS];    
-
     delay_buf_state_t *delay_state_ptr = &state->delay_state;
     get_delayed_frame(
             input_y,
@@ -73,7 +78,11 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
     int is_ref_active = aec_detect_ref_activity(input_x, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
 
     /** AEC*/
+#if (NUM_AEC_THREADS > 1)
     aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, output_frame, NULL, input_y, input_x);
+#else
+    aec_process_frame_1thread(&state->aec_main_state, &state->aec_shadow_state, output_frame, NULL, input_y, input_x);
+#endif
 
     /** Update metadata*/
     *max_ref_energy = aec_calc_max_ref_energy(input_x, state->aec_main_state.shared_state->num_x_channels);
@@ -83,7 +92,7 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
 
     /** Delay Estimation*/
     adec_input_t adec_in;
-    estimate_delay(
+    adec_estimate_delay(
             &adec_in.from_de,
             state->aec_main_state.H_hat[0],
             state->aec_main_state.num_phases
@@ -107,12 +116,12 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
 
     //** Reset AEC state if needed*/
     if(adec_output.reset_aec_flag) {
-        reset_aec_state(&state->aec_main_state, &state->aec_shadow_state);
+        aec_reset_state(&state->aec_main_state, &state->aec_shadow_state);
     }
 
     /** Update delay buffer if there's a delay change requested by ADEC*/
     if(adec_output.delay_change_request_flag == 1){
-        printf("Frame %d: Set delay to %d\n", framenum, adec_output.requested_mic_delay_samples);
+        //printf("Frame %d: Set delay to %ld\n", framenum, adec_output.requested_mic_delay_samples);
         // Update delay_buffer delay_samples with mic delay requested by adec
         update_delay_samples(&state->delay_state, adec_output.requested_mic_delay_samples);
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
@@ -140,12 +149,12 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         aec_switch_configuration(state, &state->aec_de_mode_conf);
         state->aec_main_state.shared_state->config_params.coh_mu_conf.adaption_config = AEC_ADAPTION_FORCE_ON;
         state->delay_estimator_enabled = 1;
-        printf("framenum %d: switch to de mode", framenum);
+        //printf("framenum %d: switch to de mode\n", framenum);
     } else if ((!adec_output.delay_estimator_enabled_flag && state->delay_estimator_enabled)) {
         // Start AEC for normal aec config
         aec_switch_configuration(state, &state->aec_non_de_mode_conf);
         state->delay_estimator_enabled = 0;
-        printf("framenum %d: switch to aec mode", framenum);
+        //printf("framenum %d: switch to aec mode\n", framenum);
 
     }
 }
