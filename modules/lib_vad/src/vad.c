@@ -19,6 +19,8 @@
 #include "vad_mel.h"
 #include "dsp.h"
 
+#include "xs3_math.h"
+
 int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N) {
     uint64_t sum = 0, tav = 0;
     int logN = 31 - clz(N);
@@ -61,7 +63,7 @@ void vad_init(vad_state_t *state) {
 #define PRINT_ME 0
 #define PRINT_ALL 0
 
-int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
+int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
         vad_state_t *state) {
     dsp_complex_t input[VAD_WINDOW_LENGTH];
     int32_t mel[VAD_N_MEL_SCALE+1];
@@ -97,12 +99,23 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     }
     printf("\n");
 #endif
+
+#if 1
     int headroom = dsp_bfp_cls(input, VAD_WINDOW_LENGTH)-1;
     dsp_bfp_shl(input, VAD_WINDOW_LENGTH, headroom);
 
     // First compute frequency domain: input e [-2^31..2^31], output div by N
     dsp_fft_bit_reverse(input, VAD_WINDOW_LENGTH);         
     dsp_fft_forward(input, VAD_WINDOW_LENGTH, VAD_DSP_SINE_WINDOW_LENGTH);
+#else    
+    //WORK IN PROGRESS - THIS DOES NOT WORK YET 
+    complex_s32_t* input_fd = (complex_s32_t*)input;
+    exponent_t x_exp = -31;
+    headroom_t hr = xs3_vect_s32_headroom(input, VAD_WINDOW_LENGTH);
+    xs3_fft_index_bit_reversal(input_fd, VAD_WINDOW_LENGTH);
+    xs3_fft_dit_forward(input_fd, VAD_WINDOW_LENGTH/2, &hr, &x_exp);
+    xs3_fft_mono_adjust(input_fd, VAD_WINDOW_LENGTH, 0);
+#endif
 
 
 #if PRINT_ME && PRINT_ALL
@@ -139,7 +152,9 @@ int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
 #if (VAD_N_DCT != 24)
     #error VAD_N_DCT must be 24
 #endif
-    dsp_dct_forward24(dct_output, dct_input);
+
+    #warning ADD ME BACK IN
+    // dsp_dct_forward24(dct_output, dct_input);
     
     // Python multiplies DCT by 2.
     for(int i = 0; i < VAD_N_DCT; i++) {

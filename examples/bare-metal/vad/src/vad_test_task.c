@@ -32,7 +32,7 @@
 
 #include "xs3_math.h"
 
-void ic_task(const char *input_file_name) {
+void vad_task(const char *input_file_name) {
     //open files
     file_t input_file;
     int ret = file_open(&input_file, input_file_name, "rb");
@@ -84,7 +84,7 @@ void ic_task(const char *input_file_name) {
     vad_init(&state);
     prof(1, "end_vad_init"); 
 
-    // ic_dump_var_2d_start(&state, &dut_var_file, block_count);
+    int32_t vad_frame[VAD_WINDOW_LENGTH] = {0};
 
     for(unsigned b=0;b<block_count;b++){
         //printf("frame %d\n",b);
@@ -96,13 +96,12 @@ void ic_task(const char *input_file_name) {
         }
 
         prof(2, "start_vad_estimate");
-        uint8_t vad = 0; //0 means full cancellation because we have no voice present
+        uint8_t vad = vad_probabiity_voice(vad_frame, &state);
         prof(3, "end_vad_estimate");
 
         print_prof(0,4,b+1);
     }
     file_close(&input_file);
-    // file_close(&dut_var_file);
     shutdown_session();
 }
 
@@ -119,7 +118,7 @@ void main_tile0(chanend_t c_cross_tile, chanend_t xscope_chan)
 #if TEST_WAV_XSCOPE
     xscope_io_init(xscope_chan);
 #endif 
-    ic_task(IN_WAV_FILE_NAME);
+    vad_task(IN_WAV_FILE_NAME);
 }
 #else //Linux build
 int main(int argc, char **argv) {
@@ -127,7 +126,7 @@ int main(int argc, char **argv) {
         printf("Arguments missing. Expected: <input file name> \n");
         assert(0);
     }
-    ic_task(argv[1], argv[2]);
+    vad_task(argv[1], argv[2]);
     return 0;
 }
 #endif

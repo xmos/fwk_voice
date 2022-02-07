@@ -35,7 +35,7 @@ void vad_init(vad_state_t *state);
  *                             very likely not voice, and 255 indicates very
  *                             likely voice
  */
-int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
+int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
         vad_state_t *state);
 
 
