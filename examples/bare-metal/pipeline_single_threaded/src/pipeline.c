@@ -21,7 +21,7 @@ extern void aec_process_frame_1thread(
 void pipeline_init(pipeline_state_t *state) {
     memset(state, 0, sizeof(pipeline_state_t)); 
     
-    // Initialise AEC
+    // Initialise AEC, DE, ADEC stage
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
@@ -36,10 +36,6 @@ void pipeline_init(pipeline_state_t *state) {
     adec_config_t adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP;
 
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
-    /*aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
-            &state->aec_main_memory_pool[0], &state->aec_shadow_memory_pool[0],
-            AEC_MAX_Y_CHANNELS, AEC_MAX_X_CHANNELS,
-            AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES);*/
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
