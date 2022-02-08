@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-// #include "ai.h"
+#include "ai.h"
 #include "vad.h"
 #include "vad_parameters.h"
 #include "vad_nn_coefficients.h"
