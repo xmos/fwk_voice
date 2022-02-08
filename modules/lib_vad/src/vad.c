@@ -20,6 +20,7 @@
 #include "dsp.h"
 
 #include "xs3_math.h"
+#include <limits.h>
 
 int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N) {
     uint64_t sum = 0, tav = 0;
@@ -34,6 +35,7 @@ int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N) {
     if (div == 0) return sum;
     return sum / div;
 }
+
 
 int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
                                int32_t spectral_centroid) {
@@ -55,6 +57,48 @@ int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
     if (div == 0) return sum;
     return sum / div;
 }
+
+
+void vad_fc_layer(  int64_t output[], const size_t num_out,
+                    int32_t input[], const size_t num_in,
+                    int32_t weights[]){
+
+    const int num_bias = 1; //One bias value before the weights in the weights array
+
+    for(int o = 0; o < num_out; o++) {
+        int bias_idx = (num_bias + num_in) * o;
+        int64_t bias = ((int64_t)weights[bias_idx] << AI_NN_VALUE_Q);
+
+        int weights_idx = bias_idx + num_bias;
+        int64_t dot = xs3_vect_s32_dot( &weights[weights_idx],
+                                        input,
+                                        num_in,
+                                        0, 0);
+
+        int64_t node = (dot << 30) + bias; //30 bit shift is an atrefact of xs3_vect_s32_dot
+        output[o] = node;
+    }
+}
+
+
+void vad_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
+
+    for(int i=0; i<N; i++){
+        activated[i] = raw_layer[i] >> AI_NN_WEIGHT_Q;
+    }
+    xs3_vect_s32_clip(activated, activated,  N, 0, INT_MAX, 0);
+}
+
+void vad_reduce_sigmoid(int32_t out_data[],
+                       const int64_t in_data[],
+                       uint32_t N) {
+    int32_t shift = AI_NN_OUTPUT_Q-24;
+    for(uint32_t i = 0; i < N; i++) {
+        int32_t in_32 = in_data[i] >> shift;
+        out_data[i] = dsp_math_logistics_fast(in_32) >> (24 - AI_NN_VALUE_Q);
+    }
+}
+
 
 void vad_init(vad_state_t *state) {
     memset(state, 0, sizeof(vad_state_t));
@@ -243,29 +287,66 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
                 nn_features,       N_VAD_INPUTS,
                 hidden_coeffs);
 
-    const int num_bias = 1;
     int64_t hidden_nodes_xs3m[N_VAD_HIDDEN];
-    for(int i = 0; i < N_VAD_HIDDEN; i++) {
-        int bias_idx = (num_bias + N_VAD_INPUTS) * i;
-        int weights_idx = bias_idx + num_bias;
-        int64_t dot = xs3_vect_s32_dot( &hidden_coeffs[weights_idx],
-                                        nn_features,
-                                        VAD_N_FEATURES,
-                                        0, 0);
-        int64_t node = dot + (int64_t)hidden_coeffs[bias_idx];
-        printf("node %d: %lld\n", node);
-        
+
+
+    vad_fc_layer(   hidden_nodes_xs3m, N_VAD_HIDDEN,
+                    nn_features, N_VAD_INPUTS,
+                    hidden_coeffs);
+
+    // for(int o = 0; o < N_VAD_HIDDEN; o++) {
+    //     int bias_idx = (num_bias + N_VAD_INPUTS) * o;
+    //     int64_t bias =  ((int64_t)hidden_coeffs[bias_idx] << AI_NN_VALUE_Q);
+
+    //     int weights_idx = bias_idx + num_bias;
+    //     int64_t dot = xs3_vect_s32_dot( &hidden_coeffs[weights_idx],
+    //                                     nn_features,
+    //                                     N_VAD_INPUTS,
+    //                                     0, 0);
+    //     // printf("SUM2: %lld\n", dot);
+
+    //     // int64_t node = dot;
+    //     int64_t node = (dot << 30) + bias; //30 bit shift is an atrefact of xs3_vect_s32_dot
+    //     hidden_nodes_xs3m[o] = node;
+    // }
+
+    int32_t activated_l1[N_VAD_HIDDEN];
+
+    vad_relu(activated_l1, hidden_nodes_xs3m, N_VAD_HIDDEN);
+
+    for(int o = 0; o < N_VAD_HIDDEN; o++) {
+        // printf("%d xs3m: %lld, (ref: %lld)\n", o, hidden_nodes_xs3m[o], hidden_nodes_full[o]);
     }
 
 
 
+    nn_reduce_relu(hidden_nodes_normal,
+                   hidden_nodes_full,
+                   N_VAD_HIDDEN);
 
-    // nn_reduce_relu(hidden_nodes_normal,
-    //                hidden_nodes_full,
-    //                N_VAD_HIDDEN);
-    // nn_layer_fc(outputs_nodes_full,    N_VAD_OUTPUTS,
-    //             hidden_nodes_normal, N_VAD_HIDDEN,
-    //             outputs_coeffs);
+
+    for(int o = 0; o < N_VAD_HIDDEN; o++) {
+        printf("hidden_nodes_normal %d xs3m: %d, (ref: %ld)\n", o, activated_l1[o], hidden_nodes_normal[o]);
+    }
+
+    int64_t output_nodes_xs3m[N_VAD_OUTPUTS];
+    int32_t output_nodes_activated[N_VAD_OUTPUTS];
+
+
+    nn_layer_fc(outputs_nodes_full,    N_VAD_OUTPUTS,
+                hidden_nodes_normal, N_VAD_HIDDEN,
+                outputs_coeffs);
+
+    vad_fc_layer(output_nodes_xs3m, N_VAD_OUTPUTS,
+                activated_l1, N_VAD_HIDDEN,
+                outputs_coeffs);
+
+
+    for(int o = 0; o < N_VAD_OUTPUTS; o++) {
+        printf("outputs_nodes %d xs3m: %lld, (ref: %lld)\n", o, output_nodes_xs3m[o], outputs_nodes_full[o]);
+    }
+
+
     // nn_reduce_sigmoid(outputs_nodes_normal,
     //                   outputs_nodes_full,
     //                   N_VAD_OUTPUTS);
