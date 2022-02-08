@@ -10,7 +10,8 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )
 
 list( APPEND  DEP_LIBS        
-    lib_aec 
+    lib_aec
+    lib_xs3_math
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 

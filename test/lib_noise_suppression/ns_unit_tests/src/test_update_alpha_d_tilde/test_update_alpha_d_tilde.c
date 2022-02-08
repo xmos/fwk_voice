@@ -8,8 +8,8 @@
 #include <assert.h>
 #include <bfp_math.h>
 
-#include <suppression.h>
-#include <suppression_testing.h>
+#include <sup_api.h>
+#include <sup_test.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -41,7 +41,7 @@ TEST(ns_update_alpha_d_tilde, case0){
     for(int i = 0; i < 100; i++){
 
         sup_state_t state;
-        sup_init_state(&state);
+        sup_init(&state);
 
         alpha_d = 0.95;
 

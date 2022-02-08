@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "suppression.h"
+#include <sup_api.h>
 
 #include <fileio.h>
 #include <wav_utils.h>
@@ -76,8 +76,8 @@ void sup_task(const char *input_file_name, const char *output_file_name){
     sup_state_t DWORD_ALIGNED ch1_state;
     //sup_state_t DWORD_ALIGNED ch2_state;
 
-    sup_init_state(&ch1_state);
-    //sup_init_state(&ch2_state);
+    sup_init(&ch1_state);
+    //sup_init(&ch2_state);
 #if PROFILE_PROCESSING
     prof(1, "end_sup_init");
 #endif
