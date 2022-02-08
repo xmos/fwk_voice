@@ -382,8 +382,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          
-          //AEC aretfacts
+          //NS artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
+          //AEC artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
         }
