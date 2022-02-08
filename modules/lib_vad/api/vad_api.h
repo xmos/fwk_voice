@@ -9,6 +9,7 @@
 
 typedef struct {
     int32_t old_features[VAD_N_OLD_FEATURES];
+    int32_t prev_frame[VAD_PROC_FRAME_LENGTH - VAD_FRAME_ADVANCE];
 } vad_state_t;
 
 /** Function that initialises a VAD.
@@ -17,7 +18,7 @@ typedef struct {
  *                             declared as int32_t state[VAD_STATE_LENGTH()].
  *
  */
-void vad_init_state(vad_state_t &state);
+void vad_init(vad_state_t * state);
 
 /** Function that classifies whether a current set of samples is voice or not. 
  *
@@ -35,8 +36,8 @@ void vad_init_state(vad_state_t &state);
  *                             very likely not voice, and 255 indicates very
  *                             likely voice
  */
-int32_t vad_percentage_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
-        vad_state_t &state);
+int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
+                            vad_state_t * state);
 
 //void vad_test_task(chanend app_to_vad, chanend vad_to_app, chanend ?c_control);
 

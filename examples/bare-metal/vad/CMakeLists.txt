@@ -18,9 +18,9 @@ list( APPEND  DEP_LIBS
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB SOURCES_XC src/*.xc )
-file( GLOB SOURCES_SHARED ../shared_src/file_utils/*.c )
+file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/*.c )
 
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
+file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 file( GLOB_RECURSE PROFILE_SOURCES ../../../test/lib_aec/test_aec_profile/src/*.c )
 
 unset( SOURCES )
@@ -31,9 +31,9 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ../shared_src/file_utils )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${DEPS_ROOT}/xscope_fileio/xscope_fileio ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api ../../../test/lib_aec/test_aec_profile/src)
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../../../test/lib_aec/test_aec_profile/src)
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes for VAD example ${INCLUDES}" )

@@ -6,23 +6,22 @@
 #include <xclib.h>
 #include "vad_mel.h"
 
-static inline void mul_mel(uint32_t *h, uint32_t *l,
+#define LOOKUP_PRECISION 8
+#define MEL_PRECISION 24
+
+static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {
     uint32_t hi, li;
     asm("lmul %0, %1, %2, %3, %4, %5" : "=r" (hi), "=r" (li) : "r" (scale), "r" (l), "r" (0), "r" (0));
     asm("lmul %0, %1, %2, %3, %4, %5" : "=r" (h), "=r" (l) : "r" (scale), "r" (h), "r" (hi), "r" (0));
 }
 
-static inline void add_unsigned_hl(uint32_t *sumH, uint32_t *sumL,
+static inline void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL,
                                 uint32_t h, uint32_t l) {
     uint32_t cout, cou2;
     asm("ladd %0, %1, %2, %3, %4" : "=r" (cout), "=r" (sumL) : "r" (sumL), "r" (l), "r" (0));
     asm("ladd %0, %1, %2, %3, %4" : "=r" (cou2), "=r" (sumH) : "r" (sumH), "r" (h), "r" (cout));
 }
-
-
-#define LOOKUP_PRECISION 8
-#define MEL_PRECISION 24
 
 static int lookup[33] = {
     0,    11,  22,  33,  43,  53,  63,  73,
@@ -31,18 +30,6 @@ static int lookup[33] = {
     206, 213, 219, 225, 232, 238, 244, 250,
     256
 };
-
-/**
- * Function that returns log2(x) where x is a number between 0..1 represented
- * as a number between 0 and 0xffffffff.
- *
- * returns a number where 1.0 is represented as with (1 << MEL_PRECISION)
- */
-
-static inline int lookup_small_log2(uint32_t x) {
-    int y = (x >> 26)-32;
-    return lookup[y] << (MEL_PRECISION - LOOKUP_PRECISION);
-}
 
 static inline int lookup_small_log2_linear(uint32_t x) {
     int mask_bits = 26;
@@ -79,9 +66,9 @@ int log_test(uint64_t l) {
     return log_exponent(l >> 32, (uint32_t) l, 0);
 }
 
-void vad_mel_compute(int32_t melValues[], uint32_t M,
-                    dsp_complex_t pts[], uint32_t N,
-                    const uint32_t melTable[],
+void vad_mel_compute(int32_t * melValues, uint32_t M,
+                    complex_s32_t * pts, uint32_t N,
+                    const uint32_t * melTable,
                     int32_t extraShift) {
 
     extraShift += (32 - VAD_MEL_BITS);
@@ -107,8 +94,8 @@ void vad_mel_compute(int32_t melValues[], uint32_t M,
             sumEvenH = 0;
             sumEvenL = 0;
         } else {
-            mul_mel(h, l, scale);
-            add_unsigned_hl(sumEvenH, sumEvenL, h, l);
+            mul_mel(&h, &l, scale);
+            add_unsigned_hl(&sumEvenH, &sumEvenL, h, l);
         }
         scale = VAD_MEL_MAX - scale;
         if (scale == 0) {
@@ -116,9 +103,8 @@ void vad_mel_compute(int32_t melValues[], uint32_t M,
             sumOddH = 0;
             sumOddL = 0;
         } else {
-            mul_mel(ho, lo, scale);
-            add_unsigned_hl(sumOddH, sumOddL, ho, lo);
+            mul_mel(&ho, &lo, scale);
+            add_unsigned_hl(&sumOddH, &sumOddL, ho, lo);
         }
     }
 }
-

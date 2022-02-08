@@ -9,8 +9,6 @@
 #define VAD_N_MEL_SCALE 24
 #define VAD_N_DCT 24
 
-const extern uint32_t vad_mel_table24_512[VAD_PROC_FRAME_BINS];
-
-const uint32_t vad_mel_table_rev[VAD_PROC_FRAME_BINS];
+const extern uint32_t vad_mel_table24_512[257];
 
 #endif
