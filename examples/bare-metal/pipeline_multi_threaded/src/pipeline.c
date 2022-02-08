@@ -58,6 +58,12 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
         
         // AEC, DE ADEC
         stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0], &frame[AP_MAX_Y_CHANNELS]);
+        // If AEC has processed fewer y channels than downstream stages (in DE mode for example), then copy aec_corr_factor[0] to other channels
+        if(stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
+            for(int ch=stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
+                md.aec_corr_factor[ch] = md.aec_corr_factor[0];
+            }
+        }
 
         // Transmit metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
