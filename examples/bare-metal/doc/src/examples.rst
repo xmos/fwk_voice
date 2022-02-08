@@ -117,10 +117,6 @@ file has only a few short voice utterances and so the example works and demonstr
 Building
 ********
 
-After configuring the CMake project (with the ``BUILD_EXAMPLES`` enabled), all the examples can
-be built by using the ``make`` command within the build directory.  Individual examples can be built
-using ``make EXAMPLE_NAME``, where ``EXAMPLE_NAME`` is the example to build. 
-
 After configuring the CMake project, the following commands can be used from the
 `sw_avona/examples/bare-metal/ic` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 

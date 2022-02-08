@@ -7,9 +7,9 @@ Overview
 --------
 
 ``lib_ic`` is a library which provides functions that together perform Interference Cancellation (IC)
-on two channel input mic data by modelling the room characteristics. ``lib_ic`` library functions
-make use of functionality provided in ``lib_aec`` for core normalised LMS blocks which in turn uses
-``lib_xs3_math`` to perform DSP operations. For more details refer toc :ref:`ic_overview`.
+on two channel input mic data by adapting to and modelling the room transfer characteristics. ``lib_ic`` library functions
+make use of functionality provided in ``lib_aec`` for the core normalised LMS blocks which in turn uses
+``lib_xs3_math`` to perform DSP low-level optimised operations. For more details refer toc :ref:`ic_overview`.
 
 Repository Structure
 --------------------
@@ -34,8 +34,8 @@ API Structure
 -------------
 
 The API is presented as three simple functions. These are initialisation, filtering and adaption. Initialisation is called once 
-and filtering and adaption is called once per frame of samples. The perormance requirement is relative low (less than 12MIPS)
-and as such is supplied in a single threaded implementation only.
+at startup and filtering and adaption is called once per frame of samples. The perormance requirement is relative low (around 12MIPS)
+and as such is supplied as a single threaded implementation only.
 
 
 Getting and Building
