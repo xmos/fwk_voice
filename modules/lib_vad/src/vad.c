@@ -239,9 +239,27 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     printf("\n");
 #endif
 
-    // nn_layer_fc(hidden_nodes_full, N_VAD_HIDDEN,
-    //             nn_features,       N_VAD_INPUTS,
-    //             hidden_coeffs);
+    nn_layer_fc(hidden_nodes_full, N_VAD_HIDDEN,
+                nn_features,       N_VAD_INPUTS,
+                hidden_coeffs);
+
+    const int num_bias = 1;
+    int64_t hidden_nodes_xs3m[N_VAD_HIDDEN];
+    for(int i = 0; i < N_VAD_HIDDEN; i++) {
+        int bias_idx = (num_bias + N_VAD_INPUTS) * i;
+        int weights_idx = bias_idx + num_bias;
+        int64_t dot = xs3_vect_s32_dot( &hidden_coeffs[weights_idx],
+                                        nn_features,
+                                        VAD_N_FEATURES,
+                                        0, 0);
+        int64_t node = dot + (int64_t)hidden_coeffs[bias_idx];
+        printf("node %d: %lld\n", node);
+        
+    }
+
+
+
+
     // nn_reduce_relu(hidden_nodes_normal,
     //                hidden_nodes_full,
     //                N_VAD_HIDDEN);
