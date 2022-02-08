@@ -94,7 +94,6 @@ void test_lc_transitions() {
     agc_state_t agc;
     agc_config_t conf = AGC_PROFILE_COMMS;
     conf.adapt_on_vad = 0;
-    conf.lc_enabled = 1;
 
     for (unsigned iter = 0; iter < (1<<10)/F; ++iter) {
         agc_init(&agc, &conf);

@@ -168,6 +168,55 @@ pipeline {
             }
           }
         }
+        stage('NS profile test') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/test_sup_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS performance tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/compare_c_xc") {
+              copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS sup_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS ns_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
@@ -333,8 +382,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          
-          //AEC aretfacts
+          //NS artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
+          //AEC artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
         }
