@@ -47,5 +47,5 @@ but, as with all normalised LMS based architectures, will be slower to converge 
 Before starting the IC processing the user must call ic_init() to initialise the IC. If the configuration parameters are
 to be set to non-defaults please eith modify these after ic_init() or in the :ref:`ic_defines` file.
 Once the IC is initialised, the library functions can be called in a order to perform interference cancellation on 
-a frame by frame basis. Please see the :ref:`example_application`. 
+a frame by frame basis.
 

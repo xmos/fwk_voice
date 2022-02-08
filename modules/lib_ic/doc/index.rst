@@ -10,7 +10,6 @@ Introduction
     
    src/getting_started
    src/overview
-   src/examples
    src/reference/index
 
 ``lib_ic`` is a library of functions for performing Cancellation of Interference of point noise sources in a two channel microphone source.
