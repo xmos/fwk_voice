@@ -3,7 +3,7 @@
 
 #include "pipeline_config.h"
 #include "stage_1.h"
-#include "suppression_state.h"
+#include "sup_state.h"
 #include "agc_api.h"
 
 typedef struct {

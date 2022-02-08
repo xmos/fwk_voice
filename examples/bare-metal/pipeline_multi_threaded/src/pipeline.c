@@ -14,7 +14,7 @@
 #include "pipeline_state.h"
 #include "stage_1.h"
 
-#include "suppression.h"
+#include "sup_api.h"
 #include "agc_api.h"
 
 extern void aec_process_frame_2threads(
@@ -81,7 +81,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     //Initialise NS
     sup_state_t DWORD_ALIGNED sup_state[AP_MAX_Y_CHANNELS];
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        sup_init_state(&sup_state[ch]);
+        sup_init(&sup_state[ch]);
     }
 
     int32_t DWORD_ALIGNED frame [AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];

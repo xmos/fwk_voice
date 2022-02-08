@@ -3,7 +3,7 @@
 #ifndef suppression_test_h_
 #define suppression_test_h_
 
-#include <suppression_state.h>
+#include <sup_state.h>
 #include <xs3_math_types.h>
 
 /*

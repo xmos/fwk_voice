@@ -1,14 +1,14 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <stdint.h>
-#include <limits.h>
+//#include <stdint.h>
+//#include <limits.h>
 #include <string.h>
 #include <bfp_math.h>
 #include <stdio.h>
 
-#include <suppression_state.h>
-#include "suppression_ns.h"
-#include "suppression_testing.h"
+#include <sup_state.h>
+#include "sup_ns.h"
+#include "sup_test.h"
 
 #define one_mant 1073741824
 #define one_exp -30

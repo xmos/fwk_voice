@@ -414,9 +414,17 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
+<<<<<<< HEAD
           
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
+=======
+          //NS artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
+          //AEC artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
+>>>>>>> d856c999807be607fffd23ac12cd0027213d5365
         }
         cleanup {
           cleanWs()

@@ -14,6 +14,7 @@ list( APPEND  DEP_LIBS
     lib_adec
     lib_noise_suppression
     lib_agc
+    lib_xs3_math
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
