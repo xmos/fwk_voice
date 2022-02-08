@@ -153,8 +153,7 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     #error VAD_N_DCT must be 24
 #endif
 
-    #warning ADD ME BACK IN
-    // dsp_dct_forward24(dct_output, dct_input);
+    dsp_dct_forward24(dct_output, dct_input);
     
     // Python multiplies DCT by 2.
     for(int i = 0; i < VAD_N_DCT; i++) {
