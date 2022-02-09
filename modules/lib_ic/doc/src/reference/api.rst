@@ -3,5 +3,5 @@
 `lib_ic` API Functions
 ======================
 
- .. doxygengroup:: ic_func
-     :content-only:
+.. doxygengroup:: ic_func
+    :content-only:
