@@ -41,16 +41,40 @@
  */
 void adec_init(adec_state_t *state, adec_config_t *config);
 
-/** Function that takes statistics about the signals and decides if a delay
- *  estimation and/or a delay change and AEC reset is required
+/** @brief Perform ADEC processing on an input frame of data
+ * 
+ * This function takes information about the latest AEC processed frame and the latest measured delay estimate as input,  
+ * and decides if a delay correction between input microphone and reference signals is required.
+ * If a correction is needed, it outputs a new requested input delay, optionally accompanied with a request for 
+ * AEC restart in a different configuration.
+ * It updates the internal ADEC state structure to reflect the current state of the ADEC process.
+ *
+ * @param[inout] state ADEC internal state structure
+ * @param[out] adec_output ADEC output structure
+ * @param[in] adec_in ADEC input structure
+ * 
+ * @ingroup adec_func
  */
 void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
     const adec_input_t *adec_in);
 
-/// Estimate delay
+/** @brief Estimate microphone delay
+ * 
+ * This function measures the microphone signal delay wrt the reference signal. It does so by
+ * looking for the phase with the peak energy among all AEC filter phases and uses the peak energy phase index
+ * as the estimate of the microphone delay. Along with the measured delay, it also outputs information
+ * about the peak phase energy that can then be used to guage the AEC filter convergence and the reliability of the
+ * measured delay.
+ *
+ * @param[out] de_state Delay estimator output structure
+ * @param[in] H_hat bfp_complex_s32_t array storing the AEC filter spectrum
+ * @param[in] Number of phases in the AEC filter
+ * 
+ * @ingroup adec_func
+ */
 void adec_estimate_delay (
-        de_output_t *de_state,
+        de_output_t *de_output,
         const bfp_complex_s32_t* H_hat, 
         unsigned num_phases);
