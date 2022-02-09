@@ -14,34 +14,33 @@ make use of functionality provided in ``lib_aec`` for the core normalised LMS bl
 Repository Structure
 --------------------
 
-* `lib_ic/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_ic/>`_ - The actual ``lib_ic`` library directory.
+* ``modules/lib_ic`` - The actual ``lib_ic`` library directory within ``https://github.com/xmos/sw_avona/``.
+  Within ``lib_ic``:
 
-  * `api/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_ic/api/>`_ - Headers containing the public API for ``lib_ic``.
-  * `doc/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_ic/doc/>`_ - Library documentation source (for non-embedded documentation) and build directory.
-  * `src/ <https://github.com/xmos/sw_avona/tree/develop/modules/lib_ic/src/>`_ - Library source code.
+  * ``api/`` - Headers containing the public API for ``lib_ic``.
+  * ``doc/`` - Library documentation source (for non-embedded documentation) and build directory.
+  * ``src/`` - Library source code.
 
 
 Requirements
 ------------
 
-``lib_ic`` is included as part of the `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ github repository
+``lib_ic`` is included as part of the ``sw_avona`` github repository
 and all requirements for cloning and building ``sw_avona`` apply. ``lib_ic`` is compiled as a static library as part of
-overall ``sw_avona`` build. It depends on `lib_aec
-<https://github.com/xmos/sw_avona/tree/develop/modules/lib_aec/>`_ and `lib_xs3_math
-<https://github.com/xmos/sw_avona/tree/develop/modules/lib_xs3_math/>`_. 
+overall ``sw_avona`` build. It depends on ``lib_aec`` and ``lib_xs3_math``. 
 
 API Structure
 -------------
 
 The API is presented as three simple functions. These are initialisation, filtering and adaption. Initialisation is called once 
-at startup and filtering and adaption is called once per frame of samples. The perormance requirement is relative low (around 12MIPS)
+at startup and filtering and adaption is called once per frame of samples. The performance requirement is relative low (around 12MIPS)
 and as such is supplied as a single threaded implementation only.
 
 
 Getting and Building
 --------------------
 
-This repo is obtained as part of the parent `sw_avona <https://github.com/xmos/sw_avona/tree/develop/>`_ repo clone. It is
+This repo is obtained as part of the parent ``sw_avona`` repo clone. It is
 compiled as a static library as part of ``sw_avona`` compilation process.
 
 To include ``lib_ic`` in an application as a static library, the generated ``lib_ic.a`` can then be linked into the

@@ -19,7 +19,7 @@ On GitHub
 ---------
 
 ``lib_ic`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
-https://github.com/xmos/sw_avona. The ``lib_ic`` module can be found in the `modules/lib_ic` directory in ``sw_avona``.
+``https://github.com/xmos/sw_avona``. The ``lib_ic`` module can be found in the `modules/lib_ic` directory in ``sw_avona``.
 
 API
 ---
