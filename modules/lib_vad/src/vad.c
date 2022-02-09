@@ -4,13 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <xs1.h>
+//#include <xs1.h>
 #include <xclib.h>
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-#include "ai.h"
-#include "vad.h"
+// #include "ai.h"
+#include "vad_api.h"
 #include "vad_parameters.h"
 #include "vad_nn_coefficients.h"
 #include "vad_mel_scale.h"
@@ -22,7 +22,7 @@
 #include "xs3_math.h"
 #include <limits.h>
 
-int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N) {
+int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;
     int logN = 31 - clz(N);
     for(int i = 0; i < N; i++) {
@@ -36,8 +36,7 @@ int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N) {
     return sum / div;
 }
 
-
-int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
+int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
                                int32_t spectral_centroid) {
     int logN = 31 - clz(N);
     uint64_t sum = 0, tav = 0;
@@ -100,6 +99,15 @@ void vad_reduce_sigmoid(int32_t out_data[],
 }
 
 
+void vad_form_frame(int32_t * current, const int32_t * input, int32_t * prev){
+
+    memcpy(current, prev, (VAD_PROC_FRAME_LENGTH - VAD_FRAME_ADVANCE) * sizeof(int32_t));
+    memcpy(&current[VAD_PROC_FRAME_LENGTH - VAD_FRAME_ADVANCE], input, VAD_FRAME_ADVANCE * sizeof(int32_t));
+
+    memcpy(prev, &prev[VAD_FRAME_ADVANCE], (VAD_PROC_FRAME_LENGTH - (2 * VAD_FRAME_ADVANCE)) * sizeof(int32_t));
+    memcpy(&prev[VAD_PROC_FRAME_LENGTH - (2 * VAD_FRAME_ADVANCE)], input, VAD_FRAME_ADVANCE * sizeof(int32_t));
+}
+
 void vad_init(vad_state_t *state) {
     memset(state, 0, sizeof(vad_state_t));
 }
@@ -107,10 +115,10 @@ void vad_init(vad_state_t *state) {
 #define PRINT_ME 0
 #define PRINT_ALL 0
 
-int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
-        vad_state_t *state) {
-    dsp_complex_t input[VAD_WINDOW_LENGTH];
-    int32_t mel[VAD_N_MEL_SCALE+1];
+int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
+                            vad_state_t * state){
+    int32_t curr[VAD_PROC_FRAME_LENGTH];
+    int32_t mel[VAD_N_MEL_SCALE + 1];
     int32_t dct_input[VAD_N_DCT];
     int32_t dct_output[VAD_N_DCT];
     int32_t features[VAD_N_FEATURES_PER_FRAME];
@@ -131,10 +139,16 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     printf("\n");
 #endif
 
-    for(int i = 0; i < VAD_WINDOW_LENGTH; i++) {
-        input[i].re = (time_domain_input[i] * (int64_t)vad_window[i]) >> 31;
-        input[i].im = 0;
+    //512 packing
+    vad_form_frame(curr, input, state->prev_frame);
+
+    for(int i = 0; i < VAD_PROC_FRAME_LENGTH; i++) {
+        //input[i].re = (time_domain_input[i] * (int64_t)vad_window[i]) >> 31;
+        //input[i].im = 0;
+        curr[i] = (curr[i] * (int64_t)vad_window[i]) >> 31;
     }
+
+    //bfp_s32_mul(frame, window);
 
 #if PRINT_ME && PRINT_ALL
     printf("WINDOWED ");
@@ -144,7 +158,7 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     printf("\n");
 #endif
 
-#if 1
+#if 0
     int headroom = dsp_bfp_cls(input, VAD_WINDOW_LENGTH)-1;
     dsp_bfp_shl(input, VAD_WINDOW_LENGTH, headroom);
 
@@ -153,12 +167,17 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     dsp_fft_forward(input, VAD_WINDOW_LENGTH, VAD_DSP_SINE_WINDOW_LENGTH);
 #else    
     //WORK IN PROGRESS - THIS DOES NOT WORK YET 
-    complex_s32_t* input_fd = (complex_s32_t*)input;
+    complex_s32_t* curr_fd = (complex_s32_t*)curr;
     exponent_t x_exp = -31;
-    headroom_t hr = xs3_vect_s32_headroom(input, VAD_WINDOW_LENGTH);
-    xs3_fft_index_bit_reversal(input_fd, VAD_WINDOW_LENGTH);
-    xs3_fft_dit_forward(input_fd, VAD_WINDOW_LENGTH/2, &hr, &x_exp);
-    xs3_fft_mono_adjust(input_fd, VAD_WINDOW_LENGTH, 0);
+    headroom_t hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
+
+    right_shift_t x_shr = 2 - hr;
+    xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
+    hr += x_shr; x_exp += x_shr;
+
+    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_LENGTH);
+    xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
+    xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
 #endif
 
 
@@ -170,18 +189,18 @@ int32_t vad_probabiity_voice(int32_t time_domain_input[VAD_WINDOW_LENGTH],
     printf("\n");
 #endif
     // Compute spectral centroid and spread; in 32.0 format
-    int32_t spectral_centroid = vad_spectral_centroid_Hz(input, VAD_WINDOW_LENGTH/2);
+    int32_t spectral_centroid = vad_spectral_centroid_Hz(curr_fd, VAD_PROC_FRAME_BINS);
     
-    int32_t spectral_spread   = vad_spectral_spread_Hz(input, VAD_WINDOW_LENGTH/2, spectral_centroid);
+    int32_t spectral_spread   = vad_spectral_spread_Hz(curr_fd, VAD_PROC_FRAME_BINS, spectral_centroid);
 
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
     
-    vad_mel_compute(mel, VAD_N_MEL_SCALE+1, input, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
+    vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS, vad_mel_table24_512, 2 * (VAD_LOG_WINDOW_LENGTH + (-31 - x_exp)));
     
     // Mel coefficients are in 8.24; make them in 16.16 format for headroom
     for(int i = 0; i < VAD_N_MEL_SCALE; i++) {
-        dct_input[i] = (mel[i+1] >> 8);   // create headroom.
+        dct_input[i] = (mel[i + 1] >> 8);   // create headroom.
     }
     
 #if PRINT_ME

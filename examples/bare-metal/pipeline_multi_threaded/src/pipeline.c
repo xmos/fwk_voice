@@ -15,6 +15,7 @@
 
 #include "aec_api.h"
 #include "aec_memory_pool.h"
+#include "suppression.h"
 #include "agc_api.h"
 
 extern void aec_process_frame_2threads(
@@ -27,6 +28,7 @@ extern void aec_process_frame_2threads(
 
 DECLARE_JOB(pipeline_stage_1, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
+DECLARE_JOB(pipeline_stage_3, (chanend_t, chanend_t));
 
 
 /// pipeline_stage_1
@@ -73,6 +75,37 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
+    //Initialise NS
+    sup_state_t DWORD_ALIGNED sup_state[AP_MAX_Y_CHANNELS];
+    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        sup_init_state(&sup_state[ch]);
+    }
+
+    int32_t DWORD_ALIGNED frame [AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    while(1){
+        // Receive and bypass metadata
+        chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+
+        // Receive input frame
+        chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+
+        /**NS*/
+        for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+            //the frame buffer will be used for both input and output here
+            sup_process_frame(&sup_state[ch], frame[ch], frame[ch]);
+        }
+
+        // Transmit output frame
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+    }
+}
+
+
+/// pipeline_stage_3
+void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
+    // Pipeline metadata
+    pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
@@ -112,11 +145,13 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 /// Pipeline
 void pipeline(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
-    // 2 stage pipeline. stage 1: AEC, stage 2: AGC
+    // 3 stage pipeline. stage 1: AEC, stage 2: NS, stage 3: AGC
     channel_t c_stage_1_to_2 = chan_alloc();
+    channel_t c_stage_2_to_3 = chan_alloc();
     
     PAR_JOBS(
         PJOB(pipeline_stage_1, (c_pcm_in_b, c_stage_1_to_2.end_a)),
-        PJOB(pipeline_stage_2, (c_stage_1_to_2.end_b, c_pcm_out_a))
+        PJOB(pipeline_stage_2, (c_stage_1_to_2.end_b, c_stage_2_to_3.end_a)),
+        PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_pcm_out_a))
     );
 }
