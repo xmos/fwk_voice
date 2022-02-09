@@ -126,7 +126,7 @@ void vad_init(vad_state_t *state) {
 
 int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
                             vad_state_t * state){
-    int32_t curr[VAD_PROC_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED curr[VAD_PROC_FRAME_LENGTH];
     int32_t mel[VAD_N_MEL_SCALE + 1];
     int32_t dct_input[VAD_N_DCT];
     int32_t dct_output[VAD_N_DCT];
@@ -184,7 +184,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
     hr += x_shr; x_exp += x_shr;
 
-    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_LENGTH);
+    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_BINS);
     xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
     xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
 #endif
