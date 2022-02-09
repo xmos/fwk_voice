@@ -74,7 +74,7 @@ void vad_init(vad_state_t *state) {
 
 int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
                             vad_state_t * state){
-    int32_t curr[VAD_PROC_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED curr[VAD_PROC_FRAME_LENGTH];
     int32_t mel[VAD_N_MEL_SCALE + 1];
     int32_t dct_input[VAD_N_DCT];
     int32_t dct_output[VAD_N_DCT];
