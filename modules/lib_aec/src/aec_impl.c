@@ -415,7 +415,7 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     }
 }
 
-int32_t aec_detect_ref_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels) {
+int32_t aec_detect_input_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels) {
     /*abs_max_ref = abs(np.max(new_frame))
     return abs_max_ref > threshold*/
     bfp_s32_t ref;
