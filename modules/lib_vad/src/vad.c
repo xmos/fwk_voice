@@ -59,8 +59,8 @@ int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
 
 
 void vad_fc_layer(  int64_t output[], const size_t num_out,
-                    int32_t input[], const size_t num_in,
-                    int32_t weights[]){
+                    const int32_t input[], const size_t num_in,
+                    const int32_t weights[]){
 
     const int num_bias = 1; //One bias value before the weights in the weights array
 
