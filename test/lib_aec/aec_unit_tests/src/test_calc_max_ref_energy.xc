@@ -6,7 +6,7 @@
 #include <assert.h>
 extern "C"{
     #include "aec_api.h"
-    float_s32_t aec_calc_max_ref_energy_c_wrapper(int32_t (*input)[AEC_FRAME_ADVANCE], int channels);
+    float_s32_t aec_calc_max_input_energy_c_wrapper(int32_t (*input)[AEC_FRAME_ADVANCE], int channels);
 }
 
 double calc_max_ref_energy_fp(double (*input)[AEC_FRAME_ADVANCE], int channels) {
@@ -42,7 +42,7 @@ void test_calc_max_ref_energy() {
         ref_max = calc_max_ref_energy_fp(ref, CHANNELS);
         // xc wouldn't allow passing as pointer to const data so added wrapper c file as quick workaround. This will all be
         // cleaned up once unit tests are ported to c. 
-        dut_max = aec_calc_max_ref_energy_c_wrapper(dut, CHANNELS); 
+        dut_max = aec_calc_max_input_energy_c_wrapper(dut, CHANNELS); 
 
         int dut = dut_max.mant;
         int ref = att_double_to_int32(ref_max, dut_max.exp);

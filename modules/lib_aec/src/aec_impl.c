@@ -117,13 +117,13 @@ void aec_calc_time_domain_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
 }
 
-float_s32_t aec_calc_max_ref_energy(const int32_t (*x_data)[AEC_FRAME_ADVANCE], int num_channels) {
+float_s32_t aec_calc_max_input_energy(const int32_t (*input_data)[AEC_FRAME_ADVANCE], int num_channels) {
     bfp_s32_t ref;
 
-    bfp_s32_init(&ref, (int32_t*)&x_data[0][0], -31, AEC_FRAME_ADVANCE, 1);
+    bfp_s32_init(&ref, (int32_t*)&input_data[0][0], -31, AEC_FRAME_ADVANCE, 1);
     float_s32_t max = float_s64_to_float_s32(bfp_s32_energy(&ref));
     for(int ch=1; ch<num_channels; ch++) {
-        bfp_s32_init(&ref, (int32_t*)&x_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
         float_s32_t current = float_s64_to_float_s32(bfp_s32_energy(&ref));
         if(float_s32_gt(current, max)){max = current;}
     }
