@@ -389,13 +389,21 @@ float_s32_t aec_calc_max_ref_energy(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int num_channels);
 
-/** @brief Reset parts of aec state structure
+/** @brief Reset parts of aec state structure.
  *
- * This function resets AEC state so as to start adapting from a zero filter.
+ * This function resets parts of AEC state so that the echo canceller starts adapting from a zero filter.
+ * 
+ * @param[in] pointer to AEC main filter state structure.
+ * @param[in] pointer to AEC shadow filter state structure
+ * 
+ * @ingroup aec_func
  */
 void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
 
-/** @brief Quick check to see if there is any activity on the reference channel input
+/** @brief Detect activity on input channels.
+ * 
+ * This function implements quick check for detecting activity on the input channels. It detects signal presence by checking
+ * if the input signal maximum is above a given threshold.
  *
  */
 int32_t aec_detect_input_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels);
