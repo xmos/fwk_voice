@@ -5,19 +5,21 @@
 #define _vad_mel_h_
 
 #include <stdint.h>
-#include "dsp.h"
+#include "bfp_math.h"
 
 #define VAD_MEL_BITS 24
 #define VAD_MEL_MAX (1 << VAD_MEL_BITS)
 
-extern void vad_mel_compute(int32_t melValues[], uint32_t M,
-                           dsp_complex_t pts[], uint32_t N,
-                           const uint32_t melTable[],
+extern void vad_mel_compute(int32_t * melValues, uint32_t M,
+                           complex_s32_t * pts, uint32_t N,
+                           const uint32_t * melTable,
                            int32_t extra_shift) ;
 
-extern int32_t vad_spectral_centroid_Hz(dsp_complex_t p[], uint32_t N);
+extern int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N);
 
-extern int32_t vad_spectral_spread_Hz(dsp_complex_t p[], uint32_t N,
+extern int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
                                       int32_t spectral_centroid);
 
 #endif
+
+//vad_mel_compute(mel, VAD_N_MEL_SCALE+1, input, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);

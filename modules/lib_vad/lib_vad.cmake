@@ -2,13 +2,14 @@
 file( GLOB_RECURSE    LIB_VAD_C_SOURCES       src/*.c )
 
 set(DEPS_ROOT ../../..)
+set(LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 
 ## LIB_DSP temp
-file( GLOB_RECURSE LIB_DSP_SOURCES_C  ${DEPS_ROOT}/lib_dsp/lib_dsp/src/*.c )
-file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${DEPS_ROOT}/lib_dsp/lib_dsp/src/*.xc )
-file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${DEPS_ROOT}/lib_dsp/lib_dsp/src/*.S )
+file( GLOB_RECURSE LIB_DSP_SOURCES_C  ${LIB_DSP_PATH}/src/*.c )
+file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${LIB_DSP_PATH}/src/*.xc )
+file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${LIB_DSP_PATH}/src/*.S )
 set( LIB_DSP_SOURCES  ${LIB_DSP_SOURCES_C} ${LIB_DSP_SOURCES_XC} ${LIB_DSP_SOURCES_ASM})
-set( LIB_DSP_INCLUDES  ${DEPS_ROOT}/lib_dsp/lib_dsp/api/)
+set( LIB_DSP_INCLUDES  ${LIB_DSP_PATH}/api/)
 
 
 message( STATUS "DEPS_ROOT ${DEPS_ROOT}" )

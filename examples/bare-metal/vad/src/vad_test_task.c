@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "vad.h"
+#include "vad_api.h"
 
 #include "fileio.h"
 #include "wav_utils.h"
@@ -96,7 +96,7 @@ void vad_task(const char *input_file_name) {
         }
 
         prof(2, "start_vad_estimate");
-        uint8_t vad = vad_probabiity_voice(vad_frame, &state);
+        uint8_t vad = vad_probability_voice(vad_frame, &state);
         prof(3, "end_vad_estimate");
 
         print_prof(0,4,b+1);
