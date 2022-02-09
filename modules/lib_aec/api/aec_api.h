@@ -406,7 +406,7 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
  * if the input signal maximum is above a given threshold.
  *
  */
-int32_t aec_detect_input_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels);
+int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels);
 
 //TODO pending documentation and examples for L2 APIs
 /**
