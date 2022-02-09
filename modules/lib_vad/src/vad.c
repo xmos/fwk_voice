@@ -143,7 +143,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 #if PRINT_ME && PRINT_ALL
     printf("INP ");
     for(int i = 0; i < VAD_WINDOW_LENGTH; i++) {
-        printf("%d ", time_domain_input[i].re);
+        printf("%d ", input[i]);
     }
     printf("\n");
 #endif
@@ -162,7 +162,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 #if PRINT_ME && PRINT_ALL
     printf("WINDOWED ");
     for(int i = 0; i < VAD_WINDOW_LENGTH; i++) {
-        printf("%d ", input[i].re);
+        printf("%d ", curr[i]);
     }
     printf("\n");
 #endif
@@ -193,7 +193,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 #if PRINT_ME && PRINT_ALL
     printf("SPECTRAL ");
     for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
-        printf("%d %d     ", input[i].re, input[i].im);
+        printf("%d %d     ", curr_fd[i].re, curr_fd[i].im);
     }
     printf("\n");
 #endif
@@ -365,9 +365,9 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     vad_reduce_sigmoid(output_nodes_activated, output_nodes_xs3m, N_VAD_OUTPUTS);
 
     for(int o = 0; o < N_VAD_OUTPUTS; o++) {
-        printf("outputs_nodes_activated %d xs3m: %ld, (ref: %ld)\n", o, output_nodes_activated[o], outputs_nodes_normal[o]);
+        // printf("outputs_nodes_activated %d xs3m: %ld, (ref: %ld)\n", o, output_nodes_activated[o], outputs_nodes_normal[o]);
     }
-    printf("**********\n");
+    // printf("**********\n");
 
 
     for(int i = 0; i < N_VAD_HIDDEN; i++) {
@@ -377,6 +377,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 //        printf("Final Node %d pre Sigmoid %7.4f, post Sigmoid %7.4f %08x   ", i, outputs_nodes_full[i]/(float)(1LL << 48), outputs_nodes_normal[i]/(float)(1<<24), outputs_nodes_normal[i] );
     }
 //    return ((outputs_nodes_normal[0] >> 16)*100) >> 8;
-    // return outputs_nodes_normal[0]>>16;
+    return outputs_nodes_normal[0]>>16;
 }
 
