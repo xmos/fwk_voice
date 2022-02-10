@@ -12,6 +12,9 @@ INPUT += ../modules/lib_noise_suppression/api
 # AGC module
 INPUT += ../modules/lib_agc/api
 
+# ADEC module
+INPUT += ../modules/lib_adec/api
+
 USE_MATHJAX            = YES
 MATHJAX_FORMAT         = HTML-CSS
 MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/

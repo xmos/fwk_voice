@@ -4,7 +4,7 @@ Automatic Delay Estimation and Correction Library
 Introduction
 ************
 
-``lib_adec`` is a library of functions to measure and automatically correct possible delay offsets between the reference input and the loudspeaker output.
+``lib_adec`` is a library of functions to measure and automatically correct possible delay offsets between the reference and microphone signals.
 
 .. toctree::
    :maxdepth: 1

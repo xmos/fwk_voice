@@ -5,7 +5,7 @@ Overview
 --------
 
 ``lib_adec`` is a library which provides functions for measuring and correcting delay offsets between the reference
-input to the device and the loudspeaker output which is present in the input microphone signal to the device.
+input and the loudspeaker output which is seen in the microphone input signal.
 ``lib_adec`` depends on ``lib_aec`` and ``lib_xs3_math`` libraries. For more details about the ADEC, refer to
 :ref:`adec_overview`
 
