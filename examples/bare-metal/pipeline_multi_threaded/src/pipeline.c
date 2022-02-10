@@ -47,7 +47,9 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     aec_de_mode_conf.num_main_filt_phases = 30;
     aec_de_mode_conf.num_shadow_filt_phases = 0;
     
-    adec_config_t adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP;
+    adec_config_t adec_conf;
+    adec_conf.bypass = 1; //Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation
     
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];

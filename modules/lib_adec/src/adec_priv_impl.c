@@ -1,19 +1,20 @@
-#include "adec_api.h"
 #include <string.h>
 #include <math.h>
 #include <limits.h>
+#include "adec_api.h"
+#include "adec_priv.h"
 
 /* About delay:
  * Delay samples refer to mic samples delay. Positive delay means late, Negative delay means early.
- * Positive measured delay means mic is late, so adec will request mic to be advanced in time, which means adec requests
+ * Positive measured delay means mic is late, so adec will request mic to be moved back in time, which means adec requests
  * a negative mic delay.
  * Negative measured delay means mic is early, so adec will request delaying the mic with a positive requested delay.
  *
  * Whatever is the measured delay, we want to ensure, ADEC requested delay doesn't under any case cause the mic to be
  * early since mic early is the bad case.
- * To ensure that, when measured delay is positive, and ADEC is requesting a mic advance, then we take one phase out of
+ * To ensure that, when measured delay is positive, and ADEC is requesting a mic moving back in time, then we take one phase out of
  * what we're requesting. For eg. measured_delay = 960, requested_delay should be -960 but we request -960+240 = -480 to
- * make sure we don't advance mic too much. 
+ * make sure we don't make the mic early too much risking a mic earlier than ref situation. 
  * Similarly, if measured delay is -ve, for example, measured_delay -480 would mean requested_delay +480, but we request
  * 480 + 240 = 960, to avoid mic early case.
  *
