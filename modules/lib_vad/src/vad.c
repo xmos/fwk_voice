@@ -17,9 +17,7 @@
 #include "vad_window.h"
 #include "vad_mel.h"
 #include "dsp.h"
-
 #include "xs3_math.h"
-#include <limits.h>
 
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;
