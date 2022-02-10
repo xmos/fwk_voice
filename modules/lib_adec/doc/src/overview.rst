@@ -16,8 +16,7 @@ delay to be inserted into one of the two paths, to correct this delay difference
 ADEC module provides functionality for 
 
 * Measuring the current mic-ref delay
-* Using the measured delay along with AEC perfomance related metadata collected from the echo canceller to monitor the
-AEC and make decisions about reconfiguring the AEC and correcting bulk delay offsets.
+* Using the measured delay along with AEC perfomance related metadata collected from the echo canceller to monitor AEC and make decisions about reconfiguring the AEC and correcting bulk delay offsets.
 
 The metadata collected from AEC contains statistics such as the ERLE, the peak power seen in the adaptive filter and the
 peak power to average power ratio of the adaptive filter. Using these statistics ADEC estimates a metric called the AEC
