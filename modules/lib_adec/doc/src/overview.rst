@@ -12,8 +12,9 @@ reference audio is presented to the AEC time aligned to the audio being reproduc
 audio path delay and the audio reproduction path may delay be significantly different, requiring additional delay to be
 inserted into one of the two paths, to correct this delay difference.
 
-ADEC module provides functionality for measuring the current mic-ref delay and using the measured delay along with
-AEC perfomance related metadata collected from the echo canceller to monitor the AEC and make decisions about issuing requests for reconfiguring the AEC and
-correcting bulk delay offsets.
+ADEC module provides functionality for 
+* Measuring the current mic-ref delay
+* Using the measured delay along with AEC perfomance related metadata collected from the echo canceller to monitor the
+AEC and make decisions about reconfiguring the AEC and correcting bulk delay offsets.
 
 
