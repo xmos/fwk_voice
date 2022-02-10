@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "vad.h" 
 
 int main(void){
     printf("compare XC C\n");
