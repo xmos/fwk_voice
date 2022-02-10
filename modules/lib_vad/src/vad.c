@@ -9,7 +9,6 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
-#include "ai.h"
 #include "vad_api.h"
 #include "vad_parameters.h"
 #include "vad_nn_coefficients.h"
@@ -80,7 +79,7 @@ void vad_fc_layer(  int64_t output[], const size_t num_out,
 }
 
 
-void vad_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
+void vad_reduce_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
     for(int i=0; i<N; i++){
         const int64_t max = 0x7fffffffLL << AI_NN_WEIGHT_Q;
         int64_t clamped_relu = raw_layer[i];
@@ -95,7 +94,7 @@ void vad_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
 
 void vad_reduce_sigmoid(int32_t out_data[],
                        const int64_t in_data[],
-                       uint32_t N) {
+                       const size_t N) {
     for(uint32_t i = 0; i < N; i++) {
         int32_t shift = AI_NN_OUTPUT_Q-24;
         int64_t x = in_data[i];
@@ -311,14 +310,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     printf("\n");
 #endif
 
-    nn_layer_fc(hidden_nodes_full, N_VAD_HIDDEN,
-                nn_features,       N_VAD_INPUTS,
-                hidden_coeffs);
-
-    int64_t hidden_nodes_xs3m[N_VAD_HIDDEN];
-
-
-    vad_fc_layer(   hidden_nodes_xs3m, N_VAD_HIDDEN,
+    vad_fc_layer(   hidden_nodes_full, N_VAD_HIDDEN,
                     nn_features, N_VAD_INPUTS,
                     hidden_coeffs);
 
@@ -328,27 +320,16 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
 
 
-    int32_t activated_l1[N_VAD_HIDDEN];
-    vad_relu(activated_l1, hidden_nodes_xs3m, N_VAD_HIDDEN);
-
-    nn_reduce_relu(hidden_nodes_normal,
-                   hidden_nodes_full,
-                   N_VAD_HIDDEN);
+    vad_reduce_relu(hidden_nodes_normal, hidden_nodes_full, N_VAD_HIDDEN);
 
 
     for(int o = 0; o < N_VAD_HIDDEN; o++) {
         // printf("hidden_nodes_normal %d xs3m: %ld, (ref: %ld)\n", o, activated_l1[o], hidden_nodes_normal[o]);
     }
 
-    int64_t output_nodes_xs3m[N_VAD_OUTPUTS];
 
-
-    nn_layer_fc(outputs_nodes_full,    N_VAD_OUTPUTS,
+    vad_fc_layer(outputs_nodes_full, N_VAD_OUTPUTS,
                 hidden_nodes_normal, N_VAD_HIDDEN,
-                outputs_coeffs);
-
-    vad_fc_layer(output_nodes_xs3m, N_VAD_OUTPUTS,
-                activated_l1, N_VAD_HIDDEN,
                 outputs_coeffs);
 
 
@@ -357,12 +338,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
 
 
-    nn_reduce_sigmoid(outputs_nodes_normal,
-                      outputs_nodes_full,
-                      N_VAD_OUTPUTS);
-    
-    int32_t output_nodes_activated[N_VAD_OUTPUTS];
-    vad_reduce_sigmoid(output_nodes_activated, output_nodes_xs3m, N_VAD_OUTPUTS);
+    vad_reduce_sigmoid(outputs_nodes_normal, outputs_nodes_full, N_VAD_OUTPUTS);
 
     for(int o = 0; o < N_VAD_OUTPUTS; o++) {
         // printf("outputs_nodes_activated %d xs3m: %ld, (ref: %ld)\n", o, output_nodes_activated[o], outputs_nodes_normal[o]);
