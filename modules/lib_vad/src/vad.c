@@ -312,45 +312,24 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
                     nn_features, N_VAD_INPUTS,
                     hidden_coeffs);
 
-
-    for(int o = 0; o < N_VAD_HIDDEN; o++) {
-        // printf("%d xs3m: %lld, (ref: %lld)\n", o, hidden_nodes_xs3m[o], hidden_nodes_full[o]);
-    }
-
-
     vad_reduce_relu(hidden_nodes_normal, hidden_nodes_full, N_VAD_HIDDEN);
-
-
-    for(int o = 0; o < N_VAD_HIDDEN; o++) {
-        // printf("hidden_nodes_normal %d xs3m: %ld, (ref: %ld)\n", o, activated_l1[o], hidden_nodes_normal[o]);
-    }
-
 
     vad_fc_layer(outputs_nodes_full, N_VAD_OUTPUTS,
                 hidden_nodes_normal, N_VAD_HIDDEN,
                 outputs_coeffs);
 
-
-    for(int o = 0; o < N_VAD_OUTPUTS; o++) {
-        // printf("outputs_nodes %d xs3m: %lld, (ref: %lld)\n", o, output_nodes_xs3m[o], outputs_nodes_full[o]);
-    }
-
-
     vad_reduce_sigmoid(outputs_nodes_normal, outputs_nodes_full, N_VAD_OUTPUTS);
 
-    for(int o = 0; o < N_VAD_OUTPUTS; o++) {
-        // printf("outputs_nodes_activated %d xs3m: %ld, (ref: %ld)\n", o, output_nodes_activated[o], outputs_nodes_normal[o]);
-    }
-    // printf("**********\n");
 
-
+#if PRINT_ME
     for(int i = 0; i < N_VAD_HIDDEN; i++) {
-//        printf("Hidden node %d pre RELU %7.4f, post RELU %7.4f\n", i, hidden_nodes_full[i]/(float)(1LL << 48), hidden_nodes_normal[i]/(float)(1<<24));
+       printf("Hidden node %d pre RELU %7.4f, post RELU %7.4f\n", i, hidden_nodes_full[i]/(float)(1LL << 48), hidden_nodes_normal[i]/(float)(1<<24));
     }
     for(int i = 0; i < N_VAD_OUTPUTS; i++) {
-//        printf("Final Node %d pre Sigmoid %7.4f, post Sigmoid %7.4f %08x   ", i, outputs_nodes_full[i]/(float)(1LL << 48), outputs_nodes_normal[i]/(float)(1<<24), outputs_nodes_normal[i] );
+       printf("Final Node %d pre Sigmoid %7.4f, post Sigmoid %7.4f %08x   ", i, outputs_nodes_full[i]/(float)(1LL << 48), outputs_nodes_normal[i]/(float)(1<<24), outputs_nodes_normal[i] );
     }
-//    return ((outputs_nodes_normal[0] >> 16)*100) >> 8;
+#endif
+
     return outputs_nodes_normal[0]>>16;
 }
 
