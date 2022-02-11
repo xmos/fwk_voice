@@ -35,6 +35,7 @@ list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS        
     lib_aec 
     lib_adec
+    test_shared
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
@@ -63,19 +64,15 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
 file( GLOB UNITY_SOURCES ${UNITY_PATH}/*.c )
 
-# audio_test_tools
-set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
-list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
-
 #lib_dsp
 set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources
-list( APPEND  COMMON_SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
+list( APPEND  COMMON_SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${LIB_DSP_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${AUDIO_TEST_TOOLS_PATH}/api ${LIB_DSP_PATH}/api )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${LIB_DSP_PATH}/api ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand)
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -87,7 +84,7 @@ set( GEN_RUNNER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/generate_unity_runner.py )
 set( RUNNERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.runners )
 file( MAKE_DIRECTORY ${RUNNERS_DIR} )
 
-file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.xc )
+file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
 
 # For every source file in aec_unit_tests/src
 foreach( testfile ${TEST_SOURCES} )
@@ -115,13 +112,6 @@ foreach( testfile ${TEST_SOURCES} )
         OUTPUT ${RUNNER_FILE}
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating AEC runner" )
-    
-    if (${testfile} MATCHES "test_calc_max_ref_energy.xc")
-        set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/calc_max_ref_energy_c_wrapper.c)
-    endif ()
-    if (${testfile} MATCHES "test_estimate_delay.xc")
-        set (SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_calc_fd_frame_energy.xc)
-    endif()
 
     #########
     ## Add a build target
