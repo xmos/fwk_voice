@@ -64,15 +64,11 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
 file( GLOB UNITY_SOURCES ${UNITY_PATH}/*.c )
 
-#lib_dsp
-set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
-list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
-
 # All common sources
-list( APPEND  COMMON_SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${LIB_DSP_SOURCES} )
+list( APPEND  COMMON_SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${LIB_DSP_PATH}/api ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand)
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${AUTOGEN_DIR} ${UNITY_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand)
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
