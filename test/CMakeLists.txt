@@ -9,6 +9,8 @@ add_subdirectory( lib_noise_suppression )
 
 add_subdirectory( lib_aec )
 
+add_subdirectory( lib_adec )
+
 add_subdirectory( lib_ic )
 
 add_subdirectory( lib_agc )

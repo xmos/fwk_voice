@@ -62,13 +62,13 @@ pipeline {
                   }
                   sh "make -j8"
                   sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_AEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py, build/**/test_wav_aec_c_app'
+              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
             }
           }
         }
@@ -278,26 +278,21 @@ pipeline {
             }
           }
         }
-        stage('AEC test_aec_enhancements') {
+        stage('ADEC de_unit_tests') {
           steps {
-            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
+            dir("${REPO}/test/lib_adec/de_unit_tests") {
               viewEnv() {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
-                      sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
           }
         }
-        stage('AEC test_delay_estimator') {
+        stage('ADEC test_delay_estimator') {
           steps {
-            dir("${REPO}/test/lib_aec/test_delay_estimator") {
+            dir("${REPO}/test/lib_adec/test_delay_estimator") {
               viewEnv() {
                 withVenv {
                   sh 'mkdir -p ./input_wavs/'
@@ -310,13 +305,50 @@ pipeline {
             }
           }
         }
-        stage('AEC test_aec_profile') {
+        stage('ADEC test_adec') {
           steps {
-            dir("${REPO}/test/lib_aec/test_aec_profile") {
+            dir("${REPO}/test/lib_adec/test_adec") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC test_adec_profile') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec_profile") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('AEC test_aec_enhancements') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
+                      sh "./make_dirs.sh"
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
                 }
               }
             }
@@ -384,8 +416,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           
           //AEC aretfacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/aec_prof*.log", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_aec/test_aec_profile/**/profile_index_to_tag_mapping.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
+          //NS artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
         }
         cleanup {
           cleanWs()
