@@ -1,13 +1,10 @@
 // Copyright 2018-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <xs1.h>
 #include "aec_unit_tests.h"
 #include <stdio.h>
 #include <assert.h>
-extern "C"{
-    #include "aec_defines.h"
-    #include "aec_api.h"
-}
+#include "aec_defines.h"
+#include "aec_api.h"
 
 #define TEST_NUM_Y (1)
 #define TEST_NUM_X (2)
@@ -49,13 +46,13 @@ void aec_filter_adapt_fp(
         scratch[N/2].im = H_hat[N/2].im;
     }
     //IFFT
-    att_bit_reverse((dsp_complex_fp *)scratch, N);
-    att_inverse_fft((dsp_complex_fp *)scratch, N, sine_lut_ifft);
+    bit_reverse((complex_double_t *)scratch, N);
+    inverse_fft((complex_double_t *)scratch, N, sine_lut_ifft);
     for(int i=AEC_FRAME_ADVANCE; i<AEC_PROC_FRAME_LENGTH; i++) {
         scratch[i].re = 0.0;
     }
-    att_bit_reverse((dsp_complex_fp*)scratch, N);
-    att_forward_fft((dsp_complex_fp*)scratch, N, sine_lut);
+    bit_reverse((complex_double_t*)scratch, N);
+    forward_fft((complex_double_t*)scratch, N, sine_lut);
     
     for(int i=0; i<N/2+1; i++) {
         H_hat[i].re = scratch[i].re;
@@ -63,7 +60,6 @@ void aec_filter_adapt_fp(
     }
 }
 void test_aec_filter_adapt() {
-    unsafe {
     unsigned num_y_channels = TEST_NUM_Y;
     unsigned num_x_channels = TEST_NUM_X;
     unsigned main_filter_phases = TEST_MAIN_PHASES;
@@ -82,13 +78,13 @@ void test_aec_filter_adapt() {
     complex_double_t T_fp[TEST_NUM_X][NUM_BINS];
 
     //Init FFT for reference
-    att_make_sine_table(sine_lut, AEC_PROC_FRAME_LENGTH);
-    att_make_sine_table(sine_lut_ifft, AEC_PROC_FRAME_LENGTH);
+    make_sine_table(sine_lut, AEC_PROC_FRAME_LENGTH);
+    make_sine_table(sine_lut_ifft, AEC_PROC_FRAME_LENGTH);
     unsigned seed=578335;
     unsigned max_diff = 0.0;
     for(int itt=0; itt<(100)/F; itt++) {
         int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
-        unsigned is_main = att_random_uint32(seed) % 2;
+        unsigned is_main = pseudo_rand_uint32(&seed) % 2;
         aec_state_t *state_ptr;
         if(is_main) {
             state_ptr = &state;
@@ -96,20 +92,20 @@ void test_aec_filter_adapt() {
         else {
             state_ptr = &shadow_state;
         }
-        state_ptr->shared_state->config_params.aec_core_conf.bypass = att_random_uint32(seed) % 2;
-        unsigned test_l2_api = att_random_uint32(seed) % 2;
+        state_ptr->shared_state->config_params.aec_core_conf.bypass = pseudo_rand_uint32(&seed) % 2;
+        unsigned test_l2_api = pseudo_rand_uint32(&seed) % 2;
         aec_frame_init(&state, &shadow_state, &new_frame[0], &new_frame[AEC_MAX_Y_CHANNELS]);        
         //Generate H_hat
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int ph=0; ph<num_x_channels*state_ptr->num_phases; ph++) {
-                state_ptr->H_hat[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->H_hat[ch][ph].hr = att_random_uint32(seed) % 5;
+                state_ptr->H_hat[ch][ph].exp = pseudo_rand_int(&seed, -31, 32);
+                state_ptr->H_hat[ch][ph].hr = pseudo_rand_uint32(&seed) % 5;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->H_hat[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
-                    state_ptr->H_hat[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->H_hat[ch][ph].hr;
 
-                    H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
-                    H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
+                    H_hat_fp[ch][ph][i].re = ldexp(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                    H_hat_fp[ch][ph][i].im = ldexp(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                 }
                 //DC and Nyquist bin imaginary=0
                 state_ptr->H_hat[ch][ph].data[0].im = 0;
@@ -122,14 +118,14 @@ void test_aec_filter_adapt() {
         aec_state_t *main_state_ptr = &state;
         for(int ch=0; ch<num_x_channels; ch++) {
             for(int ph=0; ph<main_state_ptr->num_phases; ph++) {
-                state_ptr->shared_state->X_fifo[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->shared_state->X_fifo[ch][ph].hr = att_random_uint32(seed) % 5;
+                state_ptr->shared_state->X_fifo[ch][ph].exp = pseudo_rand_int(&seed, -31, 32);
+                state_ptr->shared_state->X_fifo[ch][ph].hr = pseudo_rand_uint32(&seed) % 5;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->shared_state->X_fifo[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
-                    state_ptr->shared_state->X_fifo[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
+                    state_ptr->shared_state->X_fifo[ch][ph].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
+                    state_ptr->shared_state->X_fifo[ch][ph].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
 
-                    X_fifo_fp[ch][ph][i].re = att_int32_to_double(state_ptr->shared_state->X_fifo[ch][ph].data[i].re, state_ptr->shared_state->X_fifo[ch][ph].exp);
-                    X_fifo_fp[ch][ph][i].im = att_int32_to_double(state_ptr->shared_state->X_fifo[ch][ph].data[i].im, state_ptr->shared_state->X_fifo[ch][ph].exp);
+                    X_fifo_fp[ch][ph][i].re = ldexp(state_ptr->shared_state->X_fifo[ch][ph].data[i].re, state_ptr->shared_state->X_fifo[ch][ph].exp);
+                    X_fifo_fp[ch][ph][i].im = ldexp(state_ptr->shared_state->X_fifo[ch][ph].data[i].im, state_ptr->shared_state->X_fifo[ch][ph].exp);
                 }
                 state_ptr->shared_state->X_fifo[ch][ph].data[0].im = 0;
                 state_ptr->shared_state->X_fifo[ch][ph].data[NUM_BINS-1].im = 0;
@@ -139,14 +135,14 @@ void test_aec_filter_adapt() {
         }
         //Generate T
         for(int ch=0; ch<num_x_channels; ch++) {
-            state_ptr->T[ch].exp = sext(att_random_int32(seed), 6);
-            state_ptr->T[ch].hr = att_random_uint32(seed) % 5;
+            state_ptr->T[ch].exp = pseudo_rand_int(&seed, -31, 32);
+            state_ptr->T[ch].hr = pseudo_rand_uint32(&seed) % 5;
             for(int i=0; i<NUM_BINS; i++) {
-                state_ptr->T[ch].data[i].re = sext(att_random_int32(seed), (32 - state_ptr->T[ch].hr));
-                state_ptr->T[ch].data[i].im = sext(att_random_int32(seed), (32 - state_ptr->T[ch].hr));
+                state_ptr->T[ch].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->T[ch].hr;
+                state_ptr->T[ch].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->T[ch].hr;
 
-                T_fp[ch][i].re = att_int32_to_double(state_ptr->T[ch].data[i].re, state_ptr->T[ch].exp);
-                T_fp[ch][i].im = att_int32_to_double(state_ptr->T[ch].data[i].im, state_ptr->T[ch].exp);
+                T_fp[ch][i].re = ldexp(state_ptr->T[ch].data[i].re, state_ptr->T[ch].exp);
+                T_fp[ch][i].im = ldexp(state_ptr->T[ch].data[i].im, state_ptr->T[ch].exp);
             }
             state_ptr->T[ch].data[0].im = 0;
             state_ptr->T[ch].data[NUM_BINS-1].im = 0;
@@ -186,7 +182,7 @@ void test_aec_filter_adapt() {
                             remaining_phases = 0;
                         }
                         else if(remaining_phases > 1) {
-                            num_phases = (uint32_t)att_random_uint32(seed) % remaining_phases;
+                            num_phases = (uint32_t)pseudo_rand_uint32(&seed) % remaining_phases;
                             remaining_phases -= num_phases;
                         }
                         for(int ph=start_phase; ph<start_phase+num_phases; ph++) {
@@ -200,7 +196,7 @@ void test_aec_filter_adapt() {
         //Compare outputs
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int p=0; p<num_x_channels*state_ptr->num_phases; p++) {
-                unsigned diff = att_bfp_vector_int32(
+                unsigned diff = vector_int32_maxdiff(
                         (int32_t*)&state_ptr->H_hat[ch][p].data[0],
                         state_ptr->H_hat[ch][p].exp,
                         (double*)&H_hat_fp[ch][p][0],
@@ -213,5 +209,4 @@ void test_aec_filter_adapt() {
         }
     }
     printf("max_diff %d\n",max_diff);
-    }
 }
