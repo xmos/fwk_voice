@@ -157,18 +157,6 @@ typedef struct {
 }shadow_filter_params_t;
 
 /**
- * @ingroup aec_types
- */
-typedef struct {
-    int32_t peak_power_phase_index; ///< H_hat phase index with the maximum energy
-    float_s32_t peak_phase_power; ///< Maximum energy across all H_hat phases
-    float_s32_t sum_phase_powers; ///< Sum of filter energy across all filter phases. Used in peak_to_average_ratio calculation. 
-    float_s32_t peak_to_average_ratio; ///< peak to average ratio of H_hat phase energy.
-    float_s32_t phase_power[AEC_LIB_MAX_PHASES]; ///< Energy for every H_hat phase
-}delay_estimator_params_t;
-
-
-/**
  * @brief AEC shared state structure.
  *
  * Data structures holding AEC persistant state that is common between main filter and shadow filter.
@@ -244,9 +232,6 @@ typedef struct {
 
     /** Structure containing shadow filter related parameters.*/
     shadow_filter_params_t shadow_filter_params;
-
-    /** Structure containg delay estimator related parameters.*/
-    delay_estimator_params_t delay_estimator_params;
 
     /** Structure containing AEC control parameters. These are initialised to the default values and can be changed at
      * runtime by the user.*/

@@ -48,7 +48,7 @@ list( APPEND  INCLUDES
     ${XSCOPE_FILEIO_PATH} 
     ${XSCOPE_FILEIO_PATH}/api 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/test_aec_profile/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src
     )
 
 # set( XSCOPE_CONFIG config.xscope )
