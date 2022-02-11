@@ -33,14 +33,6 @@ list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
 set( DEPS_ROOT ../../../..)
 
-## LIB_AI for unit test comparison
-file( GLOB_RECURSE LIB_AI_SOURCES_C  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
-file( GLOB_RECURSE LIB_AI_SOURCES_XC  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.xc )
-file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
-set( LIB_AI_SOURCES  ${LIB_AI_SOURCES_C} ${LIB_AI_SOURCES_XC} ${LIB_AI_SOURCES_ASM})
-set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
-
-
 ## Compile flags
 unset(COMPILE_FLAGS)
 unset(COMPILE_FLAGS_XCORE)
@@ -68,6 +60,14 @@ message(STATUS "UNITY_SOURCES: ${UNITY_SOURCES}")
 # audio_test_tools
 set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
 list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
+
+## LIB_AI for unit test comparison
+file( GLOB_RECURSE LIB_AI_SOURCES_C  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
+file( GLOB_RECURSE LIB_AI_SOURCES_XC  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.xc )
+file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
+set( LIB_AI_SOURCES  ${LIB_AI_SOURCES_C} ${LIB_AI_SOURCES_XC} ${LIB_AI_SOURCES_ASM})
+set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
+
 
 #lib_dsp
 #set( LIB_DSP_PATH ${DEPS_ROOT}/xcore_sdk/modules/lib_dsp/lib_dsp )  ## For fetching dependencies using cmake
