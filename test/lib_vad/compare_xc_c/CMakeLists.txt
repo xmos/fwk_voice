@@ -36,8 +36,8 @@ list(REMOVE_ITEM LIB_VAD_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${DEPS_ROOT}/lib_va
 set( LIB_VAD_INCLUDES ${DEPS_ROOT}/lib_vad/lib_vad/api/ ${DEPS_ROOT}/lib_vad/lib_vad/src/)
 
 ## Helpers
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/src/*.c )
-list( APPEND XSCOPE_FILEIO_INCLUDES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api/ ${DEPS_ROOT}/xscope_fileio/xscope_fileio/ ../../../examples/bare-metal/shared_src/file_utils/)
+file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
+list( APPEND XSCOPE_FILEIO_INCLUDES  ${XSCOPE_FILEIO_PATH}/api/ ${XSCOPE_FILEIO_PATH}/ ../../../examples/bare-metal/shared_src/file_utils/)
 file( GLOB SOURCES_FILE_UTILS ${SHARED_SRC_PATH}/file_utils/*.c ) 
 
 
