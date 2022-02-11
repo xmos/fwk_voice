@@ -70,7 +70,7 @@ void vad_task(const char *input_file_name) {
         memcpy(&input_frame[VAD_PROC_FRAME_LENGTH-VAD_FRAME_ADVANCE], &input_samples[0], VAD_FRAME_ADVANCE * sizeof(int32_t));
 
         int32_t vad_percentage = vad_percentage_voice(input_frame, state);
-        printf("VAD frame: %d result: %d\n", b, vad_percentage);
+        printf("OLD VAD frame: %d result: %d\n", b, vad_percentage);
 
     }
     file_close(&input_file);

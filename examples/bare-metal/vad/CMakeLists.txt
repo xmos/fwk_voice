@@ -21,7 +21,7 @@ file( GLOB SOURCES_XC src/*.xc )
 file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/*.c )
 
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
-file( GLOB_RECURSE PROFILE_SOURCES ../../../test/lib_aec/test_aec_profile/src/*.c )
+file( GLOB_RECURSE PROFILE_SOURCES ../../../test/lib_adec/test_adec_profile/src/*.c )
 
 unset( SOURCES )
 list( APPEND SOURCES ${SOURCES_C} ${SOURCES_SHARED})
@@ -33,7 +33,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 unset( INCLUDES )
 list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils )
 unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../../../test/lib_aec/test_aec_profile/src)
+list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../../../test/lib_adec/test_adec_profile/src)
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes for VAD example ${INCLUDES}" )
