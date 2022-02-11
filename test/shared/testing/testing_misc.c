@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <assert.h>
 
 #ifdef __xcore__
  #include "xcore/hwtimer.h"
@@ -37,3 +38,18 @@ unsigned getTimestamp()
   return 0;
 #endif
 }
+
+int32_t double_to_int32(double d, const int d_exp){
+    int m_exp;
+    double m = frexp (d, &m_exp);
+
+    double r = ldexp(m, m_exp - d_exp);
+    int output_exponent;
+    frexp(r, &output_exponent);
+    if(output_exponent>31){
+        printf("exponent is too high to cast to an int32_t (%d)\n", output_exponent);
+        assert(0);
+    }
+    return r;
+}
+

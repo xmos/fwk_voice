@@ -16,3 +16,7 @@ unsigned getTimestamp();
 
 #define SEED_FROM_FUNC_NAME()    get_seed(__func__, sizeof(__func__))
 C_API unsigned get_seed(const char* str, const unsigned len);
+
+// Convert a double to fixed point number of a given exponent
+C_API int32_t double_to_int32(double d, const int d_exp);
+

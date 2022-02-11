@@ -82,7 +82,7 @@ void test_delay_estimate() {
         TEST_ASSERT_EQUAL_INT32_MESSAGE(length, PHASE_CMPLX_AIR_LEN, "Phase length assumption wrong");
 
 
-        state.H_hat[ch][ph].exp = pseudo_rand_int32(&seed) % 40; //Between +39 -39
+        state.H_hat[ch][ph].exp = pseudo_rand_int(&seed, -39, 39);
         for(unsigned i = 0; i < length; i++){
             state.H_hat[ch][ph].data[i].re = pseudo_rand_int32(&seed);
             state.H_hat[ch][ph].data[i].im = pseudo_rand_int32(&seed);
