@@ -100,6 +100,11 @@ pipeline {
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
+
+                  //For VAD tests we need the old VAD and lib_ai
+                  sh "cd .. && git clone git@github.com:xmos/lib_ai.git && cd -"
+                  sh "cd .. && git clone git@github.com:xmos/lib_vad.git && cd -"
+
                 }
               }
             }
