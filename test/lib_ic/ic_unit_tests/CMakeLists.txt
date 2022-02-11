@@ -54,16 +54,11 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
 file( GLOB UNITY_SOURCES ${UNITY_PATH}/*.c )
 
-#lib_dsp
-#set( LIB_DSP_PATH ${DEPS_ROOT}/xcore_sdk/modules/lib_dsp/lib_dsp )  ## For fetching dependencies using cmake
-set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
-list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
-
 # All common sources
-list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${LIB_DSP_SOURCES} )
+list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH} ${LIB_DSP_PATH}/api )
+list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH} )
 list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_ic/src)
 
 ## executable output directory
