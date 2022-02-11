@@ -31,8 +31,6 @@ list( APPEND  DEP_LIBS
 
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
-set( DEPS_ROOT ../../../..)
-
 ## Compile flags
 unset(COMPILE_FLAGS)
 unset(COMPILE_FLAGS_XCORE)
