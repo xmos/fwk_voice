@@ -60,7 +60,7 @@ set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 list( APPEND LIB_DSP_SOURCES ${LIB_DSP_PATH}/src/dsp_math.c ${LIB_DSP_PATH}/src/bfp/dsp_bfp_cls.S )
 
 # All common sources
-list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} )
+list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${LIB_DSP_SOURCES} )
 
 ## Includes
 list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH} ${LIB_DSP_PATH}/api )
