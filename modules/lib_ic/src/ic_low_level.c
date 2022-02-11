@@ -210,7 +210,7 @@ void ic_calc_inv_X_energy(
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
     const unsigned normdenom_apply_factor_of_2 = 0;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
+    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
 }
 
 /// Calculate T (mu * inv_X_energy * Error)
@@ -229,10 +229,7 @@ void ic_compute_T(
 
 /// Adapt H_hat
 void ic_filter_adapt(ic_state_t *state){
-    if(state == NULL) {
-        return;
-    }
-    if((state->config_params.enable_adaption == 0) ||
+    if((state->ic_adaption_controller_state.adaption_controller_config.enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
     }
@@ -242,14 +239,15 @@ void ic_filter_adapt(ic_state_t *state){
 }
 
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
-
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-    if(!ad_state->enable_adaption_controller){ //skip this function if adaption controller not enabled
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
+
+    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
         return;
     }
     float_s32_t r = {vad, -8}; //convert to float between 0 and 0.99609375
 
-    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_state->voice_chance_alpha);
+    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
 
     if(float_s32_gt(r, ad_state->smoothed_voice_chance)){
         ad_state->smoothed_voice_chance = r;
@@ -259,11 +257,11 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
     float_s32_t mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
     float_s32_t ratio = one;
-    if(float_s32_gt(ad_state->input_energy, zero)){ //Protect against div by zero
-        ratio = float_s32_div(ad_state->output_energy, ad_state->input_energy);
+    if(float_s32_gt(ad_state->input_energy_slow, zero)){ //Protect against div by zero
+        ratio = float_s32_div(ad_state->output_energy_slow, ad_state->input_energy_slow);
     }
-    if(ad_state->enable_filter_instability_recovery){
-        if(float_s32_gte(ratio, ad_state->out_to_in_ratio_limit)){
+    if(ad_config->enable_filter_instability_recovery){
+        if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
             ic_reset_filter(state);
         }
     }
@@ -279,14 +277,14 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     mu = float_s32_mul(mu, ratio);
 
     float_s32_t fast_ratio = one;
-    if(float_s32_gt(ad_state->input_energy0, zero)){ //Protect against div by zero
-        fast_ratio = float_s32_div(ad_state->output_energy0, ad_state->input_energy0);
+    if(float_s32_gt(ad_state->input_energy_fast, zero)){ //Protect against div by zero
+        fast_ratio = float_s32_div(ad_state->output_energy_fast, ad_state->input_energy_fast);
     }
     if(float_s32_gt(fast_ratio, one)){
-        state->ic_adaption_controller_state.leakage_alpha = state->ic_adaption_controller_state.instability_recovery_leakage_alpha;
+        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
         mu = zero;
     } else {
-        state->ic_adaption_controller_state.leakage_alpha = one;
+        ad_config->leakage_alpha = one;
         // mu = mu;
     }
 
@@ -311,14 +309,16 @@ void ic_reset_filter(ic_state_t *state){
 void ic_apply_leakage(
     ic_state_t *state,
     unsigned y_ch){
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
-    if((state->config_params.enable_adaption == 0) ||
+
+    if((ad_config->enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
     }
 
-    int32_t mant = state->ic_adaption_controller_state.leakage_alpha.mant;
-    exponent_t exp = state->ic_adaption_controller_state.leakage_alpha.exp;
+    int32_t mant = ad_config->leakage_alpha.mant;
+    exponent_t exp = ad_config->leakage_alpha.exp;
     float_s32_t leakage = {mant, exp};
 
     for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){

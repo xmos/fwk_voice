@@ -50,9 +50,10 @@ void test_apply_leakage() {
         }
         //initialise leakage
         for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
-            state.ic_adaption_controller_state.leakage_alpha.mant = pseudo_rand_uint32(&seed) >> 1;//Positive 0 - INT_MAX
-            state.ic_adaption_controller_state.leakage_alpha.exp = -31;
-            alpha_fp = ldexp(state.ic_adaption_controller_state.leakage_alpha.mant, state.ic_adaption_controller_state.leakage_alpha.exp);
+            state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.mant = pseudo_rand_uint32(&seed) >> 1;//Positive 0 - INT_MAX
+            state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.exp = -31;
+            alpha_fp = ldexp(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.mant,
+                        state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.exp);
             // printf("leakage: %f\n", alpha_fp);
         }
 
