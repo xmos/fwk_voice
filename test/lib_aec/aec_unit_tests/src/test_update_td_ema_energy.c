@@ -30,7 +30,7 @@ void test_update_td_ema_energy() {
     
     unsigned seed = 5683;
     int max_diff = 0;
-    for(int iter=0; iter<(1<<12)/F; iter++) {
+    for(int iter=0; iter<(1<<14)/F; iter++) {
         //input
         dut.exp = pseudo_rand_int(&seed, -31, 32);
         dut.hr = pseudo_rand_uint32(&seed) % 4;
@@ -77,7 +77,7 @@ void test_update_td_ema_energy() {
         int diff = ref - dut;
         if(diff < 0) diff = -diff;
         if(diff > max_diff) max_diff = diff;
-        TEST_ASSERT_INT32_WITHIN_MESSAGE(1<<10, ref, dut, "Output delta is too large");
+        TEST_ASSERT_INT32_WITHIN_MESSAGE(1<<12, ref, dut, "Output delta is too large");
     }
     printf("max_diff = %d\n",max_diff);
 }

@@ -1,10 +1,7 @@
-#include <xs1.h>
 #include "aec_unit_tests.h"
 #include <stdio.h>
 #include <assert.h>
-extern "C"{
-    #include "aec_api.h"
-}
+#include "aec_api.h"
 
 #define TEST_MAIN_PHASES (10)
 #define TEST_NUM_Y (2)
@@ -35,20 +32,18 @@ double calc_corr_factor_fp(double *y_full, double *yhat_full) {
 }
 
 void test_calc_corr_factor() {
-    unsafe {
     unsigned num_y_channels = TEST_NUM_Y;
     unsigned num_x_channels = TEST_NUM_X;
     unsigned main_filter_phases = TEST_MAIN_PHASES;
     unsigned shadow_filter_phases = TEST_SHADOW_PHASES;
     
     aec_state_t state;
-    aec_memory_pool_t [[aligned(8)]] aec_memory_pool;
+    aec_memory_pool_t DWORD_ALIGNED aec_memory_pool;
     aec_shared_state_t aec_shared_state;
     double y_fp[TEST_NUM_Y][AEC_PROC_FRAME_LENGTH], y_hat_fp[TEST_NUM_Y][AEC_PROC_FRAME_LENGTH];
     
     aec_init(&state, NULL, &aec_shared_state, (uint8_t*)&aec_memory_pool, (uint8_t*)NULL, num_y_channels, num_x_channels, main_filter_phases, shadow_filter_phases);
     
-    int32_t new_frame[TEST_NUM_Y+TEST_NUM_X][AEC_FRAME_ADVANCE];
     unsigned seed = 10345;
     int32_t max_diff = 0; 
     for(int iter=0; iter<(1<<12)/F; iter++) {
@@ -58,18 +53,18 @@ void test_calc_corr_factor() {
         }
 
         for(int ch=0; ch<num_y_channels; ch++) {
-            state.shared_state->y[ch].exp = sext(att_random_int32(seed), 6);
-            state.shared_state->y[ch].hr = att_random_uint32(seed) % 4;
+            state.shared_state->y[ch].exp = pseudo_rand_int(&seed, -31, 32);
+            state.shared_state->y[ch].hr = pseudo_rand_uint32(&seed) % 4;
 
-            state.y_hat[ch].exp = sext(att_random_int32(seed), 6);
-            state.y_hat[ch].hr = att_random_uint32(seed) % 4;
+            state.y_hat[ch].exp = pseudo_rand_int(&seed, -31, 32);
+            state.y_hat[ch].hr = pseudo_rand_uint32(&seed) % 4;
 
             for(int i=0; i<AEC_PROC_FRAME_LENGTH; i++) {
-                state.shared_state->y[ch].data[i] = att_random_int32(seed) >> state.shared_state->y[ch].hr;
-                y_fp[ch][i] = att_int32_to_double(state.shared_state->y[ch].data[i], state.shared_state->y[ch].exp);
+                state.shared_state->y[ch].data[i] = pseudo_rand_int32(&seed) >> state.shared_state->y[ch].hr;
+                y_fp[ch][i] = ldexp(state.shared_state->y[ch].data[i], state.shared_state->y[ch].exp);
 
-                state.y_hat[ch].data[i] = att_random_int32(seed) >> state.y_hat[ch].hr;
-                y_hat_fp[ch][i] = att_int32_to_double(state.y_hat[ch].data[i], state.y_hat[ch].exp);
+                state.y_hat[ch].data[i] = pseudo_rand_int32(&seed) >> state.y_hat[ch].hr;
+                y_hat_fp[ch][i] = ldexp(state.y_hat[ch].data[i], state.y_hat[ch].exp);
             }
         }
 
@@ -83,12 +78,11 @@ void test_calc_corr_factor() {
         for(int ch=0; ch<num_y_channels; ch++) {
             double ref_corr = calc_corr_factor_fp(y_fp[ch], y_hat_fp[ch]);
             float_s32_t dut_corr = aec_calc_corr_factor(&state, ch); 
-            int32_t ref = att_double_to_int32(ref_corr, dut_corr.exp);
+            int32_t ref = double_to_int32(ref_corr, dut_corr.exp);
             int32_t diff = abs(ref - dut_corr.mant);
             TEST_ASSERT_LESS_OR_EQUAL_INT32_MESSAGE(1<<15, diff, "corr_factor diff too large.");
             if(diff > max_diff) {max_diff = diff;}
         } 
     }
     //printf("max_diff = %d\n",max_diff);
-    }
 }
