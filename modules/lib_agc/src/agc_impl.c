@@ -256,8 +256,5 @@ void agc_process_frame(agc_state_t *agc,
         }
     }
 
-    // Clip to avoid over/underflow when changing to the output frame exponent
-    bfp_s32_clip(&output_bfp, &output_bfp, INT_MIN, INT_MAX, FRAME_EXP);
-
     bfp_s32_use_exponent(&output_bfp, FRAME_EXP);
 }

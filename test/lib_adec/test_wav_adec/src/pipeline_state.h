@@ -20,8 +20,8 @@
 #endif
 
 typedef struct {
-    uint8_t num_x_channels;
     uint8_t num_y_channels;
+    uint8_t num_x_channels;
     uint8_t num_main_filt_phases;
     uint8_t num_shadow_filt_phases;
 } aec_conf_t;
