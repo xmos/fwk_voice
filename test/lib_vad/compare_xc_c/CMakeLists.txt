@@ -1,5 +1,5 @@
 ## App name
-set( APP_NAME  compare_xc_c )
+set( APP_NAME  run_old_vad )
 
 set (XCORE_TARGET XCORE-AI-EXPLORER)
 
@@ -40,8 +40,6 @@ file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${DEPS_ROOT}/xscope_fileio/xscope_file
 list( APPEND XSCOPE_FILEIO_INCLUDES  ${DEPS_ROOT}/xscope_fileio/xscope_fileio/api/ ${DEPS_ROOT}/xscope_fileio/xscope_fileio/ ../../../examples/bare-metal/shared_src/file_utils/)
 file( GLOB SOURCES_FILE_UTILS ${SHARED_SRC_PATH}/file_utils/*.c ) 
 
-message( STATUS "DEPS_ROOT ${DEPS_ROOT}" )
-
 
 
 list( APPEND  SOURCES   ${SOURCES_C} ${SOURCES_XC} ${SOURCES_RAND}
@@ -50,14 +48,16 @@ list( APPEND  SOURCES   ${SOURCES_C} ${SOURCES_XC} ${SOURCES_RAND}
 list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 # set( XSCOPE_CONFIG config.xscope )
-get_filename_component(XSCOPE_CONFIG ../../etc/config.xscope ABSOLUTE)
+get_filename_component(XSCOPE_CONFIG ./config.xscope ABSOLUTE)
+message( STATUS "XSCOPE_CONFIG ${XSCOPE_CONFIG}" )
+
 
 ## Compile flags
 unset(COMPILE_FLAGS)
 list( APPEND  COMPILE_FLAGS   -Wno-unused-variable )
 
 unset(COMPILE_FLAGS_XCORE)
-list( APPEND  COMPILE_FLAGS_XCORE   -DTEST_WAV_XSCOPE=1)
+list( APPEND  COMPILE_FLAGS_XCORE -DTEST_WAV_XSCOPE=1 -target=${XCORE_TARGET})
 
 unset(COMPILE_FLAGS_Linux)
 list( APPEND  COMPILE_FLAGS_Linux   "" )
