@@ -70,7 +70,7 @@ void test_compare_fft_mfcc(){
         int rel_dsp_exp = dsp_fft_mfcc(orig_dsp, 1);
         complex_s32_t * dsp_fd = (complex_s32_t *)orig_dsp;
 
-        vad_mel_compute(dsp_mel, VAD_N_MEL_SCALE + 1, dsp_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2 * (9 - rel_dsp_exp));
+        vad_mel_compute(dsp_mel, VAD_N_MEL_SCALE + 1, dsp_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2 * (VAD_LOG_WINDOW_LENGTH - rel_dsp_exp));
 
         int xs3_exp = xs3_math_fft_mfcc(orig_xs3, 1);
         complex_s32_t * xs3_fd = (complex_s32_t *)orig_xs3;
