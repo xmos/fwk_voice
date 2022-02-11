@@ -74,7 +74,7 @@ void vad_init(vad_state_t *state) {
 
 int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
                             vad_state_t * state){
-    int32_t DWORD_ALIGNED curr[VAD_PROC_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED curr[VAD_PROC_FRAME_LENGTH + 2];
     int32_t mel[VAD_N_MEL_SCALE + 1];
     int32_t dct_input[VAD_N_DCT];
     int32_t dct_output[VAD_N_DCT];
@@ -123,7 +123,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     dsp_fft_bit_reverse(input, VAD_WINDOW_LENGTH);         
     dsp_fft_forward(input, VAD_WINDOW_LENGTH, VAD_DSP_SINE_WINDOW_LENGTH);
 #else    
-    //WORK IN PROGRESS - THIS DOES NOT WORK YET 
+
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
     exponent_t x_exp = -31;
     headroom_t hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
@@ -132,9 +132,13 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
     hr += x_shr; x_exp += x_shr;
 
-    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_LENGTH);
+    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_BINS);
     xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
     xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
+    
+    curr_fd[VAD_PROC_FRAME_BINS].re = curr_fd[0].im;
+    curr_fd[0].im = 0;
+    curr_fd[VAD_PROC_FRAME_BINS].im = 0;
 #endif
 
 
@@ -152,9 +156,12 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
-    
-    vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS, vad_mel_table24_512, 2 * (VAD_LOG_WINDOW_LENGTH + (-31 - x_exp)));
-    
+#if 0    
+    vad_mel_compute(mel, VAD_N_MEL_SCALE+1, input, VAD_WINDOW_LENGTH/2 + 1, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
+#else
+    vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (VAD_EXP - x_exp) * 2);
+#endif   
+
     // Mel coefficients are in 8.24; make them in 16.16 format for headroom
     for(int i = 0; i < VAD_N_MEL_SCALE; i++) {
         dct_input[i] = (mel[i + 1] >> 8);   // create headroom.

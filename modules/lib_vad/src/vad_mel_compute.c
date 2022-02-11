@@ -81,7 +81,7 @@ void vad_mel_compute(int32_t * melValues, uint32_t M,
         melValues[i] = 0;
     }
 
-    for(int i = 0; i <= N; i++) {
+    for(int i = 0; i < N; i++) {
         uint64_t s = pts[i].re * (uint64_t) pts[i].re + pts[i].im * (uint64_t) pts[i].im;
         uint32_t h = s >> 32;
         uint32_t l = s & 0xffffffff;

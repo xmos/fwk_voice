@@ -14,6 +14,7 @@ int main(int argc, const char* argv[])
     UnityBegin(argv[0]);
 
     RUN_TEST_GROUP(test_compare_fft);
+    RUN_TEST_GROUP(test_compare_fft_mfcc);
 
 
     return UNITY_END();
