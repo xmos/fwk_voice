@@ -33,8 +33,8 @@ COMMENT "Generating AEC task distribution and top level config" )
 list( APPEND  DEP_LIBS_XCORE  ""  )
 
 list( APPEND  DEP_LIBS        
-    lib_xs3_math
     lib_aec 
+    lib_adec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 

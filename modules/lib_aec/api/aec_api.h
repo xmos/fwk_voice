@@ -389,15 +389,16 @@ float_s32_t aec_calc_max_ref_energy(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE],
         int num_channels);
 
-/// Estimate delay
-/*int aec_estimate_delay (
-        aec_state_t *state);*/
-int aec_estimate_delay (
-        delay_estimator_params_t *de_state,
-        const bfp_complex_s32_t* H_hat, 
-        unsigned num_phases);
+/** @brief Reset parts of aec state structure
+ *
+ * This function resets AEC state so as to start adapting from a zero filter.
+ */
+void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
 
-
+/** @brief Quick check to see if there is any activity on the reference channel input
+ *
+ */
+int32_t aec_detect_ref_activity(const int32_t (*input_x_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_x_channels);
 
 //TODO pending documentation and examples for L2 APIs
 /**
