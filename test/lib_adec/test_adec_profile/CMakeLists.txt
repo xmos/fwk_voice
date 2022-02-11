@@ -39,7 +39,6 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     list( APPEND  DEP_LIBS        
         lib_aec 
         lib_adec
-        lib_adec
         ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
     )
 
