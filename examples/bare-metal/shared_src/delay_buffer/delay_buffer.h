@@ -2,12 +2,12 @@
 #define DELAY_BUFFER_H
 
 #define MAX_DELAY_BUF_CHANNELS (2)
-#define MAX_DELAY_MS                ( 150 )
-#define MAX_DELAY_SAMPLES           ( 16000*MAX_DELAY_MS/1000 )
+#define DELAY_BUF_MAX_DELAY_MS                ( 150 )
+#define DELAY_BUF_MAX_DELAY_SAMPLES           ( 16000*DELAY_BUF_MAX_DELAY_MS/1000 )
 
 typedef struct {
     // Circular buffer to store the samples
-    int32_t delay_buffer[MAX_DELAY_BUF_CHANNELS][MAX_DELAY_SAMPLES];
+    int32_t delay_buffer[MAX_DELAY_BUF_CHANNELS][DELAY_BUF_MAX_DELAY_SAMPLES];
     // index of the value for the samples to be stored in the buffer
     int32_t curr_idx[MAX_DELAY_BUF_CHANNELS];
     int32_t delay_samples;

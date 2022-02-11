@@ -33,7 +33,7 @@ extern void aec_process_frame_2threads(
         const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 
-void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
+static void aec_switch_configuration(pipeline_state_t *state, aec_conf_t *conf)
 {
     aec_init(&state->aec_main_state, &state->aec_shadow_state, &state->aec_shared_state,
             &state->aec_main_memory_pool[0], &state->aec_shadow_memory_pool[0],
@@ -123,7 +123,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     
     prof(4, "start_is_frame_active");
     // Calculate far_end active
-    int is_ref_active = aec_detect_ref_activity(input_x_data, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
+    int is_ref_active = aec_detect_input_activity(input_x_data, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
     prof(5, "end_is_frame_active");
 
     //printf("frame %d\n",framenum);
