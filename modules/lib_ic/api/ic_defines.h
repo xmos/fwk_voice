@@ -133,8 +133,9 @@
  * @ingroup ic_defines
  */   
 #define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) //Frequency domain frame length
-/** Wxtra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored
- * after the in-place DFT. NOT USER MODIFIABLE.
+
+/** Extra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored
+ * after the in-place FFT. NOT USER MODIFIABLE.
  *
  * @ingroup ic_defines
  */  
