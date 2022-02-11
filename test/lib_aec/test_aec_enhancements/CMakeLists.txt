@@ -30,16 +30,17 @@ COMMENT "Generating AEC task distribution and top level config" )
 list( APPEND  DEP_LIBS_XCORE  ""  )
 
 list( APPEND  DEP_LIBS        
-    lib_xs3_math
     lib_aec 
+    lib_adec
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 
 ## Sources
-file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.c )
-file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_aec/src/*.xc )
+file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/*.c )
+file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/*.xc )
+file( GLOB SOURCES_DELAY_BUFFER  ${SHARED_SRC_PATH}/delay_buffer/*.c )
 if ( XCORE )
     file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/*.c )
 else()
@@ -51,8 +52,8 @@ file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 file( GLOB_RECURSE AUDIO_TEST_TOOLS_SOURCES ${DEPS_ROOT}/audio_test_tools/audio_test_tools/src/burners.S )
 file( GLOB SOURCES_FILE_UTILS ${SHARED_SRC_PATH}/file_utils/*.c ) 
 
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${SOURCES_FILE_UTILS} ${AUDIO_TEST_TOOLS_SOURCES} ${AUTOGEN_SOURCES} )
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
+list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_AEC_PROCESS_FRAME} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${SOURCES_FILE_UTILS} ${AUDIO_TEST_TOOLS_SOURCES} ${AUTOGEN_SOURCES} ${SOURCES_DELAY_BUFFER} )
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ${SHARED_SRC_PATH}/delay_buffer )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
@@ -61,7 +62,7 @@ get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
 unset(COMPILE_FLAGS)
 unset(COMPILE_FLAGS_XCORE)
 
-list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 )
+list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 -DBYPASS_ADEC=1)
 
 
 ##Linker flags

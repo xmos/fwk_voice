@@ -96,7 +96,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     prof(1, "end_ic_init"); 
 
     #if DISABLE_ADAPTION_CONTROLLER
-    state.ic_adaption_controller_state.enable_adaption_controller = 0;
+    state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;
     #endif
 
     

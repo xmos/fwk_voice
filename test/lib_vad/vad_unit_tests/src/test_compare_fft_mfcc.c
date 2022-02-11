@@ -46,7 +46,7 @@ int xs3_math_fft_mfcc(int32_t * curr, int nq){
 }
 
 void test_compare_fft_mfcc(){
-    unsigned seed = SEED_FROM_FUNC_NAME();
+    unsigned seed = 6031759;
 
     dsp_complex_t DWORD_ALIGNED orig_dsp[VAD_PROC_FRAME_LENGTH + 2];
     int32_t DWORD_ALIGNED orig_xs3[VAD_PROC_FRAME_LENGTH + 2] = {0};

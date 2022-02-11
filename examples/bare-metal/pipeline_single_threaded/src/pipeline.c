@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "aec_api.h"
-#include "suppression.h"
+#include "sup_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 
@@ -28,7 +28,7 @@ void pipeline_init(pipeline_state_t *state) {
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        sup_init_state(&state->sup_state[ch]);
+        sup_init(&state->sup_state[ch]);
     }
     
     // Initialise AGC

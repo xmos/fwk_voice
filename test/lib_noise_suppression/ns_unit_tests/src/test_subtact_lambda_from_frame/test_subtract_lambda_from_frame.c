@@ -9,8 +9,8 @@
 #include <bfp_math.h>
 #include <math.h>
 
-#include <suppression.h>
-#include <suppression_testing.h>
+#include <sup_api.h>
+#include <sup_test.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -67,7 +67,7 @@ TEST(ns_subtract_lambda_from_frame, case0){
     for(int i = 0; i < 100; i++){
 
         sup_state_t state;
-        sup_init_state(&state);
+        sup_init(&state);
 
         float_s32_t t;
         int lut_index;
