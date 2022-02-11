@@ -84,8 +84,6 @@ void vad_task(const char *input_file_name) {
     vad_init(&state);
     prof(1, "end_vad_init"); 
 
-    int32_t vad_frame[VAD_WINDOW_LENGTH] = {0};
-
     for(unsigned b=0;b<block_count;b++){
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * VAD_FRAME_ADVANCE, input_header_size);
@@ -96,10 +94,11 @@ void vad_task(const char *input_file_name) {
         }
 
         prof(2, "start_vad_estimate");
-        uint8_t vad = vad_probability_voice(vad_frame, &state);
+        uint8_t vad = vad_probability_voice(input, &state);
+        printf("frame: %d vad: %d\n", b, vad);
         prof(3, "end_vad_estimate");
 
-        print_prof(0,4,b+1);
+        // print_prof(0,4,b+1);
     }
     file_close(&input_file);
     shutdown_session();

@@ -16,5 +16,10 @@
 #define VAD_PROC_FRAME_BINS (VAD_PROC_FRAME_LENGTH / 2)
 #define VAD_FRAME_ADVANCE 240
 #define VAD_EXP -31
+
+//Take from ai_nn.h since we removed lib_ai as a dependancy
+#define AI_NN_WEIGHT_Q   24
+#define AI_NN_VALUE_Q    24
+#define AI_NN_OUTPUT_Q   (AI_NN_WEIGHT_Q + AI_NN_VALUE_Q)
     
 #endif
