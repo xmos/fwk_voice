@@ -34,7 +34,7 @@ void test_calc_max_ref_energy() {
             }
         }
         ref_max = calc_max_ref_energy_fp(ref, CHANNELS);
-        dut_max = aec_calc_max_input_energy(dut, CHANNELS);
+        dut_max = aec_calc_max_ref_energy(dut, CHANNELS);
 
         int dut = dut_max.mant;
         int ref = double_to_int32(ref_max, dut_max.exp);
