@@ -51,14 +51,13 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 
 ## Sources
 # Unity
-set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
-file( GLOB UNITY_SOURCES ${UNITY_PATH}/*.c )
+file( GLOB UNITY_SOURCES ${UNITY_PATH}/src/*.c )
 
 # All common sources
 list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} )
 
 ## Includes
-list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH} )
+list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand ${AUTOGEN_DIR} ${UNITY_PATH}/src )
 list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_ic/src)
 
 ## executable output directory
@@ -88,7 +87,7 @@ foreach( testfile ${TEST_SOURCES} )
     set( GEN_RUNNER_SCRIPT_BYPRODUCTS ${RUNNER_FILE} )
 
     unset(GEN_RUNNER_SCRIPT_ARGS) 
-    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${DEPS_ROOT} )
+    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${UNITY_PATH}/.. )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --source-file ${testfile} )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --runner-file ${RUNNER_FILE})
 
