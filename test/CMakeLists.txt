@@ -4,7 +4,7 @@ set( UNITY_PATH ${CMAKE_BINARY_DIR}/deps/Unity )
 
 add_subdirectory( shared )
 
-add_subdirectory( lib_noise_suppression )
+add_subdirectory( lib_ns )
 
 add_subdirectory( lib_aec )
 
