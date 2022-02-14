@@ -1,7 +1,7 @@
 ## App name
 set( APP_NAME  run_old_vad )
 
-set (XCORE_TARGET XCORE-AI-EXPLORER)
+# set (XCORE_TARGET XCORE-AI-EXPLORER)
 
 set( DEPS_ROOT ../../../..)
 
@@ -42,9 +42,9 @@ file( GLOB SOURCES_FILE_UTILS ${SHARED_SRC_PATH}/file_utils/*.c )
 
 
 
-list( APPEND  SOURCES   ${SOURCES_C} ${SOURCES_XC} ${SOURCES_RAND}
-                        ${SOURCES_FILE_UTILS} ${SOURCES_TEST} ${XSCOPE_FILEIO_SOURCES}
-                        ${LIB_DSP_SOURCES} ${LIB_AI_SOURCES} ${LIB_VAD_SOURCES} )
+list( APPEND  SOURCES_XCORE     ${SOURCES_C} ${SOURCES_XC} ${SOURCES_RAND}
+                                ${SOURCES_FILE_UTILS} ${SOURCES_TEST} ${XSCOPE_FILEIO_SOURCES}
+                                ${LIB_DSP_SOURCES} ${LIB_AI_SOURCES} ${LIB_VAD_SOURCES} )
 list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 # set( XSCOPE_CONFIG config.xscope )
