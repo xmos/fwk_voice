@@ -9,20 +9,32 @@ loudspeakers.
 Acoustic echo cancellation is an adaptive filtering process which compares the reference audio to that received from the
 microphones.  It models the reverberation time of a room, i.e. the time it takes for acoustic reflections to decay to
 insignificance. The time window modelled by the AEC is finite, and to maximise its performance it is important to ensure
-that the reference audio is presented to the AEC time aligned to the audio being reproduced by the loudspeakers.  The
+that the reference audio is presented to the AEC time aligned to the audio being reproduced by the loudspeakers. The
 reference audio path delay and the audio reproduction path delay may be significantly different, requiring additional
 delay to be inserted into one of the two paths, to correct this delay difference.
 
 ADEC module provides functionality for 
 
-* Measuring the current mic-ref delay
+* Measuring the current delay
 * Using the measured delay along with AEC perfomance related metadata collected from the echo canceller to monitor AEC and make decisions about reconfiguring the AEC and correcting bulk delay offsets.
 
 The metadata collected from AEC contains statistics such as the ERLE, the peak power seen in the adaptive filter and the
-peak power to average power ratio of the adaptive filter. Using these statistics ADEC estimates a metric called the AEC
-goodness which is an estimate of how well the echo canceller is performing. Based on the estimated AEC goodness and the
-current measured delay, ADEC can request for a delay correction to be applied at the input of the echo canceller.  If
-the AEC is seen as consistently bad, the ADEC can also request a restart of the AEC with a different configuration; one
-that is suitable for measuring delay in both directions so that ADEC can monitor and estimate a new delay.
+peak power to average power ratio of the adaptive filter.
+
+ADEC algorithm works in 2 modes - normal mode and delay estimation mode.
+In its normal mode ADEC monitors the AEC performance and requests small delay corrections. Using the statistics from AEC, ADEC estimates a metric called the
+AEC goodness which is an estimate of how well the echo canceller is performing. Based on the estimated AEC goodness and the current measured delay, ADEC can
+request for a delay correction to be applied at the input of the echo canceller.
+
+If the AEC is seen as consistently bad, the ADEC transitions to a delay estimation mode and requests for
+
+* A special delay to be applied at AEC input that will enable measuring the actual delay in both delay scenarios; microphone input
+arriving at AEC earlier in time than the reference input as well as microphone input arriving late in time wrt
+reference input.
+* A restart of AEC in a new configuration that has more adaptive filter phases, in order of have a longer filter tail
+length that is suitable for delay estimation.
+
+Once ADEC has a measure of the new delay, it requests a delay correction and a reconfiguration of AEC back to its normal
+mode and goes back to its normal mode of monitoring AEC performance and correcting for small delay offsets.
 
 

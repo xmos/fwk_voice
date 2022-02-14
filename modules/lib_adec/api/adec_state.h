@@ -23,8 +23,8 @@
  * @ingroup adec_types
  */
 typedef enum {
-    ADEC_NORMAL_AEC_MODE, ///< ADEC processing mode when AEC is configured in the normal, non delay estimation mode
-    ADEC_DELAY_ESTIMATOR_MODE, ///< ADEC processing mode when AEC is configured in delay estimation mode
+    ADEC_NORMAL_AEC_MODE, ///< ADEC processing mode where it monitors AEC performance and requests small delay correction. 
+    ADEC_DELAY_ESTIMATOR_MODE, ///< ADEC processing mode for bulk delay correction in which it measures for a new delay offset.
 } adec_mode_t;
 
 /**
@@ -39,8 +39,8 @@ typedef struct {
     /** Bypass ADEC decision making process. When set to 1, ADEC evaluates the current input frame metrics but doesn't
      * make any delay correction or aec reset and reconfiguration requests*/
     int32_t bypass;
-    /** Force trigger a delay estimation cycle. When set to 1, ADEC bypasses the ADEC evaluation process and transitions to delay
-     * estimation mode.
+    /** Force trigger a delay estimation cycle. When set to 1, ADEC bypasses the ADEC monoitoring process and transitions to delay
+     * estimation mode for measuring delay offset.
     */
     int32_t force_de_cycle_trigger; 
 }adec_config_t;
@@ -70,17 +70,17 @@ typedef struct {
     /** Mic delay in samples requested by ADEC. Relevant when delay_change_request_flag is 1. Note that this value is a signed integer.
      * A positive `requested_mic_delay_samples` requires the microphone to be delayed so the application needs to delay the input mic
      * signal by `requested_mic_delay_samples` samples. A negative `requested_mic_delay_samples` means ADEC is requesting the input mic
-     * signal to be moved back in time. This, the application should do my delaying the input reference signal 
+     * signal to be moved earlier in time. This, the application should do my delaying the input reference signal 
      * by `abs(requested_mic_delay_samples)` samples.
     */
     int32_t requested_mic_delay_samples;
     /** flag indicating ADEC's request for a reset of part of the AEC state to get AEC filter to start adapting from a 0 filter.
-     * ADEC requests this when a delay correction without the AEC needing to switch between normal and DE modes*/
+     * ADEC requests this when a small delay correction needs to be applied that doesn't require a full reset of the AEC.*/
     
     int32_t reset_aec_flag;
     /** Flag indicating if AEC needs to be run configured in delay estimation mode.*/
     int32_t delay_estimator_enabled_flag;
-    ///< Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used only for debugging.
+    /** Requested delay samples without clamping to +- MAX_DELAY_SAMPLES. Used only for debugging.*/
     int32_t requested_delay_samples_debug;
 } adec_output_t;
 
@@ -126,7 +126,7 @@ typedef struct {
 
     adec_mode_t mode; ///< ADEC's mode of operation. Can be operating in normal AEC or delay estimation mode
     int32_t peak_to_average_ratio_valid_flag;
-    int32_t gated_milliseconds_since_mode_change; ///< milliseconds elapsed since a delay change was last requested.
+    int32_t gated_milliseconds_since_mode_change; ///< milliseconds elapsed since a delay change was last requested. Used to ensure that delay corrections are not requested too early without allowing enough time for aec filter to converge.
     int32_t last_measured_delay; ///< Last measured delay 
     int32_t peak_power_history_idx; ///< index storing the head of the peak_power_history circular buffer
     int32_t peak_power_history_valid; ///< Flag indicating whether the peak_power_history buffer has been filled atleast once.
