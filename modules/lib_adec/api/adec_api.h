@@ -47,10 +47,8 @@ void adec_init(adec_state_t *state, adec_config_t *config);
 
 /** @brief Perform ADEC processing on an input frame of data
  * 
- * This function takes information about the latest AEC processed frame and the latest measured delay estimate as input,  
- * and decides if a delay correction between input microphone and reference signals is required.
- * If a correction is needed, it outputs a new requested input delay, optionally accompanied with a request for 
- * AEC restart in a different configuration.
+ * This function takes information about the latest AEC processed frame and the latest measured delay estimate as input, and decides if a delay correction between input microphone and reference signals is required.
+ * If a correction is needed, it outputs a new requested input delay, optionally accompanied with a request for AEC restart in a different configuration.
  * It updates the internal ADEC state structure to reflect the current state of the ADEC process.
  *
  * @param[inout] state ADEC internal state structure
