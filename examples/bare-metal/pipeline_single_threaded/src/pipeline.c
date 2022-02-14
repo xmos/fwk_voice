@@ -33,6 +33,7 @@ void pipeline_init(pipeline_state_t *state) {
     aec_de_mode_conf.num_main_filt_phases = 30;
     aec_de_mode_conf.num_shadow_filt_phases = 0;
     
+    // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
     adec_conf.bypass = 1; //Bypass automatic DE correction
     adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation   
