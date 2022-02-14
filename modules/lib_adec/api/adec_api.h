@@ -26,14 +26,18 @@
  * @par Example with ADEC configured for delay estimation only at startup
  * @code{.c}
  *      adec_state_t adec_state;
-        adec_config_t adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP;
+        adec_config_t adec_conf;
+        adec_conf.bypass = 1; // Bypass automatic DE correction
+        adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation
         adec_init(&adec_state, &adec_conf);
+        // Application needs to ensure that adec_state->adec_config.force_de_cycle_trigger is set to 0 after ADEC has requested a transition to delay estimation mode once in order to ensure that delay is corrected only at startup.  
  * @endcode
  *
- * @par Example with ADEC configured for automatic delay estimation and control
+ * @par Example with ADEC configured for automatic delay estimation and correction
  * @code{.c}
  *      adec_state_t adec_state;
-        adec_config_t adec_conf = ADEC_CONFIG_AUTOMATIC_DE_CONTROL;
+        adec_conf.bypass = 0;
+        adec_conf.force_de_cycle_trigger = 0;
         adec_init(&adec_state, &adec_conf);
  * @endcode
  *

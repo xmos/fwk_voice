@@ -112,6 +112,15 @@ typedef struct {
     int32_t far_end_active_flag;
 }adec_input_t;
 
+/**
+ * @brief ADEC state structure
+ *
+ * This structure holds the current state of the ADEC instance and members are updated each
+ * time that `adec_process_frame()` runs. Many of these members are statistics from tracking the AEC performance.
+ * The user should not directly modify any of these members, except the config.
+ *
+ * @ingroup adec_types
+ */
 typedef struct {
     float_s32_t max_peak_to_average_ratio_since_reset; ///< Maximum peak to average AEC filter phase energy ratio seen since a delay correction was last requested. 
     float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1]; ///< Last ADEC_PEAK_TO_RAGE_HISTORY_DEPTH frames peak_to_average_ratio of phase energies
