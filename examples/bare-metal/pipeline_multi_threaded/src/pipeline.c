@@ -14,7 +14,7 @@
 #include "pipeline_state.h"
 #include "stage_1.h"
 
-#include "sup_api.h"
+#include "ns_api.h"
 #include "agc_api.h"
 
 extern void aec_process_frame_2threads(
@@ -79,9 +79,9 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     //Initialise NS
-    sup_state_t DWORD_ALIGNED sup_state[AP_MAX_Y_CHANNELS];
+    ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        sup_init(&sup_state[ch]);
+        ns_init(&ns_state[ch]);
     }
 
     int32_t DWORD_ALIGNED frame [AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -96,7 +96,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         /**NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
             //the frame buffer will be used for both input and output here
-            sup_process_frame(&sup_state[ch], frame[ch], frame[ch]);
+            ns_process_frame(&ns_state[ch], frame[ch], frame[ch]);
         }
 
         // Transmit output frame

@@ -1,6 +1,6 @@
 add_subdirectory( ${XCORE_SDK_PATH}/modules/lib_xs3_math/lib_xs3_math ${CMAKE_CURRENT_BINARY_DIR}/libs/ )
 
-add_subdirectory( lib_noise_suppression )
+add_subdirectory( lib_ns )
 
 add_subdirectory( lib_aec )
 
