@@ -12,7 +12,7 @@ extern void vad_fc_layer(  int64_t output[], const size_t num_out,
 
 #define N_COEFFS ((1 + VAD_N_FEATURES) * N_VAD_HIDDEN)
 
-void test_dummy() {
+void test_fully_connected() {
     unsigned int seed = 6031759;
 
     int32_t coeffs[N_COEFFS]={0};

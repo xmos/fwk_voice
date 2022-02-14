@@ -7,7 +7,7 @@
 
 extern void vad_reduce_relu(int32_t activated[], int64_t raw_layer[], const size_t N);
 
-void test_dummy() {
+void test_reduce_relu() {
     unsigned int seed = 6031769;
 
     for(int iter=0; iter<(1<<11)/F; iter++) {

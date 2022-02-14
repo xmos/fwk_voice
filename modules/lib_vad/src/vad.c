@@ -62,7 +62,7 @@ void vad_fc_layer(  int64_t output[], const size_t num_out,
 
     for(int o = 0; o < num_out; o++) {
         int bias_idx = (num_bias + num_in) * o;
-        int64_t bias = ((int64_t)weights[bias_idx] << AI_NN_VALUE_Q);
+        int64_t bias = ((int64_t)weights[bias_idx] << VAD_AI_NN_VALUE_Q);
 
         int weights_idx = bias_idx + num_bias;
         int64_t dot = xs3_vect_s32_dot( &weights[weights_idx],
@@ -78,14 +78,14 @@ void vad_fc_layer(  int64_t output[], const size_t num_out,
 
 void vad_reduce_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
     for(int i=0; i<N; i++){
-        const int64_t max = 0x7fffffffLL << AI_NN_WEIGHT_Q;
+        const int64_t max = 0x7fffffffLL << VAD_AI_NN_WEIGHT_Q;
         int64_t clamped_relu = raw_layer[i];
         if (clamped_relu > max){
             clamped_relu = max;
         }else if(clamped_relu < 0){
             clamped_relu = 0;
         }
-        activated[i] = clamped_relu >> AI_NN_WEIGHT_Q;
+        activated[i] = clamped_relu >> VAD_AI_NN_WEIGHT_Q;
     }
 }
 
@@ -93,7 +93,7 @@ void vad_reduce_sigmoid(int32_t out_data[],
                        const int64_t in_data[],
                        const size_t N) {
     for(uint32_t i = 0; i < N; i++) {
-        int32_t shift = AI_NN_OUTPUT_Q-24;
+        int32_t shift = VAD_AI_NN_OUTPUT_Q-24;
         int64_t x = in_data[i];
         long long max = 0x7fffffffLL << shift;
         if (x > max) x = max;

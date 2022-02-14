@@ -7,7 +7,7 @@
 
 extern void vad_reduce_sigmoid(int32_t activated[], const int64_t raw_layer[], const size_t N);
 
-void test_dummy() {
+void test_reduce_sigmoid() {
     unsigned int seed = 6031769;
 
     for(int iter=0; iter<(1<<11)/F; iter++) {
@@ -21,12 +21,12 @@ void test_dummy() {
         int32_t ref_result[N_VAD_HIDDEN] = {0};
         int32_t dut_result[N_VAD_HIDDEN] = {0};
 
-        nn_reduce_relu(ref_result, ref_raw, N_VAD_HIDDEN);
+        nn_reduce_sigmoid(ref_result, ref_raw, N_VAD_HIDDEN);
 
         vad_reduce_sigmoid(dut_result, ref_raw, N_VAD_HIDDEN);
 
         for(int i=0; i<N_VAD_HIDDEN;i++){
-            // printf("%d - ref: %ld dut: %ld diff:%ld\n", i, ref_result[i], dut_result[i], ref_result[i] - dut_result[i]);
+            // printf("%d - ref: %ld (in: %lld) dut: %ld diff:%ld\n", i, ref_result[i], ref_raw[i], dut_result[i], ref_result[i] - dut_result[i]);
             const int32_t delta = 1; //31bits of equivalence 
             TEST_ASSERT_INT32_WITHIN(delta, ref_result[i], dut_result[i]);
         }
