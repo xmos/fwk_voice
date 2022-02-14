@@ -15,7 +15,7 @@
  */ 
 
 /** 
- * @brief Number of frames far we look back to smooth the pk:ave ratio history
+ * @brief Number of frames far we look back to smooth the peak to average filter power ratio history
  * @ingroup adec_defines
  */
 #define ADEC_PEAK_TO_RAGE_HISTORY_DEPTH         8
