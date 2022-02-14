@@ -418,7 +418,7 @@ pipeline {
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/*.log", fingerprint: true
         }
         cleanup {
           cleanWs()
