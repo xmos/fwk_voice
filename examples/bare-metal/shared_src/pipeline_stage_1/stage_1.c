@@ -74,8 +74,7 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
             delay_state_ptr
             );
     
-    /** Detect if there's activity on the reference channels*/
-    int is_ref_active = aec_detect_input_activity(input_x, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
+    //int is_ref_active = aec_detect_input_activity(input_x, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
 
     /** AEC*/
 #if (NUM_AEC_THREADS > 1)
@@ -103,9 +102,10 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
     // Create input to ADEC from AEC
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_main_state.error_ema_energy[0];
+    adec_in.from_aec.x_ema_energy_ch0 = state->aec_main_state.shared_state->x_ema_energy[0];
     adec_in.from_aec.shadow_flag_ch0 = state->aec_main_state.shared_state->shadow_filter_params.shadow_flag[0];
     // Directly from app
-    adec_in.far_end_active_flag = is_ref_active; 
+    //adec_in.far_end_active_flag = is_ref_active; 
 
     adec_output_t adec_output;
     adec_process_frame(

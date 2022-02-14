@@ -94,6 +94,8 @@ typedef struct {
     float_s32_t y_ema_energy_ch0;
     /** EWMA energy of AEC filter error output signal channel 0*/
     float_s32_t error_ema_energy_ch0;
+    /** EWMA energy of AEC input reference signal channel 0*/
+    float_s32_t x_ema_energy_ch0;
     /** shadow_flag value for the current frame computed within the AEC*/
     int32_t shadow_flag_ch0;
 }aec_to_adec_t;
@@ -108,8 +110,6 @@ typedef struct {
     de_output_t from_de;
     /** ADEC input from AEC*/
     aec_to_adec_t from_aec;
-    /** Flag indicating if there is activity on reference input channels.*/
-    int32_t far_end_active_flag;
 }adec_input_t;
 
 /**

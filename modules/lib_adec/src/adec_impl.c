@@ -53,6 +53,9 @@ void adec_process_frame(
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
+
+  // Check if there is activity on the reference input 
+  int32_t far_end_active_flag = float_s32_gt(adec_in->from_aec.x_ema_energy_ch0, ADEC_REF_ACTIVE_POWER_THRESHOLD);
  
   //The XC AEC, despite being reset, sometimes starts up with some odd phase energies which make it
   //appear there is a strong pk:ave before it converges. These erode as it converges and a genuine peak
@@ -159,7 +162,7 @@ void adec_process_frame(
         }
 
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
-        if (adec_in->far_end_active_flag && state->sf_copy_flag){
+        if (far_end_active_flag && state->sf_copy_flag){
 
           //AEC goodness calculation
           state->agm_q24 = calculate_aec_goodness_metric(state, log2erle_q24, peak_power_slope, state->agm_q24);
@@ -228,7 +231,7 @@ void adec_process_frame(
       break;
     }
 
-    if (adec_in->far_end_active_flag) {
+    if (far_end_active_flag) {
       state->gated_milliseconds_since_mode_change += elapsed_milliseconds;
     }
 

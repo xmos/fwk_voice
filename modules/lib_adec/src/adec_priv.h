@@ -13,6 +13,7 @@
 #define ADEC_PEAK_TO_AVERAGE_GOOD_AEC           float_to_float_s32(4.0)//Denormalised 4.0 - AEC only has 10 phases so pk:ave 
 #define ADEC_PEAK_TO_AVERAGE_GOOD_DE            float_to_float_s32(8.0)//Denormalised 8.0 - With 30 phases, it's easier to get a strong pk
 #define ADEC_PEAK_TO_AVERAGE_RUINED_AEC         float_to_float_s32(2.0)//Denormalised 2.0 - Used with watchdog.
+#define ADEC_REF_ACTIVE_POWER_THRESHOLD         double_to_float_s32((double)0.000001907) // Energy threshold for reference having enough energy for ADEC processing to make sense.
 
 
 #define ADEC_PK_AVE_POOR_WATCHDOG_SECONDS       30               //How long before we trigger DE mode if we haven't reached a good state after AEC reset
