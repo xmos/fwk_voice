@@ -37,6 +37,9 @@ list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api ../.
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
 
 message( STATUS "Includes for VAD example ${INCLUDES}" )
+message( STATUS "Includes for VAD example ${INCLUDES}" )
+message( STATUS "CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}" )
+
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)

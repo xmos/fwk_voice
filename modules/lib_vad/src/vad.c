@@ -4,8 +4,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-//#include <xs1.h>
-#include <xclib.h>
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
@@ -16,8 +14,9 @@
 #include "vad_normalisation.h"
 #include "vad_window.h"
 #include "vad_mel.h"
-#include "dsp.h"
 #include "xs3_math.h"
+#include "vad_helpers.h"
+
 
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;

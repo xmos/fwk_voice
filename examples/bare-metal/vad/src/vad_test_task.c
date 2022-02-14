@@ -25,10 +25,6 @@
 //Optionally quit processing after number of frames processed
 // #define MAX_FRAMES  0
 
-#if PROFILE_PROCESSING
-#include "profile.h"
-#else
-#endif
 
 #include "xs3_math.h"
 
@@ -79,10 +75,8 @@ void vad_task(const char *input_file_name) {
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start ic
-    prof(0, "start_vad_init");
     vad_state_t state;
     vad_init(&state);
-    prof(1, "end_vad_init"); 
 
     for(unsigned b=0;b<block_count;b++){
         //printf("frame %d\n",b);
@@ -93,12 +87,8 @@ void vad_task(const char *input_file_name) {
             input[f] = input_read_buffer[f];
         }
 
-        prof(2, "start_vad_estimate");
         uint8_t vad = vad_probability_voice(input, &state);
         printf("frame: %d vad: %d\n", b, vad);
-        prof(3, "end_vad_estimate");
-
-        // print_prof(0,4,b+1);
     }
     file_close(&input_file);
     shutdown_session();
@@ -125,7 +115,7 @@ int main(int argc, char **argv) {
         printf("Arguments missing. Expected: <input file name> \n");
         assert(0);
     }
-    vad_task(argv[1], argv[2]);
+    vad_task(argv[1]);
     return 0;
 }
 #endif

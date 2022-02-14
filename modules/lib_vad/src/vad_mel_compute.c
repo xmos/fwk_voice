@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <xclib.h>
+#include "vad_helpers.h"
 #include "vad_mel.h"
 
 #define LOOKUP_PRECISION 8
