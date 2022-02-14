@@ -15,6 +15,7 @@ AUDIO FEATURES
    ../../../modules/lib_noise_suppression/doc/index
    ../../../modules/lib_agc/doc/index
    ../../../modules/lib_adec/doc/index
+   ../../../modules/lib_ic/doc/index
 
 EXAMPLES
 

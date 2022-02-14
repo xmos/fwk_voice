@@ -15,6 +15,11 @@ INPUT += ../modules/lib_agc/api
 # ADEC module
 INPUT += ../modules/lib_adec/api
 
+# IC module
+INPUT += ../modules/lib_ic/api
+
+PREDEFINED             = C_API= EXTERN_C= DWORD_ALIGNED=
+
 USE_MATHJAX            = YES
 MATHJAX_FORMAT         = HTML-CSS
 MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/
