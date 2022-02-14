@@ -19,13 +19,9 @@ extern "C"{
 
 void vad_task(const char *input_file_name) {
 
-    printf("here\n");
-
     file_t input_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
-
-    printf("here\n");
 
     wav_header input_header_struct;
     unsigned input_header_size;
@@ -50,16 +46,12 @@ void vad_task(const char *input_file_name) {
     unsigned frame_count = wav_get_num_frames(&input_header_struct);
     unsigned block_count = frame_count / VAD_FRAME_ADVANCE;
 
-    printf("here\n");
-
     vad_state_t [[aligned(8)]] state;
     vad_init_state(state);
 
 
     int32_t input_samples[VAD_FRAME_ADVANCE] = {0};
     int32_t [[aligned(8)]] input_frame[VAD_PROC_FRAME_LENGTH] = {0};
-
-    printf("here\n");
 
     for(unsigned b=0;b<block_count;b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * VAD_FRAME_ADVANCE, input_header_size);
@@ -70,7 +62,7 @@ void vad_task(const char *input_file_name) {
         memcpy(&input_frame[VAD_PROC_FRAME_LENGTH-VAD_FRAME_ADVANCE], &input_samples[0], VAD_FRAME_ADVANCE * sizeof(int32_t));
 
         int32_t vad_percentage = vad_percentage_voice(input_frame, state);
-        printf("OLD VAD frame: %d result: %d\n", b, vad_percentage);
+        printf("OLD frame: %d vad: %d\n", b, vad_percentage);
 
     }
     file_close(&input_file);
