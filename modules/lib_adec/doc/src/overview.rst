@@ -29,8 +29,7 @@ request for a delay correction to be applied at the input of the echo canceller.
 If the AEC is seen as consistently bad, the ADEC transitions to a delay estimation mode and requests for
 
 * A special delay to be applied at AEC input that will enable measuring the actual delay in both delay scenarios; microphone input arriving at AEC earlier in time than the reference input as well as microphone input arriving late in time wrt reference input.
-* A restart of AEC in a new configuration that has more adaptive filter phases, in order of have a longer filter tail
-length that is suitable for delay estimation.
+* A restart of AEC in a new configuration that has more adaptive filter phases, in order of have a longer filter tail length that is suitable for delay estimation.
 
 Once ADEC has a measure of the new delay, it requests a delay correction and a reconfiguration of AEC back to its normal
 mode and goes back to its normal mode of monitoring AEC performance and correcting for small delay offsets.
