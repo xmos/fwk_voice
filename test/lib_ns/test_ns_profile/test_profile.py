@@ -32,11 +32,10 @@ def run_ns_xe(ns_xe, audio_in, audio_out, profile_dump_file=None):
     os.chdir(tmp_folder)    
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-        print(f"Running on {adapter_id} binary {sup_xe}")
-        with open("sup_stdo.txt", "w") as ff:
-            stdout = xscope_fileio.run_on_target(adapter_id, sup_xe, stdout=ff)
-
-        with open("sup_stdo.txt") as ff:
+        print(f"Running on {adapter_id} binary {ns_xe}")
+        with open("sup_stdo.txt", "w+") as ff:
+            xscope_fileio.run_on_target(adapter_id, ns_xe, stdout=ff)
+            ff.seek(0)
             stdout = ff.readlines()
 
         xcore_stdo = []
