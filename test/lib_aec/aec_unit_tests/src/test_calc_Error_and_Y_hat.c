@@ -244,12 +244,12 @@ void test_calc_Error_and_Y_hat() {
                 int32_t diff = double_to_int32(ref_Error_ptr[i], state_ptr->Error[ch].exp) - dut_Error_ptr[i];
                 diff = (diff < 0) ? -diff : diff;
                 if(diff > max_diff) max_diff = diff;
-                TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1<<4, max_diff, "Error diff too large.");
+                TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1, max_diff, "Error diff too large.");
                 //Y_hat
                 diff = double_to_int32(ref_Y_hat_ptr[i], state_ptr->Y_hat[ch].exp) - dut_Y_hat_ptr[i];
                 diff = (diff < 0) ? -diff : diff;
                 if(diff > max_diff) max_diff = diff;
-                TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1<<4, max_diff, "Y_hat diff too large.");
+                TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1, max_diff, "Y_hat diff too large.");
             }            
         }
         
