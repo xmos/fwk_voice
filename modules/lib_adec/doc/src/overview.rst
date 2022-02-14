@@ -34,4 +34,6 @@ If the AEC is seen as consistently bad, the ADEC transitions to a delay estimati
 Once ADEC has a measure of the new delay, it requests a delay correction and a reconfiguration of AEC back to its normal
 mode and goes back to its normal mode of monitoring AEC performance and correcting for small delay offsets.
 
+Before processing any frames, the application must configure and initialise the ADEC instance by calling adec_init(). Then for each frame, adec_estimate_delay() will estimate the current delay and adec_process_frame() will use the current frame's AEC statistics and the estimated delay to monitor the AEC and request possible AEC and delay configuration changes.
+
 
