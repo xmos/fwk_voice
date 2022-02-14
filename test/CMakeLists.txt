@@ -5,7 +5,7 @@ set( XSCOPE_FILEIO_PATH ${SHARED_SRC_PATH}/xscope_fileio/xscope_fileio )
 
 add_subdirectory( shared )
 
-add_subdirectory( lib_noise_suppression )
+add_subdirectory( lib_ns )
 
 add_subdirectory( lib_aec )
 
