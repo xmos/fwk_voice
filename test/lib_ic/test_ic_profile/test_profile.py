@@ -32,7 +32,7 @@ def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id} binary {ic_xe}")
-         with open("ic_prof.txt", "w+") as ff:
+        with open("ic_prof.txt", "w+") as ff:
             xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
             ff.seek(0)
             stdout = ff.readlines()
