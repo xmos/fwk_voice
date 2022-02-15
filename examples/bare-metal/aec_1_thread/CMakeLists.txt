@@ -1,85 +1,23 @@
-## App name
-set( APP_NAME  aec_1_thread )
 
-## Depends on libraries
-list( APPEND  DEP_LIBS_XCORE  ""  )
-list( APPEND  DEP_LIBS_Linux  m   )
-
-list( APPEND  DEP_LIBS        
-    lib_aec
-    lib_xs3_math
-    ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
-)
-
-## Sources
-file( GLOB_RECURSE SOURCES_C  src/*.c )
-file( GLOB SOURCES_SHARED_FILEIO ${SHARED_SRC_PATH}/file_utils/*.c )
-file( GLOB SOURCES_SHARED_AEC ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
-unset( SOURCES_SHARED )
-list( APPEND SOURCES_SHARED ${SOURCES_SHARED_FILEIO} ${SOURCES_SHARED_AEC} )
-file( GLOB SOURCES_XC src/*.xc )
-file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
-
-unset( SOURCES )
-list( APPEND  SOURCES ${SOURCES_C} ${SOURCES_SHARED})
-unset( SOURCES_XCORE )
-list( APPEND SOURCES_XCORE ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} )
-list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
-
-## Includes
-unset( INCLUDES )
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/file_utils ${SHARED_SRC_PATH}/aec )
-unset( INCLUDES_XCORE )
-list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
-list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
-
-# set( XSCOPE_CONFIG config.xscope )
-get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
-
-## Compile flags
-unset(COMPILE_FLAGS)
-unset(COMPILE_FLAGS_XCORE)
-
-list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 )
-
-unset(COMPILE_FLAGS_Linux)
-list( APPEND  COMPILE_FLAGS_Linux   ""  )
-
-
-##Linker flags
-unset(LINKER_FLAGS)
-list( APPEND  LINKER_FLAGS  "" )
-
-unset(LINKER_FLAGS_XCORE)
-list( APPEND  LINKER_FLAGS_XCORE  "-target=${XCORE_TARGET}"     )
-list( APPEND  LINKER_FLAGS_XCORE  "-report"                     )
-list( APPEND  LINKER_FLAGS_XCORE  "${XSCOPE_CONFIG}"            )
-
-unset(LINKER_FLAGS_Linux)
-list( APPEND  LINKER_FLAGS_Linux  "" )
-
-list( APPEND  LINKER_FLAGS ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-
-#########
-## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable( ${APP_NAME} ${SOURCES} ${SOURCES_C_APP} )
+add_executable(aec_1_thread src/aec_app.c
+                            ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
 
-target_include_directories( ${APP_NAME} PRIVATE ${INCLUDES} )
+target_link_libraries(aec_1_thread lib_aec lib_xs3_math file_utils)
 
-target_link_libraries( ${APP_NAME} ${DEP_LIBS})
+target_include_directories(aec_1_thread PRIVATE ${SHARED_SRC_PATH}/aec)
 
-target_compile_options( ${APP_NAME} PRIVATE ${COMPILE_FLAGS} )
+if(XCORE)
+  target_sources(aec_1_thread PRIVATE src/main.xc)
 
-#(because otherwise the set_target_properties command fails)
-string(REPLACE ";" " " LINKER_FLAGS_STR "${LINKER_FLAGS}")
-set_target_properties( ${APP_NAME} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
+  target_compile_options(aec_1_thread PRIVATE "-DTEST_WAV_XSCOPE=1"
+                                              "-target=${XCORE_TARGET}")
 
-if ( XCORE )
-  set_target_properties( ${APP_NAME} PROPERTIES
-      SUFFIX ".xe"
-      LINK_DEPENDS  ${XSCOPE_CONFIG}
-      )
+  target_link_options(aec_1_thread PRIVATE "-target=${XCORE_TARGET}"
+                                  "-report"
+                                  "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+  set_target_properties(aec_1_thread PROPERTIES SUFFIX ".xe")
+else()
+  target_link_libraries(aec_1_thread m)
 endif()

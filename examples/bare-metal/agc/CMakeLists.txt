@@ -1,19 +1,11 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable(agc src/agc_app.c
-                   ${SHARED_SRC_PATH}/file_utils/fileio.c
-                   ${SHARED_SRC_PATH}/file_utils/wav_utils.c)
+add_executable(agc src/agc_app.c)
 
-target_include_directories(agc PRIVATE ${SHARED_SRC_PATH}/file_utils)
-
-target_link_libraries(agc lib_agc lib_xs3_math)
+target_link_libraries(agc lib_agc lib_xs3_math file_utils)
 
 if(XCORE)
-  target_sources(agc PRIVATE src/main.xc
-                             ${XSCOPE_FILEIO_PATH}/src/xscope_io_device.c)
-
-  target_include_directories(agc PRIVATE ${XSCOPE_FILEIO_PATH}
-                                         ${XSCOPE_FILEIO_PATH}/api)
+  target_sources(agc PRIVATE src/main.xc)
 
   target_compile_options(agc PRIVATE "-DTEST_WAV_XSCOPE=1"
                                      "-target=${XCORE_TARGET}")
