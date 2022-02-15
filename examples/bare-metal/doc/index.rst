@@ -27,5 +27,5 @@ the following command from the `examples/bare-metal/` directory in a terminal wh
 
 .. toctree::
    :maxdepth: 1
-    
-   src/examples
+   
+   .. include:: ../../../examples/bare-metal/aec_1_thread/README.rst
