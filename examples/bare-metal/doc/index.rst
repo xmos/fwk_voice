@@ -29,3 +29,8 @@ the following command from the `examples/bare-metal/` directory in a terminal wh
    :maxdepth: 1
    
    aec_1_thread
+   aec_2_threads
+   ic
+   agc
+   pipeline_single_threaded
+   pipeline_multi_threaded
