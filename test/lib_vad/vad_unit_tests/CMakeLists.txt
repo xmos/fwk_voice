@@ -51,11 +51,9 @@ list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS
 
 ## Sources
 # Unity
-set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
-file( GLOB UNITY_SOURCES ${UNITY_PATH}/*.c )
-message(STATUS "UNITY_SOURCES: ${UNITY_SOURCES}")
+file( GLOB UNITY_SOURCES ${UNITY_PATH}/src/*.c )
 
-# audio_test_tools
+# audio_test_tools (old test_wav_vad)
 set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
 list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
 
@@ -81,7 +79,7 @@ list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 ## Includes
 list( APPEND  INCLUDES src ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand
                             ${AUTOGEN_DIR}
-                            ${UNITY_PATH} 
+                            ${UNITY_PATH}/src
                             ${AUDIO_TEST_TOOLS_PATH}/api 
                             ${LIB_DSP_PATH}/api 
                             ${LIB_AI_INCLUDES} 
@@ -114,7 +112,7 @@ foreach( testfile ${TEST_SOURCES} )
     set( GEN_RUNNER_SCRIPT_BYPRODUCTS ${RUNNER_FILE} )
 
     unset(GEN_RUNNER_SCRIPT_ARGS) 
-    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${DEPS_ROOT} )
+    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${UNITY_PATH}/.. )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --source-file ${testfile} )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --runner-file ${RUNNER_FILE})
 
