@@ -174,7 +174,9 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
     aec_non_de_mode_conf.num_main_filt_phases = runtime_args[MAIN_FILTER_PHASES];
     aec_non_de_mode_conf.num_shadow_filt_phases = runtime_args[SHADOW_FILTER_PHASES];
     
-    adec_config_t adec_conf = ADEC_CONFIG_AUTOMATIC_DE_CONTROL;
+    adec_config_t adec_conf;
+    adec_conf.bypass = 0;
+    adec_conf.force_de_cycle_trigger = 0; 
 #if BYPASS_ADEC
     // All AEC module tests are run in this mode only
     adec_conf.bypass = 1;
