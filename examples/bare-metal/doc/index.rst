@@ -28,4 +28,4 @@ the following command from the `examples/bare-metal/` directory in a terminal wh
 .. toctree::
    :maxdepth: 1
    
-   ../aec_1_thread/README
+   aec_1_thread
