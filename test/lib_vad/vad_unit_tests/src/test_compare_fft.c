@@ -26,7 +26,9 @@ int dsp_fft(dsp_complex_t * input, int nq){
 //Implementation in vad.c
 extern int vad_xs3_math_fft(int32_t * curr, int nq);
 
-
+int iabs(int a, int b){
+    return a > b ? a-b : b-a;
+}
 
 void test_compare_fft_mfcc(){
     unsigned seed = 6031759;
@@ -34,47 +36,57 @@ void test_compare_fft_mfcc(){
     dsp_complex_t DWORD_ALIGNED orig_dsp[VAD_PROC_FRAME_LENGTH + 2];
     int32_t DWORD_ALIGNED orig_xs3[VAD_PROC_FRAME_LENGTH + 2] = {0};
     int32_t DWORD_ALIGNED orig_bfp[VAD_PROC_FRAME_LENGTH + 2] = {0};
-    int32_t dsp_mel[VAD_N_MEL_SCALE + 1] = {0};
-    int32_t xs3_mel[VAD_N_MEL_SCALE + 1] = {0};
-    int32_t bfp_mel[VAD_N_MEL_SCALE + 1] = {0};
     int32_t max = 0x0000000f;
 
-    for(int i = 0; i < 100; i++){
+    for(int i = 0; i < 100; i++){ //100 gets us to very near full scale
 
         if((i % 12 ) == 0) max = max<<3;
 
         for(int v = 0; v < VAD_PROC_FRAME_LENGTH; v++){
-            orig_dsp[v].re = pseudo_rand_int(&seed, 0, max);
+            orig_dsp[v].re = pseudo_rand_int(&seed, -max, max);
             orig_dsp[v].im = 0;
             orig_xs3[v] = orig_dsp[v].re;
             orig_bfp[v] = orig_xs3[v];
         }
+        // printf("T: %ld\n", orig_dsp[0].re);
 
         int rel_dsp_exp = dsp_fft(orig_dsp, 1);
         complex_s32_t * dsp_fd = (complex_s32_t *)orig_dsp;
 
-        vad_mel_compute(dsp_mel, VAD_N_MEL_SCALE + 1, dsp_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2 * (VAD_LOG_WINDOW_LENGTH - rel_dsp_exp));
 
         int xs3_exp = vad_xs3_math_fft(orig_xs3, 1);
         complex_s32_t * xs3_fd = (complex_s32_t *)orig_xs3;
 
-        vad_mel_compute(xs3_mel, VAD_N_MEL_SCALE + 1, xs3_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (-31 - xs3_exp) * 2);
 
         bfp_s32_t bfp;
         bfp_s32_init(&bfp, orig_bfp, -31, VAD_PROC_FRAME_LENGTH, 1);
         bfp_complex_s32_t * bfp_fd = bfp_fft_forward_mono(&bfp);
         bfp_fft_unpack_mono(bfp_fd);
 
-        vad_mel_compute(bfp_mel, VAD_N_MEL_SCALE + 1, bfp_fd->data, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (-31 - bfp_fd->exp) * 2);
 
-        int th = 4;
-        for(int v = 0; v < VAD_N_MEL_SCALE + 1; v++){
-            int d = abs(dsp_mel[v] - xs3_mel[v]);
-            TEST_ASSERT(d < th);
+        int max_diff = 4;
+        for(int v = 0; v < VAD_PROC_FRAME_LENGTH/2; v++){
+            // printf("ex ref: %d xs3: %d bfp: %d\n", 9-rel_dsp_exp, xs3_exp+31, bfp_fd->exp+31);
+            // printf("RE ref: %ld xs3: %ld bfp: %ld\n", dsp_fd[v].re, xs3_fd[v].re, bfp_fd->data[v].re);
+            // printf("IM ref: %ld xs3: %ld bfp: %ld\n", dsp_fd[v].im, xs3_fd[v].im, bfp_fd->data[v].im);
 
             //Note we have not exponent adjusted the BFP version so removed from test. We don't use it anyway
-            // d = abs(dsp_mel[v] - bfp_mel[v]);
-            // TEST_ASSERT(d < th);
+
+            if((9-rel_dsp_exp != xs3_exp+31) /*|| (9-rel_dsp_exp != bfp_fd->exp+31)*/){
+                printf("FAIL - ex ref: %d xs3: %d bfp: %d\n", 9-rel_dsp_exp, xs3_exp+31, bfp_fd->exp+31);
+                TEST_ASSERT(0);
+            }
+
+
+            if((iabs(dsp_fd[v].re, xs3_fd[v].re) > max_diff) /*|| (iabs(dsp_fd[v].re, bfp_fd->data[v].re) > max_diff)*/){
+                printf("FAIL - RE ref: %ld xs3: %ld bfp: %ld\n", dsp_fd[v].re, xs3_fd[v].re, bfp_fd->data[v].re);
+                TEST_ASSERT(0);
+            }
+
+            if((iabs(dsp_fd[v].im, xs3_fd[v].im) > max_diff) /*|| (iabs(dsp_fd[v].im, bfp_fd->data[v].im) > max_diff)*/){
+                printf("FAIL - IM ref: %ld xs3: %ld bfp: %ld\n", dsp_fd[v].im, xs3_fd[v].im, bfp_fd->data[v].im);
+                TEST_ASSERT(0);
+            }
         }
     }
 }

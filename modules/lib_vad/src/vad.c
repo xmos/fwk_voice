@@ -22,15 +22,17 @@ int vad_xs3_math_fft(int32_t * curr, int nq){
 
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
 
+    //Ensure we have 2b headroom as required by xs3_math
     exponent_t x_exp = -31;
-    headroom_t hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
+    headroom_t original_hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
+    headroom_t xs3_output_hr = original_hr;
 
-    right_shift_t x_shr = 2 - hr;
+    right_shift_t x_shr = 2 - original_hr;
     xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
-    hr += x_shr; x_exp += x_shr;
+    xs3_output_hr += x_shr; x_exp += x_shr;
 
     xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_BINS);
-    xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
+    xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &xs3_output_hr, &x_exp);
     xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
 
     if(nq){
@@ -38,6 +40,14 @@ int vad_xs3_math_fft(int32_t * curr, int nq){
         curr_fd[0].im = 0;
         curr_fd[VAD_PROC_FRAME_BINS].im = 0;
     }
+    //Now adjust exponent to match output of lib_dsp
+    //This is tedious as result is same but we need identical matnissas
+    headroom_t lib_dsp_exp = VAD_LOG_WINDOW_LENGTH - original_hr;
+    headroom_t xs3_math_exp = x_exp + 31;
+    headroom_t exp_adjust = lib_dsp_exp - xs3_math_exp; 
+    xs3_vect_s32_shr(curr, curr, VAD_PROC_FRAME_LENGTH, exp_adjust);
+    x_exp += exp_adjust;
+
     return x_exp;
 }
 
