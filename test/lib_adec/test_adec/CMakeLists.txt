@@ -49,7 +49,7 @@ else()
     ## Only 1 thread process_frame() builds for x86
     file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
 endif()
-file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/*.c )
+file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/src/*.c )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES ${XSCOPE_FILEIO_PATH}/src/*.c )
 
 unset( SOURCES )
@@ -60,7 +60,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer )
+list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils/src ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer )
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )

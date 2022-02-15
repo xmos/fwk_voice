@@ -22,7 +22,7 @@ list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 file( GLOB SOURCES_PROF ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src/*.c )
 file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_ns/src/*.c )
 file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_ns/src/*.xc )
-file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/*.c )
+file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/src/*.c )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
 
 unset( SOURCES )
@@ -31,7 +31,7 @@ list( APPEND SOURCES ${SOURCES_C} ${SOURCES_XC} ${XSCOPE_FILEIO_SOURCES} ${SOURC
 unset( INCLUDES )
 list( APPEND  INCLUDES 
     src 
-    ${SHARED_SRC_PATH}/file_utils 
+    ${SHARED_SRC_PATH}/file_utils/src 
     ${XSCOPE_FILEIO_PATH} 
     ${XSCOPE_FILEIO_PATH}/api 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ 

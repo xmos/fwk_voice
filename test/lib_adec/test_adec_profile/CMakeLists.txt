@@ -54,7 +54,7 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
         ## Only 1 thread process_frame() builds for x86
         file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
     endif()
-    file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/*.c )
+    file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/src/*.c )
     file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
     file( GLOB_RECURSE PROFILE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
 
@@ -65,7 +65,7 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
     unset( INCLUDES )
-    list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer)
+    list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils/src ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer)
     unset( INCLUDES_XCORE )
     list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
     list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
