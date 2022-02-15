@@ -18,6 +18,29 @@
 #include "vad_helpers.h"
 
 
+int vad_xs3_math_fft(int32_t * curr, int nq){
+
+    complex_s32_t* curr_fd = (complex_s32_t*)curr;
+
+    exponent_t x_exp = -31;
+    headroom_t hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
+
+    right_shift_t x_shr = 2 - hr;
+    xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
+    hr += x_shr; x_exp += x_shr;
+
+    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_BINS);
+    xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
+    xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
+
+    if(nq){
+        curr_fd[VAD_PROC_FRAME_BINS].re = curr_fd[0].im;
+        curr_fd[0].im = 0;
+        curr_fd[VAD_PROC_FRAME_BINS].im = 0;
+    }
+    return x_exp;
+}
+
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;
     int logN = 31 - clz(N);
@@ -190,10 +213,12 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 #endif
 
 
-#if PRINT_ME && PRINT_ALL
+#if 1//PRINT_ME && PRINT_ALL
     printf("SPECTRAL ");
-    for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
-        printf("%d %d     ", curr_fd[i].re, curr_fd[i].im);
+    // for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
+    for(int i = 0; i < 10; i++) {
+        printf("%ld %ld     ", curr_fd[i].re, curr_fd[i].im);
+        // printf("%ld %ld     ", input[i].re, input[i].im);
     }
     printf("\n");
 #endif
@@ -229,6 +254,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 #endif
 
     dsp_dct_forward24(dct_output, dct_input);
+
     
     // Python multiplies DCT by 2.
     for(int i = 0; i < VAD_N_DCT; i++) {
@@ -243,12 +269,22 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     printf("\n");
 #endif
 
-    features[0] = spectral_centroid;
-    features[1] = spectral_spread;
+    memset(features, 0, sizeof(features));
+
+
+    // features[0] = spectral_centroid;
+    // features[1] = spectral_spread;
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
         features[i+2] = dct_output[i+1];
     }
-    features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
+    // features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
+
+
+    ///////////////////
+    // for(int i=0;i<VAD_N_FEATURES_PER_FRAME;i++)features[i]=(5-i)*2000000;
+
+
+
     for(int i = VAD_N_OLD_FEATURES - 2;
             i >= VAD_N_OLD_FEATURES - VAD_FRAME_STRIDE;
             i--) {
@@ -275,6 +311,10 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
         features[i] = (((long long)(features[i] - vad_mus[i])) << 24) / vad_sigmas[i];
     }
 
+
+    // for(int i=0;i<VAD_N_FEATURES_PER_FRAME;i++)features[i]=(10-i)*1000000;
+
+
     // First copy features over into input for NN, both current and old data
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME; i++) {
         nn_features[i] = features[i];
@@ -296,6 +336,10 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
   //  nn_features[VAD_N_FEATURES - 1] -= old_features[VAD_N_OLD_FEATURES - 1];
 
+
+
+
+
     // Now copy old data back; keeping an extra dMFCC0.
     //old_features[VAD_N_OLD_FEATURES-1] = old_features[VAD_N_OLD_FEATURES-2];
     for(int i = VAD_N_OLD_FEATURES - VAD_N_FEATURES_PER_FRAME-1-VAD_FRAME_STRIDE; i >= 0; i--) {
@@ -313,6 +357,9 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
     printf("\n");
 #endif
+
+    // for(int i=0;i<VAD_N_FEATURES;i++)nn_features[i]=(12-i)*10000;
+
 
     vad_fc_layer(   hidden_nodes_full, N_VAD_HIDDEN,
                     nn_features, N_VAD_INPUTS,
