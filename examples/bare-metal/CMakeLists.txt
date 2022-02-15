@@ -1,6 +1,4 @@
 
-set(DEPS_ROOT ${CMAKE_SOURCE_DIR}/..)
-
 add_subdirectory( ic )
 
 add_subdirectory( aec_1_thread )

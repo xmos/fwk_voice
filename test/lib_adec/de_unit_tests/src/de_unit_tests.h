@@ -5,23 +5,14 @@
 
 #include "unity.h"
 
-#ifdef __XC__
 
-#include <xs1.h>
 #include <string.h>
 #include <math.h>
 
-#include <xclib.h>
-
-#include "audio_test_tools.h"
-extern "C" {
+#include "pseudo_rand.h"
 #include "aec_defines.h"
-}
 #include "aec_config.h"
 #include "aec_memory_pool.h"
-
-#define TEST_ASM 1
-#define MULTI_CORE 1
 
 // Set F to a power of 2 greater than 1 to speedup testing by a Fx
 #undef F
@@ -31,6 +22,5 @@ extern "C" {
     #define F 1
 #endif
 
-#endif // __XC__
 
-#endif /* AEC_UNIT_TESTS_ */
+#endif /* DE_UNIT_TESTS_ */

@@ -16,6 +16,9 @@ endif()
 ## Set up the build options
 include(etc/build_options.cmake)
 
+## Fetch the Unity repo as a dependency
+include(etc/fetch_deps.cmake)
+
 find_package( Python3 COMPONENTS Interpreter )
 
 ## Compile flags for C/C++ for all libs and apps (for all platforms)
