@@ -39,7 +39,7 @@ typedef struct {
     /** Bypass ADEC decision making process. When set to 1, ADEC evaluates the current input frame metrics but doesn't
      * make any delay correction or aec reset and reconfiguration requests*/
     int32_t bypass;
-    /** Force trigger a delay estimation cycle. When set to 1, ADEC bypasses the ADEC monoitoring process and transitions to delay
+    /** Force trigger a delay estimation cycle. When set to 1, ADEC bypasses the ADEC monitoring process and transitions to delay
      * estimation mode for measuring delay offset.
     */
     int32_t force_de_cycle_trigger; 
@@ -123,7 +123,7 @@ typedef struct {
  */
 typedef struct {
     float_s32_t max_peak_to_average_ratio_since_reset; ///< Maximum peak to average AEC filter phase energy ratio seen since a delay correction was last requested. 
-    float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1]; ///< Last ADEC_PEAK_TO_RAGE_HISTORY_DEPTH frames peak_to_average_ratio of phase energies
+    float_s32_t peak_to_average_ratio_history[ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH + 1]; ///< Last ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH frames peak_to_average_ratio of phase energies
     float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE]; ///< Last ADEC_PEAK_LINREG_HISTORY_SIZE frames peak phase power
     float_s32_t aec_peak_to_average_good_aec_threshold; ///< Threshold was considering peak to average ratio as good
     

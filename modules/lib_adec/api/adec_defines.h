@@ -18,10 +18,10 @@
  * @brief Number of frames far we look back to smooth the peak to average filter power ratio history
  * @ingroup adec_defines
  */
-#define ADEC_PEAK_TO_RAGE_HISTORY_DEPTH         8
+#define ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH         8
 
 /**
- * @brief Number of frames of peak power history we look at while computing AEC goodness metric.
+ * @brief Number of frames of peak power history we look at while computing AEC goodness metric. Not NOT USER MODIFIABLE 
  * @ingroup adec_defines
  */
 #define ADEC_PEAK_LINREG_HISTORY_SIZE           66

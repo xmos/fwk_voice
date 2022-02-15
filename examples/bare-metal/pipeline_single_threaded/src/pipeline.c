@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "aec_api.h"
-#include "sup_api.h"
+#include "ns_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
@@ -42,7 +42,7 @@ void pipeline_init(pipeline_state_t *state) {
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        sup_init(&state->sup_state[ch]);
+        ns_init(&state->ns_state[ch]);
     }
     
     // Initialise AGC
@@ -67,10 +67,10 @@ void pipeline_process_frame(pipeline_state_t *state,
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], input_y_data, input_x_data);
 
     /**NS*/
-    int32_t sup_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        sup_process_frame(&state->sup_state[ch], sup_output[ch], stage_1_out[ch]);
+        ns_process_frame(&state->ns_state[ch], ns_output[ch], stage_1_out[ch]);
     }
     
     /** AGC*/
@@ -80,6 +80,6 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = aec_corr_factor[ch];
-        agc_process_frame(&state->agc_state[ch], output_data[ch], sup_output[ch], &agc_md);
+        agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
     }
 }

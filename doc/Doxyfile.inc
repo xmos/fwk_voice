@@ -7,7 +7,7 @@ PROJECT_BRIEF = "Avona Reference Design"
 INPUT += ../modules/lib_aec/api ../examples/bare-metal/shared_src/aec/
 
 # NS module
-INPUT += ../modules/lib_noise_suppression/api
+INPUT += ../modules/lib_ns/api
 
 # AGC module
 INPUT += ../modules/lib_agc/api

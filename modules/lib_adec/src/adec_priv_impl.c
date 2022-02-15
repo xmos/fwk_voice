@@ -14,19 +14,19 @@
  * early since mic early is the bad case.
  * To ensure that, when measured delay is positive, and ADEC is requesting a mic moving back in time, then we take one phase out of
  * what we're requesting. For eg. measured_delay = 960, requested_delay should be -960 but we request -960+240 = -480 to
- * make sure we don't make the mic early too much risking a mic earlier than ref situation. 
+ * make sure we don't make the mic early too much risking a mic earlier than ref situation, which results in a filter that is unable to converge due lack of causality. 
  * Similarly, if measured delay is -ve, for example, measured_delay -480 would mean requested_delay +480, but we request
  * 480 + 240 = 960, to avoid mic early case.
  *
  * A filter would never converge when mic is earlier than reference, since none of the phases in X_fifo will match with
- * a given frame of mic data. So in DE mode, in order to measure both mic delay and advance case, we start by initially
+ * a given frame of mic data. So in DE mode, in order to measure both mic delay and early case, we start by initially
  * delaying the mic by 10 phases. This means, if there is no actual delay between mic and ref, DE filter will peak at the 10th
  * phase. A peak in the 0-9 phases would measure mic early and a peak in 11-29 phase would indicate mic delay. So in DE mode
  * we can measure upto 10 phases (150ms) of mic early and 20 phases(300ms) of mic delayed. 
  */
 void init_pk_ave_ratio_history(adec_state_t *adec_state){
   const float_s32_t float_s32_thousand = {2097160000,-21}; //A large number we never normally see, so it will be clear when we get an actual
-  for (int i = 0; i < ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i++){
+  for (int i = 0; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i++){
     adec_state->peak_to_average_ratio_history[i] = float_s32_thousand;
   }
 }

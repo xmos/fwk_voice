@@ -66,30 +66,21 @@ class UnityTestExecutable(pytest.Item):
                     continue
                 if result == 'FAIL':
                     failure_reason = test_report[4]
-                    print('')  # Insert line break after test_case print
-                    raise UnityTestException(self, {'test_source': test_source,
-                                                    'line_number': line_number,
-                                                    'test_case': test_case,
-                                                    'failure_reason':
-                                                        failure_reason})
+                    failure_str = '\n'.join([str(self.parent).strip('<>'),
+                            '{}:{}:{}()'.format(
+                                test_source,
+                                line_number,
+                                test_case),
+                            'Failure reason:', failure_reason])
+                    print(failure_str)
+
+                    raise UnityTestException(self) 
 
         if simulator_fail:
             raise Exception(self, "Simulation failed.")
         if not unity_pass:
             raise Exception(self, "Unity test output not found.")
         print('')  # Insert line break after final test_case which passed
-
-    def repr_failure(self, excinfo):
-        if isinstance(excinfo.value, UnityTestException):
-            return '\n'.join([str(self.parent).strip('<>'),
-                              '{}:{}:{}()'.format(
-                                    excinfo.value[1]['test_source'],
-                                    excinfo.value[1]['line_number'],
-                                    excinfo.value[1]['test_case']),
-                              'Failure reason:',
-                              excinfo.value[1]['failure_reason']])
-        else:
-            return str(excinfo.value)
 
     def reportinfo(self):
         # It's not possible to give sensible line number info for an executable

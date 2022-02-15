@@ -29,14 +29,13 @@ file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/i
 file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../../../examples/bare-metal/ic/src/*.xc )
 file( GLOB SOURCES_IC_PROCESS_FRAME  ${SHARED_SRC_PATH}/ic/*.c )
 file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
-file( GLOB_RECURSE AUDIO_TEST_TOOLS_SOURCES ${DEPS_ROOT}/audio_test_tools/audio_test_tools/src/burners.S )
 file( GLOB SOURCES_FILE_UTILS ${SHARED_SRC_PATH}/file_utils/*.c ) 
 
 unset( SOURCES )
 list( APPEND SOURCES ${SOURCES_C} ${SOURCES_IC_PROCESS_FRAME} ${SOURCES_XC} ${SOURCES_FILE_UTILS})
 
 if ( XCORE )
-    list( APPEND SOURCES ${XSCOPE_FILEIO_SOURCES}  ${AUDIO_TEST_TOOLS_SOURCES})
+    list( APPEND SOURCES ${XSCOPE_FILEIO_SOURCES} )
 endif()
 
 

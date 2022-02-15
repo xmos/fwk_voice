@@ -170,7 +170,7 @@ pipeline {
         }
         stage('NS profile test') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/test_sup_profile") {
+            dir("${REPO}/test/lib_ns/test_ns_profile") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -182,7 +182,7 @@ pipeline {
         }
         stage('NS performance tests') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/compare_c_xc") {
+            dir("${REPO}/test/lib_ns/compare_c_xc") {
               copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
               viewEnv() {
                 withVenv {
@@ -193,9 +193,9 @@ pipeline {
             }
           }
         }
-        stage('NS sup_unit_tests') {
+        stage('NS ns_unit_tests') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/sup_unit_tests") {
+            dir("${REPO}/test/lib_ns/ns_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -205,9 +205,9 @@ pipeline {
             }
           }
         }
-        stage('NS ns_unit_tests') {
+        stage('NS ns_priv_unit_tests') {
           steps {
-            dir("${REPO}/test/lib_noise_suppression/ns_unit_tests") {
+            dir("${REPO}/test/lib_ns/ns_priv_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -418,7 +418,7 @@ pipeline {
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_noise_suppression/test_sup_profile/*.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/*.log", fingerprint: true
         }
         cleanup {
           cleanWs()
