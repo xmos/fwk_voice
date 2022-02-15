@@ -1,10 +1,6 @@
 ## App name
 set( APP_NAME  ic_example )
 
-if( NOT ${Python3_FOUND} )
-  message(FATAL_ERROR "Python3 not found for running . ") 
-endif()
-
 ## Depends on libraries
 list( APPEND  DEP_LIBS_XCORE  ""  )
 list( APPEND  DEP_LIBS_Linux  m   )

@@ -3,8 +3,7 @@ configure_file( conftest.py conftest.py COPYONLY )
 
 ## Sources
 # Unity
-set(UNITY_PATH ${DEPS_ROOT}/Unity/src)
-file(GLOB UNITY_SOURCES ${UNITY_PATH}/*.c)
+file(GLOB UNITY_SOURCES ${UNITY_PATH}/src/*.c)
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -31,7 +30,7 @@ foreach(testfile ${TEST_SOURCES})
     set(GEN_RUNNER_SCRIPT_BYPRODUCTS ${RUNNER_FILE})
 
     unset(GEN_RUNNER_SCRIPT_ARGS)
-    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${DEPS_ROOT})
+    list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${UNITY_PATH}/..)
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --source-file ${testfile} )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --runner-file ${RUNNER_FILE})
 
@@ -46,7 +45,7 @@ foreach(testfile ${TEST_SOURCES})
     add_executable(${TESTNAME} ${testfile} ${RUNNER_FILE} ${UNITY_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand/pseudo_rand.c)
 
     target_include_directories(${TESTNAME} PRIVATE src
-                                                   ${UNITY_PATH}
+                                                   ${UNITY_PATH}/src
                                                    ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand)
 
     target_link_libraries(${TESTNAME} lib_agc lib_xs3_math)
