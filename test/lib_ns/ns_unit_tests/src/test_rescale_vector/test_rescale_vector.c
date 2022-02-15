@@ -96,6 +96,7 @@ TEST(ns_rescale_vector, case0){
         int32_t abs_diff = 0;
         int id = 0;
 
+        printf("\n%d\n", Y.exp);
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
             float_s32_t act_re_fl, act_im_fl;
             int32_t d_r, d_i, re_int, im_int;
@@ -104,11 +105,13 @@ TEST(ns_rescale_vector, case0){
             ex_re_fl = double_to_float_s32(expected[2 * v]);
             ex_im_fl = double_to_float_s32(expected[(2 * v) + 1]);
 
-            check_saturation(&ex_re_fl, &Y, v);
-            check_saturation(&ex_im_fl, &Y, v);
+            //check_saturation(&ex_re_fl, &Y, v);
+            //check_saturation(&ex_im_fl, &Y, v);
 
             re_int = use_exp_float(ex_re_fl, Y.exp);
             im_int = use_exp_float(ex_im_fl, Y.exp);
+
+            printf("%ld %ld // %ld %ld  ||  ", re_int, im_int, Y.data[v].re, Y.data[v].im);
             
             d_r = abs(re_int - Y.data[v].re); i = 2 * v;
             d_i = abs(im_int - Y.data[v].im);
@@ -117,6 +120,7 @@ TEST(ns_rescale_vector, case0){
             if(d_r > abs_diff){abs_diff = d_r; id = i;}
         }
         
+        printf("\n%ld\n", abs_diff);
         TEST_ASSERT(abs_diff <= 4);
     }
 }

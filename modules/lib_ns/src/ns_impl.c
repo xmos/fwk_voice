@@ -144,13 +144,13 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 }
 
 //apply suppression
-void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+void ns_rescale_vector0(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    int max_exp = INT_MIN;
-    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
+    /*int max_exp = INT_MIN;
+    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         t.mant = orig_mag->data[v];
         t.exp = orig_mag->exp;
@@ -168,11 +168,55 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
         if(t2[v].exp != max_exp){
             orig_mag->data[v] >>= (max_exp - t2[v].exp);
         }
+    }*/
+
+    for(int v = 0; v < 50; v++){
+        printf("%ld %ld || ", new_mag->data[v], orig_mag->data[v]);
+    }printf("\n\n");
+
+    if(new_mag->exp < orig_mag->exp) bfp_s32_use_exponent(new_mag, orig_mag->exp);
+    else bfp_s32_use_exponent(orig_mag, new_mag->exp);
+
+    for(int v = 0; v < 50; v++){
+        printf("%ld %ld || ", new_mag->data[v], orig_mag->data[v]);
+    }printf("\n\n");
+
+    for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
+        if(orig_mag->data[v] != 0)
+            orig_mag->data[v] = new_mag->data[v] / orig_mag->data[v];
+        else orig_mag->data[v] = INT_MAX;
     }
+
+    for(int v = 0; v < 50; v++){
+        printf("%ld || ", orig_mag->data[v]);
+    }printf("\n\n");
 
     bfp_s32_headroom(orig_mag);
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
+}
+
+
+void sup_rescale(complex_s32_t Y, int32_t new_mag, int32_t orig_mag){
+    if(orig_mag){
+        int64_t S = ((int64_t)new_mag)<<31;
+        S /= orig_mag;
+        Y.re =((int64_t)Y.re * (int64_t)S)>>31;
+        Y.im =((int64_t)Y.im * (int64_t)S)>>31;
+    }
+}
+
+void ns_rescale_vector(bfp_complex_s32_t * Y,
+        bfp_s32_t * new_mag,
+        bfp_s32_t * orig_mag){
+
+    for(unsigned i = 0; i < NS_PROC_FRAME_BINS; i++){
+        sup_rescale(Y->data[i], new_mag->data[i], orig_mag->data[i]);
+    }
+    headroom_t delta_exp = orig_mag->exp - new_mag->exp;
+    xs3_vect_complex_s32_shr(Y->data, Y->data, NS_PROC_FRAME_BINS, delta_exp);
+    Y->exp += delta_exp;
+    bfp_complex_s32_headroom(Y);
 }
 
 void ns_process_frame(ns_state_t * ns,
