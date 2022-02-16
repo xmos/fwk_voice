@@ -1,7 +1,4 @@
-## App name
-set( APP_NAME  test_adec_profile )
-
-# Auto-generate task distribution scheme and top level config files
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -29,90 +26,36 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
         COMMENT "Generating AEC task distribution and top level config" )
 
-    ##
-    
-    ## Depends on libraries
-    unset( DEP_LIBS_XCORE )
-    list( APPEND  DEP_LIBS_XCORE  ""  )
-    
-    unset( DEP_LIBS )
-    list( APPEND  DEP_LIBS        
-        lib_aec 
-        lib_adec
-        profile
-        ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
-    )
+    file( GLOB_RECURSE SOURCES_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
+    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 
-    list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
+    set ( EXEC test_adec_profile_${CONFIG_STR} )
+    add_executable(${EXEC} ${SOURCES_APP} 
+                             ${SOURCES_AEC_PROCESS_FRAME}
+                             ${AUTOGEN_SOURCES}) 
 
-    ## Sources
-    file( GLOB_RECURSE SOURCES_TEST_WAV_C ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
-    file( GLOB SOURCES_TEST_WAV_XC ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.xc )
-    file( GLOB SOURCES_DELAY_BUFFER  ${SHARED_SRC_PATH}/delay_buffer/src/*.c )
-    if ( XCORE )
-        file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
+    target_link_libraries(${EXEC} lib_aec
+                                        lib_adec
+                                        file_utils
+                                        delay_buffer
+                                        profile)
+
+    target_include_directories(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src
+                                                 ${SHARED_SRC_PATH}/aec
+                                                 ${AUTOGEN_DIR})
+    if(XCORE)
+      target_sources(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/main.xc)
+
+      target_compile_options(${EXEC} PRIVATE "-DTEST_WAV_XSCOPE=1"
+                                                   "-DPROFILE_PROCESSING=1"
+                                                   "-target=${XCORE_TARGET}")
+
+      target_link_options(${EXEC} PRIVATE "-target=${XCORE_TARGET}"
+                                            "-report"
+                                            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+
+      set_target_properties(${EXEC} PROPERTIES SUFFIX ".xe")
     else()
-        ## Only 1 thread process_frame() builds for x86
-        file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
+      target_link_libraries(${EXEC} m)
     endif()
-    file( GLOB_RECURSE FILE_UTILS_SOURCES ${SHARED_SRC_PATH}/file_utils/src/*.c )
-    file( GLOB_RECURSE XSCOPE_FILEIO_SOURCES  ${XSCOPE_FILEIO_PATH}/src/*.c )
-
-    unset( SOURCES )
-    list( APPEND  SOURCES ${SOURCES_TEST_WAV_C} ${SOURCES_AEC_PROCESS_FRAME} ${FILE_UTILS_SOURCES} ${AUTOGEN_SOURCES} ${SOURCES_DELAY_BUFFER} )
-    unset( SOURCES_XCORE )
-    list( APPEND SOURCES_XCORE ${SOURCES_TEST_WAV_XC} ${XSCOPE_FILEIO_SOURCES} )
-    list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
-
-    unset( INCLUDES )
-    list( APPEND  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils/src ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer/src)
-    unset( INCLUDES_XCORE )
-    list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
-    list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
-
-    # set( XSCOPE_CONFIG config.xscope )
-    get_filename_component(XSCOPE_CONFIG config.xscope ABSOLUTE)
-
-    ## Compile flags
-    unset(COMPILE_FLAGS)
-    unset(COMPILE_FLAGS_XCORE)
-    list(APPEND   COMPILE_FLAGS_XCORE  -DTEST_WAV_XSCOPE=1 -DPROFILE_PROCESSING=1)
-
-    ##Linker flags
-    unset(LINKER_FLAGS)
-    list( APPEND  LINKER_FLAGS  "" )
-
-    unset(LINKER_FLAGS_XCORE)
-    list( APPEND  LINKER_FLAGS_XCORE  "-target=${XCORE_TARGET}"     )
-    list( APPEND  LINKER_FLAGS_XCORE  "-report"                     )
-    list( APPEND  LINKER_FLAGS_XCORE  "${XSCOPE_CONFIG}"            )
-
-
-    list( APPEND  LINKER_FLAGS ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-    list( APPEND  COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} ${LINKER_FLAGS_${CMAKE_SYSTEM_NAME}} )
-
-    #########
-    ## executable output directory
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-    ## 1 thread executable
-    set ( EXEC ${APP_NAME}_${CONFIG_STR} )
-    add_executable( ${EXEC} ${SOURCES} )
-
-    target_include_directories( ${EXEC} PRIVATE ${INCLUDES} ${AUTOGEN_DIR})
-
-    target_link_libraries( ${EXEC} ${DEP_LIBS})
-
-    target_compile_options( ${EXEC} PRIVATE ${COMPILE_FLAGS} )
-
-    #(because otherwise the set_target_properties command fails)
-    string(REPLACE ";" " " LINKER_FLAGS_STR "${LINKER_FLAGS}")
-    set_target_properties( ${EXEC} PROPERTIES LINK_FLAGS "${LINKER_FLAGS_STR}" )
-
-    if ( XCORE )
-        set_target_properties( ${EXEC} PROPERTIES
-        SUFFIX ".xe"
-        LINK_DEPENDS  ${XSCOPE_CONFIG}
-        )
-    endif()
-endforeach( BUILD_CONFIG ${TEST_CONFIG} )
+endforeach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
