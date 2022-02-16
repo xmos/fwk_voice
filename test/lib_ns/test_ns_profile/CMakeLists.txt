@@ -15,11 +15,11 @@ unset( DEP_LIBS )
 list( APPEND  DEP_LIBS        
     lib_xs3_math
     lib_ns
+    profile
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 
 list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
-file( GLOB SOURCES_PROF ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src/*.c )
 file( GLOB SOURCES_C  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_ns/src/*.c )
 file( GLOB SOURCES_XC  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_ns/src/*.xc )
 file( GLOB SOURCES_SHARED ${SHARED_SRC_PATH}/file_utils/src/*.c )
@@ -35,7 +35,6 @@ list( APPEND  INCLUDES
     ${XSCOPE_FILEIO_PATH} 
     ${XSCOPE_FILEIO_PATH}/api 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_adec_profile/src
 )
 
 # set( XSCOPE_CONFIG config.xscope )

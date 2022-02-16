@@ -11,7 +11,7 @@ target_include_directories(ic_example PRIVATE src)
 if(XCORE)
   target_sources(ic_example PRIVATE src/main.xc)
 
-  target_include_directories(ic_example PRIVATE ../../../test/lib_adec/test_adec_profile/src)
+  target_link_libraries(ic_example profile)
 
   target_compile_options(ic_example PRIVATE "-DTEST_WAV_XSCOPE=1"
                                               "-target=${XCORE_TARGET}")
