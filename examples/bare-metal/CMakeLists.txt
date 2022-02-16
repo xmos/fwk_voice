@@ -2,7 +2,6 @@
 add_subdirectory( ic )
 
 add_subdirectory( aec_1_thread )
-add_subdirectory( vad )
 add_subdirectory( agc )
 add_subdirectory( pipeline_single_threaded )
 
