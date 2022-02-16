@@ -1,6 +1,3 @@
-## App name
-set( APP_NAME  aec_unit_tests )
-
 # Auto-generate task distribution scheme and top level config files
 
 if( NOT ${Python3_FOUND} )
@@ -14,7 +11,7 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
-message(STATUS "${APP_NAME} aec build config:  ${AEC_UNIT_TESTS_BUILD_CONFIG}" )
+message(STATUS "de_unit_tests aec build config:  ${AEC_UNIT_TESTS_BUILD_CONFIG}" )
 message( STATUS "Unit tests speedup factor ${TEST_SPEEDUP_FACTOR}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 

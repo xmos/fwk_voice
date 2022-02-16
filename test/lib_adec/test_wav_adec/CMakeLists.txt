@@ -9,7 +9,7 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
-message(STATUS "${APP_NAME} build config:  ${TEST_WAV_ADEC_BUILD_CONFIG}" )
+message(STATUS "test_wav_adec build config:  ${TEST_WAV_ADEC_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 
 unset(GEN_SCHEDULE_SCRIPT_ARGS) 
@@ -45,11 +45,12 @@ target_include_directories(test_wav_adec PRIVATE src
                                                  ${SHARED_SRC_PATH}/aec
                                                  ${AUTOGEN_DIR})
 
+target_compile_options(test_wav_adec PRIVATE "-DENABLE_ADEC_DEBUG_PRINTS")
+                                           
 if(XCORE)
   target_sources(test_wav_adec PRIVATE src/main.xc)
 
   target_compile_options(test_wav_adec PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                               "-DENABLE_ADEC_DEBUG_PRINTS"
                                                "-target=${XCORE_TARGET}")
 
   target_link_options(test_wav_adec PRIVATE "-target=${XCORE_TARGET}"

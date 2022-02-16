@@ -45,12 +45,14 @@ target_link_libraries(test_delay_estimator lib_aec
 target_include_directories(test_delay_estimator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src
                                              ${SHARED_SRC_PATH}/aec
                                              ${AUTOGEN_DIR})
+
+target_compile_options(test_delay_estimator PRIVATE "-DENABLE_ADEC_DEBUG_PRINTS"
+                                                    "-DBYPASS_ADEC=1")
+
 if(XCORE)
   target_sources(test_delay_estimator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/main.xc)
 
   target_compile_options(test_delay_estimator PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                           "-DENABLE_ADEC_DEBUG_PRINTS"
-                                           "-DBYPASS_ADEC=1"
                                            "-target=${XCORE_TARGET}")
 
   target_link_options(test_delay_estimator PRIVATE "-target=${XCORE_TARGET}"

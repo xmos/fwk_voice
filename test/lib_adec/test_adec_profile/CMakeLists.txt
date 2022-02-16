@@ -10,7 +10,7 @@ set( GEN_SCHEDULE_SCRIPT ${SHARED_SRC_PATH}/python/generate_task_distribution_sc
 foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     # Convert to config str of the form <threads>_<ychannels>_<xchannels>_<mainphases>_<shadowphases>
     string( REPLACE " " "_" CONFIG_STR ${BUILD_CONFIG} )
-    message( STATUS "${APP_NAME} ${CONFIG_STR}" )
+    message( STATUS "test_adec_profile ${CONFIG_STR}" )
     
     ## Generate schedule for given config
     set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen_${CONFIG_STR} )
