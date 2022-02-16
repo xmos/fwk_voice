@@ -64,18 +64,18 @@ void adec_process_frame(
   //This all takes 892 cyc in the sim which could be 1427 cyc in device (62.5MHz) so about 14us  
 
   // Shift them along
-  for(int i = ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i > 0; i--){
+  for(int i = ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i > 0; i--){
     state->peak_to_average_ratio_history[i] = state->peak_to_average_ratio_history[i - 1];
   }
   state->peak_to_average_ratio_history[0] = adec_in->from_de.peak_to_average_ratio;
 
   float_s32_t last_n_total = double_to_float_s32(0.0);
-  for(int i = 0; i < ADEC_PEAK_TO_RAGE_HISTORY_DEPTH; i++){
+  for(int i = 0; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i++){
     last_n_total = float_s32_add(last_n_total, state->peak_to_average_ratio_history[i]);
   }
  
   float_s32_t penultimate_n_total = double_to_float_s32(0.0);
-  for(int i = 1; i < ADEC_PEAK_TO_RAGE_HISTORY_DEPTH + 1; i++){
+  for(int i = 1; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH + 1; i++){
     penultimate_n_total = float_s32_add(penultimate_n_total, state->peak_to_average_ratio_history[i]);
   }
 

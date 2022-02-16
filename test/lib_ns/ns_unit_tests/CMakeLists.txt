@@ -25,9 +25,8 @@ list( APPEND  DEP_LIBS ${DEP_LIBS_${CMAKE_SYSTEM_NAME}} )
 ## Sources
 
 # Unity
-set( UNITY_PATH ${DEPS_ROOT}/Unity/src )
-file( GLOB UNITY_SOURCES  ${UNITY_PATH}/*.c 
-                          ${UNITY_PATH}/../extras/fixture/src/unity_fixture.c)
+file( GLOB UNITY_SOURCES  ${UNITY_PATH}/src/*.c 
+                          ${UNITY_PATH}/extras/fixture/src/unity_fixture.c)
 
 # If "CONFIG" is given as an optional argument, tell Unity to include "unity_config.h"
 # (user should make sure unity_config.h is in the include path)
@@ -85,10 +84,9 @@ target_link_libraries( ${APP_NAME} ${DEP_LIBS})
 
 
 list( APPEND INCLUDES src 
-    #${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/api
-    #${CMAKE_SOURCE_DIR}/modules/lib_noise_suppression/lib_noise_suppression/src
-    ${UNITY_PATH} 
-    ${UNITY_PATH}/../extras/fixture/src
+    ${UNITY_PATH}/src 
+    ${UNITY_PATH}/extras/fixture/src
+    ${UNITY_PATH}/extras/memory/src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand
     ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/testing
     )

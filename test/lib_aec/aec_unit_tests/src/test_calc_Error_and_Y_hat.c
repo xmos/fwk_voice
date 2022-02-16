@@ -1,13 +1,10 @@
 // Copyright 2018-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <xs1.h>
 #include "aec_unit_tests.h"
 #include <stdio.h>
 #include <assert.h>
-extern "C"{
-    #include "aec_defines.h"
-    #include "aec_api.h"
-}
+#include "aec_defines.h"
+#include "aec_api.h"
 
 #define TEST_MAIN_PHASES (5)
 #define TEST_NUM_Y (1)
@@ -16,12 +13,12 @@ extern "C"{
 #define NUM_BINS ((AEC_PROC_FRAME_LENGTH/2) + 1)
 
 void calc_Error_and_Y_hat_fp(
-        dsp_complex_fp (*Error)[NUM_BINS],
-        dsp_complex_fp (*Y_hat)[NUM_BINS],
-        dsp_complex_fp (*Y)[NUM_BINS],
-        dsp_complex_fp (*H_hat_main)[TEST_NUM_X*TEST_MAIN_PHASES][NUM_BINS],
-        dsp_complex_fp (*H_hat_shad)[TEST_NUM_X*TEST_SHADOW_PHASES][NUM_BINS],
-        dsp_complex_fp (*X_fifo)[TEST_MAIN_PHASES][NUM_BINS],
+        complex_double_t (*Error)[NUM_BINS],
+        complex_double_t (*Y_hat)[NUM_BINS],
+        complex_double_t (*Y)[NUM_BINS],
+        complex_double_t (*H_hat_main)[TEST_NUM_X*TEST_MAIN_PHASES][NUM_BINS],
+        complex_double_t (*H_hat_shad)[TEST_NUM_X*TEST_SHADOW_PHASES][NUM_BINS],
+        complex_double_t (*X_fifo)[TEST_MAIN_PHASES][NUM_BINS],
         int y_channels,
         int x_channels,
         int phases,
@@ -68,7 +65,6 @@ void calc_Error_and_Y_hat_fp(
 }
 
 void test_calc_Error_and_Y_hat() {
-    unsafe {
     unsigned num_y_channels = TEST_NUM_Y;
     unsigned num_x_channels = TEST_NUM_X;
     unsigned main_filter_phases = TEST_MAIN_PHASES;
@@ -82,18 +78,18 @@ void test_calc_Error_and_Y_hat() {
     aec_init(&state, &shadow_state, &aec_shared_state, (uint8_t*)&aec_memory_pool, (uint8_t*)&aec_shadow_memory_pool, num_y_channels, num_x_channels, main_filter_phases, shadow_filter_phases);
     
     //Declare floating point arrays
-    dsp_complex_fp H_hat_fp[TEST_NUM_Y][TEST_NUM_X*TEST_MAIN_PHASES][NUM_BINS];
-    dsp_complex_fp H_hat_shadow_fp[TEST_NUM_Y][TEST_NUM_X*TEST_SHADOW_PHASES][NUM_BINS];
-    dsp_complex_fp X_fifo_fp[TEST_NUM_X][TEST_MAIN_PHASES][NUM_BINS];
-    dsp_complex_fp Y_fp[TEST_NUM_Y][NUM_BINS];
-    dsp_complex_fp Y_hat_fp[TEST_NUM_Y][NUM_BINS];
-    dsp_complex_fp Error_fp[TEST_NUM_Y][NUM_BINS];
+    complex_double_t H_hat_fp[TEST_NUM_Y][TEST_NUM_X*TEST_MAIN_PHASES][NUM_BINS];
+    complex_double_t H_hat_shadow_fp[TEST_NUM_Y][TEST_NUM_X*TEST_SHADOW_PHASES][NUM_BINS];
+    complex_double_t X_fifo_fp[TEST_NUM_X][TEST_MAIN_PHASES][NUM_BINS];
+    complex_double_t Y_fp[TEST_NUM_Y][NUM_BINS];
+    complex_double_t Y_hat_fp[TEST_NUM_Y][NUM_BINS];
+    complex_double_t Error_fp[TEST_NUM_Y][NUM_BINS];
 
     unsigned seed = 2;
     int max_diff = 0;
     for(int iter=0; iter<(1<<12)/F; iter++) {
         int32_t new_frame[AEC_MAX_Y_CHANNELS+AEC_MAX_X_CHANNELS][AEC_FRAME_ADVANCE];
-        unsigned is_main = att_random_uint32(seed) % 2;
+        unsigned is_main = pseudo_rand_uint32(&seed) % 2;
         aec_state_t *state_ptr;
         if(is_main) {
             state_ptr = &state;
@@ -101,9 +97,9 @@ void test_calc_Error_and_Y_hat() {
         else {
             state_ptr = &shadow_state;
         }
-        unsigned test_l2_api = att_random_uint32(seed) % 2;
+        unsigned test_l2_api = pseudo_rand_uint32(&seed) % 2;
         //printf("is_main %d, test_l2_api %d\n", is_main, test_l2_api);
-        int bypass = att_random_uint32(seed) % 2;
+        int bypass = pseudo_rand_uint32(&seed) % 2;
         state_ptr->shared_state->config_params.aec_core_conf.bypass = bypass;
 
         aec_frame_init(&state, &shadow_state, &new_frame[0], &new_frame[AEC_MAX_Y_CHANNELS]);        
@@ -115,18 +111,18 @@ void test_calc_Error_and_Y_hat() {
         //Generate H_hat
         for(int ch=0; ch<num_y_channels; ch++) {
             for(int ph=0; ph<num_x_channels*state_ptr->num_phases; ph++) {
-                state_ptr->H_hat[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->H_hat[ch][ph].hr = att_random_uint32(seed) % 3;
+                state_ptr->H_hat[ch][ph].exp = pseudo_rand_int(&seed, -31, 32);
+                state_ptr->H_hat[ch][ph].hr = pseudo_rand_uint32(&seed) % 3;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->H_hat[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
-                    state_ptr->H_hat[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->H_hat[ch][ph].hr;
+                    state_ptr->H_hat[ch][ph].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->H_hat[ch][ph].hr;
                     if(is_main) {
-                        H_hat_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
-                        H_hat_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_fp[ch][ph][i].re = ldexp(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_fp[ch][ph][i].im = ldexp(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                     }
                     else {
-                        H_hat_shadow_fp[ch][ph][i].re = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
-                        H_hat_shadow_fp[ch][ph][i].im = att_int32_to_double(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_shadow_fp[ch][ph][i].re = ldexp(state_ptr->H_hat[ch][ph].data[i].re, state_ptr->H_hat[ch][ph].exp);
+                        H_hat_shadow_fp[ch][ph][i].im = ldexp(state_ptr->H_hat[ch][ph].data[i].im, state_ptr->H_hat[ch][ph].exp);
                     }
                 }
             }
@@ -135,14 +131,14 @@ void test_calc_Error_and_Y_hat() {
         aec_state_t *main_state_ptr = &state;
         for(int ch=0; ch<num_x_channels; ch++) {
             for(int ph=0; ph<main_state_ptr->num_phases; ph++) {
-                state_ptr->shared_state->X_fifo[ch][ph].exp = sext(att_random_int32(seed), 6);
-                state_ptr->shared_state->X_fifo[ch][ph].hr = att_random_uint32(seed) % 3;
+                state_ptr->shared_state->X_fifo[ch][ph].exp = pseudo_rand_int(&seed, -31, 32);
+                state_ptr->shared_state->X_fifo[ch][ph].hr = pseudo_rand_uint32(&seed) % 3;
                 for(int i=0; i<NUM_BINS; i++) {
-                    state_ptr->shared_state->X_fifo[ch][ph].data[i].re = att_random_int32(seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
-                    state_ptr->shared_state->X_fifo[ch][ph].data[i].im = att_random_int32(seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
+                    state_ptr->shared_state->X_fifo[ch][ph].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
+                    state_ptr->shared_state->X_fifo[ch][ph].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->shared_state->X_fifo[ch][ph].hr;
 
-                    X_fifo_fp[ch][ph][i].re = att_int32_to_double(state_ptr->shared_state->X_fifo[ch][ph].data[i].re, state_ptr->shared_state->X_fifo[ch][ph].exp);
-                    X_fifo_fp[ch][ph][i].im = att_int32_to_double(state_ptr->shared_state->X_fifo[ch][ph].data[i].im, state_ptr->shared_state->X_fifo[ch][ph].exp);
+                    X_fifo_fp[ch][ph][i].re = ldexp(state_ptr->shared_state->X_fifo[ch][ph].data[i].re, state_ptr->shared_state->X_fifo[ch][ph].exp);
+                    X_fifo_fp[ch][ph][i].im = ldexp(state_ptr->shared_state->X_fifo[ch][ph].data[i].im, state_ptr->shared_state->X_fifo[ch][ph].exp);
                 }
             }
         }
@@ -151,14 +147,14 @@ void test_calc_Error_and_Y_hat() {
         aec_update_X_fifo_1d(state_ptr);
         //Generate Y
         for(int ch=0; ch<num_y_channels; ch++) {
-            state_ptr->shared_state->Y[ch].exp = sext(att_random_int32(seed), 6);
-            state_ptr->shared_state->Y[ch].hr = att_random_uint32(seed) % 3;                
+            state_ptr->shared_state->Y[ch].exp = pseudo_rand_int(&seed, -31, 32);
+            state_ptr->shared_state->Y[ch].hr = pseudo_rand_uint32(&seed) % 3;                
             for(int i=0; i<NUM_BINS; i++) {
-                state_ptr->shared_state->Y[ch].data[i].re = att_random_int32(seed) >> state_ptr->shared_state->Y[ch].hr;
-                state_ptr->shared_state->Y[ch].data[i].im = att_random_int32(seed) >> state_ptr->shared_state->Y[ch].hr;
+                state_ptr->shared_state->Y[ch].data[i].re = pseudo_rand_int32(&seed) >> state_ptr->shared_state->Y[ch].hr;
+                state_ptr->shared_state->Y[ch].data[i].im = pseudo_rand_int32(&seed) >> state_ptr->shared_state->Y[ch].hr;
 
-                Y_fp[ch][i].re = att_int32_to_double(state_ptr->shared_state->Y[ch].data[i].re, state_ptr->shared_state->Y[ch].exp);
-                Y_fp[ch][i].im = att_int32_to_double(state_ptr->shared_state->Y[ch].data[i].im, state_ptr->shared_state->Y[ch].exp);
+                Y_fp[ch][i].re = ldexp(state_ptr->shared_state->Y[ch].data[i].re, state_ptr->shared_state->Y[ch].exp);
+                Y_fp[ch][i].im = ldexp(state_ptr->shared_state->Y[ch].data[i].im, state_ptr->shared_state->Y[ch].exp);
             }
         }
         //Calculate reference
@@ -194,7 +190,7 @@ void test_calc_Error_and_Y_hat() {
                         remaining_length = 0;
                     }
                     else if(remaining_length > 1) {
-                        length = att_random_uint32(seed) % remaining_length;
+                        length = pseudo_rand_uint32(&seed) % remaining_length;
                         start_offset = start;
                         start += length;
                         remaining_length -= length;
@@ -245,12 +241,12 @@ void test_calc_Error_and_Y_hat() {
             double *ref_Y_hat_ptr = (double*)&Y_hat_fp[ch][0];
             for(int i=0; i<NUM_BINS*2; i++) {
                 //Error
-                int32_t diff = att_double_to_int32(ref_Error_ptr[i], state_ptr->Error[ch].exp) - dut_Error_ptr[i];
+                int32_t diff = double_to_int32(ref_Error_ptr[i], state_ptr->Error[ch].exp) - dut_Error_ptr[i];
                 diff = (diff < 0) ? -diff : diff;
                 if(diff > max_diff) max_diff = diff;
                 TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1<<4, max_diff, "Error diff too large.");
                 //Y_hat
-                diff = att_double_to_int32(ref_Y_hat_ptr[i], state_ptr->Y_hat[ch].exp) - dut_Y_hat_ptr[i];
+                diff = double_to_int32(ref_Y_hat_ptr[i], state_ptr->Y_hat[ch].exp) - dut_Y_hat_ptr[i];
                 diff = (diff < 0) ? -diff : diff;
                 if(diff > max_diff) max_diff = diff;
                 TEST_ASSERT_LESS_OR_EQUAL_UINT32_MESSAGE(1<<4, max_diff, "Y_hat diff too large.");
@@ -259,5 +255,4 @@ void test_calc_Error_and_Y_hat() {
         
     }
     printf("max_diff = %d\n",max_diff);
-    }
 }

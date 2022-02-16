@@ -1,13 +1,10 @@
 // Copyright 2018-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <xs1.h>
 #include "aec_unit_tests.h"
 #include <stdio.h>
 #include <assert.h>
-extern "C"{
-    #include "aec_defines.h"
-    #include "aec_api.h"
-}
+#include "aec_defines.h"
+#include "aec_api.h"
 
 #define NUM_BINS ((AEC_PROC_FRAME_LENGTH/2) + 1)
 
@@ -25,8 +22,8 @@ static void update_mapping(int *mapping, int num_phases)
 void aec_calc_X_fifo_energy_fp(
         double (*X_energy)[NUM_BINS],
         double *max_X_energy,
-        dsp_complex_fp (*X)[NUM_BINS],
-        dsp_complex_fp (*X_fifo)[AEC_MAIN_FILTER_PHASES][NUM_BINS],
+        complex_double_t (*X)[NUM_BINS],
+        complex_double_t (*X_fifo)[AEC_MAIN_FILTER_PHASES][NUM_BINS],
         const int *mapping,
         unsigned num_channels,
         unsigned num_phases,
@@ -57,9 +54,9 @@ void aec_calc_X_fifo_energy_fp(
 }
 
 void update_X_fifo_fp(
-        dsp_complex_fp (*X_fifo)[AEC_MAIN_FILTER_PHASES][NUM_BINS],
+        complex_double_t (*X_fifo)[AEC_MAIN_FILTER_PHASES][NUM_BINS],
         int *mapping,
-        dsp_complex_fp (*X)[NUM_BINS],
+        complex_double_t (*X)[NUM_BINS],
         unsigned num_channels,
         unsigned num_phases
         )
@@ -79,7 +76,6 @@ void update_X_fifo_fp(
 }
 
 void test_update_total_X_energy() {
-    unsafe {
     unsigned num_y_channels = 1;
     unsigned num_x_channels = 1;
     unsigned main_filter_phases = AEC_MAIN_FILTER_PHASES - 1;
@@ -99,11 +95,11 @@ void test_update_total_X_energy() {
 
     //Initialise floating point stuff. mapping, X_energy_fp and X_fifo_fp
     int mapping[AEC_MAIN_FILTER_PHASES];
-    dsp_complex_fp X_fp[AEC_MAX_X_CHANNELS][NUM_BINS];
+    complex_double_t X_fp[AEC_MAX_X_CHANNELS][NUM_BINS];
     double X_energy_fp[AEC_MAX_X_CHANNELS][NUM_BINS];
     double X_energy_shadow_fp[AEC_MAX_X_CHANNELS][NUM_BINS];
     double max_X_energy_fp[AEC_MAX_X_CHANNELS], max_X_energy_shadow_fp[AEC_MAX_X_CHANNELS];
-    dsp_complex_fp X_fifo_fp[AEC_MAX_X_CHANNELS][AEC_MAIN_FILTER_PHASES][NUM_BINS];
+    complex_double_t X_fifo_fp[AEC_MAX_X_CHANNELS][AEC_MAIN_FILTER_PHASES][NUM_BINS];
     for(unsigned ch=0; ch<num_x_channels; ch++) {
         for(unsigned bin=0; bin<NUM_BINS; bin++) {
             X_energy_fp[ch][bin] = 0.0;
@@ -125,16 +121,16 @@ void test_update_total_X_energy() {
     for(unsigned iter=0; iter<(1<<12)/F; iter++) {
         for(unsigned ch=0; ch<num_x_channels; ch++) {
             bfp_complex_s32_t *X_ptr = &state.shared_state->X[ch];
-            X_ptr->exp = sext(att_random_int32(seed), 3) - 30;
-            X_ptr->hr = (att_random_uint32(seed) % 3);
+            X_ptr->exp = pseudo_rand_int(&seed, -3, 4) - 30;
+            X_ptr->hr = (pseudo_rand_uint32(&seed) % 3);
             
             //Generate X
             for(unsigned bin=0; bin<NUM_BINS; bin++)
             {
-                X_ptr->data[bin].re = att_random_int32(seed) >> X_ptr->hr;
-                X_ptr->data[bin].im = att_random_int32(seed) >> X_ptr->hr;
-                X_fp[ch][bin].re = att_int32_to_double(X_ptr->data[bin].re, X_ptr->exp);
-                X_fp[ch][bin].im = att_int32_to_double(X_ptr->data[bin].im, X_ptr->exp);
+                X_ptr->data[bin].re = pseudo_rand_int32(&seed) >> X_ptr->hr;
+                X_ptr->data[bin].im = pseudo_rand_int32(&seed) >> X_ptr->hr;
+                X_fp[ch][bin].re = ldexp(X_ptr->data[bin].re, X_ptr->exp);
+                X_fp[ch][bin].im = ldexp(X_ptr->data[bin].im, X_ptr->exp);
             }
         }
         
@@ -174,7 +170,7 @@ void test_update_total_X_energy() {
             bfp_s32_t *X_energy_shadow_ptr = &shadow_state.X_energy[ch];
             for(unsigned i=0; i<NUM_BINS; i++) {
                 double ref_double = X_energy_fp[ch][i];
-                double dut_double = att_int32_to_double(X_energy_ptr->data[i], X_energy_ptr->exp);
+                double dut_double = ldexp(X_energy_ptr->data[i], X_energy_ptr->exp);
                 double diff_double = ref_double - dut_double;
                 if(diff_double < 0.0) diff_double = -diff_double;
                 double diff_percentage = (diff_double/ref_double) * 100;
@@ -182,11 +178,11 @@ void test_update_total_X_energy() {
                 if(diff_double > 0.0002*(ref_double < 0.0 ? -ref_double : ref_double) + pow(10, -8))
                 {
                     printf("Main filter: iter %d. ch: %d, bin: %d, diff %f outside pass limits. ref %f, dut %f\n", iter, ch, i, diff_double, ref_double, dut_double);
-                    printf("Main filter: ch %d, bin %d: ref (%f), dut (0x%x, %d)\n",ch, i, ref_double, X_energy_ptr->data[i], X_energy_ptr->exp);                    
+                    printf("Main filter: ch %d, bin %d: ref (%f), dut (0x%lx, %d)\n",ch, i, ref_double, X_energy_ptr->data[i], X_energy_ptr->exp);                    
                     assert(0);
                 }
                 ref_double = X_energy_shadow_fp[ch][i];
-                dut_double = att_int32_to_double(X_energy_shadow_ptr->data[i], X_energy_shadow_ptr->exp);
+                dut_double = ldexp(X_energy_shadow_ptr->data[i], X_energy_shadow_ptr->exp);
                 diff_double = ref_double - dut_double;
                 if(diff_double < 0.0) diff_double = -diff_double;
                 diff_percentage = (diff_double/ref_double) * 100;
@@ -194,13 +190,13 @@ void test_update_total_X_energy() {
                 if(diff_double > 0.002*(ref_double < 0.0 ? -ref_double : ref_double) + pow(10, -8))
                 {
                     printf("Shadow filter: iter %d, ch: %d, bin: %d, diff %f outside pass limits. ref %f, dut %f\n", iter, ch, i, diff_double, ref_double, dut_double);
-                    printf("Shadow filter: ch %d, bin %d: ref (%f), dut (0x%x, %d)\n",ch, i, ref_double, X_energy_shadow_ptr->data[i], X_energy_shadow_ptr->exp);                    
+                    printf("Shadow filter: ch %d, bin %d: ref (%f), dut (0x%lx, %d)\n",ch, i, ref_double, X_energy_shadow_ptr->data[i], X_energy_shadow_ptr->exp);                    
                     assert(0);
                 }
             }
             //max_X_energy
             double ref_double = max_X_energy_fp[ch];
-            double dut_double = att_int32_to_double(state.max_X_energy[ch].mant, state.max_X_energy[ch].exp);
+            double dut_double = ldexp(state.max_X_energy[ch].mant, state.max_X_energy[ch].exp);
             double diff_double = ref_double - dut_double;
             if(diff_double < 0.0) {diff_double = -diff_double;}
             if(diff_double > 0.0002*(ref_double < 0.0 ? -ref_double : ref_double) + pow(10, -8))
@@ -210,7 +206,7 @@ void test_update_total_X_energy() {
             }
 
             ref_double = max_X_energy_shadow_fp[ch];
-            dut_double = att_int32_to_double(shadow_state.max_X_energy[ch].mant, shadow_state.max_X_energy[ch].exp);
+            dut_double = ldexp(shadow_state.max_X_energy[ch].mant, shadow_state.max_X_energy[ch].exp);
             diff_double = ref_double - dut_double;
             if(diff_double < 0.0) {diff_double = -diff_double;}
             if(diff_double > 0.002*(ref_double < 0.0 ? -ref_double : ref_double) + pow(10, -8))
@@ -226,5 +222,4 @@ void test_update_total_X_energy() {
     }
     printf("max_diff_percentage = %f\n",max_diff_percentage);
     printf("max_diff_percentage_shadow = %f\n",max_diff_percentage_shadow);
-    }
 }

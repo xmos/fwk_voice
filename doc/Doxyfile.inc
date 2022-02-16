@@ -12,6 +12,9 @@ INPUT += ../modules/lib_ns/api
 # AGC module
 INPUT += ../modules/lib_agc/api
 
+# ADEC module
+INPUT += ../modules/lib_adec/api
+
 # IC module
 INPUT += ../modules/lib_ic/api
 
