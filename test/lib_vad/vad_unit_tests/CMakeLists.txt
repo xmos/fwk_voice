@@ -129,7 +129,6 @@ foreach( testfile ${TEST_SOURCES} )
     message(STATUS "testfile: ${testfile} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c")
     if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c )
         set(EXTRA_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/for_mel_test/)
-        message(STATUS "POOOOO: ${EXTRA_INCLUDES}")
     endif()
 
     #########

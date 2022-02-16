@@ -218,7 +218,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
 #if 1
-    vad_mel_compute(mel, VAD_N_MEL_SCALE+1, curr_fd, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
+    vad_mel_compute_new(mel, VAD_N_MEL_SCALE+1, curr_fd, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
 #else
     vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (VAD_EXP - x_exp) * 2);
 #endif   

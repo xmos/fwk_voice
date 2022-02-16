@@ -5,7 +5,7 @@
 #include "vad_mel_scale.h"
 #include "vad_parameters.h"
 #include "bfp_math.h"
-#include <dsp.h>
+#include "dsp.h"
 
 //Note this test assumes that test_compare_fft has worked as we use vad_xs3_math_fft to generate vectors
 
@@ -16,6 +16,10 @@ extern void vad_mel_compute_new(int32_t melValues[], uint32_t M,
                                 const uint32_t melTable[],
                                 int32_t extra_shift) ;
 
+extern void vad_mel_compute(int32_t melValues[], uint32_t M,
+                                complex_s32_t pts[], uint32_t N,
+                                const uint32_t melTable[],
+                                int32_t extra_shift) ;
 
 int iabs(int a, int b){
     return a > b ? a-b : b-a;
