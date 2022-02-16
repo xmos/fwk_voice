@@ -9,6 +9,11 @@
 #define LOOKUP_PRECISION 8
 #define MEL_PRECISION 24
 
+#if X86_BUILD
+    //TODO Add x86 equivalents
+void mul_mel(uint32_t * h, uint32_t * l, uint32_t scale) {}
+void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t l) {}
+#else
 static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {
     uint32_t hi, li;
@@ -30,6 +35,7 @@ static inline void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL,
     *sumL = vL;
     *sumH = vH;
 }
+#endif
 
 static int lookup[33] = {
     0,    11,  22,  33,  43,  53,  63,  73,
