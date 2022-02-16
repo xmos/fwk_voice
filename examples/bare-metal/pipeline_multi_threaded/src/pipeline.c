@@ -97,10 +97,10 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
 
         /**NS*/
-        /*for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
             //the frame buffer will be used for both input and output here
             ns_process_frame(&ns_state[ch], frame[ch], frame[ch]);
-        }*/
+        }
 
         // Transmit output frame
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 

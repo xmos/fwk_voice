@@ -144,7 +144,7 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 }
 
 //apply suppression
-void ns_rescale_vector0(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
@@ -196,9 +196,7 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
 }
 
 
-void ns_rescale_vector(bfp_complex_s32_t * Y,
-            bfp_s32_t * new_mag,
-            bfp_s32_t * orig_mag){
+void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
     Y->exp += delta_exp;
