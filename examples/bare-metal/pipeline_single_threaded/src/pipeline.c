@@ -68,9 +68,9 @@ void pipeline_process_frame(pipeline_state_t *state,
     /**NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
-    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+    /*for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_process_frame(&state->ns_state[ch], ns_output[ch], stage_1_out[ch]);
-    }
+    }*/
     
     /** AGC*/
     agc_meta_data_t agc_md;
@@ -79,6 +79,7 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = aec_corr_factor[ch];
-        agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
+        agc_process_frame(&state->agc_state[ch], output_data[ch], stage_1_out[ch], &agc_md);
+        //agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
     }
 }
