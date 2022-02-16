@@ -85,7 +85,7 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
 #endif
 
     /** Update metadata*/
-    *max_ref_energy = aec_calc_max_ref_energy(input_x, state->aec_main_state.shared_state->num_x_channels);
+    *max_ref_energy = aec_calc_max_input_energy(input_x, state->aec_main_state.shared_state->num_x_channels);
     for(int ch=0; ch<state->aec_main_state.shared_state->num_y_channels; ch++) {
         aec_corr_factor[ch] = aec_calc_corr_factor(&state->aec_main_state, ch);
     }
