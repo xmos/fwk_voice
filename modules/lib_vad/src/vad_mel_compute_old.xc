@@ -94,6 +94,9 @@ void vad_mel_compute(int32_t melValues[], uint32_t M,
         melValues[i] = 0;
     }
 
+        // printf("init old: %u %u %u %u\n", sumOddH, sumOddL, sumEvenH, sumEvenL);
+
+
     for(int i = 0; i <= N; i++) {
         uint64_t s = pts[i].re * (uint64_t) pts[i].re + pts[i].im * (uint64_t) pts[i].im;
         uint32_t h = s >> 32;
@@ -113,11 +116,14 @@ void vad_mel_compute(int32_t melValues[], uint32_t M,
         scale = VAD_MEL_MAX - scale;
         if (scale == 0) {
             melValues[mels++] = log_exponent(sumOddH, sumOddL, extraShift);
+            // printf("sumOdd old: %d %d %d %d\n", log_exponent(sumOddH, sumOddL, extraShift), sumOddH, sumOddL, extraShift);
             sumOddH = 0;
             sumOddL = 0;
         } else {
+            // printf("old ho lo pts.re pst.im: %u %u %u %u\n", ho, lo, pts[i].re, pts[i].im);
             mul_mel(ho, lo, scale);
             add_unsigned_hl(sumOddH, sumOddL, ho, lo);
+            // printf("add_unsigned_hl old: %u %u %u %u\n", sumOddH, sumOddL, ho, lo);
         }
     }
 }
