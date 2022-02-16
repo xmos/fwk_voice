@@ -59,11 +59,8 @@ TEST(ns_rescale_vector, case0){
     double abs_ratio;
     double expected[NS_PROC_FRAME_BINS * 2];
     float_s32_t ex_re_fl, ex_im_fl;
-    int32_t max = 0x000000f0;
 
     for(int i = 0; i < 100; i++){
-
-        if((i % 12 ) == 0) max = max<<2;
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
             abs_orig_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
