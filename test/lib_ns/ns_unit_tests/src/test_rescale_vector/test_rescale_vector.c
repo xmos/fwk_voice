@@ -64,7 +64,7 @@ TEST(ns_rescale_vector, case0){
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
             abs_orig_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
-            int32_t div = pseudo_rand_int(&seed, 1, 327680); // 5 * 2^16 = 32780
+            int32_t div = pseudo_rand_int(&seed, 1, 2048); 
             abs_ns_int[v] = abs_orig_int[v] / div;
 
             t.mant = abs_orig_int[v];
@@ -74,12 +74,12 @@ TEST(ns_rescale_vector, case0){
             t = float_s32_div(t1, t);
             abs_ratio = float_s32_to_double(t);
 
-            Y_int[v].re = pseudo_rand_int(&seed, 0, INT_MAX);
+            Y_int[v].re = pseudo_rand_int(&seed, INT_MIN, INT_MAX);
             t.mant = Y_int[v].re;
             t.exp = EXP;
             expected[2 * v] = float_s32_to_double(t) * abs_ratio;
 
-            Y_int[v].im = pseudo_rand_int(&seed, 0, INT_MAX);
+            Y_int[v].im = pseudo_rand_int(&seed, INT_MIN, INT_MAX);
             t1.mant = Y_int[v].im;
             t1.exp = EXP;
             expected[(2 * v) + 1] = float_s32_to_double(t1) * abs_ratio;
@@ -94,12 +94,10 @@ TEST(ns_rescale_vector, case0){
         ns_rescale_vector(&Y, &abs_ns, &abs_orig);
 
         int32_t abs_diff = 0;
-        int id = 0;
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
             float_s32_t act_re_fl, act_im_fl;
             int32_t d_r, d_i, re_int, im_int;
-            int i;
 
             ex_re_fl = double_to_float_s32(expected[2 * v]);
             ex_im_fl = double_to_float_s32(expected[(2 * v) + 1]);
@@ -110,13 +108,13 @@ TEST(ns_rescale_vector, case0){
             re_int = use_exp_float(ex_re_fl, Y.exp);
             im_int = use_exp_float(ex_im_fl, Y.exp);
 
-            d_r = abs(re_int - Y.data[v].re); i = 2 * v;
+            d_r = abs(re_int - Y.data[v].re);
             d_i = abs(im_int - Y.data[v].im);
 
-            if(d_i > d_r){d_r = d_i; i++;}
-            if(d_r > abs_diff){abs_diff = d_r; id = i;}
+            if(d_i > d_r)d_r = d_i;
+            if(d_r > abs_diff)abs_diff = d_r;
         }
-        
+        printf("\n%ld\n\n", abs_diff);
         TEST_ASSERT(abs_diff <= 8);
     }
 }

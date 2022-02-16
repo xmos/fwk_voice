@@ -61,12 +61,12 @@ void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
     /** Stage1 - AEC, DE, ADEC*/
-    int32_t DWORD_ALIGNED stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], input_y_data, input_x_data);
 
     /**NS*/
-    int32_t DWORD_ALIGNED ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_process_frame(&state->ns_state[ch], ns_output[ch], stage_1_out[ch]);

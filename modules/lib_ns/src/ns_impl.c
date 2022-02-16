@@ -144,10 +144,18 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 }
 
 //apply suppression
-void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+//does not work well when the difference between new_mag
+//and orig_mag is more then 2^10
+void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
+
+    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
+    new_mag->exp -= new_mag->hr; new_mag->hr = 0;
+
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
+    orig_mag->exp -= orig_mag->hr; orig_mag->hr = 0;
 
     int max_exp = INT_MIN;
     float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
@@ -170,7 +178,7 @@ void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t
         }
     }
 
-
+    //doesn't work
     /*if(new_mag->exp < orig_mag->exp) bfp_s32_use_exponent(new_mag, orig_mag->exp);
     else bfp_s32_use_exponent(orig_mag, new_mag->exp);
 
@@ -180,11 +188,12 @@ void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t
         else orig_mag->data[v] = INT_MAX;
     }*/
 
-    bfp_s32_headroom(orig_mag);
+    left_shift_t shl = bfp_s32_headroom(orig_mag) - 1;
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, shl);
+    orig_mag->exp -= shl; orig_mag->hr = 1;
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
 }
-
 
 void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
     if(orig_mag){
@@ -195,8 +204,9 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
     }
 }
 
-
-void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+//fails pipeline example comparison
+//saves 2.2 MIPS
+void ns_rescale_vector_test(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
     Y->exp += delta_exp;
