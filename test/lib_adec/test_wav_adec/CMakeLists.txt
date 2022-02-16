@@ -42,7 +42,7 @@ list( APPEND  DEP_LIBS
 ## Sources
 file( GLOB_RECURSE SOURCES_TEST_WAV_C src/*.c )
 file( GLOB SOURCES_TEST_WAV_XC src/*.xc )
-file( GLOB SOURCES_DELAY_BUFFER  ${SHARED_SRC_PATH}/delay_buffer/*.c )
+file( GLOB SOURCES_DELAY_BUFFER  ${SHARED_SRC_PATH}/delay_buffer/src/*.c )
 if ( XCORE )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 else()
@@ -60,7 +60,7 @@ list( APPEND SOURCES ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
 unset( INCLUDES )
-list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils/src ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer)
+list( APPEND  INCLUDES src ${SHARED_SRC_PATH}/aec ${SHARED_SRC_PATH}/file_utils/src ${AUTOGEN_DIR} ${SHARED_SRC_PATH}/delay_buffer/src)
 unset( INCLUDES_XCORE )
 list( APPEND INCLUDES_XCORE ${XSCOPE_FILEIO_PATH} ${XSCOPE_FILEIO_PATH}/api )
 list( APPEND INCLUDES ${INCLUDES_${CMAKE_SYSTEM_NAME}} )
