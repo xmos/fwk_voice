@@ -31,28 +31,28 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
 
     set ( EXEC test_adec_profile_${CONFIG_STR} )
     add_executable(${EXEC} ${SOURCES_APP} 
-                             ${SOURCES_AEC_PROCESS_FRAME}
-                             ${AUTOGEN_SOURCES}) 
+                           ${SOURCES_AEC_PROCESS_FRAME}
+                           ${AUTOGEN_SOURCES}) 
 
     target_link_libraries(${EXEC} lib_aec
-                                        lib_adec
-                                        file_utils
-                                        delay_buffer
-                                        profile)
+                                  lib_adec
+                                  file_utils
+                                  delay_buffer
+                                  profile)
 
     target_include_directories(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src
-                                                 ${SHARED_SRC_PATH}/aec
-                                                 ${AUTOGEN_DIR})
+                                               ${SHARED_SRC_PATH}/aec
+                                               ${AUTOGEN_DIR})
     if(XCORE)
       target_sources(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/main.xc)
 
       target_compile_options(${EXEC} PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                                   "-DPROFILE_PROCESSING=1"
-                                                   "-target=${XCORE_TARGET}")
+                                             "-DPROFILE_PROCESSING=1"
+                                             "-target=${XCORE_TARGET}")
 
       target_link_options(${EXEC} PRIVATE "-target=${XCORE_TARGET}"
-                                            "-report"
-                                            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+                                          "-report"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 
       set_target_properties(${EXEC} PROPERTIES SUFFIX ".xe")
     else()
