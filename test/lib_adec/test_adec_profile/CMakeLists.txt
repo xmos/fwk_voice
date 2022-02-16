@@ -7,7 +7,7 @@ if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
 endif()
 
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/shared_src/python/generate_task_distribution_scheme.py )
+set( GEN_SCHEDULE_SCRIPT ${SHARED_SRC_PATH}/python/generate_task_distribution_scheme.py )
 
 ## Build each config
 foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )

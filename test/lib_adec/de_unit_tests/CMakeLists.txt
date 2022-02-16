@@ -9,7 +9,7 @@ endif()
 
 #copy conftest.py in the build directory since pytest_collect_file only collects tests from the directory tree where conftest.py is present
 configure_file( conftest.py conftest.py COPYONLY ) 
-set( GEN_SCHEDULE_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_aec/shared_src/python/generate_task_distribution_scheme.py )
+set( GEN_SCHEDULE_SCRIPT ${SHARED_SRC_PATH}/python/generate_task_distribution_scheme.py )
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
