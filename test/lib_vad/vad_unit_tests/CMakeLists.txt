@@ -72,8 +72,12 @@ file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${LIB_DSP_PATH}/src/*.xc )
 file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${LIB_DSP_PATH}/src/*.S )
 set( LIB_DSP_SOURCES  ${LIB_DSP_SOURCES_C} ${LIB_DSP_SOURCES_XC} ${LIB_DSP_SOURCES_ASM})
 
+#old lib_vad for comparison
+# set( LIB_OLD_VAD_INCLUDES ${DEPS_ROOT}/lib_vad/lib_vad/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
+set( LIB_OLD_VAD_SOURCES ${DEPS_ROOT}/lib_vad/lib_vad/src/vad_mel_compute.xc)
+
 # All common sources
-list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} ${LIB_AI_SOURCES})
+list( APPEND  SOURCES ${AUTOGEN_SOURCES} ${UNITY_SOURCES} ${AUDIO_TEST_TOOLS_SOURCES} ${LIB_DSP_SOURCES} ${LIB_AI_SOURCES} ${LIB_OLD_VAD_SOURCES})
 list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 ## Includes
@@ -122,12 +126,17 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating VAD runner" )
     
+    message(STATUS "testfile: ${testfile} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c")
+    if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c )
+        set(EXTRA_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/for_mel_test/)
+        message(STATUS "POOOOO: ${EXTRA_INCLUDES}")
+    endif()
 
     #########
     ## Add a build target
     add_executable( ${TESTNAME} ${testfile} ${RUNNER_FILE} ${SOURCES} )
 
-    target_include_directories( ${TESTNAME} PRIVATE ${INCLUDES} )
+    target_include_directories( ${TESTNAME} PRIVATE ${INCLUDES} ${EXTRA_INCLUDES})
 
     target_link_libraries( ${TESTNAME} ${DEP_LIBS})
 

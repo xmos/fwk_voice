@@ -9,12 +9,6 @@
 #define LOOKUP_PRECISION 8
 #define MEL_PRECISION 24
 
-// extern void mul_mel(uint32_t * h, uint32_t * l,
-//                  uint32_t scale);
-
-// extern void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL,
-//                                 uint32_t h, uint32_t l);
-
 static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {
     uint32_t hi, li;
