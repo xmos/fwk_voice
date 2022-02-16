@@ -24,7 +24,7 @@ int dsp_fft(dsp_complex_t * input, int nq){
 
 
 //Implementation in vad.c
-extern int vad_xs3_math_fft(int32_t * curr, int nq);
+extern headroom_t vad_xs3_math_fft(int32_t * curr, int nq);
 
 
 

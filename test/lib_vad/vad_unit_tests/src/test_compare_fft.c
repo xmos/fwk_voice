@@ -6,6 +6,7 @@
 #include "vad_parameters.h"
 #include <bfp_math.h>
 #include <dsp.h>
+#include "xs3_math.h" // for headroom_t
 
 //The implementation held in vad.xc
 int dsp_fft(dsp_complex_t * input, int nq){
@@ -24,7 +25,7 @@ int dsp_fft(dsp_complex_t * input, int nq){
 
 
 //Implementation in vad.c
-extern int vad_xs3_math_fft(int32_t * curr, int nq);
+extern headroom_t vad_xs3_math_fft(int32_t * curr, int nq);
 
 int iabs(int a, int b){
     return a > b ? a-b : b-a;
@@ -50,11 +51,11 @@ void test_compare_fft_mfcc(){
         }
         // printf("T: %ld\n", orig_dsp[0].re);
 
-        int rel_dsp_exp = dsp_fft(orig_dsp, 1);
+        headroom_t dsp_hr = dsp_fft(orig_dsp, 1);
         complex_s32_t * dsp_fd = (complex_s32_t *)orig_dsp;
 
 
-        int xs3_exp = vad_xs3_math_fft(orig_xs3, 1);
+        headroom_t xs3_hr = vad_xs3_math_fft(orig_xs3, 1);
         complex_s32_t * xs3_fd = (complex_s32_t *)orig_xs3;
 
 
@@ -72,8 +73,8 @@ void test_compare_fft_mfcc(){
 
             //Note we have not exponent adjusted the BFP version so removed from test. We don't use it anyway
 
-            if((9-rel_dsp_exp != xs3_exp+31) /*|| (9-rel_dsp_exp != bfp_fd->exp+31)*/){
-                printf("FAIL - ex ref: %d xs3: %d bfp: %d\n", 9-rel_dsp_exp, xs3_exp+31, bfp_fd->exp+31);
+            if((dsp_hr != xs3_hr) /*|| (dsp_hr != bfp_fd->exp+31)*/){
+                printf("FAIL - ex ref: %d xs3: %d bfp: %d\n", dsp_hr, xs3_hr, bfp_fd->exp+31);
                 TEST_ASSERT(0);
             }
 
