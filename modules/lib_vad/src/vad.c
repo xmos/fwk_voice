@@ -18,7 +18,7 @@
 #include "vad_helpers.h"
 
 
-int vad_xs3_math_fft(int32_t * curr, int nq){
+headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
 
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
 
@@ -48,7 +48,7 @@ int vad_xs3_math_fft(int32_t * curr, int nq){
     xs3_vect_s32_shr(curr, curr, VAD_PROC_FRAME_LENGTH, exp_adjust);
     x_exp += exp_adjust;
 
-    return x_exp;
+    return original_hr;
 }
 
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
@@ -196,37 +196,18 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     printf("\n");
 #endif
 
-#if 0
-    int headroom = dsp_bfp_cls(input, VAD_WINDOW_LENGTH)-1;
-    dsp_bfp_shl(input, VAD_WINDOW_LENGTH, headroom);
-
-    // First compute frequency domain: input e [-2^31..2^31], output div by N
-    dsp_fft_bit_reverse(input, VAD_WINDOW_LENGTH);         
-    dsp_fft_forward(input, VAD_WINDOW_LENGTH, VAD_DSP_SINE_WINDOW_LENGTH);
-#else    
-
+    headroom_t headroom = vad_xs3_math_fft(curr, 1);
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
-    exponent_t x_exp = -31;
-    headroom_t hr = xs3_vect_s32_headroom(curr, VAD_PROC_FRAME_LENGTH);
 
-    right_shift_t x_shr = 2 - hr;
-    xs3_vect_s32_shl(curr, curr, VAD_PROC_FRAME_LENGTH, -x_shr);
-    hr += x_shr; x_exp += x_shr;
-
-    xs3_fft_index_bit_reversal(curr_fd, VAD_PROC_FRAME_BINS);
-    xs3_fft_dit_forward(curr_fd, VAD_PROC_FRAME_BINS, &hr, &x_exp);
-    xs3_fft_mono_adjust(curr_fd, VAD_PROC_FRAME_LENGTH, 0);
-    
-    curr_fd[VAD_PROC_FRAME_BINS].re = curr_fd[0].im;
-    curr_fd[0].im = 0;
-    curr_fd[VAD_PROC_FRAME_BINS].im = 0;
-#endif
+    printf("new headroom: %d\n", headroom);
 
 
-#if 1//PRINT_ME && PRINT_ALL
-    printf("SPECTRAL ");
+
+
+#if 1 //PRINT_ME && PRINT_ALL
+    printf("NEW SPECTRAL ");
     // for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 5; i++) {
         printf("%ld %ld     ", curr_fd[i].re, curr_fd[i].im);
         // printf("%ld %ld     ", input[i].re, input[i].im);
     }
@@ -239,8 +220,8 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
-#if 0    
-    vad_mel_compute(mel, VAD_N_MEL_SCALE+1, input, VAD_WINDOW_LENGTH/2 + 1, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
+#if 1
+    vad_mel_compute(mel, VAD_N_MEL_SCALE+1, curr_fd, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
 #else
     vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (VAD_EXP - x_exp) * 2);
 #endif   
@@ -250,7 +231,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
         dct_input[i] = (mel[i + 1] >> 8);   // create headroom.
     }
     
-#if PRINT_ME
+#if 1//PRINT_ME
     printf("MEL ");
     for(int i = 0; i < 24; i++) {
         printf("%5.2f ", dct_input[i]/65536.0);

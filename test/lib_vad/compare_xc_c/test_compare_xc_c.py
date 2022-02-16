@@ -32,6 +32,7 @@ def process_xe(xe_file, input_file):
     return stdout
 
 def compare_vads(old, new):
+    allclose = True
     for old_line, new_line in zip(old, new):
         re_old = re.match(".+OLD frame: (\d+) vad: (\d+)", old_line)
         if re_old:
@@ -43,12 +44,19 @@ def compare_vads(old, new):
             new_vad = int(re_new.groups(0)[1])
         assert old_frame == new_frame, f"Frame mismatch from old: {old_frame} vs new: {new_frame}"
     
+        isclose = lambda x,y, diff: abs(x - y) <= diff
+        if not isclose(old_vad, new_vad, 0):
+            allclose = False
         print(f"frame {new_frame}: {old_vad} {new_vad}")
+    print(f"Comparison: {allclose}")
 
-
+def dump_both(old, new):
+    for old_line, new_line in zip(old, new):
+        print(old_line.strip(), "\n", new_line.strip())
 
 def test_xc_c_comparison():
     stdo_old_vad = process_xe(old_vad_xe, input_wav)
     stdo_new_vad = process_xe(new_vad_xe, input_wav)
 
-    compare_vads(stdo_old_vad, stdo_new_vad)
+    # compare_vads(stdo_old_vad, stdo_new_vad)
+    dump_both(stdo_old_vad, stdo_new_vad)
