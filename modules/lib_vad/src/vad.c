@@ -199,12 +199,9 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     headroom_t headroom = vad_xs3_math_fft(curr, 1);
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
 
-    printf("new headroom: %d\n", headroom);
 
 
-
-
-#if 1 //PRINT_ME && PRINT_ALL
+#if PRINT_ME && PRINT_ALL
     printf("NEW SPECTRAL ");
     // for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
     for(int i = 0; i < 5; i++) {
@@ -231,7 +228,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
         dct_input[i] = (mel[i + 1] >> 8);   // create headroom.
     }
     
-#if 1//PRINT_ME
+#if PRINT_ME
     printf("MEL ");
     for(int i = 0; i < 24; i++) {
         printf("%5.2f ", dct_input[i]/65536.0);
@@ -263,12 +260,12 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     memset(features, 0, sizeof(features));
 
 
-    // features[0] = spectral_centroid;
-    // features[1] = spectral_spread;
+    features[0] = spectral_centroid;
+    features[1] = spectral_spread;
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
         features[i+2] = dct_output[i+1];
     }
-    // features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
+    features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
 
 
     ///////////////////

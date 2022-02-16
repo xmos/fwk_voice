@@ -83,7 +83,6 @@ void vad_mel_compute(int32_t melValues[], uint32_t M,
                     complex_s32_t pts[], uint32_t N,
                     const uint32_t melTable[],
                     int32_t extraShift) {
-    printf("extraShift: %d\n", extraShift);
 
     extraShift += (32 - VAD_MEL_BITS);
     

@@ -45,7 +45,8 @@ def compare_vads(old, new):
         assert old_frame == new_frame, f"Frame mismatch from old: {old_frame} vs new: {new_frame}"
     
         isclose = lambda x,y, diff: abs(x - y) <= diff
-        if not isclose(old_vad, new_vad, 0):
+        max_diff = 0 #Exactly the same for both results
+        if not isclose(old_vad, new_vad, max_diff):
             allclose = False
         print(f"frame {new_frame}: {old_vad} {new_vad}")
     print(f"Comparison: {allclose}")
@@ -58,5 +59,5 @@ def test_xc_c_comparison():
     stdo_old_vad = process_xe(old_vad_xe, input_wav)
     stdo_new_vad = process_xe(new_vad_xe, input_wav)
 
-    # compare_vads(stdo_old_vad, stdo_new_vad)
-    dump_both(stdo_old_vad, stdo_new_vad)
+    compare_vads(stdo_old_vad, stdo_new_vad)
+    # dump_both(stdo_old_vad, stdo_new_vad)
