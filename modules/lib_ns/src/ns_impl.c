@@ -144,8 +144,8 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 }
 
 //apply suppression
-//does not work well when the difference between new_mag
-//and orig_mag is more then 2^10
+//does not work well when the ratio between new_mag
+//and orig_mag is more then 2^6
 void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     //bfp_s32_inverse(orig_mag, orig_mag);
@@ -208,6 +208,12 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
 //saves 2.2 MIPS
 void ns_rescale_vector_test(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
+    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
+    new_mag->exp -= new_mag->hr; new_mag->hr = 0;
+
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
+    orig_mag->exp -= orig_mag->hr; orig_mag->hr = 0;
+
     right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
     Y->exp += delta_exp;
 
@@ -246,7 +252,7 @@ void ns_process_frame(ns_state_t * ns,
 
     ns_priv_process_frame(&abs_Y_suppressed, ns);
 
-    ns_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
+    ns_rescale_vector_test(curr_fft, &abs_Y_suppressed, &abs_Y_original);
     ////////////////////////////don't use abs_Y_orig after this point 
 
     bfp_fft_pack_mono(curr_fft);

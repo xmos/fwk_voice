@@ -114,7 +114,6 @@ TEST(ns_rescale_vector, case0){
             if(d_i > d_r)d_r = d_i;
             if(d_r > abs_diff)abs_diff = d_r;
         }
-        printf("\n%ld\n\n", abs_diff);
         TEST_ASSERT(abs_diff <= 8);
     }
 }
