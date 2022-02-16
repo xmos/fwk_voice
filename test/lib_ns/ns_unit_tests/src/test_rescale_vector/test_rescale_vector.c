@@ -78,13 +78,11 @@ TEST(ns_rescale_vector, case0){
             t.mant = Y_int[v].re;
             t.exp = EXP;
             expected[2 * v] = float_s32_to_double(t) * abs_ratio;
-            t = double_to_float_s32(expected[2 * v]);
 
             Y_int[v].im = pseudo_rand_int(&seed, 0, INT_MAX);
             t1.mant = Y_int[v].im;
             t1.exp = EXP;
             expected[(2 * v) + 1] = float_s32_to_double(t1) * abs_ratio;
-            t = double_to_float_s32(expected[(2 * v) + 1]);
         }
 
         bfp_s32_t abs_orig, abs_ns;
