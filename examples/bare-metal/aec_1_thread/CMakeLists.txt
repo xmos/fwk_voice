@@ -5,7 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set(XCORE_TARGET "XCORE-AI-EXPLORER")
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    add_executable(avona_example_bare_metal_aec_1_thread)
+    add_executable(avona_example_bare_metal_aec_1_thread EXCLUDE_FROM_ALL)
     target_sources(avona_example_bare_metal_aec_1_thread
         PRIVATE
             src/aec_app.c
@@ -27,7 +27,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         PUBLIC
             avona::example::aec1thread
             avona::example::fileutils_xcore
-            # m
     )
     target_link_options(avona_example_bare_metal_aec_1_thread
         PRIVATE
@@ -36,7 +35,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope"
     )
 else()
-    add_executable(avona_example_bare_metal_aec_1_thread)
+    add_executable(avona_example_bare_metal_aec_1_thread EXCLUDE_FROM_ALL)
     target_sources(avona_example_bare_metal_aec_1_thread
         PRIVATE
             src/aec_app.c
@@ -44,12 +43,14 @@ else()
     target_link_libraries(avona_example_bare_metal_aec_1_thread
         PUBLIC
             avona::example::aec1thread
-            avona::example::fileutils
+            avona::example::fileutils_host
     )
-
     target_include_directories(avona_example_bare_metal_aec_1_thread
         PRIVATE
             src
     )
-    target_link_libraries(avona_example_bare_metal_aec_1_thread m)
+    target_link_libraries(avona_example_bare_metal_aec_1_thread
+        PRIVATE
+            m
+    )
 endif()

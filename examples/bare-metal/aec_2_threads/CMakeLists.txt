@@ -1,24 +1,36 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-file( GLOB_RECURSE SOURCES_APP  src/*.c )
-add_executable(aec_2_threads ${SOURCES_APP} 
-                            ${SHARED_SRC_PATH}/aec/aec_process_frame_2threads.c )
+## Note this should be a top level config, IE build entire repo for a particular XCORE_TARGET
+set(XCORE_TARGET "XCORE-AI-EXPLORER")
 
-target_link_libraries(aec_2_threads lib_aec lib_xs3_math file_utils)
-
-target_include_directories(aec_2_threads PRIVATE src ${SHARED_SRC_PATH}/aec)
-
-if(XCORE)
-  target_sources(aec_2_threads PRIVATE src/main.xc)
-
-  target_compile_options(aec_2_threads PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                              "-target=${XCORE_TARGET}")
-
-  target_link_options(aec_2_threads PRIVATE "-target=${XCORE_TARGET}"
-                                  "-report"
-                                  "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
-  set_target_properties(aec_2_threads PROPERTIES SUFFIX ".xe")
-else()
-  target_link_libraries(aec_2_threads m)
-endif()
+add_executable(avona_example_bare_metal_aec_2_thread EXCLUDE_FROM_ALL)
+target_sources(avona_example_bare_metal_aec_2_thread
+    PRIVATE
+        src/aec_app.c
+        src/aec_task_distribution.c
+        src/main.xc
+)
+target_include_directories(avona_example_bare_metal_aec_2_thread
+    PRIVATE
+        src
+)
+target_compile_options(avona_example_bare_metal_aec_2_thread
+    PRIVATE
+        "-target=${XCORE_TARGET}"
+)
+target_compile_definitions(avona_example_bare_metal_aec_2_thread
+    PRIVATE
+        TEST_WAV_XSCOPE=1
+)
+target_link_libraries(avona_example_bare_metal_aec_2_thread
+    PUBLIC
+        avona::example::aec2thread
+        avona::example::fileutils_xcore
+)
+target_link_options(avona_example_bare_metal_aec_2_thread
+    PRIVATE
+        "-target=${XCORE_TARGET}"
+        "-report"
+        "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope"
+)
