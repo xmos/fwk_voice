@@ -4,7 +4,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 add_executable(aec_1_thread src/aec_app.c
                             ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
 
-target_link_libraries(aec_1_thread lib_aec lib_xs3_math file_utils)
+target_link_libraries(aec_1_thread lib_aec sdk::lib_xs3_math file_utils)
 
 target_include_directories(aec_1_thread PRIVATE ${SHARED_SRC_PATH}/aec)
 
