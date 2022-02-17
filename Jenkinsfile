@@ -143,6 +143,13 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/vad") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/vad_example.xe"
+                }
+              }
+            }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
@@ -163,6 +170,30 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD vad_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vad/vad_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD compare_xc_c') {
+          steps {
+            dir("${REPO}/test/lib_vad/compare_xc_c") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
