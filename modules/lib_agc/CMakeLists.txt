@@ -1,8 +1,22 @@
-add_library(lib_agc STATIC src/agc_impl.c)
 
-target_include_directories(lib_agc PUBLIC api)
+## Create library target
+add_library(avona_module_lib_agc STATIC)
 
-target_link_libraries(lib_agc PUBLIC sdk::lib_xs3_math)
+target_sources(avona_module_lib_agc
+    PRIVATE
+        src/agc_impl.c
+)
 
-set_target_properties(lib_agc PROPERTIES PREFIX ""
-                                         SUFFIX ".a")
+target_include_directories(avona_module_lib_agc
+    PUBLIC
+        api
+)
+
+target_link_libraries(avona_module_lib_agc
+    PUBLIC
+        sdk::lib_xs3_math
+)
+
+
+## Create an alias
+add_library(avona::agc ALIAS avona_module_lib_agc)
