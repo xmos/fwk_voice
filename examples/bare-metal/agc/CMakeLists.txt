@@ -1,19 +1,39 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable(agc src/agc_app.c)
+add_executable(avona_example_bare_metal_agc EXCLUDE_FROM_ALL)
 
-target_link_libraries(agc lib_agc lib_xs3_math file_utils)
+target_sources(avona_example_bare_metal_agc
+    PRIVATE
+        src/agc_app.c)
 
-if(XCORE)
-  target_sources(agc PRIVATE src/main.xc)
+target_include_directories(avona_example_bare_metal_agc
+    PRIVATE
+        src)
 
-  target_compile_options(agc PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                     "-target=${XCORE_TARGET}")
+target_link_libraries(avona_example_bare_metal_agc
+    PUBLIC
+        avona::agc) 
 
-  target_link_options(agc PRIVATE "-target=${XCORE_TARGET}"
-                                  "-report"
-                                  "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
-  set_target_properties(agc PROPERTIES SUFFIX ".xe")
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_sources(avona_example_bare_metal_agc
+        PRIVATE src/main.xc)
+
+    target_link_libraries(avona_example_bare_metal_agc
+        PUBLIC avona::example::fileutils_xcore)
+
+    target_compile_options(avona_example_bare_metal_agc
+        PRIVATE "-target=${XCORE_TARGET}")
+
+    target_link_options(avona_example_bare_metal_agc
+        PRIVATE
+            "-target=${XCORE_TARGET}"
+            "-report"
+            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-  target_link_libraries(agc m)
-endif(XCORE)
+    target_link_libraries(avona_example_bare_metal_agc
+        PUBLIC
+            avona::example::fileutils_host
+    )
+    target_link_libraries(avona_example_bare_metal_agc
+        PRIVATE m)
+endif()

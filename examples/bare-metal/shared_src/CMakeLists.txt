@@ -1,15 +1,4 @@
-
-
-# add_subdirectory( file_utils )
-
-# add_subdirectory( delay_buffer )
-#
-# if(XCORE)
-#     add_subdirectory( profile )
-# endif()
-
-
-
+######
 add_library(avona_example_shared_src_aec_1_thread INTERFACE)
 target_sources(avona_example_shared_src_aec_1_thread
     INTERFACE
@@ -26,6 +15,7 @@ target_link_libraries(avona_example_shared_src_aec_1_thread
 add_library(avona::example::aec1thread ALIAS avona_example_shared_src_aec_1_thread)
 
 
+######
 add_library(avona_example_shared_src_aec_2_thread INTERFACE)
 target_sources(avona_example_shared_src_aec_2_thread
     INTERFACE
@@ -41,7 +31,31 @@ target_link_libraries(avona_example_shared_src_aec_2_thread
 )
 add_library(avona::example::aec2thread ALIAS avona_example_shared_src_aec_2_thread)
 
+######
+add_library(avona_example_shared_src_delay_buffer  INTERFACE)
+target_sources(avona_example_shared_src_delay_buffer
+    INTERFACE
+        delay_buffer/src/delay_buffer.c
+)
+target_include_directories(avona_example_shared_src_delay_buffer
+    INTERFACE
+        delay_buffer/src
+)
+add_library(avona::example::delay_buffer ALIAS avona_example_shared_src_delay_buffer)
 
+######
+add_library(avona_example_shared_src_stage_1  INTERFACE)
+target_sources(avona_example_shared_src_stage_1
+    INTERFACE
+        pipeline_stage_1/stage_1.c
+)
+target_include_directories(avona_example_shared_src_stage_1
+    INTERFACE
+        pipeline_stage_1
+)
+add_library(avona::example::stage_1 ALIAS avona_example_shared_src_stage_1)
+
+######
 add_library(avona_example_shared_src_file_utils_xcore INTERFACE)
 target_sources(avona_example_shared_src_file_utils_xcore
     INTERFACE
@@ -57,7 +71,20 @@ target_include_directories(avona_example_shared_src_file_utils_xcore
 )
 target_compile_definitions(avona_example_shared_src_file_utils_xcore
     INTERFACE
-        TEST_WAV_XSCOPE
+        -DTEST_WAV_XSCOPE=1
 )
 
 add_library(avona::example::fileutils_xcore ALIAS avona_example_shared_src_file_utils_xcore)
+
+######
+add_library(avona_example_shared_src_profile_xcore INTERFACE)
+target_sources(avona_example_shared_src_profile_xcore
+    INTERFACE
+        profile/src/profile.c
+)
+target_include_directories(avona_example_shared_src_profile_xcore
+    INTERFACE
+        profile/src
+)
+
+add_library(avona::example::profile_xcore ALIAS avona_example_shared_src_profile_xcore)

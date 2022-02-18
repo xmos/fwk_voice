@@ -45,6 +45,10 @@ set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
 
+if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    set(XCORE_TARGET "XCORE-AI-EXPLORER")
+endif()
+
 ## Get build dependencies
 #file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/deps)
 #include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
