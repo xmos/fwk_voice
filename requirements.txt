@@ -16,16 +16,16 @@
 # procedure to set up a suitable python environment for that repository may
 # pip-install this one as editable using this repository's setup.py file.  The
 # same modules should appear in the setup.py list as given below.
-matplotlib==3.3.1
+matplotlib~=3.5
 
 # Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
-numpy==1.18.5
-pytest==6.0.0
-pytest-xdist==1.34.0
+numpy~=1.22
+pytest~=7.0
+pytest-xdist~=2.5
 
 # Pin scipy to 1.4.1 due to tensorflow v2.1.1 hard pinning it to that version.
-scipy==1.4.1
-soundfile==0.10.3.post1
+scipy~=1.7
+soundfile~=0.10
 
 # Development dependencies
 #
@@ -39,4 +39,4 @@ soundfile==0.10.3.post1
 # If this repository uses the setup functionality (e.g., script entry points)
 # of its own setup.py file, then this list must include an entry for that
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
--e ./../audio_test_tools/python
+#-e ./../audio_test_tools/python
