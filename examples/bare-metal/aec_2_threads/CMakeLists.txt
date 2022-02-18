@@ -1,11 +1,12 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable(avona_example_bare_metal_aec_2_thread EXCLUDE_FROM_ALL)
+add_executable(avona_example_bare_metal_aec_2_thread)
 
+file( GLOB_RECURSE SOURCES_APP  src/*.c )
 target_sources(avona_example_bare_metal_aec_2_thread
     PRIVATE
-        src/aec_app.c
+        ${SOURCES_APP}
 )
 
 target_include_directories(avona_example_bare_metal_aec_2_thread
