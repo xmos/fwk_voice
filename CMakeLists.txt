@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.20)
 
 ## Disable in-source build.
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -50,7 +50,7 @@ add_compile_options( ${COMPILE_FLAGS} )
 #include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
 
 ## Add libs and apps
-add_subdirectory( xcore_sdk )
+add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
 add_subdirectory( modules )
 
 #if ( ${BUILD_EXAMPLES} )

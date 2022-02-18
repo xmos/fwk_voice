@@ -1,10 +1,23 @@
 file( GLOB_RECURSE    LIB_IC_SOURCES       src/*.c )
-add_library( lib_ic  STATIC ${LIB_IC_SOURCES} )
 
-set( LIB_AEC_PRIV_INCLUDES  "../lib_aec/src"  )
-target_include_directories( lib_ic PUBLIC api ${LIB_AEC_PRIV_INCLUDES} )
+## Create library target
+add_library(avona_module_lib_ic STATIC)
 
-target_link_libraries(lib_ic PUBLIC lib_aec sdk::lib_xs3_math)
+target_sources(avona_module_lib_ic
+    PRIVATE
+        ${LIB_IC_SOURCES}
+)
 
-set_target_properties( lib_ic PROPERTIES   PREFIX      ""
-                                           SUFFIX      ".a")
+target_include_directories(avona_module_lib_ic
+    PUBLIC
+        api
+)
+
+target_link_libraries(avona_module_lib_ic
+    PUBLIC
+        sdk::lib_xs3_math
+        avona::aec
+)
+
+## Create an alias
+add_library(avona::ic ALIAS avona_module_lib_ic)

@@ -1,9 +1,24 @@
+
 file( GLOB_RECURSE    LIB_ADEC_SOURCES       src/*.c )
-add_library( lib_adec  STATIC ${LIB_ADEC_SOURCES} )
 
-target_include_directories( lib_adec PUBLIC api )
+## Create library target
+add_library(avona_module_lib_adec STATIC)
 
-target_link_libraries(lib_adec lib_xs3_math lib_aec )
+target_sources(avona_module_lib_adec
+    PRIVATE
+        ${LIB_ADEC_SOURCES}
+)
 
-set_target_properties( lib_adec PROPERTIES   PREFIX      ""
-                                            SUFFIX      ".a")
+target_include_directories(avona_module_lib_adec
+    PUBLIC
+        api
+)
+
+target_link_libraries(avona_module_lib_adec
+    PUBLIC
+        sdk::lib_xs3_math
+        avona::aec
+)
+
+## Create an alias
+add_library(avona::adec ALIAS avona_module_lib_adec)
