@@ -199,29 +199,105 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
     if(orig_mag){
         int64_t S = ((int64_t)new_mag)<<31;
         S /= orig_mag;
-        Y->re =((int64_t)Y->re * (int64_t)S)>>31;
-        Y->im =((int64_t)Y->im * (int64_t)S)>>31;
+        printf("%lld ", S);
+        Y->re =((int64_t)Y->re * (int64_t)S)>>32;
+        Y->im =((int64_t)Y->im * (int64_t)S)>>32;
     }
 }
 
 //fails pipeline example comparison
 //saves 2.2 MIPS
-void ns_rescale_vector_test(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+void ns_rescale_vector_test1(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
-    new_mag->exp -= new_mag->hr; new_mag->hr = 0;
+    printf("\n%d %d %d %d\n", orig_mag->exp, orig_mag->hr, new_mag->exp, new_mag->hr);
+    left_shift_t lsh = new_mag->hr - 1;
+    new_mag->hr = xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
+    new_mag->exp -= lsh;
 
-    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
-    orig_mag->exp -= orig_mag->hr; orig_mag->hr = 0;
+    lsh = orig_mag->hr;
+    orig_mag->hr = xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
+    orig_mag->exp -= lsh;
+
+    printf("\n%d %d %d %d\n", orig_mag->exp, orig_mag->hr, new_mag->exp, new_mag->hr);
 
     right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
-    Y->exp += delta_exp;
+    Y->exp -= delta_exp - 1;
+    printf("\n%d\n", delta_exp);
 
     for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
+        printf("%lld ", (int64_t)Y->data[v].re);
         ns_rescale(&Y->data[v], new_mag->data[v], orig_mag->data[v]);
-    }
+        printf("%lld ", (int64_t)Y->data[v].re);
+        printf("%d | ", v);
+        //printf("%ld %d | %ld %d | ", Y->data[v].re, 2 * v, Y->data[v].im, (2 * v) + 1);
+    }printf("\n\n");
 
-    xs3_vect_complex_s32_shr(Y->data, Y->data, NS_PROC_FRAME_BINS, delta_exp);
+    //xs3_vect_complex_s32_shr(Y->data, Y->data, NS_PROC_FRAME_BINS, delta_exp);
+
+    /*for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
+        printf("%ld %d | %ld %d | ", Y->data[v].re, Y->exp, Y->data[v].im, Y->exp);
+    }*/
+    bfp_complex_s32_headroom(Y);
+}
+
+void ns_rescale1(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag, right_shift_t sh){
+    if(orig_mag){
+        int64_t S = ((int64_t)new_mag)<<31;
+        S /= orig_mag;
+        //printf("%lld ", S);
+        //int32_t h = (int64_t)S>>32;
+        //printf("/%ld/ %d ", h, xs3_vect_s32_headroom(&h, 1));
+        right_shift_t rsh = 4;
+        S >>= rsh;
+        /*right_shift_t rsh = 0;
+        if( h != 0){
+            printf("__DD %ld DD__\n\n", h);
+            rsh =  31 + 1 - xs3_vect_s32_headroom(&h, 1);
+            S >>= rsh;
+            rsh -= 1; 
+        }*/
+        //printf("%lld ", S);
+        Y->re =((int64_t)Y->re * (int64_t)S)>>(31 + sh - rsh);
+        Y->im =((int64_t)Y->im * (int64_t)S)>>(31 + sh - rsh);
+        //return t;
+    }
+}
+
+void ns_rescale_vector_test(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+
+    //printf("\n%d %d %d %d\n", orig_mag->exp, orig_mag->hr, new_mag->exp, new_mag->hr);
+    left_shift_t lsh = new_mag->hr ;
+    new_mag->hr = xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
+    new_mag->exp -= lsh;
+
+    lsh = orig_mag->hr ;
+    orig_mag->hr = xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
+    orig_mag->exp -= lsh;
+
+    //printf("\n%d %d %d %d\n", orig_mag->exp, orig_mag->hr, new_mag->exp, new_mag->hr);
+
+    lsh = Y->hr - 2;
+    Y->hr = xs3_vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
+    Y->exp -= lsh;
+
+    right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
+    right_shift_t sh = 1;
+    Y->exp -= delta_exp - sh;
+    //printf("\n%d %d\n", delta_exp, Y->exp);
+
+    for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
+        //printf("%lld ", (int64_t)Y->data[v].im);
+        ns_rescale1(&Y->data[v], new_mag->data[v], orig_mag->data[v], sh);
+        //printf("%lld ", (int64_t)Y->data[v].im);
+        //printf("%d | ", v);
+        //printf("%ld %d | %ld %d | ", Y->data[v].re, 2 * v, Y->data[v].im, (2 * v) + 1);
+    }//printf("\n\n");
+
+    //xs3_vect_complex_s32_shr(Y->data, Y->data, NS_PROC_FRAME_BINS, delta_exp);
+
+    /*for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
+        printf("%ld %d | %ld %d | ", Y->data[v].re, Y->exp, Y->data[v].im, Y->exp);
+    }*/
     bfp_complex_s32_headroom(Y);
 }
 
