@@ -49,6 +49,4 @@ void ns_priv_subtract_lambda_from_frame(bfp_s32_t * abs_Y,
 
 void ns_priv_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main);
 
-void ns_rescale_vector_test(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag);
-
 #endif
