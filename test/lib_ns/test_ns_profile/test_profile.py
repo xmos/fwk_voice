@@ -16,10 +16,66 @@ import argparse
 import pytest
 import glob
 import sys
-from audio_generation import get_band_limited_noise, write_data
+import hashlib
 
 ns_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../test_wav_ns/src".split("/"))
 thread_speed_mhz = (600 / 5)
+
+def write_data(data, filename, sample_rate=16000, dtype=np.int32,
+               rshift=0):
+    """ Writes array data in the range [-1, 1] to a wav file of arbitrary
+    data type."""
+    output = np.asarray(data*np.iinfo(dtype).max, dtype=dtype) >> rshift
+    scipy.io.wavfile.write(filename, sample_rate, output.T)
+
+def get_noise(duration=None, samples=None, db=0,
+              sample_rate=16000, seed=None):
+    """ Generates white noise, useful for generating background noise.
+    Set dB to a large negative value (e.g. -150) to generate background
+    noise.
+    Either specify a duration in seconds, or number of samples."""
+    if duration:
+        samples = int(duration*sample_rate)
+    if seed is None:
+        # Seed using inputs
+        #seed = (hash(str(samples)) + hash(str(db)) + hash(str(sample_rate))) % 2**32
+        unique_hash = '0x' + hashlib.md5(str(samples + db + sample_rate).encode('utf-8')).hexdigest()[-16:]
+        seed = int(unique_hash, 16) % 2**32
+
+    np.random.seed(seed)
+    x = np.random.normal(size=(samples,))
+    factor = np.power(10, db / 20.0)
+    y = x * factor
+    return y
+
+
+def get_band_limited_noise(min_freq, max_freq, duration=None, samples=None,
+                           sample_rate=16000.0, db=0):
+    """ Generates white noise band-limited between the min/max frequencies.
+    The noise is normally distributed in the time domain."""
+    if duration:
+        samples = int(duration * sample_rate)
+    # Generate random phase
+    max_i = int(samples * max_freq / sample_rate)
+    min_i = int(samples * min_freq / sample_rate)
+    # Generate band-limited noise
+    noise = np.array([])
+    if duration:
+        noise = get_noise(duration=duration)
+    elif samples:
+        noise = get_noise(samples=samples)
+    else:
+        print("Error: must provide duration or samples")
+        return noise
+    Noise = np.fft.rfft(noise)
+    Noise[:min_i] = 0
+    Noise[max_i:] = 0
+    noise = np.fft.irfft(Noise)
+    # Normalise to be within [-1, 1] range
+    normalised_noise = noise / np.max(np.abs(noise))
+    factor = np.power(10, db / 20.0)
+    attenuated_noise = normalised_noise * factor
+    return attenuated_noise
 
 in_file_name = "input.wav"
 out_file_name = "output.wav"
