@@ -79,7 +79,6 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = aec_corr_factor[ch];
-        //agc_process_frame(&state->agc_state[ch], output_data[ch], stage_1_out[ch], &agc_md);
         agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
     }
 }

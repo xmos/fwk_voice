@@ -148,7 +148,7 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 //does not work well in some cases and takes a lot of cycles
 void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    //leads to some horrible precision
+    //leads to a poor precision
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
@@ -190,7 +190,7 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag, right_shif
     if(orig_mag){
         int64_t S = ((int64_t)new_mag)<<31;
         S /= orig_mag;
-        // shift to be sure that S is a 32 bit value, 
+        // shift to be sure that S is a 32 bit wide, 
         // 4 is been tested to result the best precision in critical situations
         right_shift_t rsh = 4;
         S >>= rsh;
@@ -217,7 +217,8 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
     Y->exp -= lsh;
 
     right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
-    right_shift_t sh = 1;
+    //this shift 'sh' is needed to loose less data when rescaling
+    right_shift_t sh = 0;
     Y->exp -= delta_exp - sh;
 
     for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
