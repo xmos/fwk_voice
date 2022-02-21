@@ -146,12 +146,13 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 //apply suppression
 void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    int max_exp = INT_MIN;
-    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
+    
     bfp_s32_inverse(orig_mag, orig_mag);
     bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
-    /*for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
+    /*int max_exp = INT_MIN;
+    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
+    for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         t.mant = orig_mag->data[v];
         t.exp = orig_mag->exp;
         t1.mant = new_mag->data[v];
@@ -183,8 +184,8 @@ void ns_process_frame(ns_state_t * ns,
 
     bfp_s32_t curr_frame, abs_Y_suppressed, abs_Y_original;
     int32_t DWORD_ALIGNED curr_frame_data[NS_PROC_FRAME_LENGTH + 2];
-    int32_t scratch1[NS_PROC_FRAME_BINS];
-    int32_t scratch2[NS_PROC_FRAME_BINS];
+    int32_t DWORD_ALIGNED scratch1[NS_PROC_FRAME_BINS];
+    int32_t DWORD_ALIGNED scratch2[NS_PROC_FRAME_BINS];
     bfp_s32_init(&curr_frame, curr_frame_data, NS_INT_EXP, NS_PROC_FRAME_LENGTH, 0);
     bfp_s32_init(&abs_Y_suppressed, scratch1, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
     bfp_s32_init(&abs_Y_original, scratch2, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
