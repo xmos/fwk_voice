@@ -16,7 +16,7 @@ int main(int argc, const char* argv[])
     RUN_TEST_GROUP(ns_pack_input);
     RUN_TEST_GROUP(ns_apply_window);
     RUN_TEST_GROUP(ns_form_output);
-    RUN_TEST_GROUP(ns_rescale_vector);
+    //RUN_TEST_GROUP(ns_rescale_vector);
 
 
     return UNITY_END();

@@ -148,10 +148,10 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
 
     int max_exp = INT_MIN;
     float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
-    //bfp_s32_inverse(orig_mag, orig_mag);
-    //bfp_s32_mul(orig_mag, orig_mag, new_mag);
+    bfp_s32_inverse(orig_mag, orig_mag);
+    bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
-    for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
+    /*for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         t.mant = orig_mag->data[v];
         t.exp = orig_mag->exp;
         t1.mant = new_mag->data[v];
@@ -170,7 +170,9 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
         }
     }
 
-    bfp_s32_headroom(orig_mag);
+    bfp_s32_headroom(orig_mag);*/
+
+    //bfp_s32_shl(orig_mag, orig_mag, orig_mag->hr - 1);
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
 }
