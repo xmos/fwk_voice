@@ -16,7 +16,6 @@ project(sw_avona)
 include(etc/build_options.cmake)
 
 ## Fetch the Unity repo as a dependency
-include(etc/fetch_deps.cmake)
 
 find_package( Python3 COMPONENTS Interpreter )
 
@@ -32,7 +31,6 @@ list(APPEND   COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} )
 
 ## CMake configuration stuff
 
-message( STATUS "System name here ${CMAKE_SYSTEM_NAME}" )
 if( XCORE )
     enable_language( C CXX XC ASM )
 else()
@@ -49,18 +47,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
     set(XCORE_TARGET "XCORE-AI-EXPLORER")
 endif()
 
-## Get build dependencies
-#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/deps)
-#include(${CMAKE_SOURCE_DIR}/etc/fetch_deps.cmake)
-
 ## Add libs and apps
 add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
+message( STATUS "System name here ${CMAKE_SYSTEM_NAME}" )
+message( STATUS "target name here ${XCORE_TARGET}" )
+
 add_subdirectory( modules )
 
 #if ( ${BUILD_EXAMPLES} )
     add_subdirectory( examples )
 #endif()
 
-#if ( ${BUILD_TESTS} )
-#  add_subdirectory( test )
+## Get build dependencies
+
+#if ( ${AVONA_BUILD_TESTS} )
+    include(etc/fetch_deps.cmake)
+    add_subdirectory( test )
 #endif()
