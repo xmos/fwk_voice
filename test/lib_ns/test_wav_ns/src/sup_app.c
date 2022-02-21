@@ -15,6 +15,9 @@
 
 #if PROFILE_PROCESSING
 #include "profile.h"
+#include "ns_test.h"
+#include "ns_priv.h"
+#include "bfp_math.h"
 #endif
 
 extern void ns_process_frame(ns_state_t * state,
@@ -73,11 +76,10 @@ void ns_task(const char *input_file_name, const char *output_file_name){
 #if PROFILE_PROCESSING
     prof(0, "start_ns_init");
 #endif
-    ns_state_t DWORD_ALIGNED ch1_state;
-    //ns_state_t DWORD_ALIGNED ch2_state;
+    ns_state_t DWORD_ALIGNED ns;
 
-    ns_init(&ch1_state);
-    //ns_init(&ch2_state);
+    ns_init(&ns);
+
 #if PROFILE_PROCESSING
     prof(1, "end_ns_init");
 #endif
@@ -98,8 +100,61 @@ void ns_task(const char *input_file_name, const char *output_file_name){
 #if PROFILE_PROCESSING
         prof(2, "start_ns_process_frame");
 #endif
-        ns_process_frame(&ch1_state, frame[0], frame[0]);
-        //ns_process_frame(&ch2_state, frame[1], frame[1]);
+
+#if PROFILE_PROCESSING
+        bfp_s32_t curr_frame, abs_Y_suppressed, abs_Y_original;
+        int32_t DWORD_ALIGNED curr_frame_data[NS_PROC_FRAME_LENGTH + 2];
+        int32_t scratch1[NS_PROC_FRAME_BINS];
+        int32_t scratch2[NS_PROC_FRAME_BINS];
+        bfp_s32_init(&curr_frame, curr_frame_data, NS_INT_EXP, NS_PROC_FRAME_LENGTH, 0);
+        bfp_s32_init(&abs_Y_suppressed, scratch1, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
+        bfp_s32_init(&abs_Y_original, scratch2, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
+
+        prof(4, "start_frame_packing");
+        ns_pack_input(&curr_frame, frame[0], &ns.prev_frame);
+        prof(5, "end_frame_packing");
+
+        prof(6, "start_windowing");
+        ns_apply_window(&curr_frame, &ns.wind, &ns.rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+        prof(7, "end_windowing");
+
+        prof(8, "start_fft");
+        bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
+        bfp_fft_unpack_mono(curr_fft);
+        prof(9, "end_fft");
+
+        prof(10, "start_mag");
+        bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);
+
+        memcpy(abs_Y_original.data, abs_Y_suppressed.data, sizeof(int32_t) * NS_PROC_FRAME_BINS);
+        abs_Y_original.exp = abs_Y_suppressed.exp;
+        abs_Y_original.hr = abs_Y_suppressed.hr;
+        prof(11, "end_mag");
+
+        prof(20, "start_proc_frame");
+        ns_priv_process_frame(&abs_Y_suppressed, &ns);
+        prof(21, "end_proc_frame");
+
+        prof(12, "start_rescaling");
+        ns_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
+        prof(13, "end_rescaling");
+
+        prof(14, "start_ifft");
+        bfp_fft_pack_mono(curr_fft);
+        bfp_fft_inverse_mono(curr_fft);
+        prof(15, "end_ifft");
+
+        prof(16, "start_windowing2");
+        ns_apply_window(&curr_frame, &ns.wind, &ns.rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+        prof(17, "end_windowing2");
+
+        prof(18, "start_forming_output");
+        ns_form_output(frame[0], &curr_frame, &ns.overlap);
+        prof(19, "end_forming_output");
+#else
+        ns_process_frame(&ns, frame[0], frame[0]);
+#endif
+
 #if PROFILE_PROCESSING
         prof(3, "end_ns_process_frame");
 #endif
@@ -113,7 +168,7 @@ void ns_task(const char *input_file_name, const char *output_file_name){
 
         file_write(&output_file, (uint8_t*)(output_write_buffer), output_header_struct.bit_depth/8 * NS_FRAME_ADVANCE * MAX_CHANNELS);
 #if PROFILE_PROCESSING
-        print_prof(0, 4, b+1);
+        print_prof(0, 22, b+1);
 #endif
     }
     file_close(&input_file);
