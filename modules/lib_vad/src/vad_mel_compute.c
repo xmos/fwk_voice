@@ -47,7 +47,7 @@ static int lookup[33] = {
 
 
 
-static inline int lookup_small_log2_linear(uint32_t x) {
+int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
     int y = (x >> mask_bits)-32;
@@ -58,22 +58,27 @@ static inline int lookup_small_log2_linear(uint32_t x) {
     return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
 }
 
-static inline int log_exponent(uint32_t h, uint32_t l, uint32_t logN) {
-    uint32_t bits = clz(h);
+volatile uint32_t bits;
+int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
+    bits = clz(h);
     uint32_t x;
     uint32_t exponent;
+    // printf("new bits: %d h: %d\n", bits, h);
     if (bits == 32) {
         bits = clz(l);
+        // printf("new bits: %d l: %d\n", bits, l);
         if (bits == 32) {
             return -1000;
         }
         x = l << bits;
         exponent = 32 - bits;
     } else {
+        // printf("new not 32\n");
+
         x = h << bits | l >> (32 - bits);
         exponent = 64 - bits;
     }
-    uint32_t log2 = lookup_small_log2_linear(x) + ((exponent-1 + logN) << MEL_PRECISION);
+    uint32_t log2 = lookup_small_log2_linear_new(x) + ((exponent-1 + logN) << MEL_PRECISION);
     uint32_t ln2 = 2977044472;
     return (log2 * (uint64_t) ln2) >> 32;
 }
@@ -102,10 +107,14 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         uint32_t l = s & 0xffffffff;
         uint32_t ho = h;
         uint32_t lo = l;
+        // printf("new N: %d h: %lu l: %lu\n", i, h, l);
 
         uint32_t scale = melTable[i];
         if (scale == 0 && i != 0) {
-            if(i<N)melValues[mels++] = log_exponent(sumEvenH, sumEvenL, extraShift);
+            int log = log_exponent_new(sumEvenH, sumEvenL, extraShift);
+            // log = 12345;
+            // printf("new_mel_push_even: %d h: %lu l: %lu e: %d s: %ld\n", mels, sumEvenH, sumEvenL, log, extraShift);
+            if(i<N)melValues[mels++] = log;
             sumEvenH = 0;
             sumEvenL = 0;
         } else {
@@ -114,8 +123,10 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         }
         scale = VAD_MEL_MAX - scale;
         if (scale == 0) {
-            melValues[mels++] = log_exponent(sumOddH, sumOddL, extraShift);
-            // printf("sumOdd new: %d %d %d %d\n", log_exponent(sumOddH, sumOddL, extraShift), sumOddH, sumOddL, extraShift);
+            int32_t log = log_exponent_new(sumOddH, sumOddL, extraShift);
+            // log = 12345;
+            // printf("new_mel_push_odd : %d h: %lu l: %lu e: %d s: %ld\n", mels, sumOddH, sumOddL, log, extraShift);
+            melValues[mels++] = log;
             sumOddH = 0;
             sumOddL = 0;
         } else {
