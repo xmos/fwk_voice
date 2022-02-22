@@ -146,7 +146,10 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
 //apply suppression
 void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    
+    float_s32_t t;
+    t.mant = 1;
+    t.exp = - 50;
+    bfp_s32_add_scalar(orig_mag, orig_mag, t);
     bfp_s32_inverse(orig_mag, orig_mag);
     bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
