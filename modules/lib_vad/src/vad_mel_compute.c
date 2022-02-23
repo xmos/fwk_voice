@@ -63,18 +63,14 @@ int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
     bits = clz(h);
     uint32_t x;
     uint32_t exponent;
-    // printf("new bits: %d h: %d\n", bits, h);
     if (bits == 32) {
         bits = clz(l);
-        // printf("new bits: %d l: %d\n", bits, l);
         if (bits == 32) {
             return -1000;
         }
         x = l << bits;
         exponent = 32 - bits;
     } else {
-        // printf("new not 32\n");
-
         x = h << bits | l >> (32 - bits);
         exponent = 64 - bits;
     }
@@ -98,22 +94,16 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         melValues[i] = 0;
     }
 
-    // printf("init new: %u %u %u %u\n", sumOddH, sumOddL, sumEvenH, sumEvenL);
-
-
     for(int i = 0; i <= N; i++) {
         uint64_t s = pts[i].re * (uint64_t) pts[i].re + pts[i].im * (uint64_t) pts[i].im;
         uint32_t h = s >> 32;
         uint32_t l = s & 0xffffffff;
         uint32_t ho = h;
         uint32_t lo = l;
-        // printf("new N: %d h: %lu l: %lu\n", i, h, l);
 
         uint32_t scale = melTable[i];
         if (scale == 0 && i != 0) {
             int log = log_exponent_new(sumEvenH, sumEvenL, extraShift);
-            // log = 12345;
-            // printf("new_mel_push_even: %d h: %lu l: %lu e: %d s: %ld\n", mels, sumEvenH, sumEvenL, log, extraShift);
             if(i<N)melValues[mels++] = log;
             sumEvenH = 0;
             sumEvenL = 0;
@@ -124,17 +114,12 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         scale = VAD_MEL_MAX - scale;
         if (scale == 0) {
             int32_t log = log_exponent_new(sumOddH, sumOddL, extraShift);
-            // log = 12345;
-            // printf("new_mel_push_odd : %d h: %lu l: %lu e: %d s: %ld\n", mels, sumOddH, sumOddL, log, extraShift);
             melValues[mels++] = log;
             sumOddH = 0;
             sumOddL = 0;
         } else {
-            // printf("new ho lo pts.re pst.im: %u %u %u %u \n", ho, lo, pts[i].re, pts[i].im);
             mul_mel(&ho, &lo, scale);
             add_unsigned_hl(&sumOddH, &sumOddL, ho, lo);
-            // printf("add_unsigned_hl new: %u %u %u %u\n", sumOddH, sumOddL, ho, lo);
-
         }
     }
 }

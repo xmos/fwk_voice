@@ -56,12 +56,8 @@ int do_test(complex_s32_t in_vector[VAD_PROC_FRAME_LENGTH + 2], headroom_t headr
     complex_s32_t DWORD_ALIGNED in_vector_copy[VAD_PROC_FRAME_LENGTH + 2];
     memcpy(in_vector_copy, in_vector, sizeof(in_vector_copy));
 
-    // printf("HERE1 %d %d\n", in_vector[0].re, in_vector[0].im);
-    // vad_mel_compute(new_mel, VAD_N_MEL_SCALE + 1, in_vector, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
     vad_mel_compute_new(new_mel, VAD_N_MEL_SCALE + 1, in_vector_copy, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
-    // printf("HERE2 %d %d\n", in_vector[0].re, in_vector[0].im);
     vad_mel_compute(old_mel, VAD_N_MEL_SCALE + 1, in_vector, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
-    // printf("HERE3 %d %d\n", in_vector[0].re, in_vector[0].im);
 
     int max_diff = 100;
     for(int v = 0; v < VAD_N_MEL_SCALE + 1; v++){
@@ -92,7 +88,7 @@ void test_compare_mel(){
     // do_log_test(); //Needs modification to old lib_vad to make function non static
 
     for(int i = 0; i < 190; i++){ //gets us tos full scale (zero HR)
-        for(int t = 0; t < 2; t++){ //Gen FFTd data then chuck in raw data to get better coverage
+        for(int t = 0; t < 2; t++){ //Gen FFTd data then chuck in raw data to get better test coverage
             memset(in_vector, 0, sizeof(in_vector));
 
             headroom_t headroom = 0;
@@ -121,8 +117,6 @@ void test_compare_mel(){
             all_tests_passed = all_tests_passed && test_passed;
         }
         if((i % 7 ) == 0) max = max<<1;
-
-
     }
     TEST_ASSERT(all_tests_passed);
 }
