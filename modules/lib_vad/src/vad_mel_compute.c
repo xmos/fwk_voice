@@ -58,7 +58,7 @@ int lookup_small_log2_linear_new(uint32_t x) {
     return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
 }
 
-volatile uint32_t bits;
+volatile uint32_t bits; // http://bugzilla.xmos.local/show_bug.cgi?id=18641
 int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
     bits = clz(h);
     uint32_t x;
@@ -122,5 +122,14 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
             add_unsigned_hl(&sumOddH, &sumOddL, ho, lo);
         }
     }
+}
+
+
+//To access the inlines from unit testsing
+void mul_mel_unit_test(uint32_t * h, uint32_t * l, uint32_t scale) {
+    mul_mel(h, l, scale);
+}
+void add_unsigned_hl_unit_test(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t l) {
+    add_unsigned_hl(sumH, sumL, h, l);
 }
 
