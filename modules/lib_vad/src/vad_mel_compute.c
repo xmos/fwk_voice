@@ -10,9 +10,9 @@
 #define MEL_PRECISION 24
 
 #if X86_BUILD
-    //TODO Add x86 equivalents
-void mul_mel(uint32_t * h, uint32_t * l, uint32_t scale) {}
-void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t l) {}
+#define mul_mel(h, l, s)                    mul_mel_sim(h, l, s)
+#define add_unsigned_hl(sumH, sumL, h, l)   add_unsigned_hl_sim(sumH, sumL, h, l)
+#define clz(v)                              clz_sim(v)
 #else
 static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {

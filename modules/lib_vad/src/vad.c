@@ -17,6 +17,9 @@
 #include "xs3_math.h"
 #include "vad_helpers.h"
 
+#if X86_BUILD
+#define clz(v)  clz_sim(v)
+#endif
 
 headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
 
