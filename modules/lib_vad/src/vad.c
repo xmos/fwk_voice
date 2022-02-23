@@ -14,6 +14,7 @@
 #include "vad_normalisation.h"
 #include "vad_window.h"
 #include "vad_mel.h"
+#include "vad_dct.h"
 #include "xs3_math.h"
 #include "vad_helpers.h"
 
@@ -241,7 +242,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     #error VAD_N_DCT must be 24
 #endif
 
-    dsp_dct_forward24(dct_output, dct_input);
+    vad_dct_forward24(dct_output, dct_input);
 
     
     // Python multiplies DCT by 2.
