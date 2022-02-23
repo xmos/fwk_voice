@@ -56,25 +56,32 @@ target_include_directories(avona_example_shared_src_stage_1
 add_library(avona::example::stage_1 ALIAS avona_example_shared_src_stage_1)
 
 ######
-add_library(avona_example_shared_src_file_utils_xcore INTERFACE)
-target_sources(avona_example_shared_src_file_utils_xcore
+add_library(avona_example_shared_src_file_utils INTERFACE)
+target_sources(avona_example_shared_src_file_utils
     INTERFACE
         file_utils/src/fileio.c
         file_utils/src/wav_utils.c
-        xscope_fileio/xscope_fileio/src/xscope_io_device.c
 )
-target_include_directories(avona_example_shared_src_file_utils_xcore
+target_include_directories(avona_example_shared_src_file_utils
     INTERFACE
         file_utils/src
-        xscope_fileio/xscope_fileio
-        xscope_fileio/xscope_fileio/api
 )
-target_compile_definitions(avona_example_shared_src_file_utils_xcore
-    INTERFACE
-        -DTEST_WAV_XSCOPE=1
-)
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_sources(avona_example_shared_src_file_utils
+        INTERFACE
+            xscope_fileio/xscope_fileio/src/xscope_io_device.c)
 
-add_library(avona::example::fileutils_xcore ALIAS avona_example_shared_src_file_utils_xcore)
+    target_include_directories(avona_example_shared_src_file_utils
+        INTERFACE
+            xscope_fileio/xscope_fileio
+            xscope_fileio/xscope_fileio/api)
+
+    target_compile_definitions(avona_example_shared_src_file_utils
+        INTERFACE
+            TEST_WAV_XSCOPE=1)
+endif()
+
+add_library(avona::example::fileutils ALIAS avona_example_shared_src_file_utils)
 
 ######
 add_library(avona_example_shared_src_profile_xcore INTERFACE)

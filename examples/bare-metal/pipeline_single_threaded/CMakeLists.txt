@@ -20,6 +20,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         avona::example::aec1thread
         avona::example::delay_buffer
         avona::example::stage_1
+        avona::example::fileutils
         )
 
 target_compile_definitions(avona_example_bare_metal_pipeline_single_thread
@@ -31,9 +32,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_sources(avona_example_bare_metal_pipeline_single_thread
         PRIVATE src/main.xc)
 
-    target_link_libraries(avona_example_bare_metal_pipeline_single_thread
-        PUBLIC avona::example::fileutils_xcore)
-
     target_compile_options(avona_example_bare_metal_pipeline_single_thread
         PRIVATE "-target=${XCORE_TARGET}")
 
@@ -43,10 +41,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-    target_link_libraries(avona_example_bare_metal_pipeline_single_thread
-        PUBLIC
-            avona::example::fileutils_host
-    )
     target_link_libraries(
         PRIVATE m)
 endif()

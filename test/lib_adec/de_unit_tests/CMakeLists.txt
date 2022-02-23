@@ -69,27 +69,42 @@ foreach( testfile ${TEST_SOURCES} )
 
     #########
     ## Add a build target
-    add_executable( ${TESTNAME} ${testfile} ${RUNNER_FILE} ${AUTOGEN_SOURCES} ${UNITY_SOURCES} )
+    add_executable(avona_${TESTNAME})
 
-    target_include_directories( ${TESTNAME} PRIVATE src
-                                                    ${SHARED_SRC_PATH}/aec
-                                                    ${AUTOGEN_DIR}
-                                                    ${UNITY_PATH}/src
-                                                    ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand )
+    target_sources(avona_${TESTNAME}
+        PRIVATE
+            ${testfile}
+            ${AUTOGEN_SOURCES}
+            ${RUNNER_FILE})
 
-    target_link_libraries( ${TESTNAME} lib_aec
-                                       lib_adec
-                                       test_shared)
 
-    if(XCORE)
-        target_compile_options(${TESTNAME} PRIVATE "-DUNITY_SUPPORT_64"
-                                                   "-Wno-xcore-fptrgroup"
-                                                   "-report"
-                                                   "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
-        target_link_options(${TESTNAME} PRIVATE "-target=${XCORE_TARGET}")
-        set_target_properties(${TESTNAME} PROPERTIES SUFFIX ".xe")
+    target_include_directories(avona_${TESTNAME}
+        PRIVATE
+            src
+            ${AUTOGEN_DIR}
+        )
+
+    target_link_libraries(avona_${TESTNAME} 
+        PUBLIC
+            avona::aec
+            avona::adec
+            avona::test::shared::test_utils
+            avona::test::shared::unity
+            avona::example::aec1thread)
+
+    if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+        target_compile_options(avona_${TESTNAME}
+            PRIVATE 
+                "-DUNITY_SUPPORT_64"
+                "-Wno-xcore-fptrgroup"
+                "-report"
+                "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
+
+        target_link_options(avona_${TESTNAME}
+            PRIVATE
+                "-target=${XCORE_TARGET}")
     else()
-        target_link_libraries(${TESTNAME} m)
-    endif(XCORE)
-endforeach( testfile ${TEST_SOURCES} )
+        target_link_libraries(avona_${TESTNAME} m)
+    endif()
+endforeach()
 

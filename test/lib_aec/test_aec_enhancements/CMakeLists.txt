@@ -10,7 +10,7 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
-message(STATUS "test_aec_enhancements build config:  ${TEST_AEC_ENHANCEMENTS_BUILD_CONFIG}" )
+message(STATUS "avona_test_aec_enhancements build config:  ${TEST_AEC_ENHANCEMENTS_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 
 unset(GEN_SCHEDULE_SCRIPT_ARGS) 
@@ -22,42 +22,38 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC task distribution and top level config" )
+COMMENT "Generating avona_test_aec_enhancements task distribution and top level config" )
 
+#######################
+add_executable(avona_test_aec_enhancements)
 
-file( GLOB_RECURSE SOURCES_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/*.c )
-if ( XCORE )
-    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
+target_sources(avona_test_aec_enhancements
+    PRIVATE
+        ${AUTOGEN_SOURCES})
+
+target_include_directories(avona_test_aec_enhancements
+    PRIVATE
+        ${AUTOGEN_DIR})
+
+target_link_libraries(avona_test_aec_enhancements
+    PUBLIC
+        avona::test::shared_test_wav_adec)
+
+target_compile_definitions(avona_test_aec_enhancements
+    PRIVATE
+        BYPASS_ADEC=1)
+        
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_compile_options(avona_test_aec_enhancements
+        PRIVATE "-target=${XCORE_TARGET}")
+
+    target_link_options(avona_test_aec_enhancements
+        PRIVATE
+            "-target=${XCORE_TARGET}"
+            "-report"
+            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-    ## Only 1 thread process_frame() builds for x86
-    file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
-endif()
-
-add_executable(test_aec_enhancements ${SOURCES_APP} 
-                         ${SOURCES_AEC_PROCESS_FRAME}
-                         ${AUTOGEN_SOURCES}) 
-
-target_link_libraries(test_aec_enhancements lib_aec
-                                lib_adec
-                                file_utils
-                                delay_buffer)
-
-target_include_directories(test_aec_enhancements PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src
-                                             ${SHARED_SRC_PATH}/aec
-                                             ${AUTOGEN_DIR})
-
-target_compile_options(test_aec_enhancements PRIVATE "-DBYPASS_ADEC=1")
-if(XCORE)
-  target_sources(test_aec_enhancements PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../lib_adec/test_wav_adec/src/main.xc)
-
-  target_compile_options(test_aec_enhancements PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                                       "-target=${XCORE_TARGET}")
-
-  target_link_options(test_aec_enhancements PRIVATE "-target=${XCORE_TARGET}"
-                                                    "-report"
-                                                    "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
-
-  set_target_properties(test_aec_enhancements PROPERTIES SUFFIX ".xe")
-else()
-  target_link_libraries(test_aec_enhancements m)
+    target_link_libraries(
+        PRIVATE m)
 endif()

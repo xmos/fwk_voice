@@ -29,33 +29,38 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     file( GLOB_RECURSE SOURCES_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 
-    set ( EXEC test_adec_profile_${CONFIG_STR} )
-    add_executable(${EXEC} ${SOURCES_APP} 
-                           ${SOURCES_AEC_PROCESS_FRAME}
-                           ${AUTOGEN_SOURCES}) 
+#######
+    add_executable(avona_test_adec_profile_${CONFIG_STR})
 
-    target_link_libraries(${EXEC} lib_aec
-                                  lib_adec
-                                  file_utils
-                                  delay_buffer
-                                  profile)
+    target_sources(avona_test_adec_profile_${CONFIG_STR}
+        PRIVATE
+            ${AUTOGEN_SOURCES})
 
-    target_include_directories(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src
-                                               ${SHARED_SRC_PATH}/aec
-                                               ${AUTOGEN_DIR})
-    if(XCORE)
-      target_sources(${EXEC} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/main.xc)
+    target_include_directories(avona_test_adec_profile_${CONFIG_STR}
+        PRIVATE
+            ${AUTOGEN_DIR})
 
-      target_compile_options(${EXEC} PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                             "-DPROFILE_PROCESSING=1"
-                                             "-target=${XCORE_TARGET}")
+    target_link_libraries(avona_test_adec_profile_${CONFIG_STR}
+        PUBLIC
+            avona::test::shared_test_wav_adec
+            avona::example::profile_xcore
+            )
 
-      target_link_options(${EXEC} PRIVATE "-target=${XCORE_TARGET}"
-                                          "-report"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+    target_compile_definitions(avona_test_adec_profile_${CONFIG_STR}
+        PRIVATE
+            PROFILE_PROCESSING=1)
 
-      set_target_properties(${EXEC} PROPERTIES SUFFIX ".xe")
+    if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+        target_compile_options(avona_test_adec_profile_${CONFIG_STR}
+            PRIVATE "-target=${XCORE_TARGET}")
+
+        target_link_options(avona_test_adec_profile_${CONFIG_STR}
+            PRIVATE
+                "-target=${XCORE_TARGET}"
+                "-report"
+                "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
     else()
-      target_link_libraries(${EXEC} m)
+        target_link_libraries(avona_test_adec_profile_${CONFIG_STR}
+            PRIVATE m)
     endif()
-endforeach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
+endforeach()

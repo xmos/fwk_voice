@@ -9,7 +9,7 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
-message(STATUS "test_wav_adec build config:  ${TEST_WAV_ADEC_BUILD_CONFIG}" )
+message(STATUS "avona_test_wav_adec build config:  ${TEST_WAV_ADEC_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 
 unset(GEN_SCHEDULE_SCRIPT_ARGS) 
@@ -21,43 +21,68 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating AEC task distribution and top level config" )
+COMMENT "Generating avona_test_wav_adec task distribution and top level config" )
 
+######################
+file(GLOB SOURCES_TEST_WAV src/*.c)
+add_library(avona_test_shared_test_wav_adec INTERFACE)
+target_sources(avona_test_shared_test_wav_adec
+    INTERFACE
+        ${SOURCES_TEST_WAV})
+target_include_directories(avona_test_shared_test_wav_adec
+    INTERFACE
+        src)
+target_link_libraries(avona_test_shared_test_wav_adec
+    INTERFACE
+        avona::aec
+        avona::adec
+        avona::example::aec1thread
+        avona::example::delay_buffer
+        avona::example::fileutils)
 
-file( GLOB_RECURSE SOURCES_APP  src/*.c )
-if ( XCORE )
-    file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
-else()
-    ## Only 1 thread process_frame() builds for x86
-    file( GLOB SOURCES_AEC_PROCESS_FRAME ${SHARED_SRC_PATH}/aec/aec_process_frame_1thread.c )
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_sources(avona_test_shared_test_wav_adec
+        INTERFACE
+            src/main.xc)
+    target_link_libraries(avona_test_shared_test_wav_adec
+        INTERFACE
+            avona::example::aec2thread)
 endif()
 
-add_executable(test_wav_adec ${SOURCES_APP} 
-                             ${SOURCES_AEC_PROCESS_FRAME}
-                             ${AUTOGEN_SOURCES}) 
+add_library(avona::test::shared_test_wav_adec ALIAS avona_test_shared_test_wav_adec)
 
-target_link_libraries(test_wav_adec lib_aec
-                                    lib_adec
-                                    file_utils
-                                    delay_buffer)
+####################
+add_executable(avona_test_wav_adec)
 
-target_include_directories(test_wav_adec PRIVATE src
-                                                 ${SHARED_SRC_PATH}/aec
-                                                 ${AUTOGEN_DIR})
+target_sources(avona_test_wav_adec
+    PRIVATE
+        ${AUTOGEN_SOURCES})
 
-target_compile_options(test_wav_adec PRIVATE "-DENABLE_ADEC_DEBUG_PRINTS")
-                                           
-if(XCORE)
-  target_sources(test_wav_adec PRIVATE src/main.xc)
+target_include_directories(avona_test_wav_adec
+    PRIVATE
+        ${AUTOGEN_DIR})
 
-  target_compile_options(test_wav_adec PRIVATE "-DTEST_WAV_XSCOPE=1"
-                                               "-target=${XCORE_TARGET}")
+target_link_libraries(avona_test_wav_adec
+    PUBLIC
+        avona::test::shared_test_wav_adec)
 
-  target_link_options(test_wav_adec PRIVATE "-target=${XCORE_TARGET}"
-                                            "-report"
-                                            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+target_compile_definitions(avona_test_wav_adec
+    PRIVATE
+        ENABLE_ADEC_DEBUG_PRINTS)
 
-  set_target_properties(test_wav_adec PROPERTIES SUFFIX ".xe")
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_compile_options(avona_test_wav_adec
+        PRIVATE "-target=${XCORE_TARGET}")
+
+    target_link_options(avona_test_wav_adec
+        PRIVATE
+            "-target=${XCORE_TARGET}"
+            "-report"
+            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-  target_link_libraries(test_wav_adec m)
+    target_link_libraries(
+        PRIVATE m)
 endif()
+    
+    
+
