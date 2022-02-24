@@ -37,7 +37,7 @@ void vad_task(const char *input_file_name) {
      }
 
     if(input_header_struct.num_channels != 1){
-        printf("Error: wav num channels(%d) does not match ic(%u)\n", input_header_struct.num_channels, 1);
+        printf("Error: wav num channels(%d) does not match VAD(%u)\n", input_header_struct.num_channels, 1);
         _Exit(1);
     }
     
@@ -45,23 +45,19 @@ void vad_task(const char *input_file_name) {
     unsigned frame_count = wav_get_num_frames(&input_header_struct);
     unsigned block_count = frame_count / VAD_FRAME_ADVANCE;
 
-#if MAX_FRAMES
-    if(block_count > MAX_FRAMES){
-        block_count = MAX_FRAMES;
-    }
-#endif
 
     int32_t input_read_buffer[VAD_FRAME_ADVANCE * 1] = {0};
     int32_t DWORD_ALIGNED input[VAD_FRAME_ADVANCE];
 
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
-    //Start ic
+    //Start vad
+    prof(0, "start_vad_init");
+#ifndef EMPTY_APP
     vad_state_t state;
-    prof(0, "start_ic_init");
     vad_init(&state);
-    prof(1, "end_ic_init");
-
+#endif
+    prof(1, "end_vad_init");
 
     for(unsigned b=0;b<block_count;b++){
         long input_location =  wav_get_frame_start(&input_header_struct, b * VAD_FRAME_ADVANCE, input_header_size);
@@ -72,7 +68,9 @@ void vad_task(const char *input_file_name) {
         }
 
         prof(2, "start_vad");
+#ifndef EMPTY_APP
         vad_probability_voice(input, &state);
+#endif
         prof(3, "end_vad");
         print_prof(0,4,b+1);
 
