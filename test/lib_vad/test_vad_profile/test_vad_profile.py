@@ -66,7 +66,7 @@ def parse_profile_output(stdout):
     return report
 
 
-def get_mem_usage():
+def test_mem_usage():
     new_directory = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/")
     old_cwd = os.getcwd()
     os.chdir(new_directory)    
@@ -126,5 +126,5 @@ def test_vad_profile():
             rf.write(report)
 
 if __name__ == "__main__":
-    get_mem_usage()
+    test_mem_usage()
     test_vad_profile()
