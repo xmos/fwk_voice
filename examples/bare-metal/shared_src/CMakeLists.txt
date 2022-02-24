@@ -35,11 +35,11 @@ add_library(avona::example::aec2thread ALIAS avona_example_shared_src_aec_2_thre
 add_library(avona_example_shared_src_delay_buffer  INTERFACE)
 target_sources(avona_example_shared_src_delay_buffer
     INTERFACE
-        delay_buffer/src/delay_buffer.c
+        delay_buffer/delay_buffer.c
 )
 target_include_directories(avona_example_shared_src_delay_buffer
     INTERFACE
-        delay_buffer/src
+        delay_buffer
 )
 add_library(avona::example::delay_buffer ALIAS avona_example_shared_src_delay_buffer)
 
@@ -59,12 +59,12 @@ add_library(avona::example::stage_1 ALIAS avona_example_shared_src_stage_1)
 add_library(avona_example_shared_src_file_utils INTERFACE)
 target_sources(avona_example_shared_src_file_utils
     INTERFACE
-        file_utils/src/fileio.c
-        file_utils/src/wav_utils.c
+        file_utils/fileio.c
+        file_utils/wav_utils.c
 )
 target_include_directories(avona_example_shared_src_file_utils
     INTERFACE
-        file_utils/src
+        file_utils
 )
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_sources(avona_example_shared_src_file_utils
@@ -87,11 +87,11 @@ add_library(avona::example::fileutils ALIAS avona_example_shared_src_file_utils)
 add_library(avona_example_shared_src_profile_xcore INTERFACE)
 target_sources(avona_example_shared_src_profile_xcore
     INTERFACE
-        profile/src/profile.c
+        profile/profile.c
 )
 target_include_directories(avona_example_shared_src_profile_xcore
     INTERFACE
-        profile/src
+        profile
 )
 
 add_library(avona::example::profile_xcore ALIAS avona_example_shared_src_profile_xcore)
