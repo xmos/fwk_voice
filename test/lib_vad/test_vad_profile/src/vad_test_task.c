@@ -1,14 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#if !X86_BUILD
-#ifdef __XC__
-    #define chanend_t chanend
-#else
-    #include <xcore/chanend.h>
-#endif
+#include <xcore/chanend.h>
 #include <platform.h>
-#include <print.h>
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,23 +13,15 @@
 
 #include "fileio.h"
 #include "wav_utils.h"
-// #include "dump_var_py.h"
-
-//Optionally quit processing after number of frames processed
-// #define MAX_FRAMES  0
-
-
 #include "xs3_math.h"
+#include "profile.h"
+
 
 void vad_task(const char *input_file_name) {
     //open files
     file_t input_file;
     int ret = file_open(&input_file, input_file_name, "rb");
     assert((!ret) && "Failed to open file");
-
-    // file_t dut_var_file;
-    // ret = file_open(&dut_var_file, "dut_var.py", "wb"); //Option to dump variables on each frame
-    // assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct;
     unsigned input_header_size;
@@ -66,20 +51,19 @@ void vad_task(const char *input_file_name) {
     }
 #endif
 
-    //printf("num frames = %d\n",block_count);
-  
     int32_t input_read_buffer[VAD_FRAME_ADVANCE * 1] = {0};
-
     int32_t DWORD_ALIGNED input[VAD_FRAME_ADVANCE];
 
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
 
     //Start ic
     vad_state_t state;
+    prof(0, "start_ic_init");
     vad_init(&state);
+    prof(1, "end_ic_init");
+
 
     for(unsigned b=0;b<block_count;b++){
-        //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * VAD_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame * VAD_FRAME_ADVANCE);
@@ -87,15 +71,17 @@ void vad_task(const char *input_file_name) {
             input[f] = input_read_buffer[f];
         }
 
-        uint8_t vad = vad_probability_voice(input, &state);
-        printf("frame: %d vad: %d\n", b, vad);
+        prof(2, "start_vad");
+        vad_probability_voice(input, &state);
+        prof(3, "end_vad");
+        print_prof(0,4,b+1);
+
     }
     file_close(&input_file);
     shutdown_session();
 }
 
 
-#if !X86_BUILD
 void main_tile1(chanend_t c_cross_tile)
 {
     //Do nothing
@@ -104,18 +90,6 @@ void main_tile1(chanend_t c_cross_tile)
 #define IN_WAV_FILE_NAME    "input.wav"
 void main_tile0(chanend_t c_cross_tile, chanend_t xscope_chan)
 {
-#if TEST_WAV_XSCOPE
     xscope_io_init(xscope_chan);
-#endif 
     vad_task(IN_WAV_FILE_NAME);
 }
-#else //Linux build
-int main(int argc, char **argv) {
-    if(argc < 2) {
-        printf("Arguments missing. Expected: <input file name> \n");
-        assert(0);
-    }
-    vad_task(argv[1]);
-    return 0;
-}
-#endif
