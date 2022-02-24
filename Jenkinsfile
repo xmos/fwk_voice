@@ -199,6 +199,19 @@ pipeline {
             }
           }
         }
+        stage('VAD test_profile') {
+          steps {
+            dir("${REPO}/test/lib_vad/test_vad_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "${REPO}/test/lib_vad/test_vad_profile/vad_profile_report.txt", fingerprint: true
+            }
+          }
+        }
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
