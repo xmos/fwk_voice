@@ -40,6 +40,8 @@ jobs:
           repository: xmos/xcore_sdk
           path: xcore_sdk
           submodules: recursive
+          # Note TEMP checkout of old working sdk until cmake build clashes resolved in avona
+          ref: a1e210b12b5d118cd81474633c63bc3c622ab67b
           
       - name: Pull xcore_sdk_builder container
         run: |
