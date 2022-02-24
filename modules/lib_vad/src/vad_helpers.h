@@ -7,7 +7,6 @@ int32_t vad_math_logistics_fast(int32_t x);
 
 #if !X86_BUILD
 #include <xclib.h>
-#include "dsp.h"
 #else
 int clz_sim(uint32_t x);
 void mul_mel_sim(uint32_t * h, uint32_t * l, uint32_t scale);
