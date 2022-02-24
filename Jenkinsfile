@@ -210,6 +210,7 @@ pipeline {
                 }
               }
               archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
+              archiveArtifacts artifacts: "vad_memory_report.log", fingerprint: true
             }
           }
         }

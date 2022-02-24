@@ -5,10 +5,11 @@ import shutil
 import os
 import re
 import numpy as np
+import subprocess
 
 input_wav = os.path.abspath("../../../examples/bare-metal/vad/input.wav")
-vad_profile_xe = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/test_vad_profile.xe")
-
+vad_profile_xe = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/test_vad_profile_VAD_ENABLED.xe")
+vad_profile_xe_empty = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/test_vad_profile_VAD_DISABLED.xe")
 
 core_clock_MHz = 600
 
@@ -65,6 +66,38 @@ def parse_profile_output(stdout):
     return report
 
 
+def get_mem_usage():
+    new_directory = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/")
+    old_cwd = os.getcwd()
+    os.chdir(new_directory)    
+
+    try:       
+        subprocess.call("make clean".split())
+        test_output = subprocess.check_output("make -j".split(), text=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        # Unity exits non-zero if an assertion fails
+        test_output = e.output
+    # print(test_output)
+    os.chdir(old_cwd)
+
+    mem_used = []
+    for line in test_output.split("\n"):
+        m = re.match(r".*Memory available:\s+(\d+).+used:\s+(\d+).*", line)
+        print(line)
+        if m:
+            mem_used.append(int(m.groups(0)[1]))
+    mem_used.sort(reverse=True) #The two largest will be tile[0] with and without vad
+    vad_mem = mem_used[0] - mem_used[1]
+
+    report = ""
+    report += f"VAD Memory report\n"
+    report += f"-----------------\n\n"
+    report += f"Memory used bytes:     {vad_mem}\n"
+
+    print(report)
+    with open ("vad_memory_report.log", "w") as rf:
+        rf.write(report)
+
 def test_vad_profile():
     try:
         shutil.copy2(input_wav, "input.wav")
@@ -93,4 +126,5 @@ def test_vad_profile():
             rf.write(report)
 
 if __name__ == "__main__":
+    get_mem_usage()
     test_vad_profile()
