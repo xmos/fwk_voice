@@ -69,9 +69,9 @@ def parse_profile_output(stdout):
 def get_mem_usage():
     old_cwd = os.getcwd()
 
-    new_directory = os.path.abspath("../../../build/")
-    os.chdir(new_directory)    
-    subprocess.call('cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'.split())
+    # new_directory = os.path.abspath("../../../build/")
+    # os.chdir(new_directory)    
+    # subprocess.call('cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'.split())
 
     new_directory = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/")
     os.chdir(new_directory)    
@@ -132,3 +132,4 @@ def test_vad_profile():
 if __name__ == "__main__":
     get_mem_usage()
     test_vad_profile()
+    
