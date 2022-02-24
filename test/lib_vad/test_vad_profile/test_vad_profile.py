@@ -67,10 +67,14 @@ def parse_profile_output(stdout):
 
 
 def test_mem_usage():
-    new_directory = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/")
     old_cwd = os.getcwd()
-    os.chdir(new_directory)    
 
+    new_directory = os.path.abspath("../../../build/")
+    os.chdir(new_directory)    
+    subprocess.call('cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'.split())
+
+    new_directory = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/")
+    os.chdir(new_directory)    
     try:       
         subprocess.call("make clean".split())
         test_output = subprocess.check_output("make -j".split(), text=True, stderr=subprocess.STDOUT)
