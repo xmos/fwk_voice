@@ -80,7 +80,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-    target_link_libraries(
+    target_link_libraries(avona_test_wav_adec
         PRIVATE m)
 endif()
     

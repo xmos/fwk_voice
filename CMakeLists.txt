@@ -7,11 +7,6 @@ endif()
 
 project(sw_avona)
 
-## With this hack, x86 builds are work on Linux and Darwin.
-#if( NOT XCORE )
-#    set(CMAKE_SYSTEM_NAME Linux)
-#endif()
-
 ## Set up the build options
 include(etc/build_options.cmake)
 
@@ -24,28 +19,20 @@ list(APPEND   COMPILE_FLAGS        -Os -g -MMD )
 list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
 ## Platform-specific C/C++ compile flags
-list( APPEND   COMPILE_FLAGS_XCORE  -march=xs3a -mcmodel=large )
-list( APPEND   COMPILE_FLAGS_Linux  -DX86_BUILD=1 )
 
-list(APPEND   COMPILE_FLAGS ${COMPILE_FLAGS_${CMAKE_SYSTEM_NAME}} )
-
-## CMake configuration stuff
-
-if( XCORE )
-    enable_language( C CXX XC ASM )
+if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    set(XCORE_TARGET "XCORE-AI-EXPLORER")
+    #list(APPEND   COMPILE_FLAGS  -march=xs3a -mcmodel=large)
 else()
-    enable_language( C CXX ASM )
+    list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
 endif()
+## CMake configuration stuff
 
 set( CMAKE_CXX_STANDARD           11  )
 set( CMAKE_CXX_STANDARD_REQUIRED  ON  )
 set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
-
-if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
-    set(XCORE_TARGET "XCORE-AI-EXPLORER")
-endif()
 
 ## Add libs and apps
 add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
@@ -54,7 +41,7 @@ message( STATUS "target name here ${XCORE_TARGET}" )
 
 add_subdirectory( modules )
 
-#if ( ${BUILD_EXAMPLES} )
+#if ( ${AVONA_BUILD_EXAMPLES} )
     add_subdirectory( examples )
 #endif()
 

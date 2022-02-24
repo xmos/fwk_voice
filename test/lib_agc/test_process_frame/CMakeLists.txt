@@ -67,6 +67,8 @@ foreach(testfile ${TEST_SOURCES})
             PRIVATE
                 "-target=${XCORE_TARGET}")
     else()
-        target_link_libraries(avona_agc_${TESTNAME} m)
+        target_link_libraries(avona_agc_${TESTNAME}
+            PRIVATE
+                m)
     endif()
 endforeach(testfile ${TEST_SOURCES})

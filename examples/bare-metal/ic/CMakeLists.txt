@@ -13,7 +13,6 @@ target_include_directories(avona_example_shared_ic_test_wav
 target_link_libraries(avona_example_shared_ic_test_wav
     INTERFACE
         avona::ic
-        avona::example::profile_xcore
         avona::example::fileutils
         )
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
@@ -21,6 +20,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         INTERFACE
             src/main.xc
     )
+    target_link_libraries(avona_example_shared_ic_test_wav
+        INTERFACE
+            avona::example::profile_xcore
+            )
 endif()
 add_library(avona::example::test_wav_ic ALIAS avona_example_shared_ic_test_wav)
 
