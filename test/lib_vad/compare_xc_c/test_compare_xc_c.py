@@ -25,7 +25,7 @@ def process_xe(xe_file, input_file):
             xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
             ff.seek(0)
             stdout = ff.readlines()
-            
+
     os.chdir(prev_path)
     shutil.rmtree(tmp_folder)
     return stdout
@@ -49,6 +49,8 @@ def compare_vads(old, new):
             allclose = False
         print(f"frame {new_frame}: {old_vad} {new_vad}")
     print(f"Comparison: {allclose}")
+
+    return allclose
 
 def dump_both(old, new):
     for old_line, new_line in zip(old, new):
@@ -102,5 +104,5 @@ def test_xc_c_comparison():
     stdo_old_vad = process_xe(old_vad_xe, input_wav)
     stdo_new_vad = process_xe(new_vad_xe, input_wav)
 
-    compare_vads(stdo_old_vad, stdo_new_vad)
+    assert compare_vads(stdo_old_vad, stdo_new_vad)
     # dump_both(stdo_old_vad, stdo_new_vad)
