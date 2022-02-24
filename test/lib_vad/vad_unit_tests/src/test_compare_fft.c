@@ -1,11 +1,11 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include "vad_unit_tests.h"
 #include "vad_mel.h"
 #include "vad_mel_scale.h"
 #include "vad_parameters.h"
-#include <bfp_math.h>
-#include <dsp.h>
+#include "bfp_math.h"
+#include "dsp.h"
+#include "vad_unit_tests.h"
 #include "xs3_math.h" // for headroom_t
 
 //The implementation held in vad.xc

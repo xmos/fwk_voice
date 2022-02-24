@@ -1,8 +1,10 @@
+## This cmake file builds the "old vad" testwav example. Note inclusion of lots
+## of source files from the old repos which do not support cmake libs
 ## App name
 set( APP_NAME  run_old_vad )
 
-# set (XCORE_TARGET XCORE-AI-EXPLORER)
 
+#These deps are present in the test view only
 set( DEPS_ROOT ../../../..)
 
 ## Sources

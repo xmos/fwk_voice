@@ -1,13 +1,8 @@
 ## Source files
 file( GLOB_RECURSE    LIB_VAD_C_SOURCES       src/*.c )
 
-set(DEPS_ROOT ../../..)
+#TODO remove me as dependency
 set(LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
-
-
-message( STATUS "VAD LIB CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}" )
-
-
 
 ## LIB_DSP
 file( GLOB_RECURSE LIB_DSP_SOURCES_C  ${LIB_DSP_PATH}/src/*.c )
@@ -30,9 +25,6 @@ list( APPEND  LIB_VAD_SOURCES   ${LIB_VAD_SOURCES_${CMAKE_SYSTEM_NAME}}    )
 
 ## cmake doesn't recognize .S files as assembly by default
 set_source_files_properties( ${LIB_XS3_MATH_ASM_SOURCES} PROPERTIES LANGUAGE ASM )
-set_source_files_properties( ${LIB_DSP_SOURCES_ASM} PROPERTIES LANGUAGE ASM )
-set_source_files_properties( ${LIB_NN_SOURCES_ASM} PROPERTIES LANGUAGE ASM )
-set_source_files_properties( ${LIB_AI_SOURCES_ASM} PROPERTIES LANGUAGE ASM )
 
 
 set( ADDITIONAL_FLAGS ${LIB_DSP_FLAGS})

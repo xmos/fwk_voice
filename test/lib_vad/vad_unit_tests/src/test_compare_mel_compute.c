@@ -1,11 +1,11 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include "vad_unit_tests.h"
 #include "vad_mel.h"
 #include "vad_mel_scale.h"
 #include "vad_parameters.h"
 #include "bfp_math.h"
 #include "dsp.h"
+#include "vad_unit_tests.h"
 #include <string.h>
 
 //Note this test assumes that test_compare_fft has worked as we use vad_xs3_math_fft to generate vectors
