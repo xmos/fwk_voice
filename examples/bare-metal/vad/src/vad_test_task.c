@@ -111,7 +111,7 @@ void main_tile0(chanend_t c_cross_tile, chanend_t xscope_chan)
 }
 #else //Linux build
 int main(int argc, char **argv) {
-    if(argc < 1) {
+    if(argc < 2) {
         printf("Arguments missing. Expected: <input file name> \n");
         assert(0);
     }
