@@ -65,8 +65,8 @@ def parse_profile_output(stdout):
 
     return report
 
-
-def test_mem_usage():
+#Not test_ so avoids running from pytest
+def get_mem_usage():
     old_cwd = os.getcwd()
 
     new_directory = os.path.abspath("../../../build/")
@@ -130,5 +130,5 @@ def test_vad_profile():
             rf.write(report)
 
 if __name__ == "__main__":
-    test_mem_usage()
+    get_mem_usage()
     test_vad_profile()

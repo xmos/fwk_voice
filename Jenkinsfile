@@ -140,9 +140,10 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                  sh "mv output.wav ic_example_output.wav"
                 }
               }
-              archiveArtifacts artifacts: "output.wav", fingerprint: true
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
             }
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
@@ -210,7 +211,6 @@ pipeline {
                 }
               }
               archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
-              archiveArtifacts artifacts: "vad_memory_report.log", fingerprint: true
             }
           }
         }
