@@ -89,7 +89,7 @@ def test_vad_profile():
 
         report = parse_profile_output(stdout)
         print(report)
-        with open ("vad_profile_report.txt", "w") as rf:
+        with open ("vad_profile_report.log", "w") as rf:
             rf.write(report)
 
 if __name__ == "__main__":

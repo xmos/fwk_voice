@@ -21,12 +21,11 @@ def process_xe(xe_file, input_file):
     shutil.copyfile(input_file, "input.wav")
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-        with open("vad.txt", "w") as ff:
+        with open("vad.txt", "w+") as ff:
             xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
-
-    with open("vad.txt") as ff:
-        stdout = ff.readlines()
-
+            ff.seek(0)
+            stdout = ff.readlines()
+            
     os.chdir(prev_path)
     shutil.rmtree(tmp_folder)
     return stdout

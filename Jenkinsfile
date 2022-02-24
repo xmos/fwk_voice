@@ -142,6 +142,7 @@ pipeline {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
                 }
               }
+              archiveArtifacts artifacts: "output.wav", fingerprint: true
             }
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
@@ -208,7 +209,7 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
-              archiveArtifacts artifacts: "${REPO}/test/lib_vad/test_vad_profile/vad_profile_report.txt", fingerprint: true
+              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
             }
           }
         }
@@ -282,6 +283,7 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
+              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
@@ -302,6 +304,7 @@ pipeline {
                   // sh "python plot_ic.py"
                 }
               }
+              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
@@ -452,10 +455,6 @@ pipeline {
       }//stages
       post {
         always {
-          //IC artefacts
-          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/ic/output.wav", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           
