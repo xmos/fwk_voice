@@ -136,7 +136,6 @@ void vad_reduce_sigmoid(int32_t out_data[],
         if (x > max) x = max;
         if (x < -max-1) x = -max-1;
         int32_t in_32 = x >> shift;
-        //out_data[i] = dsp_math_logistics_fast(in_32);
         out_data[i] = vad_math_logistics_fast(in_32);
     }
 }
