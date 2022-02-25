@@ -35,7 +35,7 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init --recursive"
+                  sh "git submodule update --init --recursive --jobs 4"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
