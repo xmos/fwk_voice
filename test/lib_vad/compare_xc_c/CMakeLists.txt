@@ -51,7 +51,6 @@ list( APPEND  SOURCES   ${SOURCES_${CMAKE_SYSTEM_NAME}} )
 
 # set( XSCOPE_CONFIG config.xscope )
 get_filename_component(XSCOPE_CONFIG ./config.xscope ABSOLUTE)
-message( STATUS "XSCOPE_CONFIG ${XSCOPE_CONFIG}" )
 
 
 ## Compile flags
