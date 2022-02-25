@@ -7,7 +7,7 @@ Requirements
 
 * XTC Tools 15.0.6 or higher
 * A clone of the `xcore_sdk <https://github.com/xmos/xcore_sdk/>`_, with its submodules initialised
-* CMake 3.18 or higher
+* CMake 3.20 or higher
 * Python 3.7 or higher
 
 
