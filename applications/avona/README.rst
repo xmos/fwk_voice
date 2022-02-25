@@ -44,7 +44,7 @@ It is recommended that your `XCORE_SDK_PATH` and WW_PATH not include spaces.  Ho
 Building the Firmware
 *********************
 
-Run the following commands to build the sw_avona firmware:
+Run the following commands to build the avona firmware:
 
 .. tab:: Linux and MacOS
 
@@ -62,16 +62,10 @@ Run the following commands to build the sw_avona firmware:
         $ cd build
         $ nmake
 
-After building the firmware, create the filesystem including the wakeword models and flash the device with the following commands:
+After building the firmware, you need to create the filesystem, which includes the wakeword models, and flash the device with the following commands:
 
-Note, MacOS users will need to install `dosfstools`.
+Flash the filesystem with the following command:
 
-.. tab:: MacOS
-
-    .. code-block:: console
-
-        $ brew install dosfstools
-        
 .. tab:: Linux and MacOS
 
     .. code-block:: console
@@ -79,12 +73,18 @@ Note, MacOS users will need to install `dosfstools`.
         $ cd filesystem_support
         $ ./flash_image.sh
 
+.. tab:: Windows
+
+    .. code-block:: console
+
+        $ cd filesystem_support
+        $ flash_image.bat
 
 ********************
 Running the Firmware
 ********************
 
-From the root folder of the example run:
+From the root folder of the avona application run:
 
     .. code-block:: console
 

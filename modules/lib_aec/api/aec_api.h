@@ -373,31 +373,46 @@ float_s32_t aec_calc_corr_factor(
         aec_state_t *state,
         unsigned ch);
 
-/** @brief Calculate the energy of the reference input signal 
+/** @brief Calculate the energy of the input signal 
  *
- * This function calculates the sum of the energy across all samples of the time domain reference input channel and
- * returns the maximum energy across all channels. 
+ * This function calculates the sum of the energy across all samples of the time domain input channel and
+ * returns the maximum energy across all channels.
  *
- * @param[in] x_data Pointer to the reference (x) data buffer. The input is assumed to be in Q1.31 fixed point format.
- * @param[in] num_channels Number of reference input channels.
- * @returns Maximum reference energy in float_s32_t format.
+ * @param[in] input_data Pointer to the input data buffer. The input is assumed to be in Q1.31 fixed point format.
+ * @param[in] num_channels Number of input channels.
+ * @returns Maximum energy in float_s32_t format.
  *
  * @ingroup aec_func
  *
  */
-float_s32_t aec_calc_max_ref_energy(
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE],
+float_s32_t aec_calc_max_input_energy(
+        const int32_t (*input_data)[AEC_FRAME_ADVANCE],
         int num_channels);
 
-/// Estimate delay
-/*int aec_estimate_delay (
-        aec_state_t *state);*/
-int aec_estimate_delay (
-        delay_estimator_params_t *de_state,
-        const bfp_complex_s32_t* H_hat, 
-        unsigned num_phases);
+/** @brief Reset parts of aec state structure.
+ *
+ * This function resets parts of AEC state so that the echo canceller starts adapting from a zero filter.
+ * 
+ * @param[in] pointer to AEC main filter state structure.
+ * @param[in] pointer to AEC shadow filter state structure
+ * 
+ * @ingroup aec_func
+ */
+void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
 
-
+/** @brief Detect activity on input channels.
+ * 
+ * This function implements a quick check for detecting activity on the input channels. It detects signal presence by checking
+ * if the time domain input signal maximum is above a given threshold.
+ *
+ * @param[in] input_data Pointer to input data frame. Input is assumed to be in Q1.31 fixed point format.
+ * @param[in] active_threshold Threshold for detecting signal activity
+ * @param[in] num_channels Number of input data channels
+ * @returns 0 if no signal activity on the input channels, 1 if activity detected on the input channels
+ * 
+ * @ingroup aec_func
+ */
+int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels);
 
 //TODO pending documentation and examples for L2 APIs
 /**

@@ -89,10 +89,4 @@
  */
 #define UNUSED_TAPS_PER_PHASE (16)
 
-
-#if !PROFILE_PROCESSING
-    #define prof(n, str)
-    #define print_prof(start, end, framenum)
-#endif
-
 #endif

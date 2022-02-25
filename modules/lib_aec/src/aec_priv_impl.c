@@ -278,6 +278,7 @@ void aec_priv_compare_filters(
     }
     for(unsigned ch=0; ch<main_state->shared_state->num_y_channels; ch++) {
         main_state->shared_state->overall_Y[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
+        //printf("Ov_Error_shad = %f, Ov_Error = %f, Ov_input = %f\n", float_s32_to_double(shadow_state->overall_Error[ch]), float_s32_to_double(main_state->overall_Error[ch]), float_s32_to_double(shared_state->overall_Y[ch]));
         float_s32_t shadow_copy_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_copy_thresh, main_state->overall_Error[ch]);
         float_s32_t shadow_sigma_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_sigma_thresh, main_state->overall_Error[ch]);
         float_s32_t shadow_reset_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_reset_thresh, main_state->overall_Error[ch]);
@@ -508,6 +509,12 @@ void aec_priv_calc_coherence_mu(
             }
         }
     }
+    /*for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
+      for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+        printf("mu[%d][%d] = %f\n",y_ch, x_ch, float_s32_to_double(coh_mu_state[y_ch].coh_mu[x_ch]));
+        
+      }
+    }*/
 }
 
 void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
@@ -567,6 +574,12 @@ void aec_priv_update_total_X_energy(
     bfp_s32_add(X_energy, X_energy, &scratch);
 
     aec_priv_bfp_complex_s32_recalc_energy_one_bin(X_energy, X_fifo, X, num_phases, recalc_bin);
+
+    /** Due to fixed point arithmetic we might sometimes see -ve numbers in X_energy, so clamp to a minimum of 0. This
+     * happens if all the energy in X_energy is made of the phase being subtracted out and the new X data energy being
+     * added is 0*/
+    bfp_s32_rect(X_energy, X_energy);
+
     *max_X_energy = bfp_s32_max(X_energy);
     /** Steps taken to make sure divide by 0 doesn't happen while calculating inv_X_energy in aec_priv_calc_inverse().
       * Divide by zero Scenario 1: All X_energy bins are 0 => max_X_energy is 0, but the exponent is something reasonably big, like
@@ -734,8 +747,7 @@ static const int32_t WOLA_window_flpd[32] = {
 void aec_priv_create_output(
         bfp_s32_t *output,
         bfp_s32_t *overlap,
-        bfp_s32_t *error,
-        const aec_config_params_t *conf)
+        bfp_s32_t *error)
 {
     bfp_s32_t win, win_flpd;
     bfp_s32_init(&win, (int32_t*)&WOLA_window[0], -31, 32, 0);
@@ -788,12 +800,17 @@ void aec_priv_create_output(
     overlap->exp = error->exp;
     return;
 }
+extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+        unsigned shr,
+        unsigned count);
 
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
-{ 
-#if 1 //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency
+{
+#if 1
+    //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
+
 #else //36323 cycles. 2 x-channels, single thread
     int32_t min_element = xs3_vect_s32_min(
                                 input->data,
@@ -816,7 +833,8 @@ void aec_priv_calc_inv_X_energy_denom(
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow) {
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2) {
     
     int gamma_log2 = conf->aec_core_conf.gamma_log2;
     if(!is_shadow) { //frequency smoothing
@@ -827,7 +845,13 @@ void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t sigma_times_gamma;
         bfp_s32_init(&sigma_times_gamma, sigma_XX->data, sigma_XX->exp+gamma_log2, sigma_XX->length, 0);
         sigma_times_gamma.hr = sigma_XX->hr;
-        bfp_s32_add(&norm_denom, &sigma_times_gamma, X_energy);
+        //TODO 3610 AEC calculates norm_denom as normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma 
+        //instead of normDenom = self.X_energy[:,k] + self.sigma_xx*gamma and ADEC tests pass only with the former.
+        bfp_s32_t temp = *X_energy;
+        if(normdenom_apply_factor_of_2) {
+            temp.exp = temp.exp+1;
+        }
+        bfp_s32_add(&norm_denom, &sigma_times_gamma, &temp);
 
         //self.taps = [0.5, 1, 1, 1, 0.5] 
         fixed_s32_t taps_q30[5] = {0x20000000, 0x40000000, 0x40000000, 0x40000000, 0x20000000};
@@ -841,6 +865,13 @@ void aec_priv_calc_inv_X_energy_denom(
     }
     else
     {
+        //TODO maybe fix this for AEC?
+        // int32_t temp[AEC_PROC_FRAME_LENGTH/2 + 1];
+        // bfp_s32_t temp_bfp;
+        // bfp_s32_init(&temp_bfp, &temp[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
+
         bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
 
@@ -870,16 +901,21 @@ void aec_priv_calc_inv_X_energy_denom(
      }
 }
 
+// For aec, to get adec tests passing norm_denom in aec_priv_calc_inv_X_energy_denom is calculated as
+// normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma while in IC its done as
+// normDenom = self.X_energy[:,k] + self.sigma_xx*gamma. To work around this, an extra argument normdenom_apply_factor_of_2
+// is added to aec_priv_calc_inv_X_energy. When set to 1, X_energy is multiplied by 2 in the inverse energy calculation.
 void aec_priv_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
         const bfp_s32_t *X_energy,
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow)
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2)
 {
-    //Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
-    aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow);
+    // Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
+    aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow, normdenom_apply_factor_of_2);
     aec_priv_calc_inverse(inv_X_energy);
 
     return;
@@ -917,6 +953,7 @@ void aec_priv_compute_T(
     //bfp_complex_s32_real_scale(T, Error, mu);
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
 }
+
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)

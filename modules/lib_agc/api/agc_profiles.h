@@ -67,7 +67,7 @@
     .lower_threshold = float_to_float_s32(0.4), \
     .gain_inc = float_to_float_s32(1.0034), \
     .gain_dec = float_to_float_s32(0.98804), \
-    .lc_enabled = 0, \
+    .lc_enabled = 1, \
     .lc_n_frame_far = 17, \
     .lc_n_frame_near = 34, \
     .lc_corr_threshold = float_to_float_s32(0.993), \

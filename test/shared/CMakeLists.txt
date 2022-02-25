@@ -1,25 +1,29 @@
 
-set( LIB_NAME test_shared )
+add_library(avona_test_shared_test_utils INTERFACE)
 
-file( GLOB_RECURSE  SHARED_SOURCES_C   *.c  )
+file( GLOB_RECURSE SHARED_SOURCES *.c)
+target_sources(avona_test_shared_test_utils INTERFACE ${SHARED_SOURCES})
 
+target_include_directories(avona_test_shared_test_utils INTERFACE pseudo_rand testing)
 
-list( APPEND  INCLUDE_DIRS pseudo_rand
-                            testing )
+add_library(avona::test::shared::test_utils ALIAS avona_test_shared_test_utils) 
 
-###########
+#################
 
-## cmake doesn't recognize XC files. Tell it to treat them as C files
-set_source_files_properties( ${SHARED_SOURCES_XC} PROPERTIES LANGUAGE C )
+add_library(avona_test_shared_unity INTERFACE)
 
-list( APPEND  SHARED_SOURCES        ${SHARED_SOURCES_C}  )
+file( GLOB UNITY_SOURCES
+    ${UNITY_PATH}/src/*.c)
+target_sources(avona_test_shared_unity INTERFACE ${UNITY_SOURCES})
 
+target_include_directories(avona_test_shared_unity
+    INTERFACE
+        ${UNITY_PATH}/src 
+        ${UNITY_PATH}/extras/fixture/src
+        ${UNITY_PATH}/extras/memory/src)
 
-list( APPEND  SHARED_SOURCES   ${SHARED_SOURCES_${CMAKE_SYSTEM_NAME}} )
+target_compile_definitions(avona_test_shared_unity
+    INTERFACE
+        -DUNITY_SUPPORT_64)
 
-## Add library called "test_shared"
-add_library( ${LIB_NAME} ${SHARED_SOURCES} )
-
-target_include_directories( ${LIB_NAME} PUBLIC ${INCLUDE_DIRS} )
-
-target_link_libraries( ${LIB_NAME} lib_xs3_math )
+add_library(avona::test::shared::unity ALIAS avona_test_shared_unity) 

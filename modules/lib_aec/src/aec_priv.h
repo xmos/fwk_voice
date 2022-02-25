@@ -89,8 +89,7 @@ void aec_priv_calc_coherence(
 void aec_priv_create_output(
         bfp_s32_t *output,
         bfp_s32_t *overlap,
-        bfp_s32_t *error,
-        const aec_config_params_t *conf);
+        bfp_s32_t *error);
 
 /// Calculate inverse X energy for a channel over a range of bins
 void aec_priv_calc_inverse(
@@ -103,7 +102,8 @@ void aec_priv_calc_inv_X_energy_denom(
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow);
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2);
 
 void aec_priv_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
@@ -111,7 +111,8 @@ void aec_priv_calc_inv_X_energy(
         const bfp_s32_t *sigma_XX,
         const aec_config_params_t *conf,
         float_s32_t delta,
-        unsigned is_shadow);
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2);
 
 void aec_priv_filter_adapt(
         bfp_complex_s32_t *H_hat,
