@@ -1,6 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdint.h>
+#include <xs3_math.h>
 
 // Naive implementation
 int clz_sim(uint32_t x)
@@ -60,4 +61,34 @@ void add_unsigned_hl_sim(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t 
     result = (uint64_t)(*sumH) +  (uint64_t)h +  (uint64_t)(cout);
 
     *sumH = (uint32_t)result;     
+}
+
+int32_t log_slope[8] = {1015490930, 640498971, 297985800, 120120271, 46079377, 17219453, 6371555, 3717288};
+int32_t log_offset[8] = {8388608, 9853420, 12529304, 14613666, 15770555, 16334225, 16588473, 16661050};
+
+int32_t vad_math_logistics_fast(int32_t x){
+    int32_t r11 = clz_sim(x);
+    int32_t r1 = ~ x;
+    int32_t r2 = r1 >> 24;
+    int32_t r3;
+    int32_t mask = 0x00ffffff;
+    if(r11){
+        r1 = x >> 24;
+        r2 = x + 0;
+        r11 = r1 >> 3;
+        if(r11) return mask;
+        r3 = log_slope[r1];
+        x = log_offset[r1];
+        int64_t acc = ((int64_t)x << 32) + (int64_t)r11;
+        acc += (int64_t)r3 * (int64_t)r2;
+        return acc >> 32;
+    }
+    r11 = r2 >>3;
+    if(r11) return 0;
+    r3 = log_slope[r2];
+    r2 = log_offset[r2];
+    int64_t acc = ((int64_t)r2 << 32) + (int64_t)r11;
+    acc += (int64_t)r3 * (int64_t)r1;
+    x = mask - (int32_t)(acc >> 32);
+    return x;
 }
