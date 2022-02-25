@@ -1,6 +1,5 @@
 // Copyright 2015-2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-// XMOS DSP Library - Example to use FFT and inverse FFT
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +44,7 @@ headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
         curr_fd[VAD_PROC_FRAME_BINS].im = 0;
     }
     //Now adjust exponent to match output of lib_dsp
-    //This is tedious as result is same but we need identical matnissas
+    //This is tedious as BFP result is same but we need identical matnissas
     headroom_t lib_dsp_exp = VAD_LOG_WINDOW_LENGTH - original_hr;
     headroom_t xs3_math_exp = x_exp + 31;
     headroom_t exp_adjust = lib_dsp_exp - xs3_math_exp; 
@@ -181,15 +180,12 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     printf("\n");
 #endif
 
-    //512 packing
+    //240 -> 512 packing
     vad_form_frame(curr, input, state->prev_frame);
 
     for(int i = 0; i < VAD_PROC_FRAME_LENGTH; i++) {
-        //input[i].re = (time_domain_input[i] * (int64_t)vad_window[i]) >> 31;
-        //input[i].im = 0;
         curr[i] = (curr[i] * (int64_t)vad_window[i]) >> 31;
     }
-
     //bfp_s32_mul(frame, window);
 
 #if PRINT_ME && PRINT_ALL
@@ -204,16 +200,14 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     complex_s32_t* curr_fd = (complex_s32_t*)curr;
 
 
-
 #if PRINT_ME && PRINT_ALL
     printf("NEW SPECTRAL ");
-    // for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
-    for(int i = 0; i < 5; i++) {
-        printf("%ld %ld     ", curr_fd[i].re, curr_fd[i].im);
-        // printf("%ld %ld     ", input[i].re, input[i].im);
+    for(int i = 0; i < VAD_WINDOW_LENGTH/2; i++) {
+        printf("%ld %ld     ", input[i].re, input[i].im);
     }
     printf("\n");
 #endif
+
     // Compute spectral centroid and spread; in 32.0 format
     int32_t spectral_centroid = vad_spectral_centroid_Hz(curr_fd, VAD_PROC_FRAME_BINS);
     
@@ -221,11 +215,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
-#if 1
     vad_mel_compute_new(mel, VAD_N_MEL_SCALE+1, curr_fd, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
-#else
-    vad_mel_compute(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_PROC_FRAME_BINS + 1, vad_mel_table24_512, - (VAD_EXP - x_exp) * 2);
-#endif   
 
     // Mel coefficients are in 8.24; make them in 16.16 format for headroom
     for(int i = 0; i < VAD_N_MEL_SCALE; i++) {
@@ -247,8 +237,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     vad_dct_forward24(dct_output, dct_input);
 
-    
-    // Python multiplies DCT by 2.
+    // Python multiplies DCT by 2 so match model
     for(int i = 0; i < VAD_N_DCT; i++) {
         dct_output[i] *= 2;
     }
@@ -263,18 +252,12 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     memset(features, 0, sizeof(features));
 
-
     features[0] = spectral_centroid;
     features[1] = spectral_spread;
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
         features[i+2] = dct_output[i+1];
     }
     features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
-
-
-    ///////////////////
-    // for(int i=0;i<VAD_N_FEATURES_PER_FRAME;i++)features[i]=(5-i)*2000000;
-
 
 
     for(int i = VAD_N_OLD_FEATURES - 2;
@@ -303,10 +286,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
         features[i] = (((long long)(features[i] - vad_mus[i])) << 24) / vad_sigmas[i];
     }
 
-
-    // for(int i=0;i<VAD_N_FEATURES_PER_FRAME;i++)features[i]=(10-i)*1000000;
-
-
     // First copy features over into input for NN, both current and old data
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME; i++) {
         nn_features[i] = features[i];
@@ -319,18 +298,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
             oindex++;
         }
     }
-
-    // Now compute dMFCC0 for frames as dMFCC0[n] = MFCC0[n] - MFCC0[n-3]
-    for(int i = VAD_N_FEATURES_PER_FRAME-1;
-            i < VAD_N_FEATURES - 2;
-            i += VAD_N_FEATURES_PER_FRAME) {
-  //      nn_features[i] -= nn_features[i+VAD_N_FEATURES_PER_FRAME];        
-    }
-  //  nn_features[VAD_N_FEATURES - 1] -= old_features[VAD_N_OLD_FEATURES - 1];
-
-
-
-
 
     // Now copy old data back; keeping an extra dMFCC0.
     //old_features[VAD_N_OLD_FEATURES-1] = old_features[VAD_N_OLD_FEATURES-2];
@@ -349,9 +316,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
     printf("\n");
 #endif
-
-    // for(int i=0;i<VAD_N_FEATURES;i++)nn_features[i]=(12-i)*10000;
-
 
     vad_fc_layer(   hidden_nodes_full, N_VAD_HIDDEN,
                     nn_features, N_VAD_INPUTS,
@@ -375,5 +339,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
 #endif
 
+    //Note reduce sigmoid outputs maximum 0.999999 in 8.24 format so this cannot overflow 255
     return outputs_nodes_normal[0]>>16;
 }
