@@ -250,8 +250,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     printf("\n");
 #endif
 
-    memset(features, 0, sizeof(features));
-
     features[0] = spectral_centroid;
     features[1] = spectral_spread;
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
