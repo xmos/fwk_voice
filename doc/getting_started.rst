@@ -21,12 +21,7 @@ procedure is currently supported on MacOS and Linux only.
      .. code-block:: console
 
        cd sw_avona
-       git submodule update --init
-
-#. Set the ``XCORE_SDK_PATH`` with the location of the clone of xcore_sdk
-     .. code-block:: console
-
-       export XCORE_SDK_PATH=/home/username/xcore_sdk
+       git submodule update --init --recursive
 
 #. Create a build directory
      .. code-block:: console
@@ -37,7 +32,7 @@ procedure is currently supported on MacOS and Linux only.
 #. Run cmake to setup the build environment for the XMOS toolchain
      .. code-block:: console
 
-       cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake
+       cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake
 
 #. Running make will then build the Avona libraries and example applications
      .. code-block:: console
@@ -53,6 +48,6 @@ procedure is currently supported on MacOS and Linux only.
 #. Run the single-threaded AEC example
      .. code-block:: console
 
-       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 See :ref:`examples` for full details about the example applications.

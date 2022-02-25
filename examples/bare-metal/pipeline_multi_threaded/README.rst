@@ -38,9 +38,9 @@ XCORE-AI-EXPLORER board as a target:
 ::
     
     cd ../../../build
-    make pipeline_multi_threaded
+    make avona_example_bare_metal_pipeline_multi_thread
     cd ../examples/bare-metal/pipeline_multi_threaded
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/pipeline_multi_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Output
 ------

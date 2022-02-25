@@ -19,9 +19,9 @@ directory to build and run this example application using the XCORE-AI-EXPLORER 
 ::
 
     cd ../../../build
-    make agc
+    make avona_example_bare_metal_agc
     cd ../examples/bare-metal/agc
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav
 
 Output
 ------

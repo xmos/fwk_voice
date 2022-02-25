@@ -19,9 +19,9 @@ After configuring the CMake project, the following commands can be used from the
 ::
     
     cd ../../../build
-    make aec_1_thread
+    make avona_example_bare_metal_aec_1_thread
     cd ../examples/bare-metal/aec_1_thread
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 
 Output
