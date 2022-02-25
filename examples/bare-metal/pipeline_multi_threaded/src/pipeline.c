@@ -13,7 +13,8 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
-
+#include "ic_api.h"
+#include "vad_api.h"
 #include "ns_api.h"
 #include "agc_api.h"
 
@@ -28,6 +29,7 @@ extern void aec_process_frame_2threads(
 DECLARE_JOB(pipeline_stage_1, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_3, (chanend_t, chanend_t));
+DECLARE_JOB(pipeline_stage_4, (chanend_t, chanend_t));
 
 /// pipeline_stage_1
 // Stage 1 state
@@ -77,8 +79,53 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     }
 }
 
-/// pipeline_stage_2
+/// pipline_stage_2
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
+    //pipeline metadata
+    pipeline_metadata_t md;
+    // Initialise IC and VAD
+    ic_state_t DWORD_ALIGNED ic_state;
+    vad_state_t DWORD_ALIGNED vad_state;
+    ic_init(&ic_state);
+    vad_init(&vad_state);
+
+    int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED buffer[AP_FRAME_ADVANCE];
+    while(1){
+        // Receive metadata
+        chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        // Receive input frame
+        chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+
+        /**IC*/
+        // The buffer will store the the comms channel frame
+        for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+            buffer[v] = (frame[0][v] >> 1) + (frame[1][v] >> 1);
+        }
+
+        // Calculatung the ASR channel
+        ic_filter(&ic_state, frame[0], frame[1], frame[0]);
+        // Calculating voice activity probability
+        uint8_t vad = vad_probability_voice(frame[0], &vad_state);
+
+        // Transfering metadata
+        md.vad_flag = (vad > 205);
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+
+        // Adapting the IC
+        ic_adapt(&ic_state, frame[0]);
+        // Transfering the comms channel into the frame
+        for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+            frame[1][v] = buffer[v];
+        }
+
+        // Transfering output frame
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+    }
+}
+
+/// pipeline_stage_3
+void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     //Initialise NS
@@ -108,15 +155,15 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 }
 
 
-/// pipeline_stage_3
-void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
+/// pipeline_stage_4
+void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
+    agc_conf_asr.adapt_on_vad = 1;
+    agc_conf_comms.adapt_on_vad = 1;
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
@@ -132,6 +179,7 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
+        agc_md.vad_flag = md.vad_flag;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
@@ -154,10 +202,12 @@ void pipeline(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
     // 3 stage pipeline. stage 1: AEC, stage 2: NS, stage 3: AGC
     channel_t c_stage_1_to_2 = chan_alloc();
     channel_t c_stage_2_to_3 = chan_alloc();
+    channel_t c_stage_3_to_4 = chan_alloc();
     
     PAR_JOBS(
         PJOB(pipeline_stage_1, (c_pcm_in_b, c_stage_1_to_2.end_a)),
         PJOB(pipeline_stage_2, (c_stage_1_to_2.end_b, c_stage_2_to_3.end_a)),
-        PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_pcm_out_a))
+        PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_stage_3_to_4.end_a)),
+        PJOB(pipeline_stage_4, (c_stage_3_to_4.end_b, c_pcm_out_a))
     );
 }
