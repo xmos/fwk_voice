@@ -185,6 +185,13 @@ typedef struct {
 #define AGC_META_DATA_NO_VAD 0u
 
 /**
+ * If the application has VAD, `adapt_on_vad` can be enabled in the configuration. This
+ * define is used to covert VAD value from uint8_t to binary.  
+ * 
+ */
+#define AGC_VAD_THRESHOLD 205
+
+/**
  * If the application has no AEC, `lc_enabled` must be disabled in the configuration. This
  * pre-processor definition can be assigned to the `aec_ref_power` and `aec_corr_factor` in
  * `agc_meta_data_t` in that situation to make it clear in the code that there is no AEC.

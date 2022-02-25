@@ -11,6 +11,8 @@ list( APPEND  DEP_LIBS
     lib_ns
     lib_agc
     lib_xs3_math
+    lib_ic
+    lib_vad
     ${DEP_LIBS_${CMAKE_SYSTEM_NAME}}
 )
 

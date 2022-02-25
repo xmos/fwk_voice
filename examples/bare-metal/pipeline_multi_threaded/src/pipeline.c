@@ -109,11 +109,11 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         uint8_t vad = vad_probability_voice(frame[0], &vad_state);
 
         // Transfering metadata
-        md.vad_flag = (vad > 205);
+        md.vad_flag = (vad > AGC_VAD_THRESHOLD);
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
-        ic_adapt(&ic_state, frame[0]);
+        ic_adapt(&ic_state, vad, frame[0]);
         // Transfering the comms channel into the frame
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             frame[1][v] = buffer[v];
@@ -199,7 +199,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 /// Pipeline
 void pipeline(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
-    // 3 stage pipeline. stage 1: AEC, stage 2: NS, stage 3: AGC
+    // 3 stage pipeline. stage 1: AEC, stage 2: IC and VAD, stage 3: NS, stage 4: AGC
     channel_t c_stage_1_to_2 = chan_alloc();
     channel_t c_stage_2_to_3 = chan_alloc();
     channel_t c_stage_3_to_4 = chan_alloc();
