@@ -14,9 +14,13 @@
 #include "vad_normalisation.h"
 #include "vad_window.h"
 #include "vad_mel.h"
+#include "vad_dct.h"
 #include "xs3_math.h"
 #include "vad_helpers.h"
 
+#if X86_BUILD
+#define clz(v)  clz_sim(v)
+#endif
 
 headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
 
@@ -132,7 +136,7 @@ void vad_reduce_sigmoid(int32_t out_data[],
         if (x > max) x = max;
         if (x < -max-1) x = -max-1;
         int32_t in_32 = x >> shift;
-        out_data[i] = dsp_math_logistics_fast(in_32);
+        out_data[i] = vad_math_logistics_fast(in_32);
     }
 }
 
@@ -241,7 +245,7 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     #error VAD_N_DCT must be 24
 #endif
 
-    dsp_dct_forward24(dct_output, dct_input);
+    vad_dct_forward24(dct_output, dct_input);
 
     
     // Python multiplies DCT by 2.

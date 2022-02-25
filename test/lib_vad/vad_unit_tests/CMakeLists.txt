@@ -11,7 +11,6 @@ endif()
 configure_file( conftest.py conftest.py COPYONLY ) 
 set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 
-message(STATUS "${APP_NAME} vad build config:  ${VAD_UNIT_TESTS_BUILD_CONFIG}" )
 if (NOT DEFINED TESTS_SPEEDUP_FACTOR)
     set (TESTS_SPEEDUP_FACTOR 1)
 endif()
@@ -126,7 +125,6 @@ foreach( testfile ${TEST_SOURCES} )
         COMMAND ${Python3_EXECUTABLE} ${GEN_RUNNER_SCRIPT} ${GEN_RUNNER_SCRIPT_ARGS}
         COMMENT "Generating VAD runner" )
     
-    message(STATUS "testfile: ${testfile} ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c")
     if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_compare_mel_compute.c )
         set(EXTRA_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src/for_mel_test/)
     endif()

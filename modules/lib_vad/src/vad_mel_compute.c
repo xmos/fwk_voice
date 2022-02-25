@@ -10,9 +10,9 @@
 #define MEL_PRECISION 24
 
 #if X86_BUILD
-    //TODO Add x86 equivalents
-void mul_mel(uint32_t * h, uint32_t * l, uint32_t scale) {}
-void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t l) {}
+#define mul_mel(h, l, s)                    mul_mel_sim(h, l, s)
+#define add_unsigned_hl(sumH, sumL, h, l)   add_unsigned_hl_sim(sumH, sumL, h, l)
+#define clz(v)                              clz_sim(v)
 #else
 static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {
@@ -47,7 +47,7 @@ static int lookup[33] = {
 
 
 
-static inline int lookup_small_log2_linear(uint32_t x) {
+int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
     int y = (x >> mask_bits)-32;
@@ -58,8 +58,9 @@ static inline int lookup_small_log2_linear(uint32_t x) {
     return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
 }
 
-static inline int log_exponent(uint32_t h, uint32_t l, uint32_t logN) {
-    uint32_t bits = clz(h);
+volatile uint32_t bits; // http://bugzilla.xmos.local/show_bug.cgi?id=18641
+int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
+    bits = clz(h);
     uint32_t x;
     uint32_t exponent;
     if (bits == 32) {
@@ -73,7 +74,7 @@ static inline int log_exponent(uint32_t h, uint32_t l, uint32_t logN) {
         x = h << bits | l >> (32 - bits);
         exponent = 64 - bits;
     }
-    uint32_t log2 = lookup_small_log2_linear(x) + ((exponent-1 + logN) << MEL_PRECISION);
+    uint32_t log2 = lookup_small_log2_linear_new(x) + ((exponent-1 + logN) << MEL_PRECISION);
     uint32_t ln2 = 2977044472;
     return (log2 * (uint64_t) ln2) >> 32;
 }
@@ -93,9 +94,6 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         melValues[i] = 0;
     }
 
-    // printf("init new: %u %u %u %u\n", sumOddH, sumOddL, sumEvenH, sumEvenL);
-
-
     for(int i = 0; i <= N; i++) {
         uint64_t s = pts[i].re * (uint64_t) pts[i].re + pts[i].im * (uint64_t) pts[i].im;
         uint32_t h = s >> 32;
@@ -105,7 +103,8 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
 
         uint32_t scale = melTable[i];
         if (scale == 0 && i != 0) {
-            if(i<N)melValues[mels++] = log_exponent(sumEvenH, sumEvenL, extraShift);
+            int log = log_exponent_new(sumEvenH, sumEvenL, extraShift);
+            if(i<N)melValues[mels++] = log;
             sumEvenH = 0;
             sumEvenL = 0;
         } else {
@@ -114,17 +113,23 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         }
         scale = VAD_MEL_MAX - scale;
         if (scale == 0) {
-            melValues[mels++] = log_exponent(sumOddH, sumOddL, extraShift);
-            // printf("sumOdd new: %d %d %d %d\n", log_exponent(sumOddH, sumOddL, extraShift), sumOddH, sumOddL, extraShift);
+            int32_t log = log_exponent_new(sumOddH, sumOddL, extraShift);
+            melValues[mels++] = log;
             sumOddH = 0;
             sumOddL = 0;
         } else {
-            // printf("new ho lo pts.re pst.im: %u %u %u %u \n", ho, lo, pts[i].re, pts[i].im);
             mul_mel(&ho, &lo, scale);
             add_unsigned_hl(&sumOddH, &sumOddL, ho, lo);
-            // printf("add_unsigned_hl new: %u %u %u %u\n", sumOddH, sumOddL, ho, lo);
-
         }
     }
+}
+
+
+//To access the inlines from unit testsing
+void mul_mel_unit_test(uint32_t * h, uint32_t * l, uint32_t scale) {
+    mul_mel(h, l, scale);
+}
+void add_unsigned_hl_unit_test(uint32_t * sumH, uint32_t * sumL, uint32_t h, uint32_t l) {
+    add_unsigned_hl(sumH, sumL, h, l);
 }
 
