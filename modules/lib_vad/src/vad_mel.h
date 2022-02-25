@@ -1,4 +1,4 @@
-// Copyright 2015-2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #ifndef _vad_mel_h_
@@ -12,11 +12,11 @@
 
 //For unit test
 #ifdef __XC__
-#include "dsp.h"
+    #include "dsp.h"
 #else
-void vad_mel_compute_new(int32_t melValues[], uint32_t M,
-                           complex_s32_t pts[], uint32_t N,
-                           const uint32_t melTable[],
-                           int32_t extra_shift) ;
+    void vad_mel_compute_new(int32_t melValues[], uint32_t M,
+                               complex_s32_t pts[], uint32_t N,
+                               const uint32_t melTable[],
+                               int32_t extra_shift) ;
 #endif
 #endif

@@ -377,4 +377,3 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     return outputs_nodes_normal[0]>>16;
 }
-
