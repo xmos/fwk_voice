@@ -1,6 +1,6 @@
 set( SHARED_SRC_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src )
 set( XSCOPE_FILEIO_PATH ${SHARED_SRC_PATH}/xscope_fileio/xscope_fileio )
-set( UNITY_PATH ${CMAKE_BINARY_DIR}/deps/Unity )
+set( UNITY_PATH ${CMAKE_BINARY_DIR}/avona_deps/Unity )
 
 add_subdirectory( shared )
 

@@ -1,27 +1,24 @@
 
-## Target name
-set( LIB_NAME   lib_adec  )
+file( GLOB_RECURSE    LIB_ADEC_SOURCES       src/*.c )
 
-## Export lib directory as variable
-set( ADEC_PATH ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
+## Create library target
+add_library(avona_module_lib_adec STATIC)
 
-include(lib_adec.cmake)
+target_sources(avona_module_lib_adec
+    PRIVATE
+        ${LIB_ADEC_SOURCES}
+)
 
-## Set library output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
+target_include_directories(avona_module_lib_adec
+    PUBLIC
+        api
+)
 
-## Deliverable is a static library
-add_library( ${LIB_NAME}  STATIC      ${LIB_ADEC_SOURCES} )
+target_link_libraries(avona_module_lib_adec
+    PUBLIC
+        sdk::lib_xs3_math
+        avona::aec
+)
 
-target_include_directories( ${LIB_NAME} PUBLIC
-    ${LIB_AEC_INCLUDES}
-    ${LIB_ADEC_INCLUDES}
-    )
-
-target_link_libraries(${LIB_NAME} lib_xs3_math lib_aec)
-
-set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
-                                                OUTPUT_NAME ${LIB_NAME}
-                                                SUFFIX      ".a"        )
-
-target_compile_options( ${LIB_NAME} PRIVATE ${COMPILE_FLAGS} )
+## Create an alias
+add_library(avona::adec ALIAS avona_module_lib_adec)

@@ -23,7 +23,7 @@ pipeline {
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && brew'
+        label 'x86_64 && fistrick'
       }
       environment {
         XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
@@ -35,7 +35,7 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init"
+                  sh "git submodule update --init --recursive --jobs 4"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
@@ -54,15 +54,15 @@ pipeline {
                   sh "cmake --version"
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../etc/xmos_toolchain.cmake -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DBUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
                       }
                   }
                   sh "make -j8"
                   sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DBUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
@@ -123,14 +123,14 @@ pipeline {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/aec_2_threads") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/aec_2_threads.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   // Make sure 1 thread and 2 threads output is bitexact
                   sh "diff output.wav ../aec_1_thread/output.wav"
                 }
@@ -139,21 +139,21 @@ pipeline {
             dir("${REPO}/examples/bare-metal/ic") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/pipeline_single_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/pipeline_multi_threaded.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   // Make sure single thread and multi threads pipeline output is bitexact
                   sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
@@ -162,7 +162,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
             }
@@ -418,7 +418,7 @@ pipeline {
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/*.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
         }
         cleanup {
           cleanWs()

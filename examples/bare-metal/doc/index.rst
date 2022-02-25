@@ -27,5 +27,10 @@ the following command from the `examples/bare-metal/` directory in a terminal wh
 
 .. toctree::
    :maxdepth: 1
-    
-   src/examples
+   
+   aec_1_thread
+   aec_2_threads
+   ic
+   agc
+   pipeline_single_threaded
+   pipeline_multi_threaded
