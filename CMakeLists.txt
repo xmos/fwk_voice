@@ -36,18 +36,19 @@ add_compile_options( ${COMPILE_FLAGS} )
 
 ## Add libs and apps
 add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
-message( STATUS "System name here ${CMAKE_SYSTEM_NAME}" )
-message( STATUS "target name here ${XCORE_TARGET}" )
+
+message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
+message( STATUS "target name ${XCORE_TARGET}" )
 
 add_subdirectory( modules )
 
-#if ( ${AVONA_BUILD_EXAMPLES} )
+if ( ${AVONA_BUILD_EXAMPLES} )
     add_subdirectory( examples )
-#endif()
+endif()
 
 ## Get build dependencies
 
-#if ( ${AVONA_BUILD_TESTS} )
+if ( ${AVONA_BUILD_TESTS} )
     include(etc/fetch_deps.cmake)
     add_subdirectory( test )
-#endif()
+endif()
