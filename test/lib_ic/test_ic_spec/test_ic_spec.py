@@ -32,7 +32,7 @@ import filters
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
-xe_path = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_ic_spec/bin/test_ic_spec.xe')
+xe_path = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_ic_spec/bin/avona_test_ic_spec.xe')
 try:
     import test_wav_ic
     xe_files = ['py', xe_path]

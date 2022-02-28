@@ -3,9 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef __XC__
-extern "C" {
-#endif
 #define N_PROFILE_POINTS    100
 /**
  * prof() function is called for profiling a piece of code. User needs to call it
@@ -37,6 +34,3 @@ void prof(unsigned n, char *str);
  * collected in the prof() calls. Profiling info for valid profiling indexes between [start, end) is printed.
 */
 void print_prof(unsigned start, unsigned end, unsigned frame_num);
-#ifdef __XC__
-}
-#endif

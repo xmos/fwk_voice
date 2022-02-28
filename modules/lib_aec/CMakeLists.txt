@@ -1,27 +1,26 @@
+#file( GLOB_RECURSE    LIB_AEC_SOURCES    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
 
-## Target name
-set( LIB_NAME   lib_aec  )
+#set(CMAKE_C_CLANG_TIDY "clang-tidy;-checks=*")
 
-## Export lib directory as variable
-set( AEC_PATH ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
+add_library(avona_module_lib_aec STATIC)
 
-include(lib_aec.cmake)
+target_sources(avona_module_lib_aec
+    PRIVATE
+        src/aec_impl.c
+        src/aec_l2_impl.c
+        src/aec_priv_impl.c
+)
 
-## Set library output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs)
+target_include_directories(avona_module_lib_aec
+    PUBLIC
+        api
+        src ## this is needed for the IC
+)
 
-## Deliverable is a static library
-add_library( ${LIB_NAME}  STATIC      ${LIB_AEC_SOURCES} )
+target_link_libraries(avona_module_lib_aec
+    PUBLIC
+        sdk::lib_xs3_math
+)
 
-target_include_directories( ${LIB_NAME} PUBLIC ${LIB_AEC_INCLUDES} )
-
-target_link_libraries(${LIB_NAME} lib_xs3_math)
-
-set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
-                                                OUTPUT_NAME ${LIB_NAME}
-                                                SUFFIX      ".a"        )
-
-target_compile_options( ${LIB_NAME} PRIVATE ${COMPILE_FLAGS} )
-
-target_compile_options( ${LIB_NAME} PRIVATE "$<$<CONFIG:DEBUG>:-DDEBUGG=1>" )
-
+## Create an alias
+add_library(avona::aec ALIAS avona_module_lib_aec)
