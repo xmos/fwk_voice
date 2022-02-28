@@ -103,23 +103,23 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
             buffer[v] = (frame[0][v] >> 1) + (frame[1][v] >> 1);
         }
 
-        // Calculatung the ASR channel
+        // Calculating the ASR channel
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // Calculating voice activity probability
         uint8_t vad = vad_probability_voice(frame[0], &vad_state);
 
-        // Transfering metadata
+        // Transferring metadata
         md.vad_flag = (vad > AGC_VAD_THRESHOLD);
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
         ic_adapt(&ic_state, vad, frame[0]);
-        // Transfering the comms channel into the frame
+        // Transferring the comms channel into the frame
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             frame[1][v] = buffer[v];
         }
 
-        // Transfering output frame
+        // Transferring output frame
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
     }
 }
@@ -162,17 +162,12 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 1;
-    agc_conf_comms.adapt_on_vad = 1;
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
-    for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_init(&agc_state[ch], &agc_conf_comms);
-    }
+    agc_init(&agc_state[1], &agc_conf_comms);
 
     agc_meta_data_t agc_md;
-    agc_md.vad_flag = AGC_META_DATA_NO_VAD;
 
     int32_t frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {

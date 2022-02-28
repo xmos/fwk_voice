@@ -53,12 +53,9 @@ void pipeline_init(pipeline_state_t *state) {
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 1;
-    agc_conf_comms.adapt_on_vad = 1;
+    
     agc_init(&state->agc_state[0], &agc_conf_asr);
-    for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_init(&state->agc_state[ch], &agc_conf_comms);
-    }
+    agc_init(&state->agc_state[1], &agc_conf_comms);
 }
 
 void pipeline_process_frame(pipeline_state_t *state,

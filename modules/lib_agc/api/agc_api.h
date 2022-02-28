@@ -186,7 +186,7 @@ typedef struct {
 
 /**
  * If the application has VAD, `adapt_on_vad` can be enabled in the configuration. This
- * define is used to covert VAD value from uint8_t to binary.  
+ * define is used to covert VAD value from uint8_t to boolean.  
  * 
  */
 #define AGC_VAD_THRESHOLD 205
