@@ -157,7 +157,7 @@ void vad_init(vad_state_t *state) {
 #define PRINT_ME 0
 #define PRINT_ALL 0
 
-int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
+uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
                             vad_state_t * state){
     int32_t DWORD_ALIGNED curr[VAD_PROC_FRAME_LENGTH + 2];
     int32_t mel[VAD_N_MEL_SCALE + 1];
@@ -338,6 +338,6 @@ int32_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
 #endif
 
-    //Note reduce sigmoid outputs maximum 0.999999 in 8.24 format so this cannot overflow 255
-    return outputs_nodes_normal[0]>>16;
+    // Note reduce sigmoid outputs maximum 0.999999 in 8.24 format so this cannot overflow 255
+    return (uint8_t)(outputs_nodes_normal[0] >> 16);
 }

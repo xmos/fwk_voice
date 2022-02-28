@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 #include "aec_api.h"
+#include "ic_api.h"
+#include "vad_api.h"
 #include "ns_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
@@ -40,6 +42,9 @@ void pipeline_init(pipeline_state_t *state) {
 
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
+    ic_init(&state->ic_state);
+    vad_init(&state->vad_state);
+
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_init(&state->ns_state[ch]);
@@ -48,12 +53,9 @@ void pipeline_init(pipeline_state_t *state) {
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
     agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
+    
     agc_init(&state->agc_state[0], &agc_conf_asr);
-    for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_init(&state->agc_state[ch], &agc_conf_comms);
-    }
+    agc_init(&state->agc_state[1], &agc_conf_comms);
 }
 
 void pipeline_process_frame(pipeline_state_t *state,
@@ -66,17 +68,28 @@ void pipeline_process_frame(pipeline_state_t *state,
     float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], input_y_data, input_x_data);
 
+    /**IC and VAD*/
+    int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    //The comms channel will be produced by two channels averaging
+    for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+        ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
+    }
+    //The ASR channel will be produced by IC filtering
+    ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
+    uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
+    ic_adapt(&state->ic_state, vad, ic_output[0]);
+
     /**NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        ns_process_frame(&state->ns_state[ch], ns_output[ch], stage_1_out[ch]);
+        ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
     }
     
     /** AGC*/
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = max_ref_energy;
-    agc_md.vad_flag = AGC_META_DATA_NO_VAD;
+    agc_md.vad_flag = (vad > AGC_VAD_THRESHOLD);
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = aec_corr_factor[ch];
