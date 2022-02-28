@@ -1,5 +1,6 @@
-// Copyright 2017-2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 #include "vad_normalisation.h"
 
 // Auto generated file - do not hand edit
@@ -60,7 +61,3 @@ const int32_t vad_sigmas[26] = {
     FEATURE_SIGMA_SCALE(2.835793),
     FEATURE_SIGMA_SCALE(60.775600),
 };
-
-
-
-

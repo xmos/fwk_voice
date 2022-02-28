@@ -5,8 +5,8 @@
 #include "vad_parameters.h"
 #include "bfp_math.h"
 #include "dsp.h"
-#include "vad_unit_tests.h"
 #include "xs3_math.h" // for headroom_t
+#include "vad_unit_tests.h"
 
 //The implementation held in vad.xc
 int dsp_fft(dsp_complex_t * input, int nq){

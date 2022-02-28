@@ -1,6 +1,7 @@
-// Copyright 2015-2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+// See lib_dsp for original source code
 #ifndef VAD_DCT_H_
 #define VAD_DCT_H_
 
