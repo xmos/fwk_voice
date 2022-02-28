@@ -70,14 +70,14 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     /**IC and VAD*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    //The ASR channel will be produced by IC filtering
-    ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
-    uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
-    ic_adapt(&state->ic_state, vad, ic_output[0]);
     //The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
         ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
     }
+    //The ASR channel will be produced by IC filtering
+    ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
+    uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
+    ic_adapt(&state->ic_state, vad, ic_output[0]);
 
     /**NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];

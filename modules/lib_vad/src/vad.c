@@ -374,7 +374,7 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
        printf("Final Node %d pre Sigmoid %7.4f, post Sigmoid %7.4f %08x   ", i, outputs_nodes_full[i]/(float)(1LL << 48), outputs_nodes_normal[i]/(float)(1<<24), outputs_nodes_normal[i] );
     }
 #endif
-    // this will not overflow since the max output of vad_reduce_sigmoid is 0x00ffffff
+    // Note reduce sigmoid outputs maximum 0.999999 in 8.24 format so this cannot overflow 255
     return (uint8_t)outputs_nodes_normal[0]>>16;
 }
 
