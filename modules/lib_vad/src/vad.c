@@ -45,6 +45,7 @@ headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
     }
     //Now adjust exponent to match output of lib_dsp
     //This is tedious as BFP result is same but we need identical matnissas
+    //next stage in the VAD pipelines
     headroom_t lib_dsp_exp = VAD_LOG_WINDOW_LENGTH - original_hr;
     headroom_t xs3_math_exp = x_exp + 31;
     headroom_t exp_adjust = lib_dsp_exp - xs3_math_exp; 

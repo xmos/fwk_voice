@@ -71,8 +71,7 @@ file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${LIB_DSP_PATH}/src/*.xc )
 file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${LIB_DSP_PATH}/src/*.S )
 set( LIB_DSP_SOURCES  ${LIB_DSP_SOURCES_C} ${LIB_DSP_SOURCES_XC} ${LIB_DSP_SOURCES_ASM})
 
-#old lib_vad for comparison
-# set( LIB_OLD_VAD_INCLUDES ${DEPS_ROOT}/lib_vad/lib_vad/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
+#old lib_vad for MEL comparison
 set( LIB_OLD_VAD_SOURCES ${DEPS_ROOT}/lib_vad/lib_vad/src/vad_mel_compute.xc)
 
 # All common sources
