@@ -79,7 +79,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     }
 }
 
-/// pipline_stage_2
+/// pipeline_stage_2
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     //pipeline metadata
     pipeline_metadata_t md;
