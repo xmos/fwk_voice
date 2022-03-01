@@ -1,7 +1,8 @@
-// Copyright 2017-2021 XMOS LIMITED.
+// Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#ifndef APP_PARAMETERS_H
-#define APP_PARAMETERS_H
+
+#ifndef VAD_PARAMETERS_H
+#define VAD_PARAMETERS_H
 
 #define VAD_N_FEATURES_PER_FRAME                           26
 #define VAD_FRAMES_PER_CLASSIFY                             4
@@ -17,9 +18,9 @@
 #define VAD_FRAME_ADVANCE 240
 #define VAD_EXP -31
 
-//Take from ai_nn.h since we removed lib_ai as a dependancy
+//Taken from ai_nn.h since we removed lib_ai as a dependancy
 #define VAD_AI_NN_WEIGHT_Q   24
 #define VAD_AI_NN_VALUE_Q    24
 #define VAD_AI_NN_OUTPUT_Q   (VAD_AI_NN_WEIGHT_Q + VAD_AI_NN_VALUE_Q)
     
-#endif
+#endif //VAD_PARAMETERS_H

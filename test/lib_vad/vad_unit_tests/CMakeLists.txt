@@ -24,10 +24,9 @@ file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
 set_source_files_properties(LIB_AI_SOURCES_ASM  PROPERTIES LANGUAGE ASM)
 
 set( LIB_AI_SOURCES  ${LIB_AI_SOURCES_C} ${LIB_AI_SOURCES_XC} ${LIB_AI_SOURCES_ASM})
-set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
+set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/ ${XCORE_SDK_PATH}/modules/legacy_compat ${XCORE_SDK_PATH}/modules/utils/api)
 
 #old lib_vad for comparison
-# set( LIB_OLD_VAD_INCLUDES ${DEPS_ROOT}/lib_vad/lib_vad/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
 set( LIB_OLD_VAD_SOURCES ${DEPS_ROOT}/lib_vad/lib_vad/src/vad_mel_compute.xc)
 
 ## executable output directory
@@ -87,6 +86,7 @@ foreach( testfile ${TEST_SOURCES} )
     target_include_directories(avona_${TESTNAME}
         PRIVATE
             src
+            ../../../xcore_sdk/modules/lib_dsp/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
@@ -94,7 +94,6 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(avona_${TESTNAME} 
         PUBLIC
-            sdk::legacy_compat
             sdk::lib_dsp
             avona::vad
             avona::test::shared::test_utils

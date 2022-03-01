@@ -12,8 +12,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 foreach( PROF_CONFIG VAD_ENABLED VAD_DISABLED )
     set( APP_NAME  ${ROOT_APP_NAME}_${PROF_CONFIG} )
 
-    message( STATUS "PROF_CONFIG ${PROF_CONFIG}" )
-
     add_executable(${APP_NAME})
 
     file( GLOB_RECURSE SOURCES_C  src/*.c )
@@ -38,7 +36,6 @@ foreach( PROF_CONFIG VAD_ENABLED VAD_DISABLED )
             PROFILE_PROCESSING=1)
 
     if ( PROF_CONFIG STREQUAL  VAD_DISABLED)
-        list( APPEND  COMPILE_FLAGS -DEMPTY_APP=1 )
         target_compile_definitions(${APP_NAME}
             PRIVATE
                 EMPTY_APP=1)
