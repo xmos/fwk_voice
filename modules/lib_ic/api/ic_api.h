@@ -40,12 +40,14 @@
  * The y_data array contains the microphone data that is to have the
  * noise subtracted from it and x_data is the noise reference source which
  * is internally delayed before being fed into the adaptive filter. 
+ * Note that the y_data input array is internally delayed by the call to 
+ * ic_filter() and so contains the delayed y_data afterwards.
  * Typically it does not matter which mic channel is connected to x or y_data
  * as long as the separation is appropriate. The performance of this filter
  * has been optimised for a 71mm mic separation distance. 
  *
  * @param[inout] state pointer to IC state structure
- * @param[in] y_data array reference of mic 0 input buffer
+ * @param[inout] y_data array reference of mic 0 input buffer. Modified during call
  * @param[in] x_data array reference of mic 1 input buffer
  * @param[out] output array reference containing IC processed output buffer
  *

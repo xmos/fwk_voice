@@ -140,6 +140,15 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/ic_example.xe"
+                  sh "mv output.wav ic_example_output.wav"
+                }
+              }
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+            }
+            dir("${REPO}/examples/bare-metal/vad") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/vad_example.xe"
                 }
               }
             }
@@ -165,6 +174,43 @@ pipeline {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
+            }
+          }
+        }
+        stage('VAD vad_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vad/vad_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD compare_xc_c') {
+          steps {
+            dir("${REPO}/test/lib_vad/compare_xc_c") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD test_profile') {
+          steps {
+            dir("${REPO}/test/lib_vad/test_vad_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
             }
           }
         }
@@ -238,6 +284,7 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
+              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
@@ -258,6 +305,7 @@ pipeline {
                   // sh "python plot_ic.py"
                 }
               }
+              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
@@ -408,10 +456,6 @@ pipeline {
       }//stages
       post {
         always {
-          //IC artefacts
-          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/ic/output.wav", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           

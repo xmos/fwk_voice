@@ -56,7 +56,10 @@ def run_pipeline_xe(pipeline_xe, run_config, threads, audio_in, audio_out, profi
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id}")
-        stdout = xscope_fileio.run_on_target(adapter_id, pipeline_xe)
+        with open("ic_prof.txt", "w+") as ff:
+            xscope_fileio.run_on_target(adapter_id, pipeline_xe, stdout=ff)
+            ff.seek(0)
+            stdout = ff.readlines()
 
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
