@@ -30,7 +30,7 @@ TEST_TEAR_DOWN(ns_pack_input) {}
 TEST(ns_pack_input, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
     int32_t ex_curr [NS_PROC_FRAME_LENGTH];
-    int32_t ex_prev [NS_PROC_FRAME_LENGTH - (2 * NS_FRAME_ADVANCE)];
+    int32_t ex_prev [NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE];
 
     int32_t input_int [NS_FRAME_ADVANCE];
     float_s32_t input_fl;
@@ -40,10 +40,10 @@ TEST(ns_pack_input, case0){
         bfp_s32_t curr;
         bfp_s32_t prev;
         int32_t curr_data[NS_PROC_FRAME_LENGTH];
-        int32_t prev_data[NS_PROC_FRAME_LENGTH - (2 * NS_FRAME_ADVANCE)];
+        int32_t prev_data[NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE];
 
         bfp_s32_init(&curr, curr_data, EXP, NS_PROC_FRAME_LENGTH, 0);
-        bfp_s32_init(&prev, prev_data, EXP, (NS_PROC_FRAME_LENGTH - (2 * NS_FRAME_ADVANCE)), 0);
+        bfp_s32_init(&prev, prev_data, EXP, (NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE), 0);
 
         for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){
             prev_data[v] = 0;
@@ -57,7 +57,7 @@ TEST(ns_pack_input, case0){
             }
 
             for(int v = 0; v < NS_FRAME_ADVANCE; v++){
-                input_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
+                input_int[v] = pseudo_rand_int(&seed, INT_MIN, INT_MAX);
                 ex_curr[v + NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE] = input_int[v];
             }
 

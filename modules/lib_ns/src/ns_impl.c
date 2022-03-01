@@ -10,7 +10,7 @@
 
 #define NS_SQRT_HANN_LUT           sqrt_hanning_480
 
-//array to store the first part of the window
+// array which stores the first half of the window
 int32_t sqrt_hanning_480[NS_WINDOW_LENGTH / 2] = {
 	13996827, 27993059, 41988102, 55981362, 69972243, 83960152, 97944494, 111924676, 
 	125900102, 139870180, 153834316, 167791917, 181742389, 195685141, 209619580, 223545114, 
@@ -59,7 +59,7 @@ void ns_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value){
     bfp_s32_set(a, value, NS_INT_EXP);
 }
 
-//pack 512 frame using the input frame and previous frame 
+// pack 512 frame using the input and previous frames
 void ns_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev){
 
     memcpy(current->data, prev->data, (NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE) * sizeof(int32_t));
@@ -73,7 +73,7 @@ void ns_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev)
     bfp_s32_headroom(prev);
 }
 
-//apply overlap to the frame to get output and get new overlap
+// apply overlap to the frame to get output and updated overlap
 void ns_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     bfp_s32_t in_half, output;
     
@@ -90,6 +90,7 @@ void ns_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     bfp_s32_use_exponent(overlap, NS_INT_EXP);
 }
 
+// initialise state
 void ns_init(ns_state_t * ns){
     memset(ns, 0, sizeof(ns_state_t));
 
@@ -110,19 +111,19 @@ void ns_init(ns_state_t * ns){
 
     ns->reset_counter = 0;
     ns->reset_period = (unsigned)(16000.0 * 0.15);
-    //alpha_d = 0.95 to 9 d.p.
+    // alpha_d = 0.95 to 9 d.p.
     ns->alpha_d.mant = 2040109466;
     ns->alpha_d.exp = -31;
     // 1 - 0.95 to 9 d.p
     ns->one_minus_aplha_d.mant = 26843546;
     ns->one_minus_aplha_d.exp = -29;
-    //alpha_s = 0.8 to 9 d.p.
+    // alpha_s = 0.8 to 9 d.p.
     ns->alpha_s.mant = 1717986919;
     ns->alpha_s.exp = -31;
-    //alpha_p = 0.2 to 10 d.p.
+    // alpha_p = 0.2 to 10 d.p.
     ns->alpha_p.mant = 1717986919;
     ns->alpha_p.exp = -33;
-    //delta = 1.5 exactly
+    // delta = 1.5 exactly
     ns->delta.mant = 1610612736;
     ns->delta.exp = -30;
 }
@@ -143,14 +144,22 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
     bfp_s32_headroom(input);
 }
 
-//apply suppression
-void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+// apply suppression
+// does not work well in some cases and takes a lot of cycles
+void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
-    int max_exp = INT_MIN;
-    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
+    // leads to a poor precision
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
+    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
+    new_mag->exp -= new_mag->hr; new_mag->hr = 0;
+
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
+    orig_mag->exp -= orig_mag->hr; orig_mag->hr = 0;
+
+    int max_exp = INT_MIN;
+    float_s32_t t, t1, t2[NS_PROC_FRAME_BINS];
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         t.mant = orig_mag->data[v];
         t.exp = orig_mag->exp;
@@ -170,9 +179,59 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
         }
     }
 
-    bfp_s32_headroom(orig_mag);
+    // setting a headroom to be 1 to get the maximum precision and avoid overflow
+    left_shift_t shl = bfp_s32_headroom(orig_mag) - 1;
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, shl);
+    orig_mag->exp -= shl; orig_mag->hr = 1;
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
+}
+
+void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
+    if(orig_mag){
+        int64_t S = ((int64_t)new_mag)<<31;
+        S /= orig_mag;
+        // shift to be sure that S is 32 bit wide, and has a bit of headroom
+        // tests have shown that sometimes S can be more then 32 bit wide
+        // so taking the lower 32 bits of S will lead to the wrong answer
+        // moreover when Y is also large S needs to have a bit of the headroom so the Y won't overflow
+        // 4 is been tested to result the best precision in critical situations
+        // you can think of it as 2 + 2 for the accurate int32_t cast and Y overflow protection
+        // 3 will also works for most of test cases
+        right_shift_t rsh = 4;
+        S >>= rsh;
+        Y->re =((int64_t)Y->re * (int64_t)S)>>(31 - rsh);
+        Y->im =((int64_t)Y->im * (int64_t)S)>>(31 - rsh);
+    }
+}
+
+// apply suppression
+// new implementation
+void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+
+    // preparing input data
+    left_shift_t lsh = new_mag->hr;
+    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
+    new_mag->exp -= lsh;
+
+    lsh = orig_mag->hr;
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
+    orig_mag->exp -= lsh;
+
+    lsh = Y->hr - 2;
+    xs3_vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
+    Y->exp -= lsh;
+
+    // modify the exponent
+    right_shift_t delta_exp = orig_mag->exp - new_mag->exp;
+    Y->exp -= delta_exp;
+
+    // apply supression
+    for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
+        ns_rescale(&Y->data[v], new_mag->data[v], orig_mag->data[v]);
+    }
+
+    bfp_complex_s32_headroom(Y);
 }
 
 void ns_process_frame(ns_state_t * ns,
@@ -203,7 +262,7 @@ void ns_process_frame(ns_state_t * ns,
     ns_priv_process_frame(&abs_Y_suppressed, ns);
 
     ns_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
-    ////////////////////////////don't use abs_Y_orig after this point 
+    // if using old implementation don't use abs_Y_orig after this point 
 
     bfp_fft_pack_mono(curr_fft);
     bfp_fft_inverse_mono(curr_fft);

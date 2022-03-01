@@ -1,7 +1,5 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-//#include <stdint.h>
-//#include <limits.h>
 #include <string.h>
 #include <bfp_math.h>
 #include <stdio.h>
@@ -37,7 +35,7 @@ void ns_priv_update_S(ns_state_t * ns, const bfp_s32_t * abs_Y){
 
     bfp_s32_mul(&tmp, abs_Y, abs_Y);
 
-    //since alpha_s = 0.8 and 1 - 0.8 = 0.2, we can use alpha_p value here
+    // since alpha_s = 0.8 and 1 - 0.8 = 0.2, we can use alpha_p value here
     bfp_s32_scale(&tmp, &tmp, ns->alpha_p);
     
     bfp_s32_scale(&ns->S, &ns->S, ns->alpha_s);
@@ -58,7 +56,7 @@ void ns_priv_update_p(ns_state_t * ns){
     bfp_s32_scale(&tmp, &ns->S_min, ns->delta);
     bfp_s32_use_exponent(&tmp, ns->S.exp);
 
-    //since alpha_p = 0.2 and 1 - 0.2 = 0.8, we can use alpha_s value here
+    // since alpha_p = 0.2 and 1 - 0.2 = 0.8, we can use alpha_s value here
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         one_zero[v] = (ns->S.data[v] > tmp.data[v]) ? ns->alpha_s.mant : 0;
     }
@@ -97,7 +95,7 @@ void ns_priv_update_lambda_hat(ns_state_t * ns, const bfp_s32_t * abs_Y){
 
     bfp_s32_scale(&tmp2, &ns->alpha_d_tilde, t);
 
-    t.mant = one_mant; //t = 1
+    t.mant = one_mant; // t = 1
 
     bfp_s32_add_scalar(&tmp2, &tmp2, t);
     bfp_s32_mul(&tmp1, &tmp1, &tmp2);

@@ -19,7 +19,10 @@ void test(){
     unsigned max = UINT_MAX;
     for(int i=0; i<tests_per_hr * 31; i++){
         uint32_t tv = pseudo_rand_uint(&seed, 0, max);
-        int ref = clz(tv);
+
+        // http://bugzilla/show_bug.cgi?id=18641
+        // ref = clz(tv);
+        int ref = (tv == 0) ? 32 : clz(tv);
         int dut = clz_sim(tv);
         // printf("%d %d %d\n", tv, ref, dut);
         TEST_ASSERT_EQUAL_INT32(ref, dut);
