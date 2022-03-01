@@ -60,6 +60,9 @@ list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${
 file( GLOB_RECURSE LIB_AI_SOURCES_C  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
 file( GLOB_RECURSE LIB_AI_SOURCES_XC  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.xc )
 file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
+## cmake doesn't recognize .S files as assembly by default
+set_source_files_properties(LIB_AI_SOURCES_ASM  PROPERTIES LANGUAGE ASM)
+
 set( LIB_AI_SOURCES  ${LIB_AI_SOURCES_C} ${LIB_AI_SOURCES_XC} ${LIB_AI_SOURCES_ASM})
 set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/)
 
@@ -69,6 +72,7 @@ set( LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
 file( GLOB_RECURSE LIB_DSP_SOURCES_C  ${LIB_DSP_PATH}/src/*.c )
 file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${LIB_DSP_PATH}/src/*.xc )
 file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${LIB_DSP_PATH}/src/*.S )
+set_source_files_properties(LIB_DSP_SOURCES_ASM  PROPERTIES LANGUAGE ASM)
 set( LIB_DSP_SOURCES  ${LIB_DSP_SOURCES_C} ${LIB_DSP_SOURCES_XC} ${LIB_DSP_SOURCES_ASM})
 
 #old lib_vad for comparison
