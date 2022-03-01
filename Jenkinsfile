@@ -148,7 +148,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/vad_example.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
                 }
               }
             }
