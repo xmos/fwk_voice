@@ -10,16 +10,6 @@ set( DEPS_ROOT ../../../..)
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB_RECURSE SOURCES_XC  src/*.xc )
-file( GLOB_RECURSE  SOURCES_RAND  ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand/*.c )
-
-
-## LIB_DSP
-set(LIB_DSP_PATH ${XCORE_SDK_PATH}/modules/lib_dsp/lib_dsp )
-file( GLOB_RECURSE LIB_DSP_SOURCES_C  ${LIB_DSP_PATH}/src/*.c )
-file( GLOB_RECURSE LIB_DSP_SOURCES_XC  ${LIB_DSP_PATH}/src/*.xc )
-file( GLOB_RECURSE LIB_DSP_SOURCES_ASM  ${LIB_DSP_PATH}/src/*.S )
-set( LIB_DSP_SOURCES  ${LIB_DSP_SOURCES_C} ${LIB_DSP_SOURCES_XC} ${LIB_DSP_SOURCES_ASM})
-set( LIB_DSP_INCLUDES  ${LIB_DSP_PATH}/api/)
 
 ## LIB_AI
 file( GLOB_RECURSE LIB_AI_SOURCES_C  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
@@ -35,8 +25,8 @@ file( GLOB_RECURSE LIB_VAD_SOURCES_ASM  ${DEPS_ROOT}/lib_vad/lib_vad/src/*.S )
 set( LIB_VAD_SOURCES  ${LIB_VAD_SOURCES_C} ${LIB_VAD_SOURCES_XC} ${LIB_VAD_SOURCES_ASM})
 list(REMOVE_ITEM LIB_VAD_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${DEPS_ROOT}/lib_vad/lib_vad/src/vad_test_task.xc)
 
-set(LIB_ASM_SOURCES ${LIB_DSP_SOURCES_ASM})
-list(APPEND LIB_ASM_SOURCES ${LIB_AI_SOURCES_ASM} ${LIB_VAD_SOURCES_ASM})
+set(LIB_ASM_SOURCES ${LIB_AI_SOURCES_ASM})
+list(APPEND LIB_ASM_SOURCES ${LIB_VAD_SOURCES_ASM})
 ## cmake doesn't recognize .S files as assembly by default
 set_source_files_properties(LIB_ASM_SOURCES PROPERTIES LANGUAGE ASM)
 
