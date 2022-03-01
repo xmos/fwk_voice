@@ -20,7 +20,7 @@ typedef struct {
  */
 void vad_init(vad_state_t * state);
 
-/** Function that classifies whether a current set of samples is voice or not. 
+/** Function that classifies whether a current set of samples contains voice. 
  *
  * \param input                array of samples sampled in the time domain
  *                             It should contain VAD_FRAME_ADVANCE new samples
