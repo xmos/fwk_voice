@@ -41,18 +41,18 @@ int32_t use_exp_float(float_s32_t fl, exponent_t exp)
     }
 }
 
-
 TEST(ns_rescale_vector, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
 
     int32_t abs_orig_int[NS_PROC_FRAME_BINS];
     int32_t abs_ns_int[NS_PROC_FRAME_BINS];
     complex_s32_t Y_int[NS_PROC_FRAME_BINS];
-    float_s32_t t, t1;
+    float_s32_t t;
     int32_t ex_re[NS_PROC_FRAME_BINS], ex_im[NS_PROC_FRAME_BINS];
     double abs_ratio;
     double expected[NS_PROC_FRAME_BINS * 2];
     float_s32_t ex_re_fl, ex_im_fl;
+    double orig, new;
 
     for(int i = 0; i < 100; i++){
 
@@ -63,10 +63,11 @@ TEST(ns_rescale_vector, case0){
                 abs_ns_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
             t.mant = abs_orig_int[v];
             t.exp = EXP;
-            t1.mant = abs_ns_int[v];
-            t1.exp = EXP;
-            t = float_s32_div(t1, t);
-            abs_ratio = float_s32_to_double(t);
+            orig = float_s32_to_double(t);
+            t.mant = abs_ns_int[v];
+            t.exp = EXP;
+            new = float_s32_to_double(t);
+            abs_ratio = new / orig;
 
             Y_int[v].re = pseudo_rand_int(&seed, INT_MIN, INT_MAX)>>1;
             t.mant = Y_int[v].re;
@@ -74,9 +75,9 @@ TEST(ns_rescale_vector, case0){
             expected[2 * v] = float_s32_to_double(t) * abs_ratio;
 
             Y_int[v].im = pseudo_rand_int(&seed, INT_MIN, INT_MAX)>>1;
-            t1.mant = Y_int[v].im;
-            t1.exp = EXP;
-            expected[(2 * v) + 1] = float_s32_to_double(t1) * abs_ratio;
+            t.mant = Y_int[v].im;
+            t.exp = EXP;
+            expected[(2 * v) + 1] = float_s32_to_double(t) * abs_ratio;
         }
 
         bfp_s32_t abs_orig, abs_ns;

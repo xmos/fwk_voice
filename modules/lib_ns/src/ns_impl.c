@@ -179,6 +179,7 @@ void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t
         }
     }
 
+    // setting a headroom to be 1 to get the maximum precision and avoid overflow
     left_shift_t shl = bfp_s32_headroom(orig_mag) - 1;
     xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, shl);
     orig_mag->exp -= shl; orig_mag->hr = 1;
@@ -190,8 +191,13 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
     if(orig_mag){
         int64_t S = ((int64_t)new_mag)<<31;
         S /= orig_mag;
-        // shift to be sure that S is 32 bit wide, 
+        // shift to be sure that S is 32 bit wide, and has a bit of headroom
+        // tests have shown that sometimes S can be more then 32 bit wide
+        // so taking the lower 32 bits of S will lead to the wrong answer
+        // moreover when Y is also large S needs to have a bit of the headroom so the Y won't overflow
         // 4 is been tested to result the best precision in critical situations
+        // you can think of it as 2 + 2 for the accurate int32_t cast and Y overflow protection
+        // 3 will also works for most of test cases
         right_shift_t rsh = 4;
         S >>= rsh;
         Y->re =((int64_t)Y->re * (int64_t)S)>>(31 - rsh);
@@ -205,15 +211,15 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
 
     // preparing input data
     left_shift_t lsh = new_mag->hr;
-    new_mag->hr = xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
+    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
     new_mag->exp -= lsh;
 
     lsh = orig_mag->hr;
-    orig_mag->hr = xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
+    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
     orig_mag->exp -= lsh;
 
     lsh = Y->hr - 2;
-    Y->hr = xs3_vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
+    xs3_vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
     Y->exp -= lsh;
 
     // modify the exponent
