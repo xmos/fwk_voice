@@ -57,7 +57,14 @@ headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
 
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;
-    int logN = 31 - clz(N);
+#if X86_BUILD
+    int logN = 31 - clz_sim(N);
+#else
+    // http://bugzilla/show_bug.cgi?id=18641
+    int bits = (N == 0) ? 32 : clz(N);
+    int logN = 31 - bits;
+#endif
+
     for(int i = 0; i < N; i++) {
         uint32_t energy = (p[i].re * (int64_t) p[i].re + 
                            p[i].im * (int64_t) p[i].im) >> 32; // 1 bit headroom
@@ -71,7 +78,13 @@ int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
 
 int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
                                int32_t spectral_centroid) {
-    int logN = 31 - clz(N);
+#if X86_BUILD
+    int logN = 31 - clz_sim(N);
+#else
+    // http://bugzilla/show_bug.cgi?id=18641
+    int bits = (N == 0) ? 32 : clz(N);
+    int logN = 31 - bits;
+#endif
     uint64_t sum = 0, tav = 0;
     uint32_t headroom = 0;
     if (logN > 5) {

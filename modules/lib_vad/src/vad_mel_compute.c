@@ -13,7 +13,6 @@
 #if X86_BUILD
 #define mul_mel(h, l, s)                    mul_mel_sim(h, l, s)
 #define add_unsigned_hl(sumH, sumL, h, l)   add_unsigned_hl_sim(sumH, sumL, h, l)
-#define clz(v)                              clz_sim(v)
 #else
 static inline void mul_mel(uint32_t * h, uint32_t * l,
                  uint32_t scale) {
@@ -59,13 +58,23 @@ int lookup_small_log2_linear_new(uint32_t x) {
     return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
 }
 
-volatile uint32_t bits; // http://bugzilla.xmos.local/show_bug.cgi?id=18641
 int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
-    bits = clz(h);
+#if X86_BUILD
+    int bits = clz_sim(h);
+#else
+    // http://bugzilla.xmos.local/show_bug.cgi?id=18641
+    int bits = (h == 0) ? 32 : clz(h);
+#endif
     uint32_t x;
     uint32_t exponent;
     if (bits == 32) {
-        bits = clz(l);
+#if X86_BUILD
+        bits = clz_sim(l);
+#else
+        // http://bugzilla.xmos.local/show_bug.cgi?id=18641
+        bits = (l == 0) ? 32 : clz(l);
+#endif
+
         if (bits == 32) {
             return -1000;
         }
