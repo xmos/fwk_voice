@@ -22,7 +22,7 @@ void test(){
 
         // http://bugzilla/show_bug.cgi?id=18641
         // ref = clz(tv);
-        int ref = (tv == 0) ? 32 : clz(tv)
+        int ref = (tv == 0) ? 32 : clz(tv);
         int dut = clz_sim(tv);
         // printf("%d %d %d\n", tv, ref, dut);
         TEST_ASSERT_EQUAL_INT32(ref, dut);
