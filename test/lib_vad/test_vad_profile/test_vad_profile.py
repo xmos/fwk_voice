@@ -8,8 +8,8 @@ import numpy as np
 import subprocess
 
 input_wav = os.path.abspath("../../../examples/bare-metal/vad/input.wav")
-vad_profile_xe = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/test_vad_profile_VAD_ENABLED.xe")
-vad_profile_xe_empty = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/test_vad_profile_VAD_DISABLED.xe")
+vad_profile_xe = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/avona_test_vad_profile_VAD_ENABLED.xe")
+vad_profile_xe_empty = os.path.abspath("../../../build/test/lib_vad/test_vad_profile/bin/avona_test_vad_profile_VAD_DISABLED.xe")
 
 core_clock_MHz = 600
 

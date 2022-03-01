@@ -8,8 +8,8 @@ import xscope_fileio, xtagctl
 import re
 
 input_wav = os.path.abspath("../../../examples/bare-metal/vad/input.wav")
-old_vad_xe = os.path.abspath("../../../build/test/lib_vad/compare_xc_c/run_old_vad.xe")
-new_vad_xe = os.path.abspath("../../../build/examples/bare-metal/vad/bin/vad_example.xe")
+old_vad_xe = os.path.abspath("../../../build/test/lib_vad/compare_xc_c/avona_run_old_vad.xe")
+new_vad_xe = os.path.abspath("../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe")
 
 def process_xe(xe_file, input_file):
     input_file = os.path.abspath(input_file)
