@@ -7,6 +7,7 @@ endif()
 
 project(sw_avona)
 
+enable_language(CXX C ASM)
 ## Set up the build options
 include(etc/build_options.cmake)
 
@@ -33,7 +34,6 @@ set( CMAKE_CXX_STANDARD_REQUIRED  ON  )
 set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
-
 ## Add libs and apps
 add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
 
