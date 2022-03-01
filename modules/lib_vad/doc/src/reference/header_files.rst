@@ -1,7 +1,7 @@
 .. _vad_header_files:
 
 `lib_vad` Header Files
-=====================
+======================
 
 .. _vad_api_h:
 
@@ -10,6 +10,7 @@
 
 .. doxygenpage:: page_vad_api_h
   :content-only:
+
 
 
 
