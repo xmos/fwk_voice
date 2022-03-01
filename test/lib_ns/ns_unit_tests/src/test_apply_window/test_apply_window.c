@@ -85,7 +85,7 @@ TEST(ns_apply_window, case0){
     for(int i = 0; i < 100; i++){
 
         for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){
-            frame_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
+            frame_int[v] = pseudo_rand_int(&seed, INT_MIN, INT_MAX);
             frame_fl.mant = frame_int[v];
             frame_fl.exp = EXP;
             expected[v] = float_s32_to_double(frame_fl);
@@ -95,9 +95,7 @@ TEST(ns_apply_window, case0){
             t.mant = half_hanning[v];
             t.exp = EXP;
             expected[v] *= float_s32_to_double(t);
-        }
 
-        for(int v = 0; v < (NS_WINDOW_LENGTH / 2); v++){
             t.mant = second_half[v];
             t.exp = EXP;
             expected[v + (NS_WINDOW_LENGTH / 2)] *= float_s32_to_double(t);
@@ -108,7 +106,7 @@ TEST(ns_apply_window, case0){
         }
 
         bfp_s32_t tmp;
-        bfp_s32_init(&tmp, frame_int, EXP, NS_PROC_FRAME_LENGTH, 0);
+        bfp_s32_init(&tmp, frame_int, EXP, NS_PROC_FRAME_LENGTH, 1);
         ns_apply_window(&tmp, &window, &rev_window, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
         double abs_diff = 0;
@@ -129,7 +127,7 @@ TEST(ns_apply_window, case0){
         }
 
         double rel_error = fabs(abs_diff/(expected[id] + ldexp(1, -40)));
-        double thresh = ldexp(1, -28);
+        double thresh = ldexp(1, -26);
         TEST_ASSERT(rel_error < thresh);
     }
 }

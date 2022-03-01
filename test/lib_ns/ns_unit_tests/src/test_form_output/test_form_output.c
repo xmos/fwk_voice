@@ -48,7 +48,7 @@ TEST(ns_form_output, case0){
         bfp_s32_init(&overlap, overlap_int, EXP, NS_FRAME_ADVANCE, 0);
         bfp_s32_init(&frame, frame_int, EXP, NS_PROC_FRAME_LENGTH, 0);
 
-        for(int v = 0; v <NS_FRAME_ADVANCE; v++){
+        for(int v = 0; v < NS_FRAME_ADVANCE; v++){
             overlap_int[v] = pseudo_rand_int(&seed, 0, INT_MAX)/2;
             overlap_fl.mant = overlap_int[v];
             overlap_fl.exp = EXP;
@@ -59,7 +59,7 @@ TEST(ns_form_output, case0){
         for(int j = 0; j < 5; j++){
             
             for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){
-                frame_int[v] = pseudo_rand_int(&seed, 0, INT_MAX)/2;
+                frame_int[v] = pseudo_rand_int(&seed, INT_MIN, INT_MAX)/2;
                 frame_fl.mant = frame_int[v];
                 frame_fl.exp = EXP;
                 frame_db[v] = float_s32_to_double(frame_fl);
@@ -68,7 +68,7 @@ TEST(ns_form_output, case0){
 
             ns_form_output(output, &frame, &overlap);
 
-            for(int v = 0; v <NS_FRAME_ADVANCE; v++){
+            for(int v = 0; v < NS_FRAME_ADVANCE; v++){
                 ex_output[v] = frame_db[v] + ex_overlap[v];
                 ex_overlap[v] = frame_db[v + NS_FRAME_ADVANCE];
                 t.mant = overlap.data[v];
