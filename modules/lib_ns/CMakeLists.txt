@@ -5,7 +5,7 @@ add_library(avona_module_lib_ns STATIC)
 target_sources(avona_module_lib_ns
     PRIVATE
         src/ns_impl.c
-        src/ns_priv_impl.c
+        src/ns_low_level.c
 )
 
 target_include_directories(avona_module_lib_ns

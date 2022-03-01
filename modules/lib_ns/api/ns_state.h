@@ -106,6 +106,7 @@ typedef struct {
     int32_t data_rev_wind [NS_WINDOW_LENGTH / 2];
 
     //Static MCRA filter coefficients
+    //If modifying any parameters, modify one_minus parameters as well!
     /** EWMA of the energy ratio to calculate p. */
     float_s32_t delta;
     /** EWMA of the smoothing parameter for alpha_d_tilde. */
@@ -116,6 +117,10 @@ typedef struct {
     float_s32_t alpha_p;
     /** EWMA of the 1 - alpha_d parameter. */
     float_s32_t one_minus_aplha_d;
+    /** EWMA of the 1 - alpha_s parameter. */
+    float_s32_t one_minus_alpha_s;
+    /** EWMA of the 1 - alpha_p parameter. */
+    float_s32_t one_minus_alpha_p;
 
     /** Filter reset period value for auto-reset. */
     unsigned reset_period;

@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -20,13 +20,13 @@
 #define EXP  -31
 
 
-TEST_GROUP_RUNNER(ns_rescale_vector){
-    RUN_TEST_CASE(ns_rescale_vector, case0);
+TEST_GROUP_RUNNER(ns_priv_rescale_vector){
+    RUN_TEST_CASE(ns_priv_rescale_vector, case0);
 }
 
-TEST_GROUP(ns_rescale_vector);
-TEST_SETUP(ns_rescale_vector) { fflush(stdout); }
-TEST_TEAR_DOWN(ns_rescale_vector) {}
+TEST_GROUP(ns_priv_rescale_vector);
+TEST_SETUP(ns_priv_rescale_vector) { fflush(stdout); }
+TEST_TEAR_DOWN(ns_priv_rescale_vector) {}
 
 int32_t use_exp_float(float_s32_t fl, exponent_t exp)
 {
@@ -41,14 +41,13 @@ int32_t use_exp_float(float_s32_t fl, exponent_t exp)
     }
 }
 
-TEST(ns_rescale_vector, case0){
+TEST(ns_priv_rescale_vector, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
 
     int32_t abs_orig_int[NS_PROC_FRAME_BINS];
     int32_t abs_ns_int[NS_PROC_FRAME_BINS];
     complex_s32_t Y_int[NS_PROC_FRAME_BINS];
     float_s32_t t;
-    int32_t ex_re[NS_PROC_FRAME_BINS], ex_im[NS_PROC_FRAME_BINS];
     double abs_ratio;
     double expected[NS_PROC_FRAME_BINS * 2];
     float_s32_t ex_re_fl, ex_im_fl;
@@ -86,12 +85,11 @@ TEST(ns_rescale_vector, case0){
         bfp_s32_init(&abs_ns, abs_ns_int, EXP, NS_PROC_FRAME_BINS, 1);
         bfp_complex_s32_init(&Y, Y_int, EXP, NS_PROC_FRAME_BINS, 1);
 
-        ns_rescale_vector(&Y, &abs_ns, &abs_orig);
+        ns_priv_rescale_vector(&Y, &abs_ns, &abs_orig);
 
         int32_t abs_diff = 0;
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
-            float_s32_t act_re_fl, act_im_fl;
             int32_t d_r, d_i, re_int, im_int;
 
             ex_re_fl = double_to_float_s32(expected[2 * v]);

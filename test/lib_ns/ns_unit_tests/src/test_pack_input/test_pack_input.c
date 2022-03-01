@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -19,15 +19,15 @@
 
 #define EXP  -31
 
-TEST_GROUP_RUNNER(ns_pack_input){
-    RUN_TEST_CASE(ns_pack_input, case0);
+TEST_GROUP_RUNNER(ns_priv_pack_input){
+    RUN_TEST_CASE(ns_priv_pack_input, case0);
 }
 
-TEST_GROUP(ns_pack_input);
-TEST_SETUP(ns_pack_input) { fflush(stdout); }
-TEST_TEAR_DOWN(ns_pack_input) {}
+TEST_GROUP(ns_priv_pack_input);
+TEST_SETUP(ns_priv_pack_input) { fflush(stdout); }
+TEST_TEAR_DOWN(ns_priv_pack_input) {}
 
-TEST(ns_pack_input, case0){
+TEST(ns_priv_pack_input, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
     int32_t ex_curr [NS_PROC_FRAME_LENGTH];
     int32_t ex_prev [NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE];
@@ -68,7 +68,7 @@ TEST(ns_pack_input, case0){
             for(int v = 0; v < NS_FRAME_ADVANCE; v ++){
                 ex_prev[v + NS_PROC_FRAME_LENGTH - (2 * NS_FRAME_ADVANCE)] = input_int[v];
             }
-            ns_pack_input(&curr, input_int, &prev);
+            ns_priv_pack_input(&curr, input_int, &prev);
         }
 
         for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){

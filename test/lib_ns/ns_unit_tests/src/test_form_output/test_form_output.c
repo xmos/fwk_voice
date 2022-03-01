@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -19,15 +19,15 @@
 
 #define EXP  -31
 
-TEST_GROUP_RUNNER(ns_form_output){
-    RUN_TEST_CASE(ns_form_output, case0);
+TEST_GROUP_RUNNER(ns_priv_form_output){
+    RUN_TEST_CASE(ns_priv_form_output, case0);
 }
 
-TEST_GROUP(ns_form_output);
-TEST_SETUP(ns_form_output) { fflush(stdout); }
-TEST_TEAR_DOWN(ns_form_output) {}
+TEST_GROUP(ns_priv_form_output);
+TEST_SETUP(ns_priv_form_output) { fflush(stdout); }
+TEST_TEAR_DOWN(ns_priv_form_output) {}
 
-TEST(ns_form_output, case0){
+TEST(ns_priv_form_output, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
 
     int32_t overlap_int[NS_FRAME_ADVANCE];
@@ -66,7 +66,7 @@ TEST(ns_form_output, case0){
             }
             bfp_s32_headroom(&frame);
 
-            ns_form_output(output, &frame, &overlap);
+            ns_priv_form_output(output, &frame, &overlap);
 
             for(int v = 0; v < NS_FRAME_ADVANCE; v++){
                 ex_output[v] = frame_db[v] + ex_overlap[v];
