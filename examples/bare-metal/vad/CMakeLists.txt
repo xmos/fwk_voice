@@ -1,5 +1,7 @@
 add_executable(avona_example_bare_metal_vad)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+
 file( GLOB_RECURSE SOURCES_VAD_APP  src/*.c )
 target_sources(avona_example_bare_metal_vad
     PRIVATE
