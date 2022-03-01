@@ -61,7 +61,7 @@ int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     int logN = 31 - clz_sim(N);
 #else
     // http://bugzilla/show_bug.cgi?id=18641
-    int bits = (N == 0) ? 32 : clz(N)
+    int bits = (N == 0) ? 32 : clz(N);
     int logN = 31 - bits;
 #endif
 
@@ -82,7 +82,7 @@ int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
     int logN = 31 - clz_sim(N);
 #else
     // http://bugzilla/show_bug.cgi?id=18641
-    int bits = (N == 0) ? 32 : clz(N)
+    int bits = (N == 0) ? 32 : clz(N);
     int logN = 31 - bits;
 #endif
     uint64_t sum = 0, tav = 0;
