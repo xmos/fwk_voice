@@ -1,3 +1,6 @@
 [submodule "examples/bare-metal/shared_src/xscope_fileio"]
 	path = examples/bare-metal/shared_src/xscope_fileio
 	url = git@github.com:xmos/xscope_fileio
+[submodule "xcore_sdk"]
+	path = xcore_sdk
+	url = git@github.com:xmos/xcore_sdk

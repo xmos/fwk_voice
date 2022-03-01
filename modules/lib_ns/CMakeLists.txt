@@ -1,11 +1,23 @@
-set( LIB_NAME   lib_ns  )
 
-add_library( ${LIB_NAME} STATIC src/ns_impl.c src/ns_priv_impl.c )
+## Create library target
+add_library(avona_module_lib_ns STATIC)
 
-target_include_directories( ${LIB_NAME} PUBLIC api src )
+target_sources(avona_module_lib_ns
+    PRIVATE
+        src/ns_impl.c
+        src/ns_priv_impl.c
+)
 
-target_link_libraries( ${LIB_NAME} lib_xs3_math )
+target_include_directories(avona_module_lib_ns
+    PUBLIC
+        api
+        src
+)
 
-set_target_properties( ${LIB_NAME} PROPERTIES   PREFIX      ""
-                                                SUFFIX      ".a"        )
-                                                
+target_link_libraries(avona_module_lib_ns
+    PUBLIC
+        sdk::lib_xs3_math
+)
+
+## Create an alias
+add_library(avona::ns ALIAS avona_module_lib_ns)

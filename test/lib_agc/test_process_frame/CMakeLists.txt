@@ -1,10 +1,6 @@
 #copy conftest.py in the build directory since pytest_collect_file only collects tests from the directory tree where conftest.py is present
 configure_file( conftest.py conftest.py COPYONLY )
 
-## Sources
-# Unity
-file(GLOB UNITY_SOURCES ${UNITY_PATH}/src/*.c)
-
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
@@ -42,22 +38,37 @@ foreach(testfile ${TEST_SOURCES})
 
     #########
     ## Add a build target
-    add_executable(${TESTNAME} ${testfile} ${RUNNER_FILE} ${UNITY_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand/pseudo_rand.c)
+    add_executable(avona_agc_${TESTNAME})
 
-    target_include_directories(${TESTNAME} PRIVATE src
-                                                   ${UNITY_PATH}/src
-                                                   ${CMAKE_CURRENT_SOURCE_DIR}/../../shared/pseudo_rand)
+    target_sources(avona_agc_${TESTNAME}
+        PRIVATE
+            ${testfile}
+            ${RUNNER_FILE})
 
-    target_link_libraries(${TESTNAME} lib_agc lib_xs3_math)
 
-    if(XCORE)
-        target_compile_options(${TESTNAME} PRIVATE "-DUNITY_SUPPORT_64"
-                                                   "-Wno-xcore-fptrgroup"
-                                                   "-report"
-                                                   "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
-        target_link_options(${TESTNAME} PRIVATE "-target=${XCORE_TARGET}")
-        set_target_properties(${TESTNAME} PROPERTIES SUFFIX ".xe")
+    target_include_directories(avona_agc_${TESTNAME}
+        PRIVATE src)
+
+    target_link_libraries(avona_agc_${TESTNAME} 
+        PUBLIC
+            avona::agc
+            avona::test::shared::test_utils
+            avona::test::shared::unity)
+
+    if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+        target_compile_options(avona_agc_${TESTNAME}
+            PRIVATE 
+                "-DUNITY_SUPPORT_64"
+                "-Wno-xcore-fptrgroup"
+                "-report"
+                "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
+
+        target_link_options(avona_agc_${TESTNAME}
+            PRIVATE
+                "-target=${XCORE_TARGET}")
     else()
-        target_link_libraries(${TESTNAME} m)
-    endif(XCORE)
+        target_link_libraries(avona_agc_${TESTNAME}
+            PRIVATE
+                m)
+    endif()
 endforeach(testfile ${TEST_SOURCES})

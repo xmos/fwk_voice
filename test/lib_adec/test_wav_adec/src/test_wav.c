@@ -183,7 +183,8 @@ void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
 #endif
 #if TRIGGER_DE_ONLY_ON_STARTUP
     // If DE is enabled only on startup, bypass adec and set force_de_cycle_trigger to 1
-    adec_conf = ADEC_CONFIG_DE_ONLY_AT_STARTUP; 
+    adec_conf.bypass = 1;
+    adec_conf.force_de_cycle_trigger = 1; 
 #endif
 #if LOG_DEBUG_INFO
     //bypass adec since we only want to log aec behaviour

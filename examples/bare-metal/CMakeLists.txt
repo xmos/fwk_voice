@@ -1,14 +1,17 @@
 
+add_subdirectory( shared_src )
+
 add_subdirectory( ic )
 add_subdirectory( vad )
 add_subdirectory( aec_1_thread )
 add_subdirectory( agc )
 add_subdirectory( pipeline_single_threaded )
 
-## AEC 2 thread example builds only on XCORE
-if( XCORE )
-#TODO move vad back to all aexamples when we can build it
-add_subdirectory( aec_2_threads )
-add_subdirectory( pipeline_multi_threaded )
+## Multi thread example builds only on XCORE
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    #TODO move vad back to all examples when we can build it
+    add_subdirectory( aec_2_threads )
+
+    add_subdirectory( pipeline_multi_threaded )
 endif()
 
