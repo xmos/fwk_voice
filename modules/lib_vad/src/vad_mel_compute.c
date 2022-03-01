@@ -60,10 +60,10 @@ int lookup_small_log2_linear_new(uint32_t x) {
 
 int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
 #if X86_BUILD
-    bits = clz_sim(h);
+    int bits = clz_sim(h);
 #else
     // http://bugzilla.xmos.local/show_bug.cgi?id=18641
-    bits = (h == 0) ? 32 : clz(h);
+    int bits = (h == 0) ? 32 : clz(h);
 #endif
     uint32_t x;
     uint32_t exponent;
