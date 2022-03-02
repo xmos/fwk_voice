@@ -31,7 +31,7 @@ API Structure
 -------------
 
 The API is presented as two simple functions. These are initialisation and processing. Initialisation is called once 
-at startup and fprocessing is called once per frame of samples. The performance requirement is relative low (around 5MIPS)
+at startup and processing is called once per frame of samples. The performance requirement is relative low (around 5MIPS)
 and as such is supplied as a single threaded implementation only.
 
 

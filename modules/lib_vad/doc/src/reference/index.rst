@@ -6,4 +6,5 @@ API Reference
      :maxdepth: 1
 
      api
+     state
      header_files
