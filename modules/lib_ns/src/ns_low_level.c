@@ -6,16 +6,9 @@
 
 #include <ns_state.h>
 #include "ns_priv.h"
-#include "ns_test.h"
 
 #define one_mant 1073741824
 #define one_exp -30
-
-void ns_priv_adjust_exp(bfp_s32_t * A, bfp_s32_t *B, bfp_s32_t * main){
-
-    bfp_s32_use_exponent(A, main->exp);
-    bfp_s32_use_exponent(B, main->exp);
-}
 
 //    A = min (B, C) - element wise
 //    A_exp = C_exp
@@ -35,8 +28,7 @@ void ns_priv_update_S(ns_state_t * ns, const bfp_s32_t * abs_Y){
 
     bfp_s32_mul(&tmp, abs_Y, abs_Y);
 
-    // since alpha_s = 0.8 and 1 - 0.8 = 0.2, we can use alpha_p value here
-    bfp_s32_scale(&tmp, &tmp, ns->alpha_p);
+    bfp_s32_scale(&tmp, &tmp, ns->one_minus_alpha_s);
     
     bfp_s32_scale(&ns->S, &ns->S, ns->alpha_s);
 
@@ -56,12 +48,11 @@ void ns_priv_update_p(ns_state_t * ns){
     bfp_s32_scale(&tmp, &ns->S_min, ns->delta);
     bfp_s32_use_exponent(&tmp, ns->S.exp);
 
-    // since alpha_p = 0.2 and 1 - 0.2 = 0.8, we can use alpha_s value here
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
-        one_zero[v] = (ns->S.data[v] > tmp.data[v]) ? ns->alpha_s.mant : 0;
+        one_zero[v] = (ns->S.data[v] > tmp.data[v]) ? ns->one_minus_alpha_p.mant : 0;
     }
 
-    bfp_s32_init(&tmp2, one_zero, ns->alpha_s.exp, NS_PROC_FRAME_BINS, 1);
+    bfp_s32_init(&tmp2, one_zero, ns->one_minus_alpha_p.exp, NS_PROC_FRAME_BINS, 1);
 
     bfp_s32_scale(&ns->p, &ns->p, ns->alpha_p);
     bfp_s32_add(&ns->p, &ns->p, &tmp2);
@@ -180,7 +171,8 @@ void ns_priv_process_frame(bfp_s32_t * abs_Y, ns_state_t * ns){
 
     ns_priv_update_S(ns, abs_Y);
 
-    ns_priv_adjust_exp(&ns->S_min, &ns->S_tmp, &ns->S);
+    bfp_s32_use_exponent(&ns->S_min, ns->S.exp);
+    bfp_s32_use_exponent(&ns->S_tmp, ns->S.exp);
 
     if(ns_priv_update_and_test_reset(ns)){
         ns_priv_minimum(&ns->S_min, &ns->S_tmp, &ns->S);
