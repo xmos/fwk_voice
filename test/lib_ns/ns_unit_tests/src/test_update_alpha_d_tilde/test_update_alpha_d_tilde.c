@@ -9,7 +9,7 @@
 #include <bfp_math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"

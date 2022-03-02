@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -69,7 +69,6 @@ TEST(ns_priv_subtract_lambda_from_frame, case0){
         ns_state_t state;
         ns_init(&state);
 
-        float_s32_t t;
         int lut_index;
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){

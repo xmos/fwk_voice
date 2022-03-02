@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -63,7 +63,8 @@ TEST(ns_priv_minimum, case0){
         bfp_s32_init(&S_tmp_bfp, S_tmp_int, EXP + 2, NS_PROC_FRAME_BINS, 1);
         bfp_s32_init(&S_min_bfp, S_min_int, EXP, NS_PROC_FRAME_BINS, 0);
 
-        ns_priv_adjust_exp(&S_min_bfp, &S_tmp_bfp, &S_bfp);
+        bfp_s32_use_exponent(&S_min_bfp, S_bfp.exp);
+        bfp_s32_use_exponent(&S_tmp_bfp, S_bfp.exp);
         ns_priv_minimum(&S_min_bfp, &S_tmp_bfp, &S_bfp);
 
         double abs_diff = 0;
