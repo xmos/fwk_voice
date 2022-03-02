@@ -1,8 +1,13 @@
+# Copyright 2022 XMOS LIMITED.
+# This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 import numpy as np
 import os, shutil, tempfile
 import xscope_fileio, xtagctl
 import subprocess
 import re
+from conftest import pipeline_x86_bin, pipeline_xe_bin
+
 
 def process_xcore(xe_file, input_file, output_file):
     input_file = os.path.abspath(input_file)
@@ -26,8 +31,16 @@ def process_xcore(xe_file, input_file, output_file):
 def process_x86(bin_file, input_file, output_file):
     cmd = (bin_file, input_file, output_file)
     # print(" ".join(cmd))
-    test_output = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
+    stdout = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
     return stdout
+
+def process_file(input_file, output_file, x86=False):
+    if not os.path.isfile(output_file): #optimisation for local testing
+        if x86:
+            process_x86(pipeline_x86_bin, input_file, output_file)
+        else:
+            process_xcore(pipeline_xe_bin, input_file, output_file)
+
 
 def get_wav_info(input_file):
     chans = int(subprocess.check_output(("soxi", "-c", input_file)))
@@ -56,6 +69,6 @@ def convert_input_wav(input_file, output_file):
     return output_file
 
 def convert_keyword_wav(input_file, output_file):
-    #Strip off comms channel leaving just ASR
-    subprocess.run(f"sox {input_file} -b 32 {output_file} remix 1".split())
+    #Strip off comms channel leaving just ASR. Sensory needs a 16b wav file
+    subprocess.run(f"sox {input_file} -b 16 {output_file} remix 1".split())
     return output_file
