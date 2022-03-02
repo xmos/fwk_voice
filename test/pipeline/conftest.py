@@ -37,11 +37,21 @@ def pytest_sessionstart(session):
     os.makedirs(pipeline_output_dir, exist_ok=True)
     os.makedirs(keyword_input_dir, exist_ok=True)
 
-    #Clear the logfile
+    #Start with empty logfile
     if os.path.exists(results_log_file):
         os.remove(results_log_file)
 
+def pytest_sessionfinish(session):
+    pass
+    # with open(results_log_file, "w+") as lf:
+    #     log = lf.readlines()
+    #     log = sorted(log)
+    #     print(log)
+    #     lf.seek(0)
+    #     lf.writelines(log)
+
+
 def pytest_generate_tests(metafunc):
-    metafunc.parametrize("test_audio", all_files_list, ids=all_files_list)
+    # metafunc.parametrize("test_audio", all_files_list, ids=all_files_list)
     n_procs = 8
-    # metafunc.parametrize("test_audio", all_files_list[0:n_procs], ids=all_files_list[0:n_procs]) #just a few
+    metafunc.parametrize("test_audio", all_files_list[0:n_procs], ids=all_files_list[0:n_procs]) #just a few

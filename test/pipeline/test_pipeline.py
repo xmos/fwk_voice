@@ -38,7 +38,7 @@ def test_pipelines(test_audio, record_property):
     detections =run_sensory(keyword_file)
     print(f"{wav_name} : {detections}")
 
-    logger.info(f"{wav_name} : {detections}")
+    logger.info(f"{wav_name},{detections},")
 
     # record_list = run_pipelines.run(filename_plus_config['targets_enabled'], filename_plus_config['config'],\
     #               input_file=filename_plus_config['filename'], output_dir=filename_plus_config['output_dir'])

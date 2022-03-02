@@ -15,7 +15,6 @@ def process_xcore(xe_file, input_file, output_file):
     tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(__file__))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
-
     shutil.copyfile(input_file, "input.wav")
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
@@ -30,7 +29,6 @@ def process_xcore(xe_file, input_file, output_file):
 
 def process_x86(bin_file, input_file, output_file):
     cmd = (bin_file, input_file, output_file)
-    # print(" ".join(cmd))
     stdout = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
     return stdout
 
@@ -69,6 +67,6 @@ def convert_input_wav(input_file, output_file):
     return output_file
 
 def convert_keyword_wav(input_file, output_file):
-    #Strip off comms channel leaving just ASR. Sensory needs a 16b wav file
+    # Strip off comms channel leaving just ASR. Sensory needs a 16b wav file
     subprocess.run(f"sox {input_file} -b 16 {output_file} remix 1".split())
     return output_file
