@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -52,15 +52,15 @@ int32_t half_hanning[NS_WINDOW_LENGTH / 2] = {
 	2144564834, 2145248782, 2145841596, 2146343250, 2146753723, 2147072999, 2147301062, 2147437904, 
 	};
 
-TEST_GROUP_RUNNER(ns_apply_window){
-    RUN_TEST_CASE(ns_apply_window, case0);
+TEST_GROUP_RUNNER(ns_priv_apply_window){
+    RUN_TEST_CASE(ns_priv_apply_window, case0);
 }
 
-TEST_GROUP(ns_apply_window);
-TEST_SETUP(ns_apply_window) { fflush(stdout); }
-TEST_TEAR_DOWN(ns_apply_window) {}
+TEST_GROUP(ns_priv_apply_window);
+TEST_SETUP(ns_priv_apply_window) { fflush(stdout); }
+TEST_TEAR_DOWN(ns_priv_apply_window) {}
 
-TEST(ns_apply_window, case0){
+TEST(ns_priv_apply_window, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
     int32_t second_half[NS_WINDOW_LENGTH /2];
 
@@ -107,7 +107,7 @@ TEST(ns_apply_window, case0){
 
         bfp_s32_t tmp;
         bfp_s32_init(&tmp, frame_int, EXP, NS_PROC_FRAME_LENGTH, 1);
-        ns_apply_window(&tmp, &window, &rev_window, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+        ns_priv_apply_window(&tmp, &window, &rev_window, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
         double abs_diff = 0;
         int id = 0;
