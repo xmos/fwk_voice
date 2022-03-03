@@ -75,6 +75,11 @@ void pipeline_process_frame(pipeline_state_t *state,
     int32_t ref_active_flag;
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], &ref_active_flag, input_y_data, input_x_data);
     
+    if(state->stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
+        for(int ch=state->stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
+            aec_corr_factor[ch] = aec_corr_factor[0];
+        }
+    }
     /**IC and VAD*/
     if(ref_active_flag) {
         state->ic_state.config_params.bypass = 1;
