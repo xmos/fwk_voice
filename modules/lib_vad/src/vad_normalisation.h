@@ -10,8 +10,8 @@
 #define FEATURE_MU_Q 16
 #define FEATURE_SIGMA_Q 16
 
-#define FEATURE_MU_SCALE(x)  ((int32_t)(x*(1<<FEATURE_MU_Q)))
-#define FEATURE_SIGMA_SCALE(x)  ((int32_t)(x*(1<<FEATURE_SIGMA_Q)))
+#define FEATURE_MU_SCALE(x)  ((int32_t)(x * (1 << FEATURE_MU_Q)))
+#define FEATURE_SIGMA_SCALE(x)  ((int32_t)(x * (1 << FEATURE_SIGMA_Q)))
 #define FEATURE_MU_SCALE_0(x)  ((int32_t)(x))
 #define FEATURE_SIGMA_SCALE_0(x)  ((int32_t)(x))
 
