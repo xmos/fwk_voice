@@ -6,19 +6,10 @@ import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
 from conftest import pipeline_input_dir, pipeline_output_dir, keyword_input_dir, results_log_file
 from run_sensory import run_sensory
-import time
-import logging
+import time, fcntl
 
 
 def test_pipelines(test_audio, record_property): 
-    #setup thread safe log file
-    logger = logging.getLogger('log')
-    logger.setLevel(logging.INFO)
-    ch = logging.FileHandler(results_log_file)
-    ch.setFormatter(logging.Formatter('%(message)s'))
-    logger.addHandler(ch)
-
-
     wav_name = os.path.basename(test_audio)
 
     input_file = os.path.join(pipeline_input_dir, wav_name)
@@ -36,9 +27,12 @@ def test_pipelines(test_audio, record_property):
     convert_keyword_wav(output_file, keyword_file)
 
     detections =run_sensory(keyword_file)
-    print(f"{wav_name} : {detections}")
+    # print(f"{wav_name} : {detections}", file=sys.stderr)
 
-    logger.info(f"{wav_name},{detections},")
+    with open(results_log_file, "a") as log:
+        fcntl.flock(log, fcntl.LOCK_EX)
+        log.write(f"{wav_name},{detections},\n") 
+        fcntl.flock(log, fcntl.LOCK_UN)
 
     # record_list = run_pipelines.run(filename_plus_config['targets_enabled'], filename_plus_config['config'],\
     #               input_file=filename_plus_config['filename'], output_dir=filename_plus_config['output_dir'])

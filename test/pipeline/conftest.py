@@ -2,7 +2,7 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 import pytest
-import os, re
+import os, re, sys
 
 hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 pipeline_input_dir = os.path.abspath("./pipeline_input/")
@@ -42,16 +42,14 @@ def pytest_sessionstart(session):
         os.remove(results_log_file)
 
 def pytest_sessionfinish(session):
-    pass
-    # with open(results_log_file, "w+") as lf:
-    #     log = lf.readlines()
-    #     log = sorted(log)
-    #     print(log)
-    #     lf.seek(0)
-    #     lf.writelines(log)
+    with open(results_log_file, "r+") as lf:
+        log = lf.readlines()
+        log = sorted(log)
+        lf.seek(0)
+        lf.writelines(log)
 
 
 def pytest_generate_tests(metafunc):
-    # metafunc.parametrize("test_audio", all_files_list, ids=all_files_list)
-    n_procs = 8
-    metafunc.parametrize("test_audio", all_files_list[0:n_procs], ids=all_files_list[0:n_procs]) #just a few
+    metafunc.parametrize("test_audio", all_files_list, ids=all_files_list)
+    # n_procs = 8
+    # metafunc.parametrize("test_audio", all_files_list[0:n_procs], ids=all_files_list[0:n_procs]) #just a few
