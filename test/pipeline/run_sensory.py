@@ -7,6 +7,8 @@ import argparse
 import sys
 import time
 import tempfile
+import shutil
+import stat
 
 if sys.platform == "darwin":
     SPOT_EVAL_EXE = "spot-eval_x86_64-apple-darwin"
@@ -34,25 +36,23 @@ def run_file(input_filename, sensory_model):
     spot_model = os.path.expanduser(os.path.join(sensory_path, "model", sensory_model))
     if not os.path.isfile(spot_eval_exe):
         print('spot-eval not present in %s ',spot_eval_exe)
-        # assert(False)
+        assert(False)
     if not os.path.isfile(spot_model):
         print('model not present in %s ',spot_model)
-        # assert(False)
+        assert(False)
 
-    max_retries = 10
-    retry = 0
-    output = None
-    while retry < max_retries:
-        try:
-            output = subprocess.check_output('%s -t %s -s operating-point=5 -v %s' %(spot_eval_exe, spot_model, input_filename), shell=True)
-            break
-        except subprocess.CalledProcessError as e:
-            print(f"RETRY: {retry}", e.output,file=sys.stderr)
-            time.sleep(1)
-            # assert(False)
-        retry += 1
-    assert output, f"Unable to run {spot_eval_exe} after {max_retries} attempts"
+    #There is an issue when lots of instances running the same kw bin, so make a copy and run own version
+    tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(__file__))
+    prev_path = os.getcwd()
+    os.chdir(tmp_folder)
+    shutil.copyfile(spot_eval_exe, "kw_bin")
+    os.chmod("kw_bin", stat.S_IXUSR)
+    shutil.copyfile(spot_model, "kw_model")
 
+    output = subprocess.check_output('%s -t %s -s operating-point=5 -v %s' %("./kw_bin", "kw_model", input_filename), shell=True)
+
+    os.chdir(prev_path)
+    shutil.rmtree(tmp_folder)
 
     # Compute the number of occurrences of 'alexa' to get the number of detection
     detections = len(output.decode().split('alexa')) - 1
