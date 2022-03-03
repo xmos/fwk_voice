@@ -13,8 +13,9 @@ pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_sing
 results_log_file = os.path.abspath("pipeline_results.txt")
 
 all_tests_list = []
-# targets = ("xcore", "x86")
-targets = ["x86"]
+targets = ("xcore", "x86")
+# targets = ["x86"]
+# targets = ["xcore"]
 
 
 def pytest_sessionstart(session):
@@ -32,9 +33,15 @@ def pytest_sessionstart(session):
 
 
     global all_tests_list
-    for target in targets:
-        all_tests_list = [(os.path.join(hydra_audio_path, filename), target) for 
-            filename in os.listdir(hydra_audio_path) if filename.endswith(".wav")]
+    input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if filename.endswith(".wav")]
+    for input_wav_file in input_wav_files:
+        for target in targets:
+            all_tests_list.append([input_wav_file, target])
+
+    # print(len(all_tests_list))
+    # for l in all_tests_list:
+    #     print(l)
+    # sys.exit(0)
        
     #create pipeline input and sensory input directories
     os.makedirs(pipeline_input_dir, exist_ok=True)

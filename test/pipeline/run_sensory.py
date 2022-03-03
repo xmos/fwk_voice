@@ -5,6 +5,8 @@ import os
 import subprocess
 import argparse
 import sys
+import time
+import tempfile
 
 if sys.platform == "darwin":
     SPOT_EVAL_EXE = "spot-eval_x86_64-apple-darwin"
@@ -25,24 +27,32 @@ def run_file(input_filename, sensory_model):
         sensory_path = os.environ['SENSORY_PATH']
         print("sensory_path = %s"%(sensory_path))
     except:
-        sensory_path = '../../../sensory_sdk/'
+        sensory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../sensory_sdk/')
         print('env variable SENSORY_PATH not set. looking for sensory in the default path ',sensory_path)
 
     spot_eval_exe = os.path.expanduser(os.path.join(sensory_path, "spot_eval_exe", SPOT_EVAL_EXE))
     spot_model = os.path.expanduser(os.path.join(sensory_path, "model", sensory_model))
     if not os.path.isfile(spot_eval_exe):
         print('spot-eval not present in %s ',spot_eval_exe)
-        assert(False)
+        # assert(False)
     if not os.path.isfile(spot_model):
         print('model not present in %s ',spot_model)
-        assert(False)
+        # assert(False)
 
+    max_retries = 10
+    retry = 0
+    output = None
+    while retry < max_retries:
+        try:
+            output = subprocess.check_output('%s -t %s -s operating-point=5 -v %s' %(spot_eval_exe, spot_model, input_filename), shell=True)
+            break
+        except subprocess.CalledProcessError as e:
+            print(f"RETRY: {retry}", e.output,file=sys.stderr)
+            time.sleep(1)
+            # assert(False)
+        retry += 1
+    assert output, f"Unable to run {spot_eval_exe} after {max_retries} attempts"
 
-    try:
-        output = subprocess.check_output('%s -t %s -s operating-point=5 -v %s' %(spot_eval_exe, spot_model, input_filename), shell=True)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        assert(False)
 
     # Compute the number of occurrences of 'alexa' to get the number of detection
     detections = len(output.decode().split('alexa')) - 1
