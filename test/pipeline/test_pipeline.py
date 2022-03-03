@@ -4,34 +4,33 @@
 import os, sys, shutil
 import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
-from conftest import pipeline_input_dir, pipeline_output_dir, keyword_input_dir, results_log_file
+from conftest import pipeline_input_dir, results_log_file
 from run_sensory import run_sensory
 import time, fcntl
 
 
-def test_pipelines(test_audio, record_property): 
-    wav_name = os.path.basename(test_audio)
+def test_pipelines(test, record_property):
+    wav_file = test[0] 
+    wav_name = os.path.basename(wav_file)
+    target = test[1]
 
     input_file = os.path.join(pipeline_input_dir, wav_name)
-    convert_input_wav(test_audio, input_file)
-    output_file = os.path.join(pipeline_output_dir, wav_name)
+    convert_input_wav(wav_file, input_file)
 
     chans, rate, samps, bits = get_wav_info(input_file)
     print(f"Processing a {samps//rate}s track")
     t0 = time.time()
-    process_file(input_file, output_file, x86=True)
+    output_file = process_file(input_file, target)
     tot = time.time() - t0
     print(f"Processing took {tot:.2f}s")
 
-    keyword_file = os.path.join(keyword_input_dir, wav_name)
-    convert_keyword_wav(output_file, keyword_file)
-
+    keyword_file = convert_keyword_wav(output_file, target)
     detections =run_sensory(keyword_file)
     # print(f"{wav_name} : {detections}", file=sys.stderr)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)
-        log.write(f"{wav_name},{detections},\n") 
+        log.write(f"{wav_name},{target},{detections},\n") 
         fcntl.flock(log, fcntl.LOCK_UN)
 
     # record_list = run_pipelines.run(filename_plus_config['targets_enabled'], filename_plus_config['config'],\
