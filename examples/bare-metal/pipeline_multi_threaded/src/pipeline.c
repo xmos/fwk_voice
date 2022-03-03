@@ -39,10 +39,17 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
 
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+#if ALT_ARCH_MODE
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#else
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
     aec_non_de_mode_conf.num_main_filt_phases = AEC_MAIN_FILTER_PHASES;
     aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#endif
 
     aec_de_mode_conf.num_y_channels = 1;
     aec_de_mode_conf.num_x_channels = 1;
@@ -62,14 +69,14 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
         
         // AEC, DE ADEC
-        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0], &frame[AP_MAX_Y_CHANNELS]);
+        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &md.ref_active_flag, &frame[0], &frame[AP_MAX_Y_CHANNELS]);
         // If AEC has processed fewer y channels than downstream stages (in DE mode for example), then copy aec_corr_factor[0] to other channels
         if(stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
             for(int ch=stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
                 md.aec_corr_factor[ch] = md.aec_corr_factor[0];
             }
         }
-
+        
         // Transmit metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
@@ -91,12 +98,20 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED buffer[AP_FRAME_ADVANCE];
-    while(1){
+    while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
-
+        
+#if ALT_ARCH_MODE
+        if(md.ref_active_flag) {
+            ic_state.config_params.bypass = 1;
+        }
+        else {
+            ic_state.config_params.bypass = 0;
+        }
+#endif
         /**IC*/
         // The buffer will store the the comms channel frame
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){

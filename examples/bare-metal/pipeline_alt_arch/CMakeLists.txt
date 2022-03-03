@@ -1,8 +1,8 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set(APP_NAME  avona_example_bare_metal_pipeline_multi_thread)
+set(APP_NAME  avona_example_bare_metal_pipeline_alt_arch)
 
-file( GLOB_RECURSE SOURCES_APP  src/*.c )
+file( GLOB_RECURSE SOURCES_APP  ../pipeline_multi_threaded/src/*.c )
 add_executable(${APP_NAME})
 
 target_sources(${APP_NAME} 
@@ -11,7 +11,7 @@ target_sources(${APP_NAME}
 
 target_include_directories(${APP_NAME} 
     PRIVATE
-        src)
+        ../pipeline_multi_threaded/src)
 
 target_link_libraries(${APP_NAME}
     PUBLIC
@@ -30,11 +30,12 @@ target_link_libraries(${APP_NAME}
 target_compile_definitions(${APP_NAME}
     PRIVATE
         NUM_AEC_THREADS=2
+        ALT_ARCH_MODE=1
     )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_sources(${APP_NAME}
-        PRIVATE src/main.xc)
+        PRIVATE ../pipeline_multi_threaded/src/main.xc)
 
     target_compile_options(${APP_NAME}
         PRIVATE "-target=${XCORE_TARGET}")
