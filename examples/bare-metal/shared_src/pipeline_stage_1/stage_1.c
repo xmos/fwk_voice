@@ -68,7 +68,6 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
     float_s32_t *max_ref_energy, float_s32_t *aec_corr_factor, int32_t *ref_active_flag,
     int32_t (*input_y)[AP_FRAME_ADVANCE], int32_t (*input_x)[AP_FRAME_ADVANCE])
 {
-    int32_t overwrite_output_with_mic_input = 0;
     //printf("frame %d\n",framenum);
     framenum++;
     
@@ -98,14 +97,6 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
                 state->hold_aec_count++;
                 // propagate the ref_active_flag still as 1 to the next stage
                 *ref_active_flag = 1;
-            }
-        }
-        else { //If reference is not there and AEC is disabled
-            if(state->aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
-                // AEC bypass logic is working on fewer mic channels than max present in the pipeline.
-                // If we send this as is to IC, it'll not work since the phase relationship between the bypassed and non bypassed input is messed up.
-                // So we overwrite stage1 output with stage1 mic input. This is also one of the reason why we can't do stage 1 processing in-place for the input/output buffers.
-                overwrite_output_with_mic_input = 1;
             }
         }
     }
@@ -163,9 +154,35 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         }
     }
     
+#if ALT_ARCH_MODE
+    // This code implies knowledge of the other pipeline stages which this stage is ideally not supposed to have, but alt-arch
+    // assumes that stage 1 has this knowledge and gets to make decisions about enabling/disabling downstream stages.
+    /** If we've processed fewer channels than the max present in the pipeline*/
+    if(state->aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
+        // If AEC is not bypassed, copy AEC output to the other channels that haven't been processed by AEC. This is the alt arch situation
+        // where 1 channel AEC is enabled and IC is bypassed.
+        if(!state->aec_main_state.shared_state->config_params.aec_core_conf.bypass)
+        {
+            for(int ch=state->aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++)
+            {
+                memcpy(&output_frame[ch][0], &output_frame[state->aec_main_state.shared_state->num_y_channels - 1][0], AP_FRAME_ADVANCE*sizeof(int32_t));
+            }
+        }
+        else {
+            // If AEC is bypassed, copy the mic input to all the output channels. This is the alt arch situation where aec is bypassed and 
+            // IC is enabled. Since AEC has only bypassed one channel and IC would need both channels with their original phase relationship
+            // preserved, we overwrite the AEC output with mic input.
+            for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
+                memcpy(&output_frame[ch][0], &input_y[ch][0], AP_FRAME_ADVANCE*sizeof(int32_t));
+            }
+        }
+    }
+#endif
     // Overwrite output with mic input if delay estimation enabled
     if (state->delay_estimator_enabled) {
-        overwrite_output_with_mic_input = 1;
+        for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
+            memcpy(&output_frame[ch][0], &input_y[ch][0], AP_FRAME_ADVANCE*sizeof(int32_t));
+        }
     }
 
     /** Switch AEC config if needed*/
@@ -185,15 +202,5 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
         state->delay_estimator_enabled = 0;
         //printf("framenum %d: switch to aec mode\n", framenum);
 
-    }
-
-    /** Overwrite stage output if needed*/
-    // Send the current frame unprocessed
-    if(overwrite_output_with_mic_input) {
-        for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-            for(int i=0; i<AP_FRAME_ADVANCE; i++) {
-                output_frame[ch][i] = input_y[ch][i]; //We can't get AEC to process in-place because of this.
-            }
-        }
-    }
+    }    
 }

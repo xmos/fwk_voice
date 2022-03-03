@@ -64,31 +64,48 @@ void pipeline_init(pipeline_state_t *state) {
     agc_init(&state->agc_state[1], &agc_conf_comms);
 }
 
+typedef struct {
+    float_s32_t max_ref_energy;
+    float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
+    int32_t vad_flag;
+    int32_t ref_active_flag;
+}pipeline_metadata_t;
+
 void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
+    pipeline_metadata_t md;
+    memset(&md, 0, sizeof(pipeline_metadata_t));
+
     /** Stage1 - AEC, DE, ADEC*/
     int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
-    int32_t ref_active_flag;
-    stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], &ref_active_flag, input_y_data, input_x_data);
+
+#if DISABLE_STAGE_1
+    memcpy(&stage_1_out[0][0], &input_y_data[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
+    stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &md.ref_active_flag, input_y_data, input_x_data);
     
     if(state->stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
         for(int ch=state->stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
-            aec_corr_factor[ch] = aec_corr_factor[0];
+            md.aec_corr_factor[ch] = md.aec_corr_factor[0];
         }
     }
+#endif
+
     /**IC and VAD*/
-    if(ref_active_flag) {
+    int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+#if DISABLE_STAGE_2
+    memcpy(&ic_output[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
+    if(md.ref_active_flag) {
         state->ic_state.config_params.bypass = 1;
     }
     else {
         state->ic_state.config_params.bypass = 0;
     }
 
-    int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     //The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
         ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
@@ -96,22 +113,31 @@ void pipeline_process_frame(pipeline_state_t *state,
     //The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
+    md.vad_flag = (vad > AGC_VAD_THRESHOLD);
     ic_adapt(&state->ic_state, vad, ic_output[0]);
+#endif
 
     /**NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-
+#if DISABLE_STAGE_3
+    memcpy(&ns_output[0][0], &ic_output[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
     }
+#endif
     
     /** AGC*/
+#if DISABLE_STAGE_4
+    memcpy(&output_data[0][0], &ns_output[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
     agc_meta_data_t agc_md;
-    agc_md.aec_ref_power = max_ref_energy;
-    agc_md.vad_flag = (vad > AGC_VAD_THRESHOLD);
+    agc_md.aec_ref_power = md.max_ref_energy;
+    agc_md.vad_flag = md.vad_flag;
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_md.aec_corr_factor = aec_corr_factor[ch];
+        agc_md.aec_corr_factor = md.aec_corr_factor[ch];
         agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
     }
+#endif
 }
