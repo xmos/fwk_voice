@@ -1,19 +1,64 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set(APP_NAME  avona_example_bare_metal_pipeline_alt_arch)
+####### Multi thread alt arch pipeline (Only builds on XCORE)
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    add_executable(avona_example_bare_metal_pipeline_alt_arch_mt)
 
-file( GLOB_RECURSE SOURCES_APP  ../pipeline_multi_threaded/src/*.c )
-add_executable(${APP_NAME})
+    file( GLOB_RECURSE SOURCES_APP  ../pipeline_multi_threaded/src/*.c )
+    target_sources(avona_example_bare_metal_pipeline_alt_arch_mt 
+        PRIVATE
+            ${SOURCES_APP})
 
-target_sources(${APP_NAME} 
+    target_include_directories(avona_example_bare_metal_pipeline_alt_arch_mt 
+        PRIVATE
+            ../pipeline_multi_threaded/src)
+
+    target_link_libraries(avona_example_bare_metal_pipeline_alt_arch_mt
+        PUBLIC
+            avona::aec
+            avona::adec
+            avona::ns
+            avona::agc
+            avona::ic
+            avona::vad
+            avona::example::aec2thread
+            avona::example::delay_buffer
+            avona::example::stage_1
+            avona::example::fileutils
+            )
+
+    target_compile_definitions(avona_example_bare_metal_pipeline_alt_arch_mt
+        PRIVATE
+            NUM_AEC_THREADS=2
+            ALT_ARCH_MODE=1
+        )
+
+    target_sources(avona_example_bare_metal_pipeline_alt_arch_mt
+        PRIVATE ../pipeline_multi_threaded/src/main.xc)
+
+    target_compile_options(avona_example_bare_metal_pipeline_alt_arch_mt
+        PRIVATE "-target=${XCORE_TARGET}")
+
+    target_link_options(avona_example_bare_metal_pipeline_alt_arch_mt
+        PRIVATE
+            "-target=${XCORE_TARGET}"
+            "-report"
+            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+endif()
+
+####### Single thread alt arch pipeline
+add_executable(avona_example_bare_metal_pipeline_alt_arch_st)
+
+file( GLOB_RECURSE SOURCES_APP  ../pipeline_single_threaded/src/*.c )
+target_sources(avona_example_bare_metal_pipeline_alt_arch_st 
     PRIVATE
         ${SOURCES_APP})
 
-target_include_directories(${APP_NAME} 
+target_include_directories(avona_example_bare_metal_pipeline_alt_arch_st 
     PRIVATE
-        ../pipeline_multi_threaded/src)
+        ../pipeline_single_threaded/src)
 
-target_link_libraries(${APP_NAME}
+target_link_libraries(avona_example_bare_metal_pipeline_alt_arch_st
     PUBLIC
         avona::aec
         avona::adec
@@ -21,31 +66,31 @@ target_link_libraries(${APP_NAME}
         avona::agc
         avona::ic
         avona::vad
-        avona::example::aec2thread
+        avona::example::aec1thread
         avona::example::delay_buffer
         avona::example::stage_1
         avona::example::fileutils
         )
 
-target_compile_definitions(${APP_NAME}
+target_compile_definitions(avona_example_bare_metal_pipeline_alt_arch_st
     PRIVATE
-        NUM_AEC_THREADS=2
+        NUM_AEC_THREADS=1
         ALT_ARCH_MODE=1
     )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_sources(${APP_NAME}
-        PRIVATE ../pipeline_multi_threaded/src/main.xc)
+    target_sources(avona_example_bare_metal_pipeline_alt_arch_st
+        PRIVATE ../pipeline_single_threaded/src/main.xc)
 
-    target_compile_options(${APP_NAME}
+    target_compile_options(avona_example_bare_metal_pipeline_alt_arch_st
         PRIVATE "-target=${XCORE_TARGET}")
 
-    target_link_options(${APP_NAME}
+    target_link_options(avona_example_bare_metal_pipeline_alt_arch_st
         PRIVATE
             "-target=${XCORE_TARGET}"
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-    target_link_libraries(
+    target_link_libraries(avona_example_bare_metal_pipeline_alt_arch_st
         PRIVATE m)
 endif()

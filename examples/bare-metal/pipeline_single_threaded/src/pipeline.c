@@ -25,10 +25,17 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Initialise AEC, DE, ADEC stage
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+#if ALT_ARCH_MODE
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#else
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
     aec_non_de_mode_conf.num_main_filt_phases = AEC_MAIN_FILTER_PHASES;
     aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#endif
 
     aec_de_mode_conf.num_y_channels = 1;
     aec_de_mode_conf.num_x_channels = 1;
@@ -67,8 +74,15 @@ void pipeline_process_frame(pipeline_state_t *state,
     float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
     int32_t ref_active_flag;
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], &ref_active_flag, input_y_data, input_x_data);
-
+    
     /**IC and VAD*/
+    if(ref_active_flag) {
+        state->ic_state.config_params.bypass = 1;
+    }
+    else {
+        state->ic_state.config_params.bypass = 0;
+    }
+
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     //The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){

@@ -32,19 +32,14 @@ target_compile_definitions(${APP_NAME}
         NUM_AEC_THREADS=2
     )
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_sources(${APP_NAME}
-        PRIVATE src/main.xc)
+target_sources(${APP_NAME}
+    PRIVATE src/main.xc)
 
-    target_compile_options(${APP_NAME}
-        PRIVATE "-target=${XCORE_TARGET}")
+target_compile_options(${APP_NAME}
+    PRIVATE "-target=${XCORE_TARGET}")
 
-    target_link_options(${APP_NAME}
-        PRIVATE
-            "-target=${XCORE_TARGET}"
-            "-report"
-            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
-else()
-    target_link_libraries(
-        PRIVATE m)
-endif()
+target_link_options(${APP_NAME}
+    PRIVATE
+        "-target=${XCORE_TARGET}"
+        "-report"
+        "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
