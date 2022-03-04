@@ -48,10 +48,24 @@ pipeline {
             dir("${REPO}") {
               sh "mkdir build"
             }
+            // Do x86 versions first because it's hard to glob just for extensionless files
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh "make -j8"
+                }
+              }
+            }
+            dir("${REPO}") {
+              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+            }
+            // Now do xcore files
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
@@ -61,14 +75,11 @@ pipeline {
                       }
                   }
                   sh "make -j8"
-                  sh 'rm CMakeCache.txt'
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make -j8"
                 }
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py'
             }
           }
         }
@@ -92,7 +103,7 @@ pipeline {
                 withVenv {
                   sh "git submodule update --init"
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
-                  unstash 'cmake_build'
+                  unstash 'cmake_build_xcore'
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
@@ -172,6 +183,23 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+          }
+        }
+        //Put at front of Jenkins tests for now
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts([["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]]) {
+                viewEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", ["hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  withVenv {
+                    //Note we have 2 targets and we can run 2 x86 threads so 2+2=4
+                    sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                    junit "pytest_result.xml"
+                    archiveArtifacts artifacts: "results_*.csv", fingerprint: true
+                  }
                 }
               }
             }

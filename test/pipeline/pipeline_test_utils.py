@@ -2,7 +2,7 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 import numpy as np
-import os, shutil, tempfile
+import os, shutil, tempfile, sys
 import xscope_fileio, xtagctl
 import subprocess
 import re
@@ -19,12 +19,19 @@ def process_xcore(xe_file, input_file, output_file):
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         with open("vad.txt", "w+") as ff:
+            try:
+                xscope_fileio.run_on_target(adapter_id, xe_file)
+            except Exception as e:
+                print(e, file=sys.stderr)
+                assert 0, f"FAILURE RUNNING: xscope_fileio.run_on_target({adapter_id} , {xe_file})"
             xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
             ff.seek(0)
             stdout = ff.readlines()
 
+    shutil.copyfile("output.wav", output_file)
     os.chdir(prev_path)
     shutil.rmtree(tmp_folder)
+
     return stdout
 
 def process_x86(bin_file, input_file, output_file):
@@ -56,7 +63,7 @@ def get_wav_info(input_file):
 def convert_input_wav(input_file, output_file):
     chans, rate, samps, bits = get_wav_info(input_file)
     if not os.path.isfile(output_file): #optimisation. Only convert once if running test a lot locally
-        extra_args = "trim 0 5"
+        extra_args = "" #"trim 0 5" #to test with short wavs
         if chans == 6:
             #for 6 channel wav file, first 4 channels are the mic input and last 2 channels are far-end audio
             subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 4 5 6 {extra_args}".split()) #read mic in from channel spaced ~ 100mm, hence channel index 1 and 4(assuming 33mm spacing between mics)

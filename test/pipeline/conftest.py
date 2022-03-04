@@ -10,16 +10,24 @@ pipeline_output_base_dir = os.path.abspath("./pipeline_output/")
 keyword_input_base_dir = os.path.abspath("./keyword_input/")
 pipeline_x86_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread")
 pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe")
-results_log_file = os.path.abspath("results.txt")
+results_log_file = os.path.abspath("results.csv")
+remove_folders = True
 
+# This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
 targets = ("xcore", "x86")
 # targets = ["x86"]
 # targets = ["xcore"]
 
 
+""" before session.main() is called. """
 def pytest_sessionstart(session):
-    """ before session.main() is called. """
+
+    try:
+        hydra_audio_base_dir = os.environ['hydra_audio_PATH']
+    except:
+        print(f'Warning: hydra_audio_PATH environment variable not set. Using local path {hydra_audio_base_dir}')
+
     try:
         quick_test_setting = int(os.environ['RUN_QUICK_TEST'])
     except:
@@ -37,11 +45,6 @@ def pytest_sessionstart(session):
     for input_wav_file in input_wav_files:
         for target in targets:
             all_tests_list.append([input_wav_file, target])
-
-    # print(len(all_tests_list))
-    # for l in all_tests_list:
-    #     print(l)
-    # sys.exit(0)
        
     #create pipeline input and sensory input directories
     os.makedirs(pipeline_input_dir, exist_ok=True)
@@ -64,15 +67,13 @@ def pytest_sessionfinish(session):
                     target_stripped_line = line.replace(target+",", "")
                     target_log.append(target_stripped_line) 
             target_log = sorted(target_log)
-            target_specific_log_file = results_log_file.replace(".txt", "_"+target+".txt")
+            target_specific_log_file = results_log_file.replace(".csv", "_"+target+".csv")
             with open(target_specific_log_file, "w") as tlf:
                 tlf.writelines(target_log)
 
 
-
-
 def pytest_generate_tests(metafunc):
     ids = [os.path.basename(item[0]) + ", " + item[1] for item in all_tests_list]
-    # metafunc.parametrize("test", all_tests_list, ids=ids)
-    n_procs = 8
-    metafunc.parametrize("test", all_tests_list[0:n_procs], ids=ids[0:n_procs]) #just a few
+    metafunc.parametrize("test", all_tests_list, ids=ids)
+    # n_procs = 8
+    # metafunc.parametrize("test", all_tests_list[0:n_procs], ids=ids[0:n_procs]) #just a few
