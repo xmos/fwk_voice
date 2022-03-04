@@ -9,9 +9,9 @@ pipeline_input_dir = os.path.abspath("./pipeline_input/")
 pipeline_output_base_dir = os.path.abspath("./pipeline_output/")
 keyword_input_base_dir = os.path.abspath("./keyword_input/")
 pipeline_x86_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread")
-pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe")
+# pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe")
+pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")
 results_log_file = os.path.abspath("results.csv")
-remove_folders = True
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
@@ -23,6 +23,7 @@ targets = ("xcore", "x86")
 """ before session.main() is called. """
 def pytest_sessionstart(session):
 
+    global hydra_audio_base_dir
     try:
         hydra_audio_base_dir = os.environ['hydra_audio_PATH']
     except:
