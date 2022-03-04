@@ -11,8 +11,7 @@
 #ifdef __rtos_printf_h_exists__
 #include "rtos_printf.h"
 #else
-#include "xcore_utils.h"
-#define debug_printf    xcore_utils_printf
+#define debug_printf    printf
 #endif
 
 #endif /* LEGACY_COMPAT_DEBUG_PRINTF */

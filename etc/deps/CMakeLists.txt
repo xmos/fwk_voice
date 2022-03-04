@@ -1,1 +1,3 @@
+add_subdirectory(legacy_compat)
 add_subdirectory(lib_xs3_math)
+add_subdirectory(lib_dsp)

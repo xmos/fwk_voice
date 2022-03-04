@@ -53,7 +53,7 @@ target_include_directories(${APP_NAME}
 
 target_link_libraries(${APP_NAME}
     PUBLIC
-        sdk::lib_dsp
+        avona_deps::lib_dsp
         sdk::lib_xs3_math
         avona::test::shared::test_utils
         avona::example::fileutils

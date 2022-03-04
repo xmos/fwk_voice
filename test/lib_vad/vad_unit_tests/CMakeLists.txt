@@ -86,7 +86,7 @@ foreach( testfile ${TEST_SOURCES} )
     target_include_directories(avona_${TESTNAME}
         PRIVATE
             src
-            ../../../xcore_sdk/modules/lib_dsp/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
+            ${CMAKE_BINARY_DIR}/avona_deps/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
@@ -94,7 +94,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(avona_${TESTNAME} 
         PUBLIC
-            sdk::lib_dsp
+            avona_deps::lib_dsp
             avona::vad
             avona::test::shared::test_utils
             avona::test::shared::unity
