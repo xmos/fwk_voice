@@ -31,9 +31,8 @@ set( CMAKE_CXX_STANDARD_REQUIRED  ON  )
 set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
-## Add libs and apps
-add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
 
+## Add libs and apps
 message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
 message( STATUS "target name ${XCORE_TARGET}" )
 
