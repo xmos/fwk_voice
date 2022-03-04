@@ -21,7 +21,6 @@ list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
 if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
     set(XCORE_TARGET "XCORE-AI-EXPLORER")
-    #list(APPEND   COMPILE_FLAGS  -march=xs3a -mcmodel=large)
 else()
     list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
 endif()
