@@ -19,7 +19,7 @@ target_include_directories(avona_module_lib_aec
 
 target_link_libraries(avona_module_lib_aec
     PUBLIC
-        sdk::lib_xs3_math
+        avona_deps::lib_xs3_math
 )
 
 ## Create an alias

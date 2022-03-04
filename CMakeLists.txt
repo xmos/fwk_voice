@@ -8,8 +8,6 @@ endif()
 project(sw_avona)
 
 enable_language(CXX C ASM)
-## Set up the build options
-include(etc/build_options.cmake)
 
 ## Fetch the Unity repo as a dependency
 
@@ -41,6 +39,7 @@ message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
 message( STATUS "target name ${XCORE_TARGET}" )
 
 add_subdirectory( modules )
+add_subdirectory( etc )
 
 if ( ${AVONA_BUILD_EXAMPLES} )
     add_subdirectory( examples )
@@ -49,6 +48,5 @@ endif()
 ## Get build dependencies
 
 if ( ${AVONA_BUILD_TESTS} )
-    include(etc/fetch_deps.cmake)
     add_subdirectory( test )
 endif()

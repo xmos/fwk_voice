@@ -10,3 +10,12 @@ FetchContent_Declare(
 )
 FetchContent_Populate(unity)
 
+FetchContent_Declare(
+    xs3_math
+    GIT_REPOSITORY https://github.com/xmos/lib_xs3_math.git
+    GIT_TAG        b440211755185d97dac8ea72f83f704f8025220f
+    GIT_SHALLOW    TRUE
+    SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/lib_xs3_math
+)
+FetchContent_Populate(xs3_math)
+
