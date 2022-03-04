@@ -192,8 +192,8 @@ pipeline {
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
-              withMounts([["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]]) {
-                viewEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", ["hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                viewEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   withVenv {
                     //Note we have 2 targets and we can run 2 x86 threads so 2+2=4
                     sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
