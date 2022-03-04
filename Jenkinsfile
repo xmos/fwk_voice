@@ -129,6 +129,26 @@ pipeline {
             }
           }
         }
+        //Put at front of Jenkins tests for now
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
+                      // sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      sh "pytest -s --junitxml=pytest_result.xml" //Debug
+                      junit "pytest_result.xml"
+                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -183,25 +203,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
-                }
-              }
-            }
-          }
-        }
-        //Put at front of Jenkins tests for now
-        stage('Pipeline tests') {
-          steps {
-            dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
-                  viewEnv {
-                    withVenv {
-                      //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      junit "pytest_result.xml"
-                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
-                    }
-                  }
                 }
               }
             }

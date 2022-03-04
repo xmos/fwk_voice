@@ -24,7 +24,6 @@ targets = ("xcore", "x86")
 
 """ before session.main() is called. """
 def pytest_sessionstart(session):
-
     global hydra_audio_base_dir
     try:
         hydra_audio_base_dir = os.environ['hydra_audio_PATH']
