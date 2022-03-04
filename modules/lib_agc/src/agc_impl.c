@@ -64,13 +64,10 @@ void agc_process_frame(agc_state_t *agc,
                        const int32_t input[AGC_FRAME_ADVANCE],
                        agc_meta_data_t *meta_data)
 {
-    // 0 is a default value to be rewritten
-    int vad_flag = 1;
+    int vad_flag = meta_data->vad_flag;
 
     if (agc->config.adapt_on_vad == 0) {
         vad_flag = 1;
-    } else {
-        vad_flag = meta_data->vad_flag;
     }
 
     bfp_s32_t input_bfp;
