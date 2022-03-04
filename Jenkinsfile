@@ -54,10 +54,10 @@ pipeline {
                   sh "cmake --version"
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
                       }
                   }
                   sh "make -j8"

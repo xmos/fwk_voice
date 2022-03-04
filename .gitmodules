@@ -4,3 +4,6 @@
 [submodule "xcore_sdk"]
 	path = xcore_sdk
 	url = git@github.com:xmos/xcore_sdk
+[submodule "xmos_cmake_toolchain"]
+	path = xmos_cmake_toolchain
+	url = git@github.com:xmos/xmos_cmake_toolchain
