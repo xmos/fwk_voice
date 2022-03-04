@@ -139,7 +139,7 @@ pipeline {
                   viewEnv {
                     withVenv {
                       //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
-                      sh 'tree'
+                      sh 'tree ../..'
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug
                       junit "pytest_result.xml"
