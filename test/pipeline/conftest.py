@@ -12,6 +12,8 @@ pipeline_x86_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_sin
 # pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe")
 pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")
 results_log_file = os.path.abspath("results.csv")
+xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) #Add a generous timeout for xtage acquisition here. Max input wav is 8m21s so double & add 20%
+
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []

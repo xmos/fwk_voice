@@ -6,7 +6,7 @@ import os, shutil, tempfile, sys
 import xscope_fileio, xtagctl
 import subprocess
 import re
-from conftest import pipeline_x86_bin, pipeline_xe_bin, pipeline_output_base_dir, keyword_input_base_dir, aquire_timeout_s
+from conftest import pipeline_x86_bin, pipeline_xe_bin, pipeline_output_base_dir, keyword_input_base_dir, xtag_aquire_timeout_s
 
 def process_xcore(xe_file, input_file, output_file):
     input_file = os.path.abspath(input_file)
@@ -17,7 +17,7 @@ def process_xcore(xe_file, input_file, output_file):
     shutil.copyfile(input_file, "input.wav")
 
     #Make sure we can wait for 2 processing occurances to finish
-    with xtagctl.acquire("XCORE-AI-EXPLORER", timeout=aquire_timeout_s) as adapter_id:
+    with xtagctl.acquire("XCORE-AI-EXPLORER", timeout=xtag_aquire_timeout_s) as adapter_id:
         with open("vad.txt", "w+") as ff:
             try:
                 xscope_fileio.run_on_target(adapter_id, xe_file)
