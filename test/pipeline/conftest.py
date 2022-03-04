@@ -45,6 +45,9 @@ def pytest_sessionstart(session):
     global all_tests_list
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if filename.endswith(".wav")]
     for input_wav_file in input_wav_files:
+        #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
+        if '._InHouse' in input_wav_file:
+            continue
         for target in targets:
             all_tests_list.append([input_wav_file, target])
        
