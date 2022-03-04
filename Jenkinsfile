@@ -141,6 +141,7 @@ pipeline {
                       //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
                       sh 'tree ../..'
                       sh 'ls -al ../../build/examples/bare-metal/pipeline_single_threaded/bin/'
+                      sh 'cd  ../../build/examples/bare-metal/pipeline_single_threaded/bin/ && ./avona_example_bare_metal_pipeline_single_thread'
                       sh '../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread'
                       // sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       sh "pytest -s --junitxml=pytest_result.xml" //Debug
