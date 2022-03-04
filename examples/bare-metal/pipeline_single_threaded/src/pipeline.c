@@ -99,12 +99,15 @@ void pipeline_process_frame(pipeline_state_t *state,
 #if DISABLE_STAGE_2
     memcpy(&ic_output[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
 #else
+
+#if ALT_ARCH_MODE
     if(md.ref_active_flag) {
         state->ic_state.config_params.bypass = 1;
     }
     else {
         state->ic_state.config_params.bypass = 0;
     }
+#endif
 
     //The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
