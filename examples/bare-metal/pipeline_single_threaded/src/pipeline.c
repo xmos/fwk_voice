@@ -80,7 +80,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     memset(&md, 0, sizeof(pipeline_metadata_t));
 
     /** Stage1 - AEC, DE, ADEC*/
-    int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];// stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
 
 #if DISABLE_STAGE_1
     memcpy(&stage_1_out[0][0], &input_y_data[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));

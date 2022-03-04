@@ -63,7 +63,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE]; // stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
