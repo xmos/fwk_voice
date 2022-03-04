@@ -58,10 +58,9 @@ pipeline {
                 }
               }
             }
-            dir("${REPO}") {
-              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
-              archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
-            }
+            // dir("${REPO}") {
+            //   stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+            // }
             // Now do xcore files
             dir("${REPO}/build") {
               viewEnv() {
@@ -81,6 +80,55 @@ pipeline {
             }
             dir("${REPO}") {
               stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py'
+            }
+          }
+        }
+      }
+      post {
+        cleanup {
+          cleanWs()
+        }
+      }
+    }
+    stage('x86 executables build - TEMP STAGE UNTIL CMAKE SORTED') {
+      agent {
+        label 'sw-hw-xcai-exp0'
+      }
+      environment {
+        XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+      }
+      stages {
+        stage('Get view') {
+          steps {
+            xcorePrepareSandbox("${VIEW}", "${REPO}")
+            dir("${REPO}") {
+              viewEnv() {
+                withVenv {
+                  sh "git submodule update --init --recursive --jobs 4"
+                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
+                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
+                }
+              }
+            }
+          }
+        }
+        stage('CMake') {
+          steps {
+            dir("${REPO}") {
+              sh "mkdir build"
+            }
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "/usr/bin/cmake --version"
+                  sh '/usr/bin/cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh "make -j8"
+                }
+              }
+            }
+            dir("${REPO}") {
+              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+              archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
             }
           }
         }
@@ -133,17 +181,17 @@ pipeline {
         //Put at front of Jenkins tests for now
         stage('Pipeline tests') {
           steps {
-            //We need to build the x86 bins locally otherwise agents won't recognise them
-            dir("${REPO}/build") {
-              viewEnv() {
-                withVenv {
-                  sh "cmake --version"
-                  sh "/usr/bin/cmake --version"
-                  sh '/usr/bin/cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make -j8"
-                }
-              }
-            }
+            // //We need to build the x86 bins locally otherwise agents won't recognise them
+            // dir("${REPO}/build") {
+            //   viewEnv() {
+            //     withVenv {
+            //       sh "cmake --version"
+            //       sh "/usr/bin/cmake --version"
+            //       sh '/usr/bin/cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+            //       sh "make -j8"
+            //     }
+            //   }
+            // }
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
                 withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
