@@ -58,9 +58,10 @@ pipeline {
                 }
               }
             }
-            // dir("${REPO}") {
-            //   stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
-            // }
+            dir("${REPO}") {
+              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+              archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
+            }
             // Now do xcore files
             dir("${REPO}/build") {
               viewEnv() {
