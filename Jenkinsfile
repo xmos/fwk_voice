@@ -90,55 +90,55 @@ pipeline {
         }
       }
     }
-    stage('x86 executables build - TEMP STAGE UNTIL CMAKE SORTED') {
-      agent {
-        label 'sw-hw-xcai-exp0'
-      }
-      environment {
-        XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
-      }
-      stages {
-        stage('Get view') {
-          steps {
-            xcorePrepareSandbox("${VIEW}", "${REPO}")
-            dir("${REPO}") {
-              viewEnv() {
-                withVenv {
-                  sh "git submodule update --init --recursive --jobs 4"
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
-                }
-              }
-            }
-          }
-        }
-        stage('CMake') {
-          steps {
-            dir("${REPO}") {
-              sh "mkdir build"
-            }
-            dir("${REPO}/build") {
-              viewEnv() {
-                withVenv {
-                  sh "/usr/bin/cmake --version"
-                  sh '/usr/bin/cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make -j8"
-                }
-              }
-            }
-            dir("${REPO}") {
-              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
-              archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
-            }
-          }
-        }
-      }
-      post {
-        cleanup {
-          cleanWs()
-        }
-      }
-    }
+    // stage('x86 executables build - TEMP STAGE UNTIL CMAKE SORTED') {
+    //   agent {
+    //     label 'sw-hw-xcai-exp0'
+    //   }
+    //   environment {
+    //     XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+    //   }
+    //   stages {
+    //     stage('Get view') {
+    //       steps {
+    //         xcorePrepareSandbox("${VIEW}", "${REPO}")
+    //         dir("${REPO}") {
+    //           viewEnv() {
+    //             withVenv {
+    //               sh "git submodule update --init --recursive --jobs 4"
+    //               sh "pip install -e ${env.WORKSPACE}/xtagctl"
+    //               sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //     stage('CMake') {
+    //       steps {
+    //         dir("${REPO}") {
+    //           sh "mkdir build"
+    //         }
+    //         dir("${REPO}/build") {
+    //           viewEnv() {
+    //             withVenv {
+    //               sh "/usr/bin/cmake --version"
+    //               sh '/usr/bin/cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+    //               sh "make -j8"
+    //             }
+    //           }
+    //         }
+    //         dir("${REPO}") {
+    //           stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+    //           archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
+    //         }
+    //       }
+    //     }
+    //   }
+    //   post {
+    //     cleanup {
+    //       cleanWs()
+    //     }
+    //   }
+    // }
     stage('xcore.ai Verification') {
       agent {
         label 'xcore.ai'
@@ -200,7 +200,8 @@ pipeline {
                       //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
                       sh 'ls -al ../../build/examples/bare-metal/pipeline_single_threaded/bin/'
                       // sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      sh "pytest -s --junitxml=pytest_result.xml" //Debug
+                      sh "pytest -n 2 --junitxml=pytest_result.xml -vv"
+                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug
                       junit "pytest_result.xml"
                       archiveArtifacts artifacts: "results_*.csv", fingerprint: true
                     }

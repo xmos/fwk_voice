@@ -18,8 +18,8 @@ xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) #Add a generous timeout for xtag
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
 # targets = ("xcore", "x86")
-targets = ["x86"]
-# targets = ["xcore"]
+# targets = ["x86"]
+targets = ["xcore"]
 
 
 """ before session.main() is called. """
