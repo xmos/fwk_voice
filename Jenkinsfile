@@ -60,6 +60,7 @@ pipeline {
             }
             dir("${REPO}") {
               stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+              archiveArtifacts artifacts: 'build/**/avona_example_bare_metal_*', fingerprint: true
             }
             // Now do xcore files
             dir("${REPO}/build") {
@@ -104,7 +105,6 @@ pipeline {
                   sh "git submodule update --init"
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build_xcore'
-                  unstash 'cmake_build_x86'
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
@@ -133,16 +133,23 @@ pipeline {
         //Put at front of Jenkins tests for now
         stage('Pipeline tests') {
           steps {
+            //We need to build the x86 bins locally otherwise agents won't recognise them
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh "make -j8"
+                }
+              }
+            }
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
                 withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
                       //Note we have 2 targets and we can run x86 threads too. But in case we have only xcore jobs, limit to 4
-                      sh 'tree ../..'
                       sh 'ls -al ../../build/examples/bare-metal/pipeline_single_threaded/bin/'
-                      sh 'cd  ../../build/examples/bare-metal/pipeline_single_threaded/bin/ && ./avona_example_bare_metal_pipeline_single_thread'
-                      sh '../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread'
                       // sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       sh "pytest -s --junitxml=pytest_result.xml" //Debug
                       junit "pytest_result.xml"
