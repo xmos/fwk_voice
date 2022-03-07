@@ -5,7 +5,7 @@
 #include "ai.h"
  
 
-extern void vad_reduce_relu(int32_t activated[], int64_t raw_layer[], const size_t N);
+extern void vad_reduce_relu(int32_t activated[], const int64_t raw_layer[], const size_t N);
 
 void test_reduce_relu() {
     unsigned int seed = 6031769;

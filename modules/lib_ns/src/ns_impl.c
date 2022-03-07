@@ -3,9 +3,8 @@
 #include <string.h>
 #include <limits.h>
 #include <bfp_math.h>
-
-#include <ns_api.h>
 #include "ns_priv.h"
+#include <ns_api.h>
 
 #define NS_SQRT_HANN_LUT           sqrt_hanning_480
 
@@ -44,7 +43,7 @@ int32_t sqrt_hanning_480[NS_WINDOW_LENGTH / 2] = {
 	};
 
 //reverse window
-void ns_priv_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned length){
+void ns_priv_fill_rev_wind (int32_t * rev_wind, const int32_t * wind, const unsigned length){
 
 	for (int v = 0; v < length / 2; v++){
 		rev_wind[v] = wind[length - 1 - v];
@@ -132,6 +131,7 @@ void ns_init(ns_state_t * ns){
     ns->one_minus_alpha_p = ns->alpha_s;
 
     ns->reset_counter = 0;
+    // we sample at 16 kHz and want to reset every 150 ms (every 10 frames)
     ns->reset_period = (unsigned)(16000.0 * 0.15);
 }
 
@@ -174,10 +174,17 @@ void ns_priv_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_
         t1.mant = new_mag->data[v];
         t1.exp = new_mag->exp;
 
-        if(t1.mant != 0)t2[v] = float_s32_div(t1, t);
-        else {t2[v].mant = 0;t2[v].exp = NS_INT_EXP;}
+        if(t1.mant != 0){
+            t2[v] = float_s32_div(t1, t);
+        }
+        else {
+            t2[v].mant = 0;
+            t2[v].exp = NS_INT_EXP;
+        }
         orig_mag->data[v] = t2[v].mant;
-        if(t2[v].exp > max_exp)max_exp = t2[v].exp;
+        if(t2[v].exp > max_exp){
+            max_exp = t2[v].exp;
+        }
     }
     orig_mag->exp = max_exp;
 

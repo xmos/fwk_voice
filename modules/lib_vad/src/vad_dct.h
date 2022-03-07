@@ -16,6 +16,6 @@
  *  \param  input           input values to the DCT
  *  \param  output          DCT values.
  */
-void vad_dct_forward24(int32_t output[24], int32_t input[24]);
+void vad_dct_forward24(int32_t output[24], const int32_t input[24]);
 
 #endif
