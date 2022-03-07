@@ -1,14 +1,5 @@
-## fetch dependencies
+## fetch dependencies that are required to build or test modules and examples
 include(FetchContent)
-
-FetchContent_Declare(
-    unity
-    GIT_REPOSITORY https://github.com/ThrowTheSwitch/Unity.git
-    GIT_TAG        v2.5.2
-    GIT_SHALLOW    TRUE
-    SOURCE_DIR          ${CMAKE_BINARY_DIR}/avona_deps/Unity
-)
-FetchContent_Populate(unity)
 
 FetchContent_Declare(
     xs3_math
