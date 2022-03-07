@@ -34,6 +34,8 @@ void ic_frame_init(
         ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE],
         int32_t x_data[IC_FRAME_ADVANCE]){
+    
+    const exponent_t q0_31_exp = -31;
     // y frame 
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         /* Create 512 samples frame */
@@ -55,7 +57,6 @@ void ic_frame_init(
         // Update headroom
         bfp_s32_headroom(&state->prev_y_bfp[ch]);
         // Update exp just in case
-        const exponent_t q0_31_exp = -31;
         state->prev_y_bfp[ch].exp = q0_31_exp;
     }
     // x frame 
@@ -66,7 +67,6 @@ void ic_frame_init(
         // Copy current x samples
         memcpy(&state->x_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], x_data, IC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        const exponent_t q0_31_exp = -31;
         state->x_bfp[ch].exp = q0_31_exp;
         // Update headroom
         bfp_s32_headroom(&state->x_bfp[ch]);
