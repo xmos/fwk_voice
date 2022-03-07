@@ -10,15 +10,6 @@ FetchContent_Declare(
 )
 FetchContent_Populate(xs3_math)
 
-FetchContent_Declare(
-    lib_dsp
-    GIT_REPOSITORY https://github.com/xmos/lib_dsp.git
-    GIT_TAG        v6.0.2 
-    GIT_SHALLOW    TRUE
-    SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/lib_dsp
-)
-FetchContent_Populate(lib_dsp)
-
 #FetchContent_Declare(
 #    xscope_fileio
 #    GIT_REPOSITORY git@github.com:xmos/xscope_fileio.git

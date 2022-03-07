@@ -1,5 +1,5 @@
 
-set(LIB_DSP_PATH ${CMAKE_BINARY_DIR}/avona_deps)
+set(LIB_DSP_PATH ${CMAKE_SOURCE_DIR}/..)
 ## Source files
 file(GLOB_RECURSE LIB_C_SOURCES   ${LIB_DSP_PATH}/lib_dsp/lib_dsp/src/*.c )
 file(GLOB_RECURSE LIB_CXX_SOURCES ${LIB_DSP_PATH}/lib_dsp/lib_dsp/src/*.cc)

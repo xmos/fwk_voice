@@ -86,7 +86,7 @@ foreach( testfile ${TEST_SOURCES} )
     target_include_directories(avona_${TESTNAME}
         PRIVATE
             src
-            ${CMAKE_BINARY_DIR}/avona_deps/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
+            ${TEST_ONLY_DEPS_ROOT}/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
