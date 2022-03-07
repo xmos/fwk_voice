@@ -14,7 +14,7 @@ be built by using the ``make`` command within the build directory.  Individual e
 using ``make EXAMPLE_NAME``, where ``EXAMPLE_NAME`` is the example to build. 
 
 Running Examples
-==================
+================
 
 In order to access binary files on the host from the XCore device over xscope, the examples make use of the
 xscope_fileio utility, which needs to be installed before running the example application. To install xscope_fileio, run
@@ -30,6 +30,7 @@ the following command from the `examples/bare-metal/` directory in a terminal wh
    
    aec_1_thread
    aec_2_threads
+   vad
    ic
    agc
    pipeline_single_threaded
