@@ -28,6 +28,14 @@ message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
 ## Add libs and apps
 add_subdirectory( modules )
 
+
+## Platform-specific C/C++ compile flags
+
+if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    set(XCORE_TARGET "XCORE-AI-EXPLORER")
+else()
+    list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
+endif()
 add_subdirectory( etc )
 
 if ( ${AVONA_BUILD_EXAMPLES} )
