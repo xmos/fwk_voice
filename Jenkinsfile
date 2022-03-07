@@ -62,7 +62,7 @@ pipeline {
               stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
             }
-            Now do xcore files
+            // Now do xcore files
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
@@ -155,6 +155,7 @@ pipeline {
                   sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build_xcore'
                   unstash 'cmake_build_x86'
+
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
