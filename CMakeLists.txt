@@ -21,21 +21,21 @@ set( CMAKE_CXX_STANDARD           11  )
 set( CMAKE_CXX_STANDARD_REQUIRED  ON  )
 set( CMAKE_CXX_EXTENSIONS         OFF )
 
-add_compile_options( ${COMPILE_FLAGS} )
 
 message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
 
-## Add libs and apps
-add_subdirectory( modules )
-
-
 ## Platform-specific C/C++ compile flags
-
 if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
     set(XCORE_TARGET "XCORE-AI-EXPLORER")
 else()
     list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
 endif()
+
+add_compile_options( ${COMPILE_FLAGS} )
+
+## Add libs and apps
+add_subdirectory( modules )
+
 add_subdirectory( etc )
 
 if ( ${AVONA_BUILD_EXAMPLES} )

@@ -1,6 +1,6 @@
-set( DEPS_ROOT ${CMAKE_SOURCE_DIR}/.. )
+set( DEPS_ROOT ${CMAKE_SOURCE_DIR}/.. ) #test only dependencies present in the sandbox as part of sw_avona viewfile
 set( SHARED_SRC_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src )
-set( UNITY_PATH ${CMAKE_BINARY_DIR}/avona_deps/Unity )
+set( UNITY_PATH ${DEPS_ROOT}/Unity )
 
 add_subdirectory( shared )
 

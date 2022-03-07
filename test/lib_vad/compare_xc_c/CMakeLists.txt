@@ -4,9 +4,6 @@
 set( APP_NAME  avona_run_old_vad )
 
 
-#These deps are present in the test view only
-set( DEPS_ROOT ../../../..)
-
 ## Sources
 file( GLOB_RECURSE SOURCES_C  src/*.c )
 file( GLOB_RECURSE SOURCES_XC  src/*.xc )
@@ -23,7 +20,7 @@ file( GLOB_RECURSE LIB_VAD_SOURCES_C  ${DEPS_ROOT}/lib_vad/lib_vad/src/*.c )
 file( GLOB_RECURSE LIB_VAD_SOURCES_XC  ${DEPS_ROOT}/lib_vad/lib_vad/src/*.xc )
 file( GLOB_RECURSE LIB_VAD_SOURCES_ASM  ${DEPS_ROOT}/lib_vad/lib_vad/src/*.S )
 set( LIB_VAD_SOURCES  ${LIB_VAD_SOURCES_C} ${LIB_VAD_SOURCES_XC} ${LIB_VAD_SOURCES_ASM})
-list(REMOVE_ITEM LIB_VAD_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/${DEPS_ROOT}/lib_vad/lib_vad/src/vad_test_task.xc)
+list(REMOVE_ITEM LIB_VAD_SOURCES ${DEPS_ROOT}/lib_vad/lib_vad/src/vad_test_task.xc)
 
 set(LIB_ASM_SOURCES ${LIB_AI_SOURCES_ASM})
 list(APPEND LIB_ASM_SOURCES ${LIB_VAD_SOURCES_ASM})
