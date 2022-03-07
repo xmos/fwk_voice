@@ -149,8 +149,8 @@ void ns_priv_subtract_lambda_from_frame(bfp_s32_t * abs_Y, ns_state_t * ns){
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
         // 64 is a default to be rewritten
         int32_t lut_index = 64;
-        int32_t num = abs_Y->data[v];
-        int32_t den = sqrt_lambda.data[v] / LUT_INPUT_MULTIPLIER;
+        const int32_t num = abs_Y->data[v];
+        const int32_t den = sqrt_lambda.data[v] / LUT_INPUT_MULTIPLIER;
         if(den != 0){
             lut_index = num / den;
             r_data[v] = (lut_index > (LUT_SIZE - 1)) ? 0 : LUT[lut_index];
