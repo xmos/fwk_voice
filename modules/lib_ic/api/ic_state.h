@@ -205,7 +205,7 @@ typedef struct {
     /** FIFO for delaying y channel (w.r.t x) to enable adaptive filter to be effective. */
     int32_t y_input_delay[IC_Y_CHANNELS][IC_Y_CHANNEL_DELAY_SAMPS];
     /** Index state used for keeping track of y delay FIFO. */
-    int32_t y_delay_idx[IC_Y_CHANNELS];
+    uint32_t y_delay_idx[IC_Y_CHANNELS];
 
     /** Mu value used for controlling adaption rate. */
     float_s32_t mu[IC_Y_CHANNELS][IC_X_CHANNELS];
