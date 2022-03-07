@@ -26,9 +26,10 @@ Output
 ------
 
 The output from the VAD is printed to the console as an 8 bit unsigned integer which shows the estimated
-VAD for each frame (240 samples) of audio passed.
+VAD for each frame (240 samples) of audio passed. An excerpt from the output is show below.
 
 ::
+
     [DEVICE] frame: 159 vad: 0
     [DEVICE] frame: 160 vad: 0
     [DEVICE] frame: 161 vad: 0
@@ -49,3 +50,5 @@ VAD for each frame (240 samples) of audio passed.
     [DEVICE] frame: 176 vad: 61
     [DEVICE] frame: 177 vad: 7
     [DEVICE] frame: 178 vad: 1
+
+The [DEVICE] prefix shows that the device (xCORE) has printed the line. The line contains the frame number and the VAD output estimate.
