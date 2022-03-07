@@ -9,6 +9,7 @@ include(CMakeDependentOption)
 ## If enabled, the unit tests will be added as build targets
 set(AVONA_BUILD_TESTS    OFF CACHE BOOL "Include Avona tests as CMake targets." )
 set(AVONA_BUILD_EXAMPLES ON CACHE BOOL "Include Avona examples as CMake targets." )
+set(AVONA_STANDALONE_BUILD ON CACHE BOOL "Standalone sw_avona build")
 set( TEST_AEC_ENHANCEMENTS_BUILD_CONFIG "2 2 2 10 5" CACHE STRING "AEC build configuration for test_aec_enhancements in <threads> <ychannels> <xchannels> <num_main_phases> <num_shadow_phases> format" )
 set( TEST_DELAY_ESTIMATOR_BUILD_CONFIG "2 2 2 10 5" CACHE STRING "AEC build configuration for test_delay_estimator in <threads> <ychannels> <xchannels> <num_main_phases> <num_shadow_phases> format" )
 set( TEST_AEC_SPEC_BUILD_CONFIG "2 1 1 20 10" CACHE STRING "AEC build configuration for test_aec_spec in <threads> <ychannels> <xchannels> <num_main_phases> <num_shadow_phases> format" )

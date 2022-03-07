@@ -28,3 +28,12 @@ FetchContent_Declare(
 )
 FetchContent_Populate(lib_dsp)
 
+#FetchContent_Declare(
+#    xscope_fileio
+#    GIT_REPOSITORY git@github.com:xmos/xscope_fileio.git
+#    GIT_TAG        24ac08c57f0ed90379e1324057aa87a4b424b1cb
+#    GIT_SHALLOW    TRUE
+#    SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/xscope_fileio
+#)
+#FetchContent_Populate(xscope_fileio)
+

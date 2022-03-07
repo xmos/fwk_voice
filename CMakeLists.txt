@@ -9,21 +9,12 @@ project(sw_avona)
 
 enable_language(CXX C ASM)
 
-## Fetch the Unity repo as a dependency
-
 find_package( Python3 COMPONENTS Interpreter )
 
 ## Compile flags for C/C++ for all libs and apps (for all platforms)
 list(APPEND   COMPILE_FLAGS        -Os -g -MMD )
 list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
-## Platform-specific C/C++ compile flags
-
-if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
-    set(XCORE_TARGET "XCORE-AI-EXPLORER")
-else()
-    list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
-endif()
 ## CMake configuration stuff
 
 set( CMAKE_CXX_STANDARD           11  )
@@ -32,18 +23,16 @@ set( CMAKE_CXX_EXTENSIONS         OFF )
 
 add_compile_options( ${COMPILE_FLAGS} )
 
-## Add libs and apps
 message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
-message( STATUS "target name ${XCORE_TARGET}" )
 
+## Add libs and apps
 add_subdirectory( modules )
+
 add_subdirectory( etc )
 
 if ( ${AVONA_BUILD_EXAMPLES} )
     add_subdirectory( examples )
 endif()
-
-## Get build dependencies
 
 if ( ${AVONA_BUILD_TESTS} )
     add_subdirectory( test )
