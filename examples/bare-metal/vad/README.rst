@@ -27,3 +27,25 @@ Output
 
 The output from the VAD is printed to the console as an 8 bit unsigned integer which shows the estimated
 VAD for each frame (240 samples) of audio passed.
+
+::
+    [DEVICE] frame: 159 vad: 0
+    [DEVICE] frame: 160 vad: 0
+    [DEVICE] frame: 161 vad: 0
+    [DEVICE] frame: 162 vad: 1
+    [DEVICE] frame: 163 vad: 145
+    [DEVICE] frame: 164 vad: 226
+    [DEVICE] frame: 165 vad: 246
+    [DEVICE] frame: 166 vad: 97
+    [DEVICE] frame: 167 vad: 236
+    [DEVICE] frame: 168 vad: 255
+    [DEVICE] frame: 169 vad: 255
+    [DEVICE] frame: 170 vad: 249
+    [DEVICE] frame: 171 vad: 253
+    [DEVICE] frame: 172 vad: 43
+    [DEVICE] frame: 173 vad: 146
+    [DEVICE] frame: 174 vad: 249
+    [DEVICE] frame: 175 vad: 229
+    [DEVICE] frame: 176 vad: 61
+    [DEVICE] frame: 177 vad: 7
+    [DEVICE] frame: 178 vad: 1
