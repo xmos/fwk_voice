@@ -11,7 +11,9 @@ keyword_input_base_dir = os.path.abspath("./keyword_input/")
 pipeline_x86_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread")
 pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")
 results_log_file = os.path.abspath("results.csv")
-xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) #Add a generous timeout for xtage acquisition here. Max input wav is 8m21s so double & add 20%
+xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
+                                                # The time to run the multithreaded example on xcore is approximately the wav length
+                                                # we run 2 xcore targets so, even if we queue 4 xcore jobs, they should never timeout
 
 
 # This is a list of tuples we will build consisting of test_wav and target
@@ -78,5 +80,3 @@ def pytest_sessionfinish(session):
 def pytest_generate_tests(metafunc):
     ids = [os.path.basename(item[0]) + ", " + item[1] for item in all_tests_list]
     metafunc.parametrize("test", all_tests_list, ids=ids)
-    # n_procs = 8
-    # metafunc.parametrize("test", all_tests_list[0:n_procs], ids=ids[0:n_procs]) #just a few
