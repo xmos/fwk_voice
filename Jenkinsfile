@@ -7,14 +7,19 @@ pipeline {
   parameters {
     booleanParam(name: 'FULL_TEST_OVERRIDE',
                  defaultValue: false,
-                 description: 'Force a full test. This increases the number of iterations/scope in some tests and enables pipelines characterisation test which takes 2.5hrs')
+                 description: 'Force a full test. This increases the number of iterations/scope in some tests')
+    booleanParam(name: 'PIPELINE_FULL_RUN',
+                 defaultValue: false,
+                 description: 'Enables pipelines characterisation test which takes 2.5hrs by itself. Normally run nightly')
   }
   environment {
     REPO = 'sw_avona'
     VIEW = getViewName(REPO)
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
+                    || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
+    RUN_PIPELINE = """${(params.PIPELINE_FULL_RUN ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -421,7 +426,7 @@ pipeline {
                 withVenv {
                   sh "./make_dirs.sh"
                   script {
-                    if (env.FULL_TEST == "0") {
+                    if (env.RUN_PIPELINE == "0") {
                       sh 'mv excluded_tests_quick.txt excluded_tests.txt'
                     }
                   }
@@ -455,7 +460,7 @@ pipeline {
         }
         stage('Pipeline tests') {
           when {
-            expression { env.FULL_TEST == "1" }
+            expression { env.RUN_PIPELINE == "1" }
           }
           steps {
             dir("${REPO}/test/pipeline") {
