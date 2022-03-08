@@ -36,10 +36,7 @@ add_compile_options( ${COMPILE_FLAGS} )
 ## Add libs and apps
 add_subdirectory( modules )
 
-add_subdirectory( etc )
-
 add_subdirectory( examples )
 
-if ( ${AVONA_BUILD_TESTS} )
     add_subdirectory( test )
 endif()

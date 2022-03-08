@@ -43,6 +43,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "-target=${XCORE_TARGET}"
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+else if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    # Static linking doesn't work on Mac(ld: library not found for -lcrt0.o)
+    target_link_libraries(avona_example_bare_metal_pipeline_single_thread
+        PRIVATE m)
 else()
     # Note we link this app statically so that we can run it on a different machine
     # that may not have all of the dependancies in the right places
