@@ -426,7 +426,7 @@ pipeline {
                 withVenv {
                   sh "./make_dirs.sh"
                   script {
-                    if (env.RUN_PIPELINE == "0") {
+                    if (env.FULL_TEST == "0") {
                       sh 'mv excluded_tests_quick.txt excluded_tests.txt'
                     }
                   }
