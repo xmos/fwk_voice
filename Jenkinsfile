@@ -36,8 +36,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e build/avona_deps/xscope_fileio"
                 }
               }
             }
