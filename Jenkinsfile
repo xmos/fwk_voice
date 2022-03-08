@@ -37,7 +37,7 @@ pipeline {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
+                  sh "pip install -e build/avona_deps/xscope_fileio"
                 }
               }
             }
@@ -68,7 +68,7 @@ pipeline {
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio'
             }
           }
         }
@@ -90,8 +90,7 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
+                  sh "pip install -e build/avona_deps/xscope_fileio"
                   unstash 'cmake_build'
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up

@@ -86,7 +86,7 @@ foreach( testfile ${TEST_SOURCES} )
     target_include_directories(avona_${TESTNAME}
         PRIVATE
             src
-            ${TEST_ONLY_DEPS_ROOT}/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
+            ${LIB_DSP_PATH}/lib_dsp/api #Can't figure out why this is needed when avona_test_deps::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
@@ -94,7 +94,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(avona_${TESTNAME} 
         PUBLIC
-            avona_deps::lib_dsp
+            avona_test_deps::lib_dsp
             avona::vad
             avona::test::shared::test_utils
             avona::test::shared::unity
