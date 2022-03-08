@@ -1,5 +1,5 @@
 
-set(XSCOPE_FILEIO_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src)
+set(XSCOPE_FILEIO_PATH ${CMAKE_BINARY_DIR}/avona_deps)
 
 set(APP_NAME avona_deps_xscope_fileio) 
 add_library(${APP_NAME}  INTERFACE)

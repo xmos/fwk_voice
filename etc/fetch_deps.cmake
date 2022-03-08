@@ -10,12 +10,12 @@ FetchContent_Declare(
 )
 FetchContent_Populate(xs3_math)
 
-#FetchContent_Declare(
-#    xscope_fileio
-#    GIT_REPOSITORY git@github.com:xmos/xscope_fileio.git
-#    GIT_TAG        24ac08c57f0ed90379e1324057aa87a4b424b1cb
-#    GIT_SHALLOW    TRUE
-#    SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/xscope_fileio
-#)
-#FetchContent_Populate(xscope_fileio)
+FetchContent_Declare(
+    xscope_fileio
+    GIT_REPOSITORY https://github.com/xmos/xscope_fileio.git
+    GIT_TAG        86add5101d73d98d4addea9aaeb238072e461b63
+    GIT_SHALLOW    TRUE
+    SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/xscope_fileio
+)
+FetchContent_Populate(xscope_fileio)
 
