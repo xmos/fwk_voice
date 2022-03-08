@@ -1,0 +1,1 @@
+.. include::  ../vad/README.rst

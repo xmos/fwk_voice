@@ -2,13 +2,11 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <string.h>
 #include <bfp_math.h>
-#include <stdio.h>
-
-#include <ns_state.h>
 #include "ns_priv.h"
+#include <ns_state.h>
 
 #define one_mant 1073741824
-#define one_exp -30
+#define one_exp (-30)
 
 //    A = min (B, C) - element wise
 //    A_exp = C_exp
@@ -141,18 +139,25 @@ void ns_priv_subtract_lambda_from_frame(bfp_s32_t * abs_Y, ns_state_t * ns){
 
     bfp_s32_sqrt(&sqrt_lambda, &ns->lambda_hat);
 
-    if (abs_Y->exp < sqrt_lambda.exp) bfp_s32_use_exponent(abs_Y, sqrt_lambda.exp);
-    else bfp_s32_use_exponent(&sqrt_lambda, abs_Y->exp);
+    if (abs_Y->exp < sqrt_lambda.exp) {
+        bfp_s32_use_exponent(abs_Y, sqrt_lambda.exp);
+    }
+    else {
+        bfp_s32_use_exponent(&sqrt_lambda, abs_Y->exp);
+    }
 
     for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
-        int32_t num, den, lut_index;
-        num = abs_Y->data[v];
-        den = sqrt_lambda.data[v] / LUT_INPUT_MULTIPLIER;
+        // 64 is a default to be rewritten
+        int32_t lut_index = 64;
+        const int32_t num = abs_Y->data[v];
+        const int32_t den = sqrt_lambda.data[v] / LUT_INPUT_MULTIPLIER;
         if(den != 0){
             lut_index = num / den;
             r_data[v] = (lut_index > (LUT_SIZE - 1)) ? 0 : LUT[lut_index];
         }
-        else r_data[v] = 0;
+        else {
+            r_data[v] = 0;
+        }
 
         sqrt_lambda.data[v] = (sqrt_lambda.data[v] > abs_Y->data[v]) ? abs_Y->data[v] : sqrt_lambda.data[v];
     }

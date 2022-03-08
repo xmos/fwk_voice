@@ -13,6 +13,7 @@ target_include_directories(avona_example_bare_metal_agc
 target_link_libraries(avona_example_bare_metal_agc
     PUBLIC
         avona::agc
+        sdk::lib_xs3_math
         avona::example::fileutils) 
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
