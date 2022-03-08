@@ -3,7 +3,7 @@ set( SHARED_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/shared )
 set( UNITY_PATH ${TEST_ONLY_DEPS_ROOT}/Unity )
 set(LIB_DSP_PATH ${TEST_ONLY_DEPS_ROOT}/lib_dsp)
 
-add_subdirectory(../etc/build_options.cmake)
+include(etc/build_options.cmake)
 
 if ( ${AVONA_BUILD_TESTS} )
     add_subdirectory( shared )
