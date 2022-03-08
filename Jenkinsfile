@@ -79,6 +79,7 @@ pipeline {
             }
             dir("${REPO}") {
               stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
+              archiveArtifacts artifacts: "build/**/xscope_fileio/**", fingerprint: true
             }
           }
         }
