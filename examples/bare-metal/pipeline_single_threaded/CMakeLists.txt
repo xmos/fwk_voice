@@ -44,7 +44,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
+    # Note we link this app statically so that we can run it on a different machine
+    # that may not have all of the dependancies in the right places
     target_link_libraries(avona_example_bare_metal_pipeline_single_thread
-        PRIVATE m)
+        PRIVATE m "-static")
 endif()
 
