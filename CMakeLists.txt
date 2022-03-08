@@ -38,9 +38,7 @@ add_subdirectory( modules )
 
 add_subdirectory( etc )
 
-if ( ${AVONA_BUILD_EXAMPLES} )
-    add_subdirectory( examples )
-endif()
+add_subdirectory( examples )
 
 if ( ${AVONA_BUILD_TESTS} )
     add_subdirectory( test )

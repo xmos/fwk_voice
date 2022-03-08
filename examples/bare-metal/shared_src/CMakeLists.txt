@@ -1,3 +1,6 @@
+
+add_subdirectory(external_deps)
+
 ######
 add_library(avona_example_shared_src_aec_1_thread INTERFACE)
 target_sources(avona_example_shared_src_aec_1_thread
