@@ -19,21 +19,23 @@ void test_hpf(){
     bfp_s32_t orig_abs, filt_abs;
     float_s32_t orig_fl, filt_fl;
     double orig_db, filt_db;
-    xs3_biquad_filter_s32_t filter = {0};
+    samples_orig[5] = 0x3fffffff;
+    samples_filt[5] = 0x3fffffff;
+    
+    /*xs3_biquad_filter_s32_t filter = {0};
     filter.biquad_count = 2;
-
     int i = 0, j = 0;
     for(int v = 0; v < 10; v++){
         if(i == 5){i = 0; j++;}
         filter.coef[i][j] = final_coef[v];
         i++;
     }
-
-    samples_orig[5] = 0x3fffffff;
     for(unsigned i = 0; i < len; i++) {
-        samples_orig[i] >>= 1;
-        samples_filt[i] = xs3_filter_biquad_s32(&filter, samples_orig[i]);
-    }
+        samples_filt[i] = samples_orig[i] >> 1;
+        samples_filt[i] = xs3_filter_biquad_s32(&filter, samples_filt[i]) << 1;
+    }*/
+
+    pre_agc_hpf(samples_filt);
 
     bfp_s32_init(&orig, samples_orig, -31, len, 1);
     bfp_s32_init(&filt, samples_filt, -31, len, 1);
@@ -56,6 +58,9 @@ void test_hpf(){
         filt_fl.mant = filt_abs.data[v];
         orig_db = float_s32_to_double(orig_fl);
         filt_db = float_s32_to_double(filt_fl);
-        TEST_ASSERT((orig_db + 0.001) > filt_db);
+        // thresholt is high because pre_agc_hpf works on a 240 frame
+        // so we'll have an implulse in 240's sample 
+        // which will increase all the frequency compnents
+        TEST_ASSERT((orig_db + 0.006) > filt_db);
     }
 }

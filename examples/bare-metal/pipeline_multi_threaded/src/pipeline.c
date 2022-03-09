@@ -17,6 +17,7 @@
 #include "vad_api.h"
 #include "ns_api.h"
 #include "agc_api.h"
+#include "hpf.h"
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -51,8 +52,8 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
-    adec_conf.bypass = 1; //Bypass automatic DE correction
-    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
+    adec_conf.bypass = 1; // Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -81,7 +82,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 /// pipeline_stage_2
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
-    //pipeline metadata
+    // Pipeline metadata
     pipeline_metadata_t md;
     // Initialise IC and VAD
     ic_state_t DWORD_ALIGNED ic_state;
@@ -128,7 +129,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
-    //Initialise NS
+    // Initialise NS
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_init(&ns_state[ch]);
@@ -145,7 +146,7 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         /**NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-            //the frame buffer will be used for both input and output here
+            // The frame buffer will be used for both input and output here
             ns_process_frame(&ns_state[ch], frame[ch], frame[ch]);
         }
 
@@ -178,6 +179,9 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+
+        // Apply 100 Hz High-Pass filter for the comms channel
+        pre_agc_hpf(frame[1]);
 
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {

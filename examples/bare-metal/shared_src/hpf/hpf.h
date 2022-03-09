@@ -3,4 +3,4 @@
 
 #include <xs3_math.h>
 
-void pre_agc_hpf(xs3_biquad_filter_s32_t * filter, int32_t data[240]);
+void pre_agc_hpf(int32_t data[240]);

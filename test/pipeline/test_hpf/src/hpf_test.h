@@ -9,5 +9,6 @@
 #include <dsp.h>
 #include <bfp_math.h>
 #include <math.h>
+#include <hpf.h>
 
 #endif 
