@@ -67,7 +67,8 @@ foreach( testfile ${TEST_SOURCES} )
             sdk::lib_xs3_math
             avona::test::shared::test_utils
             avona::test::shared::unity
-            avona::example::hpf)
+            avona::example::hpf
+        )
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         target_compile_options(avona_${TESTNAME}
