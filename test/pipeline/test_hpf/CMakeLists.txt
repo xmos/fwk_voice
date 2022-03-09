@@ -63,7 +63,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(avona_${TESTNAME} 
         PUBLIC
-            sdk::lib_dsp
+            avona_test_deps::lib_dsp
             sdk::lib_xs3_math
             avona::test::shared::test_utils
             avona::test::shared::unity

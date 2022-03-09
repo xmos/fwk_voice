@@ -472,7 +472,7 @@ pipeline {
             expression { env.RUN_PIPELINE == "1" }
           }
           steps {
-            dir("${REPO}/test/pipeline") {
+            dir("${REPO}/test/pipeline/full_pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
                 withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
