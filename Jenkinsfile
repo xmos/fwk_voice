@@ -478,7 +478,7 @@ pipeline {
                   viewEnv {
                     withVenv {
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh 'tree ../../build/examples/bare-metal/'
+                      sh 'tree ../../../build/examples/bare-metal/'
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
