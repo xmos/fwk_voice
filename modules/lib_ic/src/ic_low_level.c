@@ -1,5 +1,8 @@
-#include <limits.h>
+// Copyright 2021 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 #include "ic_low_level.h"
+#include <limits.h>
 
 //lib_ic heavily reuses functions from lib_aec currently
 #include "aec_defines.h"
@@ -31,6 +34,8 @@ void ic_frame_init(
         ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE],
         int32_t x_data[IC_FRAME_ADVANCE]){
+    
+    const exponent_t q0_31_exp = -31;
     // y frame 
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         /* Create 512 samples frame */
@@ -39,7 +44,8 @@ void ic_frame_init(
         // Copy and apply delay to current y samples
         memcpy(&state->y_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], y_data, IC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        state->y_bfp[ch].exp = -31;
+        const exponent_t q0_31_exp = -31;
+        state->y_bfp[ch].exp = q0_31_exp;
         // Update headroom
         bfp_s32_headroom(&state->y_bfp[ch]);
 
@@ -51,7 +57,7 @@ void ic_frame_init(
         // Update headroom
         bfp_s32_headroom(&state->prev_y_bfp[ch]);
         // Update exp just in case
-        state->prev_y_bfp[ch].exp = -31;
+        state->prev_y_bfp[ch].exp = q0_31_exp;
     }
     // x frame 
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
@@ -61,7 +67,7 @@ void ic_frame_init(
         // Copy current x samples
         memcpy(&state->x_bfp[ch].data[IC_FRAME_LENGTH-IC_FRAME_ADVANCE], x_data, IC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        state->x_bfp[ch].exp = -31;
+        state->x_bfp[ch].exp = q0_31_exp;
         // Update headroom
         bfp_s32_headroom(&state->x_bfp[ch]);
 
@@ -71,7 +77,7 @@ void ic_frame_init(
         // Copy current frame to previous
         memcpy(&state->prev_x_bfp[ch].data[(IC_FRAME_LENGTH-(2*IC_FRAME_ADVANCE))], x_data, IC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        state->prev_x_bfp[ch].exp = -31;
+        state->prev_x_bfp[ch].exp = q0_31_exp;
         // Update headroom
         bfp_s32_headroom(&state->prev_x_bfp[ch]);
     }
@@ -85,7 +91,8 @@ void ic_frame_init(
 
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
-        state->Y_hat_bfp[ch].exp = -1024;
+        const exponent_t zero_exp = -1024;
+        state->Y_hat_bfp[ch].exp = zero_exp;
         state->Y_hat_bfp[ch].hr = 0;
         memset(&state->Y_hat_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH*sizeof(complex_s32_t));
     }
@@ -186,7 +193,8 @@ void ic_create_output(
         unsigned ch){
 
     bfp_s32_t output_struct;
-    bfp_s32_init(&output_struct, output, -31, IC_FRAME_ADVANCE, 0);
+    const exponent_t q0_31_exp = -31;
+    bfp_s32_init(&output_struct, output, q0_31_exp, IC_FRAME_ADVANCE, 0);
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap_bfp[ch];
     bfp_s32_t *error_ptr = &state->error_bfp[ch];
@@ -245,7 +253,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
         return;
     }
-    float_s32_t r = {vad, -8}; //convert to float between 0 and 0.99609375
+    exponent_t q0_8_exp = -8; 
+    float_s32_t r = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
 
     ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
 

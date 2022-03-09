@@ -26,4 +26,11 @@ target_compile_definitions(avona_test_shared_unity
     INTERFACE
         -DUNITY_SUPPORT_64)
 
-add_library(avona::test::shared::unity ALIAS avona_test_shared_unity) 
+add_library(avona::test::shared::unity ALIAS avona_test_shared_unity)
+
+#################
+add_subdirectory(legacy_compat)
+
+if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    add_subdirectory(lib_dsp)
+endif()

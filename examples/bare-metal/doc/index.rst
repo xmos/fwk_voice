@@ -18,11 +18,12 @@ Running Examples
 
 In order to access binary files on the host from the XCore device over xscope, the examples make use of the
 xscope_fileio utility, which needs to be installed before running the example application. To install xscope_fileio, run
-the following command from the `examples/bare-metal/` directory in a terminal where XMOS XTC tools are sourced.
+the following command from the top level `sw_avona` directory in a terminal where XMOS XTC tools are sourced. Make sure that cmake
+build step has been completed prior to this.
 
 ::
 
-    pip install -e shared_src/xscope_fileio/
+    pip install -e build/avona_deps/xscope_fileio/
 
 
 .. toctree::
