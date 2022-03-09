@@ -43,4 +43,3 @@ def test_pipelines(test, record_property):
         #record_property("TimeElapsed", r['time_diff'])
             
     return True
-

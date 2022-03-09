@@ -20,5 +20,5 @@ if ( ${AVONA_BUILD_TESTS} )
 
     add_subdirectory( lib_vad )
 
-    add_subdirectory( pipeline )
+    add_subdirectory( test_hpf )
 endif()

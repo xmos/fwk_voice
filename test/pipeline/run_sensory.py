@@ -29,7 +29,7 @@ def run_file(input_filename, sensory_model):
         sensory_path = os.environ['SENSORY_PATH']
         print("sensory_path = %s"%(sensory_path))
     except:
-        sensory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../../sensory_sdk/')
+        sensory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../sensory_sdk/')
         print('env variable SENSORY_PATH not set. looking for sensory in the default path ',sensory_path)
 
     spot_eval_exe = os.path.expanduser(os.path.join(sensory_path, "spot_eval_exe", SPOT_EVAL_EXE))

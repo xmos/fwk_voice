@@ -457,7 +457,7 @@ pipeline {
         }
         stage('HPF test') {
           steps {
-            dir("${REPO}/test/pipeline/test_hpf") {
+            dir("${REPO}/test/test_hpf") {
               viewEnv() {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
@@ -472,13 +472,13 @@ pipeline {
             expression { env.RUN_PIPELINE == "1" }
           }
           steps {
-            dir("${REPO}/test/pipeline/full_pipeline") {
+            dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
                 withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh 'tree ../../../build/examples/bare-metal/'
+                      sh 'tree ../../build/examples/bare-metal/'
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
