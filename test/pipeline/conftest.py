@@ -14,7 +14,7 @@ results_log_file = os.path.abspath("results.csv")
 xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
                                                 # The time to run the multithreaded example on xcore is approximately the wav length
                                                 # we run 2 xcore targets so, even if we queue 4 xcore jobs, they should never timeout
-quick_test_pass_thresholds = {"Loc1_Clean_XMOS_DUT1_70dB" : 98, "Loc1_Clean_XMOS_DUT1_80dB" : 93}
+quick_test_pass_thresholds = {"Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1_extract_69s" : 8} #This is what lib_audio_pipelines scores so use this as passmark
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
