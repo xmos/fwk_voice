@@ -4,7 +4,7 @@
 import os, sys, shutil
 import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
-from conftest import pipeline_input_dir, results_log_file, quick_test_setting, quick_test_pass_threshold
+from conftest import pipeline_input_dir, results_log_file, quick_test_setting, quick_test_pass_thresholds
 from run_sensory import run_sensory
 import time, fcntl
 
@@ -37,6 +37,10 @@ def test_pipelines(test, record_property):
     record_property("Target", target)
     record_property("Wakewords", detections)
 
-    if quick_test_setting != 0 and detections < quick_test_pass_threshold:
-        assert 0, f"Quick test failed for file {wav_name}, target {target}. Expected {quick_test_pass_threshold} keywords, got {detections}"
+    #Fail only if in quicktest mode
+    if quick_test_setting != 0:
+        for key in quick_test_pass_thresholds:
+            if key in keyword_file:
+                pass_mark = quick_test_pass_thresholds[key]
+                assert detections >= pass_mark, f"Quick test failed for file {wav_name}, target {target}. Expected {threshold} keywords, got {detections}"
             
