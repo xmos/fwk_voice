@@ -5,11 +5,6 @@
 
 #define len 512
 
-int32_t final_coef[10] = {
-    1020035168, -2040070348, 1020035168, 2070720224, -998576072,
-    1073741824, -2147483648, 1073741824, 2114066120, -1041955416
-};
-
 void test_hpf(){
     int32_t DWORD_ALIGNED samples_orig[len + 2] = {0};
     int32_t DWORD_ALIGNED samples_filt[len + 2] = {0};
@@ -21,19 +16,6 @@ void test_hpf(){
     double orig_db, filt_db;
     samples_orig[5] = 0x3fffffff;
     samples_filt[5] = 0x3fffffff;
-    
-    /*xs3_biquad_filter_s32_t filter = {0};
-    filter.biquad_count = 2;
-    int i = 0, j = 0;
-    for(int v = 0; v < 10; v++){
-        if(i == 5){i = 0; j++;}
-        filter.coef[i][j] = final_coef[v];
-        i++;
-    }
-    for(unsigned i = 0; i < len; i++) {
-        samples_filt[i] = samples_orig[i] >> 1;
-        samples_filt[i] = xs3_filter_biquad_s32(&filter, samples_filt[i]) << 1;
-    }*/
 
     pre_agc_hpf(samples_filt);
 
@@ -58,9 +40,14 @@ void test_hpf(){
         filt_fl.mant = filt_abs.data[v];
         orig_db = float_s32_to_double(orig_fl);
         filt_db = float_s32_to_double(filt_fl);
+        // this test is designed to test the impulse responce only!
+        // that's why the test condition is set so the filtered magnitudes
+        // have to be smaller as they should only tend to converge 
+        // to the flat line (impulse in frequency domain)
+
         // thresholt is high because pre_agc_hpf works on a 240 frame
         // so we'll have an implulse in 240's sample 
-        // which will increase all the frequency compnents
+        // which will slightly increase all the frequency compnents
         TEST_ASSERT((orig_db + 0.006) > filt_db);
     }
 }
