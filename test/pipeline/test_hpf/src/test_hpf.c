@@ -45,7 +45,7 @@ void test_hpf(){
         // have to be smaller as they should only tend to converge 
         // to the flat line (impulse in frequency domain)
 
-        // thresholt is high because pre_agc_hpf works on a 240 frame
+        // threshold is high because pre_agc_hpf works on a 240 frame
         // so we'll have an implulse in 240's sample 
         // which will slightly increase all the frequency compnents
         TEST_ASSERT((orig_db + 0.006) > filt_db);
