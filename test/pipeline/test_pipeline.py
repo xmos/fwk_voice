@@ -42,5 +42,5 @@ def test_pipelines(test, record_property):
         for key in quick_test_pass_thresholds:
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
-                assert detections >= pass_mark, f"Quick test failed for file {wav_name}, target {target}. Expected {threshold} keywords, got {detections}"
+                assert detections >= pass_mark, f"Quick test failed for file {wav_name}, target {target}. Expected {pass_mark} keywords, got {detections}"
             
