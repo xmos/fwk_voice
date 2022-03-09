@@ -1,17 +1,22 @@
-set( DEPS_ROOT ${CMAKE_SOURCE_DIR}/.. )
-set( SHARED_SRC_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src )
-set( UNITY_PATH ${CMAKE_BINARY_DIR}/avona_deps/Unity )
+set( TEST_ONLY_DEPS_ROOT ${CMAKE_SOURCE_DIR}/.. ) #test only dependencies present in the sandbox as part of sw_avona viewfile
+set( SHARED_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/shared )
+set( UNITY_PATH ${TEST_ONLY_DEPS_ROOT}/Unity )
+set(LIB_DSP_PATH ${TEST_ONLY_DEPS_ROOT}/lib_dsp)
 
-add_subdirectory( shared )
+include(etc/build_options.cmake)
 
-add_subdirectory( lib_ns )
+if ( ${AVONA_BUILD_TESTS} )
+    add_subdirectory( shared )
 
-add_subdirectory( lib_aec )
+    add_subdirectory( lib_ns )
 
-add_subdirectory( lib_adec )
+    add_subdirectory( lib_aec )
 
-add_subdirectory( lib_ic )
+    add_subdirectory( lib_adec )
 
-add_subdirectory( lib_agc )
+    add_subdirectory( lib_ic )
 
-add_subdirectory( lib_vad )
+    add_subdirectory( lib_agc )
+
+    add_subdirectory( lib_vad )
+endif()

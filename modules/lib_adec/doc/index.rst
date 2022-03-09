@@ -1,5 +1,5 @@
 Automatic Delay Estimation and Correction Library
-==================================================
+=================================================
 
 Introduction
 ************

@@ -46,9 +46,9 @@ headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
     //Now adjust exponent to match output of lib_dsp
     //This is tedious as BFP result is same but we need identical matnissas
     //next stage in the VAD pipelines
-    headroom_t lib_dsp_exp = VAD_LOG_WINDOW_LENGTH - original_hr;
-    headroom_t xs3_math_exp = x_exp + 31;
-    headroom_t exp_adjust = lib_dsp_exp - xs3_math_exp; 
+    exponent_t lib_dsp_exp = VAD_LOG_WINDOW_LENGTH - original_hr;
+    exponent_t xs3_math_exp = x_exp + 31;
+    right_shift_t exp_adjust = lib_dsp_exp - xs3_math_exp; 
     xs3_vect_s32_shr(curr, curr, VAD_PROC_FRAME_LENGTH, exp_adjust);
     x_exp += exp_adjust;
 
@@ -72,7 +72,9 @@ int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
         tav += energy;
     }
     uint64_t div = tav;
-    if (div == 0) return sum;
+    if (div == 0){
+        return sum;
+    }
     return sum / div;
 }
 
@@ -99,7 +101,9 @@ int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
         tav += energy;
     }
     uint64_t div = tav >> headroom;
-    if (div == 0) return sum;
+    if (div == 0){
+        return sum;
+    }
     return sum / div;
 }
 
@@ -126,8 +130,8 @@ void vad_fc_layer(  int64_t output[], const size_t num_out,
 }
 
 
-void vad_reduce_relu(int32_t activated[], int64_t raw_layer[], const size_t N){
-    for(int i=0; i<N; i++){
+void vad_reduce_relu(int32_t activated[], const int64_t raw_layer[], const size_t N){
+    for(int i=0; i < N; i++){
         const int64_t max = 0x7fffffffLL << VAD_AI_NN_WEIGHT_Q;
         int64_t clamped_relu = raw_layer[i];
         if (clamped_relu > max){
@@ -143,11 +147,15 @@ void vad_reduce_sigmoid(int32_t out_data[],
                        const int64_t in_data[],
                        const size_t N) {
     for(uint32_t i = 0; i < N; i++) {
-        int32_t shift = VAD_AI_NN_OUTPUT_Q-24;
+        int32_t shift = VAD_AI_NN_OUTPUT_Q - 24;
         int64_t x = in_data[i];
         long long max = 0x7fffffffLL << shift;
-        if (x > max) x = max;
-        if (x < -max-1) x = -max-1;
+        if (x > max){
+            x = max;
+        }
+        if (x < -max - 1){
+            x = -max - 1;
+        }
         int32_t in_32 = x >> shift;
         out_data[i] = vad_math_logistics_fast(in_32);
     }
@@ -229,7 +237,7 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     // Compute MEL frequencies; 41 of them (including first one), compensate
     // for 2 * logN bits that are lost in the FFT.
-    vad_mel_compute_new(mel, VAD_N_MEL_SCALE+1, curr_fd, VAD_WINDOW_LENGTH/2, vad_mel_table24_512, 2*VAD_LOG_WINDOW_LENGTH-2*headroom);
+    vad_mel_compute_new(mel, VAD_N_MEL_SCALE + 1, curr_fd, VAD_WINDOW_LENGTH / 2, vad_mel_table24_512, 2 * VAD_LOG_WINDOW_LENGTH - 2 * headroom);
 
     // Mel coefficients are in 8.24; make them in 16.16 format for headroom
     for(int i = 0; i < VAD_N_MEL_SCALE; i++) {
@@ -266,16 +274,16 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     features[0] = spectral_centroid;
     features[1] = spectral_spread;
-    for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-3; i++) {
-        features[i+2] = dct_output[i+1];
+    for(int i = 0; i < VAD_N_FEATURES_PER_FRAME - 3; i++) {
+        features[i + 2] = dct_output[i + 1];
     }
-    features[VAD_N_FEATURES_PER_FRAME-1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
+    features[VAD_N_FEATURES_PER_FRAME - 1] = dct_output[0] - state->old_features[VAD_N_OLD_FEATURES - 1];
 
 
     for(int i = VAD_N_OLD_FEATURES - 2;
             i >= VAD_N_OLD_FEATURES - VAD_FRAME_STRIDE;
             i--) {
-        state->old_features[i+1] = state->old_features[i];
+        state->old_features[i + 1] = state->old_features[i];
     }
     state->old_features[VAD_N_OLD_FEATURES-VAD_FRAME_STRIDE] = dct_output[0] ;
 #if PRINT_ME
@@ -291,8 +299,8 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
     printf("\n");
 #endif
-    features[VAD_N_FEATURES_PER_FRAME-1] = 
-        (((long long)(features[VAD_N_FEATURES_PER_FRAME-1] - vad_mus[VAD_N_FEATURES_PER_FRAME-1])) << 24) / vad_sigmas[VAD_N_FEATURES_PER_FRAME-1];
+    features[VAD_N_FEATURES_PER_FRAME - 1] = 
+        (((long long)(features[VAD_N_FEATURES_PER_FRAME - 1] - vad_mus[VAD_N_FEATURES_PER_FRAME - 1])) << 24) / vad_sigmas[VAD_N_FEATURES_PER_FRAME - 1];
 
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME-1; i++) {
         features[i] = (((long long)(features[i] - vad_mus[i])) << 24) / vad_sigmas[i];
@@ -304,7 +312,7 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
     }
     int oindex = VAD_N_FEATURES_PER_FRAME;
     // Old data has to be picked up strided
-    for(int i = (VAD_FRAME_STRIDE-1) * VAD_N_FEATURES_PER_FRAME; i < VAD_N_OLD_FEATURES-1-VAD_FRAME_STRIDE; i += VAD_FRAME_STRIDE * VAD_N_FEATURES_PER_FRAME) {
+    for(int i = (VAD_FRAME_STRIDE - 1) * VAD_N_FEATURES_PER_FRAME; i < VAD_N_OLD_FEATURES - 1 - VAD_FRAME_STRIDE; i += VAD_FRAME_STRIDE * VAD_N_FEATURES_PER_FRAME) {
         for(int j = 0; j < VAD_N_FEATURES_PER_FRAME; j++) {
             nn_features[oindex] = state->old_features[i + j];
             oindex++;
@@ -313,7 +321,7 @@ uint8_t vad_probability_voice(const int32_t input[VAD_FRAME_ADVANCE],
 
     // Now copy old data back; keeping an extra dMFCC0.
     //old_features[VAD_N_OLD_FEATURES-1] = old_features[VAD_N_OLD_FEATURES-2];
-    for(int i = VAD_N_OLD_FEATURES - VAD_N_FEATURES_PER_FRAME-1-VAD_FRAME_STRIDE; i >= 0; i--) {
+    for(int i = VAD_N_OLD_FEATURES - VAD_N_FEATURES_PER_FRAME - 1 - VAD_FRAME_STRIDE; i >= 0; i--) {
         state->old_features[i+VAD_N_FEATURES_PER_FRAME] = state->old_features[i];
     }
     for(int i = 0; i < VAD_N_FEATURES_PER_FRAME; i++) {

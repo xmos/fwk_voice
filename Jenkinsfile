@@ -40,8 +40,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
               }
             }
@@ -73,10 +71,10 @@ pipeline {
                   sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
                       }
                   }
                   sh "make -j8"
@@ -84,7 +82,7 @@ pipeline {
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
             }
           }
         }
@@ -106,10 +104,9 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                   unstash 'cmake_build_xcore'
                   unstash 'cmake_build_x86'
+                  sh "pip install -e build/avona_deps/xscope_fileio"
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"

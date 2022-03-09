@@ -29,7 +29,7 @@
 #define IC_INIT_MU                                  0.369566 //From Python test_wav_ic
 /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy.
  * @ingroup ic_defines */
-#define IC_INIT_EMA_ALPHA                           0.9995117188 //From Pyhton model
+#define IC_INIT_EMA_ALPHA                           0.9995117188 //From Python model
 /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. This
  * value is adjusted by the adaption rate controller if instability is detected.
  * @ingroup ic_defines */
@@ -55,7 +55,7 @@
 #define IC_INIT_SIGMA_XX_SHIFT                      11  //From XC IC and Python AEC
 /** Up scaling factor for X energy calculation for used for LMS normalisation.
  * @ingroup ic_defines */
-#define IC_INIT_GAMMA_LOG2                          1   //From Pyhton IC (2^1 = 2.0)
+#define IC_INIT_GAMMA_LOG2                          1   //From Python IC (2^1 = 2.0)
 /** Delta value used in denominator to avoid large values when calculating inverse X energy.
  * @ingroup ic_defines */
 #define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic

@@ -13,21 +13,21 @@ message( STATUS "Unit tests speedup factor ${TESTS_SPEEDUP_FACTOR}" )
 
 ## Sources
 # audio_test_tools (old test_wav_vad)
-set( AUDIO_TEST_TOOLS_PATH ${DEPS_ROOT}/audio_test_tools/audio_test_tools )
+set( AUDIO_TEST_TOOLS_PATH ${TEST_ONLY_DEPS_ROOT}/audio_test_tools/audio_test_tools )
 list( APPEND AUDIO_TEST_TOOLS_SOURCES ${AUDIO_TEST_TOOLS_PATH}/src/testing.xc ${AUDIO_TEST_TOOLS_PATH}/src/floating_fft.xc)
 
 ## LIB_AI for unit test comparison
-file( GLOB_RECURSE LIB_AI_SOURCES_C  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
-file( GLOB_RECURSE LIB_AI_SOURCES_XC  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.xc )
-file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
+file( GLOB_RECURSE LIB_AI_SOURCES_C  ${TEST_ONLY_DEPS_ROOT}/lib_ai/lib_ai/src/*.c )
+file( GLOB_RECURSE LIB_AI_SOURCES_XC  ${TEST_ONLY_DEPS_ROOT}/lib_ai/lib_ai/src/*.xc )
+file( GLOB_RECURSE LIB_AI_SOURCES_ASM  ${TEST_ONLY_DEPS_ROOT}/lib_ai/lib_ai/src/*.S )
 ## cmake doesn't recognize .S files as assembly by default
 set_source_files_properties(LIB_AI_SOURCES_ASM  PROPERTIES LANGUAGE ASM)
 
 set( LIB_AI_SOURCES  ${LIB_AI_SOURCES_C} ${LIB_AI_SOURCES_XC} ${LIB_AI_SOURCES_ASM})
-set( LIB_AI_INCLUDES ${DEPS_ROOT}/lib_ai/lib_ai/api/ ${DEPS_ROOT}/lib_ai/lib_ai/src/ ${XCORE_SDK_PATH}/modules/legacy_compat ${XCORE_SDK_PATH}/modules/utils/api)
+set( LIB_AI_INCLUDES ${TEST_ONLY_DEPS_ROOT}/lib_ai/lib_ai/api/ ${TEST_ONLY_DEPS_ROOT}/lib_ai/lib_ai/src/ ${XCORE_SDK_PATH}/modules/utils/api)
 
 #old lib_vad for comparison
-set( LIB_OLD_VAD_SOURCES ${DEPS_ROOT}/lib_vad/lib_vad/src/vad_mel_compute.xc)
+set( LIB_OLD_VAD_SOURCES ${TEST_ONLY_DEPS_ROOT}/lib_vad/lib_vad/src/vad_mel_compute.xc)
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -86,7 +86,7 @@ foreach( testfile ${TEST_SOURCES} )
     target_include_directories(avona_${TESTNAME}
         PRIVATE
             src
-            ../../../xcore_sdk/modules/lib_dsp/lib_dsp/lib_dsp/api #Can't figure out why this is needed when sdk::lib_dsp is already being linked.
+            ${LIB_DSP_PATH}/lib_dsp/api #Can't figure out why this is needed when avona_test_deps::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
@@ -94,7 +94,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(avona_${TESTNAME} 
         PUBLIC
-            sdk::lib_dsp
+            avona_test_deps::lib_dsp
             avona::vad
             avona::test::shared::test_utils
             avona::test::shared::unity
