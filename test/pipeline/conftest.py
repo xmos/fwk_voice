@@ -15,16 +15,18 @@ xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xta
                                                 # The time to run the multithreaded example on xcore is approximately the wav length
                                                 # we run 2 xcore targets so, even if we queue 4 xcore jobs, they should never timeout
 
+quick_test_pass_threshold = 100 
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
+quick_test_setting = 1
 # Select whether we run each test on xcore or using the x86 compiled example app
 targets = ("xcore", "x86")
 
 
 """ before session.main() is called. """
 def pytest_sessionstart(session):
-    global hydra_audio_base_dir
+    global hydra_audio_base_dir, quick_test_setting
     try:
         hydra_audio_base_dir = os.environ['hydra_audio_PATH']
     except:
@@ -35,8 +37,10 @@ def pytest_sessionstart(session):
     except:
         print('Warning: RUN_QUICK_TEST environment variable not set. Running quick tests by default')
         quick_test_setting = 1
+    finally:
+        print(f"RUN_QUICK_TEST: {quick_test_setting}")
 
-    if quick_test_setting == 1:
+    if quick_test_setting == 0:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset")
