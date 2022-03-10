@@ -13,18 +13,24 @@ maximise AEC performance.  ADEC processing happens on the same thread as the AEC
 The AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
 filter. This example calls AEC functions using 2 threads to process a frame through the AEC stage.
 The AEC stage generates the echo cancelled version of the mic input that is then sent for processing through the
-NS. AEC gets reconfigured for a 1 mic input channel, 1 reference input channel, 30 main filter phases and no shadow
+IC to form the ASR channel. The comms channel will be produced by avereging both AEC stage outputs and summarising them. 
+AEC gets reconfigured for a 1 mic input channel, 1 reference input channel, 30 main filter phases and no shadow
 filter, when ADEC goes in delay estimation mode while measuring and correcting delay offsets. During this process, AEC
 output is ignored and the mic input is directly sent to output. Once the new delay is measured and delay correction is
 applied, AEC gets configured back to its original configuration.
 This example supports a maximum of 150ms of delay correction between the reference and microphone input.
 
-The NS is configured in the same way for both ASR and Comms. The NS stage generated noise suppressed version of the AGC output and then sent to AGC. 
+IC only works for a two channel input. It will use the second channel as the reference to the first to output interference cancelled output.
+Then the VAD will be called to calculate the probability of the voice activity. The output of the VAD will allow IC
+to adapt it's coefficients later.
+
+The NS is configured in the same way for both ASR and Comms. The NS stage generated noise suppressed version of the IC output and then sent to AGC. 
 
 AGC is configured for ASR engine suitable gain control on channel 0 and Comms suitable gain control on channel 1. The
-output of AGC stage is the pipeline output which is written into a 2 channel output wav file.
+output of AGC stage is the pipeline output which is written into a 2 channel output wav file. The AGC also takes the output
+of the VAD to adapt it's coefficients.
 
-In total, the audio processing stages consume 4 hardware threads; 2 for AEC stage, 1 for NS stage and 1 for AGC stage.
+In total, the audio processing stages consume 5 hardware threads; 2 for AEC stage, 1 for IC and VAD, 1 for NS stage and 1 for AGC stage.
 
 The input file input.wav has 2 channels of mic input followed by 2 channels of reference input. Output is written to the output.wav file.
 
