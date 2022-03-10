@@ -29,7 +29,8 @@ The AGC is configured for ASR engine suitable gain control on channel 0 and Comm
 output of the AGC stage is the pipeline output which is written into a 2 channel output wav file. The AGC also takes the output
 of the VAD to adapt it's coefficients.
 
-The pipeline is run on a single thread.
+The pipeline is run on a single thread. To run the pipeline on a single xcore-AI thread a minimum thread speed of 140MHz is recommended, for 
+a typical pipeline configuration.
 
 The input file input.wav has a total of 4 channels and should have bit depth of 32b. Due to the microphone inputs being very low amplitude,
 16b data would result in severe quantisation of the data. The first 2 channels in the 4 channel file are the mic inputs followed by 2 channels 
