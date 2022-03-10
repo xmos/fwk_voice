@@ -25,35 +25,3 @@ on:
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
-
-jobs:
-  build_apps:
-    name: Build UA and INT configurations
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Avona
-        uses: actions/checkout@v2
-
-      - name: Checkout SDK
-        uses: actions/checkout@v2
-        with:
-          repository: xmos/xcore_sdk
-          path: xcore_sdk
-          submodules: recursive
-          # Note TEMP checkout of old working sdk until cmake build clashes resolved in avona
-          ref: a1e210b12b5d118cd81474633c63bc3c622ab67b
-          
-      - name: Pull xcore_sdk_builder container
-        run: |
-          docker pull ghcr.io/xmos/sdk_app_builder:develop 
-      
-      - name: Build
-        run: |
-          docker run --user $(id -u) --rm -w /sw_avona -e XCORE_SDK_PATH=/sw_avona/xcore_sdk -v ${{ github.workspace }}:/sw_avona ghcr.io/xmos/sdk_app_builder:develop bash -l tools/ci/build_release_configs.sh
-
-      - name: Save firmware artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: sw_avona_apps
-          path: ./applications/dist
-          retention-days: 5
