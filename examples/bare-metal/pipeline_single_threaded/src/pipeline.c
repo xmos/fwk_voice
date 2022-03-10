@@ -37,8 +37,8 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
-    adec_conf.bypass = 1; //Bypass automatic DE correction
-    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
+    adec_conf.bypass = 1; // Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     ic_init(&state->ic_state);
@@ -67,18 +67,18 @@ void pipeline_process_frame(pipeline_state_t *state,
     float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
     stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], input_y_data, input_x_data);
 
-    /**IC and VAD*/
+    /** IC and VAD*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    //The comms channel will be produced by two channels averaging
+    // The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
         ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
     }
-    //The ASR channel will be produced by IC filtering
+    // The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     ic_adapt(&state->ic_state, vad, ic_output[0]);
 
-    /**NS*/
+    /** NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){

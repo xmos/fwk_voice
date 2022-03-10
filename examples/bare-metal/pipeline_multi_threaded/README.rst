@@ -13,7 +13,7 @@ maximise AEC performance.  ADEC processing happens on the same thread as the AEC
 The AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
 filter. This example calls AEC functions using 2 threads to process a frame through the AEC stage.
 The AEC stage generates the echo cancelled version of the mic input that is then sent for processing through the
-IC to form the ASR channel. The comms channel will be produced by avereging both AEC stage outputs and summarising them. 
+IC to form the ASR channel. The comms channel will be produced by avereging both AEC stage outputs. 
 AEC gets reconfigured for a 1 mic input channel, 1 reference input channel, 30 main filter phases and no shadow
 filter, when ADEC goes in delay estimation mode while measuring and correcting delay offsets. During this process, AEC
 output is ignored and the mic input is directly sent to output. Once the new delay is measured and delay correction is
