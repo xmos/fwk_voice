@@ -4,6 +4,7 @@
 from cffi import FFI
 from pathlib import Path
 import shutil
+from extract_state import extract_pre_defs
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
@@ -21,25 +22,27 @@ INCLUDE_DIRS=[
 SRCS = f"../ic_test.c".split()
 ffibuilder = FFI()
 
+#Extract all defines and state from lib_ic programatically
+predefs = extract_pre_defs()
 # Contains all the C defs visible from Python
 ffibuilder.cdef(
+predefs+
 """
-
-    int test_frame(int in);
-    //ic_state_t get_state(void);
-"""
+    void test_init(void);
+    ic_state_t test_get_state(void);
+    void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
+""".replace("IC_FRAME_ADVANCE", "240")
 )
 
 # Contains the C source necessary to allow the cdefs to work
 ffibuilder.set_source("ic_test_py",  # name of the output C extension
 """
     #include "ic_api.h"
-    int test_frame(int in);
-
-    typedef struct {
-        int a[30];
-    }grr_t;
-
+    void test_init(void);
+    ic_state_t test_get_state(void);
+    void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
 """,
     sources=SRCS,
     library_dirs=[
