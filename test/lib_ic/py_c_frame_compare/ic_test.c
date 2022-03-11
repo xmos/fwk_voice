@@ -1,13 +1,21 @@
 #include <stdio.h>
-// #include "ic_api.h"
+#include "ic_api.h"
 
+ic_state_t ic_state;
 
 int test_frame(int in){
     return in * 2;
 }
 
+void test_init(void){
+    ic_init(&ic_state);
+}
+ic_state_t get_state(void){
+    return ic_state;
+}
+
+
 // int main(void){
-//     ic_state_t ic_state;
 //     ic_init(&ic_state);
 
 //     int32_t y_data[IC_FRAME_ADVANCE];
