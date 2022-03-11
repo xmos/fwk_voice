@@ -98,7 +98,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
 
-        /**IC*/
+        /** IC*/
         // The buffer will store the the comms channel frame
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             buffer[v] = (frame[0][v] >> 1) + (frame[1][v] >> 1);
@@ -144,7 +144,7 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
 
-        /**NS*/
+        /** NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
             // The frame buffer will be used for both input and output here
             ns_process_frame(&ns_state[ch], frame[ch], frame[ch]);
