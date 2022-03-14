@@ -27,6 +27,6 @@ void pre_agc_hpf(int32_t DWORD_ALIGNED data[AP_FRAME_ADVANCE]){
     }
     // using bfp because it has saturation logic
     bfp_s32_t bfp;
-    bfp_s32_init(&bfp, data, -30, AP_FRAME_ADVANCE, 1);
-    bfp_s32_use_exponent(&bfp, -31);
+    bfp_s32_init(&bfp, data, FILT_EXP, AP_FRAME_ADVANCE, 1);
+    bfp_s32_use_exponent(&bfp, NORM_EXP);
 }

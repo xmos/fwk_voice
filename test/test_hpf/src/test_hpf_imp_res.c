@@ -5,7 +5,7 @@
 
 #define len 512
 
-void test_hpf(){
+void test_hpf_imp_res(){
     int32_t DWORD_ALIGNED samples_orig[len + 2] = {0};
     int32_t DWORD_ALIGNED samples_filt[len + 2] = {0};
     int32_t DWORD_ALIGNED abs_orig_int[len / 2 + 1] = {0};
@@ -19,10 +19,10 @@ void test_hpf(){
 
     pre_agc_hpf(samples_filt);
 
-    bfp_s32_init(&orig, samples_orig, -31, len, 1);
-    bfp_s32_init(&filt, samples_filt, -31, len, 1);
-    bfp_s32_init(&orig_abs, abs_orig_int, -31, len / 2 + 1, 0);
-    bfp_s32_init(&filt_abs, abs_filt_int, -31, len / 2 + 1, 0);
+    bfp_s32_init(&orig, samples_orig, NORM_EXP, len, 1);
+    bfp_s32_init(&filt, samples_filt, NORM_EXP, len, 1);
+    bfp_s32_init(&orig_abs, abs_orig_int, NORM_EXP, len / 2 + 1, 0);
+    bfp_s32_init(&filt_abs, abs_filt_int, NORM_EXP, len / 2 + 1, 0);
 
     bfp_complex_s32_t * fd_orig = bfp_fft_forward_mono(&orig);
     bfp_fft_unpack_mono(fd_orig);
