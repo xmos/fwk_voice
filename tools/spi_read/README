@@ -1,8 +1,0 @@
-This program uses the Total Phase Cheetah SPI Host adapter (and optionally the
-Total Phase Aardvark Host Adapter to make use of the SPI IRQ output) to read
-audio out from Avona to a PC over the SPI interface. In order to run this
-program, the Cheetah (and optionally Aardvark) shared library binary file
-must be obtained at the following links.
-
-https://www.totalphase.com/products/cheetah-api/
-https://www.totalphase.com/products/aardvark-software-api/
