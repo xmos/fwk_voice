@@ -24,6 +24,7 @@ import IC
 proc_frame_length = 512
 frame_advance = 240
 num_phases = 10
+x_channel_delay = 180 #For python only, this is already compiled into the C lib
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 
@@ -47,27 +48,38 @@ class ic_comparison:
     def __init__(self):
         self.ic = IC.adaptive_interference_canceller(frame_advance, proc_frame_length, num_phases, 0, 
         mu = 0.36956599983386695,
-        delta = 6.999999999379725e-05,
+        # delta = 7.450580593454381e-09, #two_mic_stereo.json
+        delta = 6.999999999379725e-05, #XC
+        # delta = 0.0156249999963620211929, #test_wav_ic.py
         delay = 0,
         K = 1,
         lamda = 0.9995117188,
         gamma = 2.0,
         leakage = 1.0,
-        channel_delay = 180,
+        # leakage = 0.995,
+        channel_delay = x_channel_delay,
         remove_NQ = True,
         use_noise_minimisation = False,
         output_beamform_on_ch1 = True)
 
         ic_test_lib.test_init()
+        self.input_delay_py = np.zeros(frame_advance + x_channel_delay)
 
     def process_frame(self, frame):
+        #we need to delay the y for python as not done in model
+        #first copy the input data for C ver before we modfiy it
+        frame_int = float_to_int32(frame)
+        #now shift the delay buffer to make space for new samples
+        self.input_delay_py[0:x_channel_delay] = self.input_delay_py[frame_advance:frame_advance + x_channel_delay]
+        self.input_delay_py[x_channel_delay:frame_advance + x_channel_delay] = frame[0]
+        frame[0] = self.input_delay_py[:frame_advance]
         all_channels_output, Error_ap = self.ic.process_frame(frame)
         self.ic.adapt(Error_ap)
         output_py = all_channels_output[0,:]
 
-        frame_int = float_to_int32(frame)
-        y_data = ffi.from_buffer(frame_int[0].data)
-        x_data = ffi.from_buffer(frame_int[1].data)
+        #Grab a pointer to the data storage of the numpy arrays
+        y_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[0].data))
+        x_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[1].data))
         output_c = np.zeros((240), dtype=np.int32)
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
@@ -87,11 +99,12 @@ def test_frame_compare(pre_test_stuff):
 
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
     input_wav_data, input_channel_count, file_length = awu.parse_audio(input_wav_file)
+    delays = np.zeros(4) #we do delay of y channel in process_frame above and in C rather than awu.get_frame
 
     output_wav_data = np.zeros((2, file_length))
 
     for frame_start in range(0, file_length-proc_frame_length*2, frame_advance):
-        input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance, np.zeros(2))
+        input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance, delays)
 
         if False:
             print ('# ' + str(frame_start // frame_advance))
@@ -101,6 +114,9 @@ def test_frame_compare(pre_test_stuff):
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py
         output_wav_data[1, frame_start: frame_start + frame_advance] = output_c
         
+        # output_wav_data[:, frame_start: frame_start + frame_advance] = input_frame[0:2,:]
+
+
     scipy.io.wavfile.write(output_file, input_rate, output_wav_data.T)
 
 

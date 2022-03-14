@@ -1,3 +1,10 @@
+# Copyright 2022 XMOS LIMITED.
+# This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
+
+# CFFI ffibuilder.cdef function doesn't support #includes, so use the compiler pre-processor
+# and a bit of scripting to extract the ic state and xs3 math types from the source
+
 import subprocess
 
 xs3_math_types_api_dir = "../../../xcore_sdk/modules/lib_xs3_math/lib_xs3_math/lib_xs3_math/api"
