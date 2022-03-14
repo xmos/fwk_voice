@@ -40,6 +40,15 @@ void test_hpf(){
         filt_fl.mant = filt_abs.data[v];
         orig_db = float_s32_to_double(orig_fl);
         filt_db = float_s32_to_double(filt_fl);
+        // test the attenuation of the first bin(16.625 Hz)
+        // -19.6 dB is the best I could get with these coefficoents
+        if(v == 1){
+            TEST_ASSERT((orig_db / filt_db) > 90.0);
+        }
+        // make sure it converges
+        if(v == (len / 2)){
+            TEST_ASSERT(fabs(orig_db - filt_db) < 0.006);
+        }
         // this test is designed to test the impulse responce only!
         // that's why the test condition is set so the filtered magnitudes
         // have to be smaller as they should only tend to converge 
