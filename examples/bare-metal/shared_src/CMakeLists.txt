@@ -89,3 +89,20 @@ target_include_directories(avona_example_shared_src_profile_xcore
 )
 
 add_library(avona::example::profile_xcore ALIAS avona_example_shared_src_profile_xcore)
+
+######
+add_library(avona_example_shared_src_hpf INTERFACE)
+target_sources(avona_example_shared_src_hpf
+    INTERFACE
+        hpf/hpf.c
+)
+target_include_directories(avona_example_shared_src_hpf
+    INTERFACE
+        hpf
+)
+target_link_libraries(avona_example_shared_src_hpf
+    INTERFACE
+        sdk::lib_xs3_math
+)
+
+add_library(avona::example::hpf ALIAS avona_example_shared_src_hpf)

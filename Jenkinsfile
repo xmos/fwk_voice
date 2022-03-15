@@ -455,6 +455,18 @@ pipeline {
             }
           }
         }
+        stage('HPF test') {
+          steps {
+            dir("${REPO}/test/test_hpf") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('Pipeline tests') {
           when {
             expression { env.RUN_PIPELINE == "1" }

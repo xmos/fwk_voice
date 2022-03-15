@@ -23,6 +23,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_multi_thread
         avona::example::delay_buffer
         avona::example::stage_1
         avona::example::fileutils
+        avona::example::hpf
         sdk::lib_xs3_math
         )
 
