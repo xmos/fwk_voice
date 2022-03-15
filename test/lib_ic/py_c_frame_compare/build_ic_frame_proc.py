@@ -8,7 +8,7 @@ from extract_state import extract_pre_defs
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
-XS3_MATH = "../../../../xcore_sdk/modules/lib_xs3_math/lib_xs3_math"
+XS3_MATH = "../../../../../lib_xs3_math"
 
 FLAGS = [
     '-std=c99',

@@ -7,7 +7,7 @@
 
 import subprocess
 
-xs3_math_types_api_dir = "../../../xcore_sdk/modules/lib_xs3_math/lib_xs3_math/lib_xs3_math/api"
+xs3_math_types_api_dir = "../../../../lib_xs3_math/lib_xs3_math/api"
 lib_ic_api_dir = "../../../modules/lib_ic/api/"
 ic_state = []
 
