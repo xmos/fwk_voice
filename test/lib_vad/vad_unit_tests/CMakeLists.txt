@@ -112,9 +112,6 @@ foreach( testfile ${TEST_SOURCES} )
             PRIVATE
                 "-target=${XCORE_TARGET}")
     else()
-        target_compile_definitions(avona_${TESTNAME}
-            PRIVATE
-                VAD_MODULE_X86_BUILD=1)
         target_link_libraries(avona_${TESTNAME} m)
     endif()
 endforeach()
