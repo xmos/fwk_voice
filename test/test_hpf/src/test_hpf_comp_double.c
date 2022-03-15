@@ -5,10 +5,7 @@
 
 #define len 240
 
-const fixed_s32_t coef_q30[TOTAL_NUM_COEFF] = {
-    1020035168, -2040070348, 1020035168, 2070720224, -998576072,
-    1073741824, -2147483648, 1073741824, 2114066120, -1041955416
-};
+extern const fixed_s32_t hpf_coef_q30[TOTAL_NUM_COEFF];
 
 void biquad(double out[len + 2], const double in[len + 2], const double coef[NUM_COEFF_PER_BIQUAD]){
     for(int v = 2; v < len + 2; v++){
@@ -24,7 +21,7 @@ void test_hpf_comp_double(){
 
     for(int v = 0; v < TOTAL_NUM_COEFF; v++){
         float_s32_t t;
-        t.mant = coef_q30[v];
+        t.mant = hpf_coef_q30[v];
         t.exp = FILT_EXP;
         coef_db[v] = float_s32_to_double(t);
     }
