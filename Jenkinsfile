@@ -277,6 +277,21 @@ pipeline {
             }
           }
         }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
+            }
+          }
+        }
+        stage(
         stage('IC test profile') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
