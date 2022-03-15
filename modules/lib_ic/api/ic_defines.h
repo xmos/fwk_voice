@@ -58,7 +58,8 @@
 #define IC_INIT_GAMMA_LOG2                          1   //From Python IC (2^1 = 2.0)
 /** Delta value used in denominator to avoid large values when calculating inverse X energy.
  * @ingroup ic_defines */
-#define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic
+// #define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic
+#define IC_INIT_DELTA                               0.00007 //From XC
 
 
 /** Boolean which controls whether to enable detection and recovery from instability. 
