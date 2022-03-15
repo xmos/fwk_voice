@@ -15,36 +15,28 @@ import ic_test_py.lib as ic_test_lib
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
 py_ic_path = os.path.join(package_dir,'../../../../lib_interference_canceller/python')
+pvc_path = os.path.join(package_dir, '../../shared/python')
 
 sys.path.append(att_path)
 sys.path.append(py_ic_path)
+sys.path.append(pvc_path)
 import IC
+import py_vs_c_utils as pvc 
 
 
 proc_frame_length = 512
 frame_advance = 240
 num_phases = 10
 x_channel_delay = 180 #For python only, this is already compiled into the C lib
-input_file = "../../../examples/bare-metal/ic/input.wav"
+# input_file = "../../../examples/bare-metal/ic/input.wav"
 input_file = "/Users/ed/Desktop/ic_avona_debug.wav"
-input_file = "/Users/ed/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav"
+# input_file = "/Users/ed/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[34])
 def pre_test_stuff(request):
     return request.param
 
-
-def float_s32_to_float(float_s32):
-    return np.ldexp(float_s32.mant, float_s32.exp)
-
-def int32_to_float(array_int32):
-    array_float = array_int32.astype(np.float64) / (-np.iinfo(np.int32).min)
-    return array_float
-
-def float_to_int32(array_float):
-    array_int32 = (array_float * np.iinfo(np.int32).max).astype(np.int32)
-    return array_int32
 
 class ic_comparison:
     def __init__(self):
@@ -53,7 +45,6 @@ class ic_comparison:
         # delta = 7.450580593454381e-09, #two_mic_stereo.json
         delta = 6.999999999379725e-05, #XC
         # delta = 0.0156249999963620211929, #test_wav_ic.py
-        # delta = 0.156249999963620211929, #test_wav_ic.py
         delay = 0,
         K = 1,
         lamda = 0.9995117188,
@@ -69,14 +60,17 @@ class ic_comparison:
         ic_test_lib.test_init()
         self.input_delay_py = np.zeros(frame_advance + x_channel_delay)
 
+    def delay_y_samples(self, frame):
+        self.input_delay_py[0:x_channel_delay] = self.input_delay_py[frame_advance:frame_advance + x_channel_delay]
+        self.input_delay_py[x_channel_delay:frame_advance + x_channel_delay] = frame
+        return self.input_delay_py[:frame_advance]
+
     def process_frame(self, frame):
         #we need to delay the y for python as not done in model
         #first copy the input data for C ver before we modfiy it
-        frame_int = float_to_int32(frame)
-        #now shift the delay buffer to make space for new samples
-        self.input_delay_py[0:x_channel_delay] = self.input_delay_py[frame_advance:frame_advance + x_channel_delay]
-        self.input_delay_py[x_channel_delay:frame_advance + x_channel_delay] = frame[0]
-        frame[0] = self.input_delay_py[:frame_advance]
+        frame_int = pvc.float_to_int32(frame)
+        #now delay y samples for the python version (not done internally)
+        frame[0] = self.delay_y_samples(frame[0])
         all_channels_output, Error_ap = self.ic.process_frame(frame)
         self.ic.adapt(Error_ap)
         output_py = all_channels_output[0,:]
@@ -88,18 +82,16 @@ class ic_comparison:
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
         vad = int(0)
-        ic_test_lib.test_adapt(0, output_c_ptr)
+        ic_test_lib.test_adapt(vad, output_c_ptr)
 
-        return output_py, int32_to_float(output_c)
-
-    # state = ic_test_lib.test_get_state()
-    # print(float_s32_to_float(state.mu[0][0]))
-    # print(float_s32_to_float(state.config_params.delta))
+        state = ic_test_lib.test_get_state()
+        # print(pvc.float_s32_to_float(state.mu[0][0]))
+        # print(pvc.float_s32_to_float(state.config_params.delta))
+        return output_py, pvc.int32_to_float(output_c)
 
 
 def test_frame_compare(pre_test_stuff):
     icc = ic_comparison()
-
 
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
     input_wav_data, input_channel_count, file_length = awu.parse_audio(input_wav_file)
@@ -118,10 +110,15 @@ def test_frame_compare(pre_test_stuff):
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py
         output_wav_data[1, frame_start: frame_start + frame_advance] = output_c
         
-        # output_wav_data[:, frame_start: frame_start + frame_advance] = input_frame[0:2,:]
+    #Write a copy of the output for post analysis if needed
+    scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
+
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    assert arith_closeness > 0.98
+    assert geo_closeness > 0.99
+    assert c_delay == 0
 
 
-    scipy.io.wavfile.write(output_file, input_rate, float_to_int32(output_wav_data.T))
 
 
 

@@ -9,6 +9,7 @@ void test_init(void){
     //Custom setup for testing
     // ic_state.mu[0][0] = double_to_float_s32(0.0);
     ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;
+    // ic_state.config_params.delta = double_to_float_s32(0.0156);
 
 }
 

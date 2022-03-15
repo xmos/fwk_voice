@@ -24,9 +24,10 @@ ffibuilder = FFI()
 
 #Extract all defines and state from lib_ic programatically
 predefs = extract_pre_defs()
+print(predefs)
 # Contains all the C defs visible from Python
 ffibuilder.cdef(
-predefs+
+predefs +
 """
     void test_init(void);
     ic_state_t test_get_state(void);
