@@ -284,6 +284,8 @@ pipeline {
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
               viewEnv() {
                 withVenv {
+                  sh "pwd"
+                  sh "tree ../../.."
                   runPython("python build_ic_frame_proc.py")
                   sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
