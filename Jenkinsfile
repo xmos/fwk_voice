@@ -191,18 +191,18 @@ pipeline {
             }
           }
         }
-        stage('VAD vad_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_vad/vad_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
+        //stage('VAD vad_unit_tests') {
+        //  steps {
+        //    dir("${REPO}/test/lib_vad/vad_unit_tests") {
+        //      viewEnv() {
+        //        withVenv {
+        //          sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //          junit "pytest_result.xml"
+        //        }
+        //      }
+        //    }
+        //  }
+        //}
         stage('VAD compare_xc_c') {
           steps {
             dir("${REPO}/test/lib_vad/compare_xc_c") {
