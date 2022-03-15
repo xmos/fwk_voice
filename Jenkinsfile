@@ -105,6 +105,7 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
+                  sh "git submodule update --init --recursive --jobs 4"
                   unstash 'cmake_build_xcore'
                   unstash 'cmake_build_x86_examples'
                   sh "pip install -e build/avona_deps/xscope_fileio"
