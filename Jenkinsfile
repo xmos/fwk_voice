@@ -62,6 +62,7 @@ pipeline {
             }
             dir("${REPO}") {
               stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
+              //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
             }
@@ -108,13 +109,15 @@ pipeline {
                   sh "git submodule update --init --recursive --jobs 4"
                   unstash 'cmake_build_xcore'
                   unstash 'cmake_build_x86_examples'
+                  unstash 'cmake_build_x86_libs'
+
                   sh "pip install -e build/avona_deps/xscope_fileio"
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
-                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"
+                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"//head of develop
                   //For IC frame compare, we need xs3_math include files
-                  sh "cd .. && git clone git@github.com:xmos/lib_xs3_math.git && cd -"
+                  sh "cd .. && git clone git@github.com:xmos/lib_xs3_math.git && cd -"//head of develop
 
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
@@ -284,7 +287,6 @@ pipeline {
         // }
         stage('IC Python C equivalence') {
           steps {
-            unstash 'cmake_build_x86_libs'
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
               viewEnv() {
                 withVenv {
@@ -506,7 +508,6 @@ pipeline {
         always {
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
