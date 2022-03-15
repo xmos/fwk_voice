@@ -291,7 +291,6 @@ pipeline {
             }
           }
         }
-        stage(
         stage('IC test profile') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
