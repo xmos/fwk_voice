@@ -8,7 +8,7 @@ parallel on separate hardware threads.
 In it, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline stages frame by frame. The
 example currently demonstrates a pipeline having AEC, IC, NS and AGC stages. It also demonstrates the use of ADEC module to
 do a one time estimation and correction for possible reference and loudspeaker delay offsets at start up in order to
-maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VAD is also demonstrated here
+maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VAD is introduced
 to give the IC and the AGC information about the speech presence in a frame.
 
 The AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
