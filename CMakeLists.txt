@@ -10,7 +10,7 @@ project(sw_avona)
 enable_language(CXX C ASM)
 
 ## Add libs and apps
-add_subdirectory( modules )
+# add_subdirectory( modules )
 
 if(PROJECT_IS_TOP_LEVEL)
     find_package( Python3 COMPONENTS Interpreter )
@@ -29,7 +29,7 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 
     add_compile_options( ${COMPILE_FLAGS} )
-
+    add_subdirectory( modules )
     add_subdirectory( examples )
 
     add_subdirectory( test )
