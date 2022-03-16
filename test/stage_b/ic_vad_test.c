@@ -33,7 +33,7 @@ void test_adapt(
 }
 
 uint8_t test_vad(
-        const int32_t input[VAD_FRAME_ADVANCE],
-        vad_state_t * state){
-    return vad_probability_voice(input, state);
+        const int32_t input[VAD_FRAME_ADVANCE]){
+    uint8_t vad = vad_probability_voice(input, &vad_state);
+    return vad;
 }

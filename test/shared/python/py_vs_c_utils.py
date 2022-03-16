@@ -5,6 +5,18 @@ import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
 import sys
+import json
+import re
+
+# Grab a python config from a JSON file
+def json_to_dict(config_file):
+    datastore = None
+    with open(config_file, "r") as f:
+        input_str = f.read()
+        # Remove '//' comments
+        json_str = re.sub(r'//.*\n', '\n', input_str)
+        datastore = json.loads(json_str)
+    return datastore
 
 # Turn a float32 from C into an np float scalar
 def float_s32_to_float(float_s32):
@@ -13,6 +25,11 @@ def float_s32_to_float(float_s32):
 # turn an int32 np array (Q1.30) into float
 def int32_to_float(array_int32):
     array_float = array_int32.astype(np.float64) / (-np.iinfo(np.int32).min)
+    return array_float
+
+# turn an uint8 np array (Q0.8) into float
+def uint8_to_float(array_uint8):
+    array_float = array_uint8.astype(np.float64) / np.iinfo(np.uint8).max
     return array_float
 
 # turn a float into an int32 np array (Q1.30)

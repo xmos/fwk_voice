@@ -26,7 +26,7 @@ ffibuilder = FFI()
 
 #Extract all defines and state from lib_ic programatically
 predefs = extract_pre_defs()
-print(predefs)
+# print(predefs)
 # Contains all the C defs visible from Python
 ffibuilder.cdef(
 predefs +
@@ -35,7 +35,7 @@ predefs +
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
-    uint8_t test_vad(const int32_t input[VAD_FRAME_ADVANCE], vad_state_t * state);
+    uint8_t test_vad(const int32_t input[VAD_FRAME_ADVANCE]);
 """.replace("IC_FRAME_ADVANCE", "240").replace("VAD_FRAME_ADVANCE", "240")
 )
 
@@ -48,7 +48,7 @@ ffibuilder.set_source("ic_vad_test_py",  # name of the output C extension
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
-    uint8_t test_vad(const int32_t input[VAD_FRAME_ADVANCE], vad_state_t * state);
+    uint8_t test_vad(const int32_t input[VAD_FRAME_ADVANCE]);
 """,
     sources=SRCS,
     library_dirs=[
