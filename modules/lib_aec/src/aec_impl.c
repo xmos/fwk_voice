@@ -372,10 +372,10 @@ void aec_update_X_fifo_1d(
 
 void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     aec_shared_state_t *shared_state = main_state->shared_state; 
-    int32_t y_channels = shared_state->num_y_channels;
-    int32_t x_channels = shared_state->num_x_channels;
-    int32_t main_phases = main_state->num_phases;
-    int32_t shadow_phases = shadow_state->num_phases;
+    uint32_t y_channels = shared_state->num_y_channels;
+    uint32_t x_channels = shared_state->num_x_channels;
+    uint32_t main_phases = main_state->num_phases;
+    uint32_t shadow_phases = shadow_state->num_phases;
     //Main H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
