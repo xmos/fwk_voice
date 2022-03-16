@@ -730,14 +730,14 @@ float_s32_t aec_priv_calc_corr_factor(bfp_s32_t *y, bfp_s32_t *yhat) {
 }
 
 // Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
-static const int32_t WOLA_window[32] = {
+static const fixed_s32_t WOLA_window_q31[32] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,
      370590464,  450910459,  536870911,  627693349,  722555272,  820597594,  920932429, 1022651130,
     1124832516, 1226551217, 1326886052, 1424928374, 1519790297, 1610612735, 1696573187, 1776893182,
     1850845329, 1917759906, 1977030925, 2028121618, 2070569300, 2103989558, 2128079733, 2142621660
 };
 
-static const int32_t WOLA_window_flpd[32] = {
+static const fixed_s32_t WOLA_window_flpd_q31[32] = {
     2142621660, 2128079733, 2103989558, 2070569300, 2028121618, 1977030925, 1917759906, 1850845329, 
     1776893182, 1696573187, 1610612735, 1519790297, 1424928374, 1326886052, 1226551217, 1124832516, 
     1022651130, 920932429, 820597594, 722555272, 627693349, 536870911, 450910459, 370590464, 
@@ -750,8 +750,8 @@ void aec_priv_create_output(
         bfp_s32_t *error)
 {
     bfp_s32_t win, win_flpd;
-    bfp_s32_init(&win, (int32_t*)&WOLA_window[0], -31, 32, 0);
-    bfp_s32_init(&win_flpd, (int32_t*)&WOLA_window_flpd[0], -31, 32, 0);
+    bfp_s32_init(&win, (int32_t*)&WOLA_window_q31[0], AEC_WINDOW_EXP, 32, 0);
+    bfp_s32_init(&win_flpd, (int32_t*)&WOLA_window_flpd_q31[0], AEC_WINDOW_EXP, 32, 0);
 
     //zero first 240 samples
     memset(error->data, 0, AEC_FRAME_ADVANCE*sizeof(int32_t));
