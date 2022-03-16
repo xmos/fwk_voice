@@ -136,7 +136,7 @@ void aec_forward_fft(
 {
     //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
     //This is done to avoid having to call bfp_s32_init() on the input every frame
-    int32_t len = input->length; 
+    uint32_t len = input->length; 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
     
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
@@ -193,7 +193,7 @@ void aec_inverse_fft(
 {
     //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
     //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
-    int32_t len = input->length;
+    uint32_t len = input->length;
     bfp_fft_pack_mono(input);
     bfp_s32_t *temp = bfp_fft_inverse_mono(input);
     memcpy(output, temp, sizeof(bfp_s32_t));

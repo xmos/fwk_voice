@@ -999,7 +999,7 @@ void aec_priv_calc_delta(
         const float_s32_t *max_X_energy,
         aec_config_params_t *conf,
         float_s32_t scale,
-        int channels) {
+        uint32_t channels) {
     if(conf->coh_mu_conf.adaption_config == AEC_ADAPTION_AUTO) {
         float_s32_t delta_min = conf->aec_core_conf.delta_min;
         float_s32_t max = max_X_energy[0];

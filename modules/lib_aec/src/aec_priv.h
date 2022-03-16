@@ -135,7 +135,7 @@ void aec_priv_calc_delta(
         const float_s32_t *max_X_energy,
         aec_config_params_t *conf,
         float_s32_t scale,
-        int channels);
+        uint32_t channels);
 
 float_s32_t aec_priv_calc_corr_factor(
         bfp_s32_t *y,
