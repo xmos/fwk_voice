@@ -134,7 +134,7 @@ pipeline {
                   sh "make -j8"
 
                   //We need to put this here because it is not fetched until we build
-                  sh "pip install -e build/avona_deps/xscope_fileio"
+                  sh "pip install -e avona_deps/xscope_fileio"
 
                 }
               }
