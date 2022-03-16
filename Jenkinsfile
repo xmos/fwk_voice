@@ -107,13 +107,11 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-
-                  sh "pip install -e build/avona_deps/xscope_fileio"
-
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
                   sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"//head of develop
 
+                  //Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
@@ -134,6 +132,10 @@ pipeline {
                   sh "cmake --version"
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
                   sh "make -j8"
+
+                  //We need to put this here because it is not fetched until we build
+                  sh "pip install -e build/avona_deps/xscope_fileio"
+
                 }
               }
             }
