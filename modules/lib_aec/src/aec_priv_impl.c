@@ -95,7 +95,7 @@ void aec_priv_main_init(
         bfp_s32_init(&state->overlap[ch], (int32_t*)available_mem_start, AEC_ZEROVAL_EXP, 32, 0);
         available_mem_start += (32*sizeof(int32_t)); 
     }
-    int memory_used = available_mem_start - (uint8_t*)mem_pool; 
+    uint32_t memory_used = available_mem_start - (uint8_t*)mem_pool; 
     memset(mem_pool, 0, memory_used);
 
     //Initialise ema energy
@@ -189,7 +189,7 @@ void aec_priv_shadow_init(
         available_mem_start += (32*sizeof(int32_t)); 
     }
 
-    int memory_used = available_mem_start - (uint8_t*)mem_pool; 
+    uint32_t memory_used = available_mem_start - (uint8_t*)mem_pool; 
     memset(mem_pool, 0, memory_used);
 
     //Initialise ema energy
@@ -241,22 +241,22 @@ void aec_priv_copy_filter(
         unsigned num_dst_phases,
         unsigned num_src_phases)
 {
-    int32_t phases_to_copy = num_src_phases;
+    uint32_t phases_to_copy = num_src_phases;
     if(num_dst_phases < phases_to_copy) {
         phases_to_copy = num_dst_phases;
     }
     //Copy the H_hat_src phases into H_hat_dst
-    for(int ch=0; ch<num_x_channels; ch++) {
-        int dst_ph_start_offset = ch * num_dst_phases;
-        int src_ph_start_offset = ch * num_src_phases;
-        for(int ph=0; ph<phases_to_copy; ph++) {
+    for(uint32_t ch=0; ch<num_x_channels; ch++) {
+        uint32_t dst_ph_start_offset = ch * num_dst_phases;
+        uint32_t src_ph_start_offset = ch * num_src_phases;
+        for(uint32_t ph=0; ph<phases_to_copy; ph++) {
             aec_priv_bfp_complex_s32_copy(&H_hat_dst[dst_ph_start_offset + ph], &H_hat_src[src_ph_start_offset + ph]);
         }
     }
     //Zero the remaining H_hat_dst phases
-    for(int ch=0; ch<num_x_channels; ch++) {
-        int dst_ph_start_offset = ch * num_dst_phases;
-        for(int ph=num_src_phases; ph<num_dst_phases; ph++) {
+    for(uint32_t ch=0; ch<num_x_channels; ch++) {
+        uint32_t dst_ph_start_offset = ch * num_dst_phases;
+        for(uint32_t ph=num_src_phases; ph<num_dst_phases; ph++) {
             aec_priv_bfp_complex_s32_reset(&H_hat_dst[dst_ph_start_offset + ph]);
         }
     }
@@ -614,7 +614,7 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     //X-fifo update
     //rearrage X-fifo to point from newest phase to oldest phase
     bfp_complex_s32_t last_phase = X_fifo[num_phases-1];
-    for(int n=num_phases-1; n>=1; n--) {
+    for(int32_t n=num_phases-1; n>=1; n--) {
         X_fifo[n] = X_fifo[n-1];
     }
     X_fifo[0] = last_phase;
@@ -767,7 +767,7 @@ void aec_priv_create_output(
     //Here, we're assuming that the window samples are less than 1 so that windowed region can be safely brought to format of non-windowed portion without risking saturation
     bfp_s32_use_exponent(&chunks[0], error->exp);
     bfp_s32_use_exponent(&chunks[1], error->exp);
-    int min_hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
+    uint32_t min_hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
     min_hr = (min_hr < error->hr) ? min_hr : error->hr;
     error->hr = min_hr;
     
