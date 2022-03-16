@@ -25,7 +25,7 @@ if(PROJECT_IS_TOP_LEVEL)
     if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
         set(XCORE_TARGET "XCORE-AI-EXPLORER")
     else()
-        list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
+        list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1 -fPIC)
     endif()
 
     add_compile_options( ${COMPILE_FLAGS} )
