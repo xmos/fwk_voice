@@ -142,7 +142,6 @@ void aec_forward_fft(
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
     bfp_fft_unpack_mono(output);
     input->length = len;
-    return;
 }
 
 //per x-channel
@@ -160,7 +159,6 @@ void aec_calc_X_fifo_energy(
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
     aec_priv_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->shared_state->X_fifo[ch][0], X_ptr, state->num_phases, recalc_bin);
-    return;
 }
 //per x-channel
 void aec_update_X_fifo_and_calc_sigmaXX(
@@ -172,7 +170,6 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     uint32_t sigma_xx_shift = state->shared_state->config_params.aec_core_conf.sigma_xx_shift;
     float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
-    return;
 }
 
 //per y-channel
@@ -202,7 +199,6 @@ void aec_inverse_fft(
     memcpy(output, temp, sizeof(bfp_s32_t));
 
     input->length = len;
-    return;
 }
 
 float_s32_t aec_calc_corr_factor(
@@ -241,7 +237,6 @@ void aec_calc_coherence(
     temp.hr = state->shared_state->prev_y[ch].hr;
 
     aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
-    return;
 }
 
 void aec_calc_output(
@@ -264,7 +259,6 @@ void aec_calc_output(
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
     aec_priv_create_output(output_ptr, overlap_ptr, error_ptr);
-    return;
 }
 
 void aec_calc_freq_domain_energy(
@@ -295,7 +289,6 @@ void aec_calc_normalisation_spectrum(
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
     unsigned normdenom_apply_factor_of_2 = 1;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, &state->shared_state->config_params, state->delta, is_shadow, normdenom_apply_factor_of_2);
-    return;
 }
 
 void aec_filter_adapt(

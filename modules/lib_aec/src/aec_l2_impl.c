@@ -49,7 +49,6 @@ void aec_l2_calc_Error_and_Y_hat(
         Y_chunk.hr = Y->hr;
         bfp_complex_s32_sub(Error, &Y_chunk, Y_hat);
     }
-    return;
 }
 
 void aec_l2_adapt_plus_fft_gc(

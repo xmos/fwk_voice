@@ -598,7 +598,6 @@ void aec_priv_update_total_X_energy(
     if(max_X_energy->mant == 0) {
         X_energy->exp = AEC_ZEROVAL_EXP;
     }    
-    return;
 }
 
 void aec_priv_update_X_fifo_and_calc_sigmaXX(
@@ -642,7 +641,6 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     bfp_s32_sub(sigma_XX, sigma_XX, &sigma_XX_scaled); //sigma_XX - (sigma_XX * pow(2, -ema_coef_shr))
     bfp_s32_add(sigma_XX, sigma_XX, &scratch); //sigma_XX - (sigma_XX * pow(2, -ema_coef_shr)) + (pow(2, -ema_coef_shr))*X_energy
 
-    return;
 }
 
 void aec_priv_calc_Error_and_Y_hat(
@@ -798,7 +796,6 @@ void aec_priv_create_output(
     memcpy(overlap->data, &error->data[480], 32*sizeof(int32_t));
     overlap->hr = error->hr;
     overlap->exp = error->exp;
-    return;
 }
 extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
         unsigned shr,
@@ -917,8 +914,6 @@ void aec_priv_calc_inv_X_energy(
     // Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
     aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow, normdenom_apply_factor_of_2);
     aec_priv_calc_inverse(inv_X_energy);
-
-    return;
 }
 
 void aec_priv_filter_adapt(
