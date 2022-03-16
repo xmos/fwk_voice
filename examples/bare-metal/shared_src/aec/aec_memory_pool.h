@@ -18,7 +18,7 @@ typedef struct {
     int32_t ref_prev_samples[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE];
     /** Memory pointed to by main filter aec_state_t::H_hat, aec_shared_state_t::X_fifo, main filter
      * aec_state_t::X_fifo_1d and shadow filter aec_state_t::X_fifo_1d*/
-    complex_s32_t phase_pool_H_hat_X_fifo[((AEC_MAX_Y_CHANNELS*AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES) + (AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES)) * (AEC_PROC_FRAME_LENGTH/2 + 1)];
+    complex_s32_t phase_pool_H_hat_X_fifo[((AEC_MAX_Y_CHANNELS*AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES) + (AEC_MAX_X_CHANNELS*AEC_MAIN_FILTER_PHASES)) * AEC_FD_FRAME_LENGTH];
     /** Memory pointed to by main filter aec_state_t::Error and aec_state_t::error*/
     complex_s32_t Error[AEC_MAX_Y_CHANNELS][AEC_FD_FRAME_LENGTH];
     /** Memory pointed to by main filter aec_state_t::Y_hat and aec_state_t::y_hat*/
