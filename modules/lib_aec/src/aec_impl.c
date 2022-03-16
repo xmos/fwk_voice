@@ -387,31 +387,31 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
             main_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
-            main_state->H_hat[ch][ph].hr = 31;
+            main_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //Shadow H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*shadow_phases; ph++) {
             shadow_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
-            shadow_state->H_hat[ch][ph].hr = 31;
+            shadow_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //X_fifo
     for(int ch=0; ch<x_channels; ch++) {
         for(int ph=0; ph<main_phases; ph++) {
             shared_state->X_fifo[ch][ph].exp = AEC_ZEROVAL_EXP;
-            shared_state->X_fifo[ch][ph].hr = 31;
+            shared_state->X_fifo[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //X_energy, sigma_XX
     for(int ch=0; ch<x_channels; ch++) {
         main_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
-        main_state->X_energy[ch].hr = 31;
+        main_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
         shadow_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
-        shadow_state->X_energy[ch].hr = 31;
+        shadow_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
         shared_state->sigma_XX[ch].exp = AEC_ZEROVAL_EXP;
-        shared_state->sigma_XX[ch].hr = 31;
+        shared_state->sigma_XX[ch].hr = AEC_ZEROVAL_HR;
     }
 }
 

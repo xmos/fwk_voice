@@ -214,14 +214,14 @@ void aec_priv_bfp_s32_reset(bfp_s32_t *a)
 {
     memset(a->data, 0, a->length*sizeof(int32_t));
     a->exp = AEC_ZEROVAL_EXP;
-    a->hr = 31;
+    a->hr = AEC_ZEROVAL_HR;
 }
 
 void aec_priv_bfp_complex_s32_reset(bfp_complex_s32_t *a)
 {
     memset(a->data, 0, a->length*sizeof(complex_s32_t));
     a->exp = AEC_ZEROVAL_EXP;
-    a->hr = 31;
+    a->hr = AEC_ZEROVAL_HR;
 }
 
 void aec_priv_reset_filter(
