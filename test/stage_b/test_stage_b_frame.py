@@ -24,7 +24,6 @@ sys.path.append(py_stage_b_path)
 sys.path.append(py_ic_path)
 sys.path.append(py_vad_path)
 sys.path.append(pvc_path)
-# import IC
 from ap_stage_b import ap_stage_b
 import py_vs_c_utils as pvc 
 

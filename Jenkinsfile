@@ -104,20 +104,29 @@ pipeline {
           steps {
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
+              sh "mkdir build"
+            }
+            // Build x86 versions. xcore have been pre-stashed
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh "make -j8"
+                }
+              }
+            }
+            dir("${REPO}") {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
                   unstash 'cmake_build_xcore'
-                  unstash 'cmake_build_x86_examples'
-                  unstash 'cmake_build_x86_libs'
 
                   sh "pip install -e build/avona_deps/xscope_fileio"
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
                   sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"//head of develop
-                  //For IC frame compare, we need xs3_math include files
-                  sh "cd .. && git clone git@github.com:xmos/lib_xs3_math.git && cd -"//head of develop
 
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
