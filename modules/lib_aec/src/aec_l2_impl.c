@@ -30,7 +30,7 @@ void aec_l2_calc_Error_and_Y_hat(
 
         memset(Y_hat->data, 0, length*sizeof(complex_s32_t));
         Y_hat->exp = AEC_ZEROVAL_EXP;
-        Y_hat->hr = 0;
+        Y_hat->hr = AEC_ZEROVAL_HR;
     }
     else {
         int32_t phases = num_x_channels * num_phases;

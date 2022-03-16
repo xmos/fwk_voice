@@ -87,13 +87,13 @@ void aec_frame_init(
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         main_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
-        main_state->Y_hat[ch].hr = 0;
+        main_state->Y_hat[ch].hr = AEC_ZEROVAL_HR;
         memset(&main_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
     }
     if(shadow_state != NULL) {
         for(unsigned ch=0; ch<num_y_channels; ch++) {
             shadow_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
-            shadow_state->Y_hat[ch].hr = 0;
+            shadow_state->Y_hat[ch].hr = AEC_ZEROVAL_HR;
             memset(&shadow_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
         }
     }
