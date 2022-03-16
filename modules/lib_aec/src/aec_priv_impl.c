@@ -528,7 +528,7 @@ void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
     bfp_s32_t sum_out;
     bfp_s32_init(&sum_out, &sum_out_data, AEC_ZEROVAL_EXP, 1, 0);
 
-    int32_t t;
+    int32_t t=0;
     bfp_s32_t temp_out;
     bfp_s32_init(&temp_out, &t, 0, 1, 0);
     bfp_complex_s32_t temp_in;
