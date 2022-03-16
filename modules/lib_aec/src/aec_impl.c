@@ -39,7 +39,7 @@ void aec_frame_init(
         // Copy current y samples
         memcpy(&main_state->shared_state->y[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &y_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->y[ch].exp = -31;
+        main_state->shared_state->y[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->y[ch]);
 
@@ -51,7 +51,7 @@ void aec_frame_init(
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->prev_y[ch]);
         // Update exp just in case
-        main_state->shared_state->prev_y[ch].exp = -31;
+        main_state->shared_state->prev_y[ch].exp = AEC_INPUT_EXP;
     }
     // x frame 
     for(unsigned ch=0; ch<num_x_channels; ch++) {
@@ -61,7 +61,7 @@ void aec_frame_init(
         // Copy current x samples
         memcpy(&main_state->shared_state->x[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &x_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->x[ch].exp = -31;
+        main_state->shared_state->x[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->x[ch]);
 
@@ -71,7 +71,7 @@ void aec_frame_init(
         // Copy current frame to previous
         memcpy(&main_state->shared_state->prev_x[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &x_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->prev_x[ch].exp = -31;
+        main_state->shared_state->prev_x[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
@@ -120,10 +120,10 @@ void aec_calc_time_domain_ema_energy(
 float_s32_t aec_calc_max_input_energy(const int32_t (*input_data)[AEC_FRAME_ADVANCE], int num_channels) {
     bfp_s32_t ref;
 
-    bfp_s32_init(&ref, (int32_t*)&input_data[0][0], -31, AEC_FRAME_ADVANCE, 1);
+    bfp_s32_init(&ref, (int32_t*)&input_data[0][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
     float_s32_t max = float_s64_to_float_s32(bfp_s32_energy(&ref));
     for(int ch=1; ch<num_channels; ch++) {
-        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
         float_s32_t current = float_s64_to_float_s32(bfp_s32_energy(&ref));
         if(float_s32_gt(current, max)){max = current;}
     }
@@ -255,10 +255,10 @@ void aec_calc_output(
 
     bfp_s32_t output_struct;
     if(output != NULL) {
-        bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+        bfp_s32_init(&output_struct, &output[0][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     }
     else {
-        bfp_s32_init(&output_struct, NULL, -31, AEC_FRAME_ADVANCE, 0);
+        bfp_s32_init(&output_struct, NULL, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     }
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
@@ -420,10 +420,10 @@ int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE]
     return abs_max_ref > threshold*/
     bfp_s32_t ref, abs;
     int32_t scratch[AEC_FRAME_ADVANCE];
-    bfp_s32_init(&abs, scratch, -31, AEC_FRAME_ADVANCE, 0);
+    bfp_s32_init(&abs, scratch, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     int32_t ref_active_flag = 0; 
     for(int ch=0; ch<num_channels; ch++) {
-        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
         bfp_s32_abs(&abs, &ref);
         float_s32_t max = bfp_s32_max(&abs);
         max = float_s32_abs(max);

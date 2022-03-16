@@ -89,4 +89,5 @@
  */
 #define UNUSED_TAPS_PER_PHASE (16)
 
+#define AEC_INPUT_EXP (-31)
 #endif

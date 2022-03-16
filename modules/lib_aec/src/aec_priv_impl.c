@@ -30,22 +30,22 @@ void aec_priv_main_init(
 
     //y
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->shared_state->y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
+        bfp_s32_init(&state->shared_state->y[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp AEC_INPUT_EXP
         available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->y[ch].length is still AEC_PROC_FRAME_LENGTH though
     }
     //x
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_s32_init(&state->shared_state->x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
+        bfp_s32_init(&state->shared_state->x[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
         available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->x[ch].length is still AEC_PROC_FRAME_LENGTH though
     }
     //prev_y
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        bfp_s32_init(&state->shared_state->prev_y[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        bfp_s32_init(&state->shared_state->prev_y[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
         available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
     }
     //prev_x
     for(unsigned ch=0; ch<num_x_channels; ch++) {
-        bfp_s32_init(&state->shared_state->prev_x[ch], (int32_t*)available_mem_start, -31, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
+        bfp_s32_init(&state->shared_state->prev_x[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE), 0); //input data is 1.31 so initialising with exp -31
         available_mem_start += ((AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE)*sizeof(int32_t));
     }
     
@@ -789,8 +789,8 @@ void aec_priv_create_output(
 
         //Add previous frame's overlap to first 32 samples of output
         bfp_s32_add(&chunks[0], &chunks[0], overlap);
-        bfp_s32_use_exponent(&chunks[0], -31); //bring the overlapped-added part back to 1.31
-        bfp_s32_use_exponent(&chunks[1], -31); //bring the rest of output to 1.31
+        bfp_s32_use_exponent(&chunks[0], AEC_INPUT_EXP); //bring the overlapped-added part back to 1.31 since output is same format as input
+        bfp_s32_use_exponent(&chunks[1], AEC_INPUT_EXP); //bring the rest of output to 1.31 since output is same format as input
         output->hr = (chunks[0].hr < chunks[1].hr) ? chunks[0].hr : chunks[1].hr;
     }
     
