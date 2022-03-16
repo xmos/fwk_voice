@@ -52,7 +52,7 @@ void aec_priv_calc_coherence_mu(
         const float_s32_t *sum_X_energy,
         const int32_t *shadow_flag,
         unsigned num_y_channels,
-        unsigned num_x_channnels);
+        unsigned num_x_channels);
 
 void aec_priv_update_total_X_energy(
         bfp_s32_t *X_energy,
