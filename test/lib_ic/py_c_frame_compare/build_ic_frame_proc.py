@@ -5,6 +5,7 @@ from cffi import FFI
 from pathlib import Path
 import shutil
 from extract_state import extract_pre_defs
+import sys
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
@@ -59,5 +60,6 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
 if __name__ == "__main__":
     ffibuilder.compile(tmpdir='build', target='ic_test_py.*', verbose=True)
     #Darwin hack https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
-    shutil.copyfile("build/ic_test_py.dylib", "build/ic_test_py.so")
+    if sys.platform == "darwin":
+        shutil.copyfile("build/ic_test_py.dylib", "build/ic_test_py.so")
 
