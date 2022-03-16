@@ -104,23 +104,9 @@ pipeline {
           steps {
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
-              sh "mkdir build"
-            }
-            // Build x86 versions. xcore have been pre-stashed
-            dir("${REPO}/build") {
-              viewEnv() {
-                withVenv {
-                  sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make -j8"
-                }
-              }
-            }
-            dir("${REPO}") {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  unstash 'cmake_build_xcore'
 
                   sh "pip install -e build/avona_deps/xscope_fileio"
 
@@ -134,6 +120,24 @@ pipeline {
                 }
               }
             }
+          }
+        }
+        stage('Make/get bins and libs'){
+          dir("${REPO}") {
+            sh "mkdir build"
+          }
+          // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
+          dir("${REPO}/build") {
+            viewEnv() {
+              withVenv {
+                sh "cmake --version"
+                sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                sh "make -j8"
+              }
+            }
+          }
+          dir("${REPO}") {
+           unstash 'cmake_build_xcore'
           }
         }
         stage('Reset XTAGs'){

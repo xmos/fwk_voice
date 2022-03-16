@@ -12,6 +12,7 @@ XS3_MATH = "../../../build/avona_deps/lib_xs3_math/"
 
 FLAGS = [
     '-std=c99',
+    '-fPIC'
     ]
 
 INCLUDE_DIRS=[
