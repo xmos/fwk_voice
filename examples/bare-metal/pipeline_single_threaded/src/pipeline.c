@@ -10,6 +10,7 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
+#include "hpf.h"
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
@@ -84,6 +85,9 @@ void pipeline_process_frame(pipeline_state_t *state,
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
     }
+
+    // Apply 100 Hz High-Pass filter for the comms channel
+    pre_agc_hpf(ns_output[1]);
     
     /** AGC*/
     agc_meta_data_t agc_md;

@@ -17,7 +17,7 @@
 #include "xs3_math.h"
 #include "vad_helpers.h"
 
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
 #define clz(v)  clz_sim(v)
 #endif
 
@@ -57,7 +57,7 @@ headroom_t vad_xs3_math_fft(int32_t * curr, int nq){
 
 int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
     uint64_t sum = 0, tav = 0;
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
     int logN = 31 - clz_sim(N);
 #else
     // http://bugzilla/show_bug.cgi?id=18641
@@ -80,7 +80,7 @@ int32_t vad_spectral_centroid_Hz(complex_s32_t * p, uint32_t N) {
 
 int32_t vad_spectral_spread_Hz(complex_s32_t * p, uint32_t N,
                                int32_t spectral_centroid) {
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
     int logN = 31 - clz_sim(N);
 #else
     // http://bugzilla/show_bug.cgi?id=18641
