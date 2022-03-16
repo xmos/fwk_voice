@@ -28,9 +28,7 @@ proc_frame_length = 512
 frame_advance = 240
 num_phases = 10
 x_channel_delay = 180 #For python only, this is already compiled into the C lib
-# input_file = "../../../examples/bare-metal/ic/input.wav"
-input_file = "/Users/ed/Desktop/ic_avona_debug.wav"
-# input_file = "/Users/ed/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav"
+input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[34])
