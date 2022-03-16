@@ -60,11 +60,21 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "tree"
+                }
+              }
+            }
             dir("${REPO}") {
               stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
               //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**', fingerprint: true
+
             }
             // Now do xcore files
             dir("${REPO}/build") {
@@ -308,14 +318,11 @@ pipeline {
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
               viewEnv() {
                 withVenv {
-                  sh "pwd"
-                  sh "tree ../../.."
                   runPython("python build_ic_frame_proc.py")
                   sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }
-              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
