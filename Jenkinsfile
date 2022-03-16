@@ -60,12 +60,11 @@ pipeline {
                 }
               }
             }
-            // TODO Tidy this if not needed
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
               viewEnv() {
                 withVenv {
                   runPython("python build_ic_frame_proc.py")
-                  sh "tree"
                 }
               }
             }
@@ -75,7 +74,6 @@ pipeline {
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
-
             }
             // Now do xcore files
             dir("${REPO}/build") {
@@ -169,151 +167,151 @@ pipeline {
             }
           }
         }
-        // stage('Examples') {
-        //   steps {
-        //     dir("${REPO}/examples/bare-metal/aec_1_thread") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-        //         }
-        //       }
-        //     }
-        //     dir("${REPO}/examples/bare-metal/aec_2_threads") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-        //           // Make sure 1 thread and 2 threads output is bitexact
-        //           sh "diff output.wav ../aec_1_thread/output.wav"
-        //         }
-        //       }
-        //     }
-        //     dir("${REPO}/examples/bare-metal/ic") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
-        //           sh "mv output.wav ic_example_output.wav"
-        //         }
-        //       }
-        //       archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
-        //     }
-        //     dir("${REPO}/examples/bare-metal/vad") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
-        //         }
-        //       }
-        //     }
-        //     dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-        //         }
-        //       }
-        //     }
-        //     dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-        //           // Make sure single thread and multi threads pipeline output is bitexact
-        //           sh "diff output.wav ../pipeline_single_threaded/output.wav"
-        //         }
-        //       }
-        //     }
-        //     dir("${REPO}/examples/bare-metal/agc") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('VAD vad_unit_tests') {
-        //   steps {
-        //     dir("${REPO}/test/lib_vad/vad_unit_tests") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -n 2 --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('VAD compare_xc_c') {
-        //   steps {
-        //     dir("${REPO}/test/lib_vad/compare_xc_c") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -s --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('VAD test_profile') {
-        //   steps {
-        //     dir("${REPO}/test/lib_vad/test_vad_profile") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -s --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //       archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
-        //     }
-        //   }
-        // }
-        // stage('NS profile test') {
-        //   steps {
-        //     dir("${REPO}/test/lib_ns/test_ns_profile") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -n 1 --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('NS performance tests') {
-        //   steps {
-        //     dir("${REPO}/test/lib_ns/compare_c_xc") {
-        //       copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -n 2 --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('NS ns_unit_tests') {
-        //   steps {
-        //     dir("${REPO}/test/lib_ns/ns_unit_tests") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -n 1 --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // stage('IC ic_unit_tests') {
-        //   steps {
-        //     dir("${REPO}/test/lib_ic/ic_unit_tests") {
-        //       viewEnv() {
-        //         withVenv {
-        //           sh "pytest -n 2 --junitxml=pytest_result.xml"
-        //           junit "pytest_result.xml"
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
+        stage('Examples') {
+          steps {
+            dir("${REPO}/examples/bare-metal/aec_1_thread") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/aec_2_threads") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  // Make sure 1 thread and 2 threads output is bitexact
+                  sh "diff output.wav ../aec_1_thread/output.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/ic") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
+                  sh "mv output.wav ic_example_output.wav"
+                }
+              }
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+            }
+            dir("${REPO}/examples/bare-metal/vad") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  // Make sure single thread and multi threads pipeline output is bitexact
+                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/agc") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD vad_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vad/vad_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD compare_xc_c') {
+          steps {
+            dir("${REPO}/test/lib_vad/compare_xc_c") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD test_profile') {
+          steps {
+            dir("${REPO}/test/lib_vad/test_vad_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
+            }
+          }
+        }
+        stage('NS profile test') {
+          steps {
+            dir("${REPO}/test/lib_ns/test_ns_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS performance tests') {
+          steps {
+            dir("${REPO}/test/lib_ns/compare_c_xc") {
+              copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('NS ns_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_ns/ns_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC ic_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_ic/ic_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('IC Python C equivalence') {
           steps {
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
