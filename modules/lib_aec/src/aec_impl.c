@@ -86,13 +86,13 @@ void aec_frame_init(
 
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        main_state->Y_hat[ch].exp = -1024;
+        main_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
         main_state->Y_hat[ch].hr = 0;
         memset(&main_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
     }
     if(shadow_state != NULL) {
         for(unsigned ch=0; ch<num_y_channels; ch++) {
-            shadow_state->Y_hat[ch].exp = -1024;
+            shadow_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
             shadow_state->Y_hat[ch].hr = 0;
             memset(&shadow_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
         }
@@ -386,31 +386,31 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     //Main H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
-            main_state->H_hat[ch][ph].exp = -1024;
+            main_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             main_state->H_hat[ch][ph].hr = 31;
         }
     }
     //Shadow H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*shadow_phases; ph++) {
-            shadow_state->H_hat[ch][ph].exp = -1024;
+            shadow_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             shadow_state->H_hat[ch][ph].hr = 31;
         }
     }
     //X_fifo
     for(int ch=0; ch<x_channels; ch++) {
         for(int ph=0; ph<main_phases; ph++) {
-            shared_state->X_fifo[ch][ph].exp = -1024;
+            shared_state->X_fifo[ch][ph].exp = AEC_ZEROVAL_EXP;
             shared_state->X_fifo[ch][ph].hr = 31;
         }
     }
     //X_energy, sigma_XX
     for(int ch=0; ch<x_channels; ch++) {
-        main_state->X_energy[ch].exp = -1024;
+        main_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
         main_state->X_energy[ch].hr = 31;
-        shadow_state->X_energy[ch].exp = -1024;
+        shadow_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
         shadow_state->X_energy[ch].hr = 31;
-        shared_state->sigma_XX[ch].exp = -1024;
+        shared_state->sigma_XX[ch].exp = AEC_ZEROVAL_EXP;
         shared_state->sigma_XX[ch].hr = 31;
     }
 }

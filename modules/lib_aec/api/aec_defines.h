@@ -92,4 +92,5 @@
 #define AEC_INPUT_EXP (-31)
 #define AEC_WINDOW_EXP (-31)
 #define AEC_FFT_PADDING (2)
+#define AEC_ZEROVAL_EXP (-1024)
 #endif

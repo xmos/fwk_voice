@@ -29,7 +29,7 @@ void aec_l2_calc_Error_and_Y_hat(
         Error->hr = Y->hr;
 
         memset(Y_hat->data, 0, length*sizeof(complex_s32_t));
-        Y_hat->exp = -1024;
+        Y_hat->exp = AEC_ZEROVAL_EXP;
         Y_hat->hr = 0;
     }
     else {
