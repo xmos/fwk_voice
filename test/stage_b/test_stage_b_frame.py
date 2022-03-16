@@ -28,9 +28,7 @@ from ap_stage_b import ap_stage_b
 import py_vs_c_utils as pvc 
 
 ap_config_file = "../shared/config/two_mic_stereo_prev_arch.json"
-# input_file = "../../../examples/bare-metal/ic/input.wav"
-input_file = "/Users/ed/Desktop/ic_avona_debug.wav"
-# input_file = "/Users/ed/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav"
+input_file = "../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[ap_config_file])
@@ -42,12 +40,17 @@ def test_config(request):
 
 class stage_b_comparison:
     def __init__(self, stage_b_conf):
-        print(stage_b_conf)
 
         self.frame_advance = stage_b_conf["ic_conf"]["frame_advance"]
         self.proc_frame_length = stage_b_conf["ic_conf"]["proc_frame_length"]
         self.num_phases = stage_b_conf["ic_conf"]["phases"]
         self.passthrough_channel_count = stage_b_conf["ic_conf"]["passthrough_channel_count"]
+
+        #override to match C version
+        stage_b_conf["ic_conf"]["delta"] = 0.00007
+        stage_b_conf["ic_conf"]["leakage"] = 1.0
+        stage_b_conf["ic_conf"]["use_noise_minimisation"] = False
+        print(stage_b_conf)
 
         self.sb = ap_stage_b(self.frame_advance, stage_b_conf["ic_conf"], self.passthrough_channel_count, mic_shift=0, mic_saturate=0)
 
@@ -72,11 +75,14 @@ class stage_b_comparison:
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_vad_test_lib.test_filter(y_data, x_data, output_c_ptr)
         c_vad = ic_vad_test_lib.test_vad(output_c_ptr)
+        print(f"1py_vad: {py_vad:.2f}, c_vad: {pvc.uint8_to_float(np.array(c_vad)):.2f}")
+        #note we override c_vad to match py_vad for comparison
+        c_vad = pvc.float_to_uint8(np.array(py_vad))
+        print(f"2py_vad: {py_vad:.2f}, c_vad: {pvc.uint8_to_float(np.array(c_vad)):.2f}")
         ic_vad_test_lib.test_adapt(c_vad, output_c_ptr)
-        print(f"py_vad: {py_vad:.2f}, c_vad: {pvc.uint8_to_float(np.array(c_vad)):.2f}")
 
-        state = ic_vad_test_lib.test_get_ic_state()
-        # print(pvc.float_s32_to_float(state.mu[0][0]))
+        ic_state = ic_vad_test_lib.test_get_ic_state()
+        print(f"py_mu: {self.sb.ifc.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
         # print(pvc.float_s32_to_float(state.config_params.delta))
         return output_py[0], pvc.int32_to_float(output_c)
 
@@ -108,9 +114,10 @@ def test_frame_compare(test_config):
     scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
 
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
-    assert arith_closeness > 0.98
-    assert geo_closeness > 0.99
+
     assert c_delay == 0
+    assert geo_closeness > 0.90
+    assert arith_closeness > 0.85
 
 
 

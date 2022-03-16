@@ -37,6 +37,12 @@ def float_to_int32(array_float):
     array_int32 = (array_float * np.iinfo(np.int32).max).astype(np.int32)
     return array_int32
 
+# turn a float np array into uint8 (Q0.8)
+def float_to_uint8(array_float):
+    array_uint8 = (array_float * np.iinfo(np.uint8).max).astype(np.uint8)
+    return array_uint8
+
+
 # compare a two channel wav file and quantify how close they are
 def pcm_closeness_metric(input_file, verbose=True):
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
