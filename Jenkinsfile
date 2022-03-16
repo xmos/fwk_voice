@@ -123,21 +123,23 @@ pipeline {
           }
         }
         stage('Make/get bins and libs'){
-          dir("${REPO}") {
-            sh "mkdir build"
-          }
-          // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
-          dir("${REPO}/build") {
-            viewEnv() {
-              withVenv {
-                sh "cmake --version"
-                sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                sh "make -j8"
+          steps {
+            dir("${REPO}") {
+              sh "mkdir build"
+            }
+            // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh "make -j8"
+                }
               }
             }
-          }
-          dir("${REPO}") {
-           unstash 'cmake_build_xcore'
+            dir("${REPO}") {
+             unstash 'cmake_build_xcore'
+            }
           }
         }
         stage('Reset XTAGs'){
