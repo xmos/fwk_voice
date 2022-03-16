@@ -8,10 +8,10 @@
 //Memory pool definition
 typedef struct {
     /** Memory pointed to by aec_shared_state_t::y and aec_shared_state_t::Y*/
-    int32_t mic_input_frame[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t mic_input_frame[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH + AEC_FFT_PADDING];
     /** Memory pointed to by aec_shared_state_t::x and aec_shared_state_t::X. Also reused for main filter
      * aec_state_t::T*/
-    int32_t ref_input_frame[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + 2];
+    int32_t ref_input_frame[AEC_MAX_X_CHANNELS][AEC_PROC_FRAME_LENGTH + AEC_FFT_PADDING];
     /** Memory pointed to by aec_shared_state_t::prev_y*/
     int32_t mic_prev_samples[AEC_MAX_Y_CHANNELS][AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE];
     /** Memory pointed to by aec_shared_state_t::prev_x*/

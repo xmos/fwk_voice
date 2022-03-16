@@ -31,12 +31,12 @@ void aec_priv_main_init(
     //y
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         bfp_s32_init(&state->shared_state->y[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp AEC_INPUT_EXP
-        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->y[ch].length is still AEC_PROC_FRAME_LENGTH though
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + AEC_FFT_PADDING)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->y[ch].length is still AEC_PROC_FRAME_LENGTH though
     }
     //x
     for(unsigned ch=0; ch<num_x_channels; ch++) {
         bfp_s32_init(&state->shared_state->x[ch], (int32_t*)available_mem_start, AEC_INPUT_EXP, (AEC_PROC_FRAME_LENGTH), 0); //input data is 1.31 so initialising with exp -31
-        available_mem_start += ((AEC_PROC_FRAME_LENGTH + 2)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->x[ch].length is still AEC_PROC_FRAME_LENGTH though
+        available_mem_start += ((AEC_PROC_FRAME_LENGTH + AEC_FFT_PADDING)*sizeof(int32_t)); //2 extra samples of memory allocated. state->shared_state->x[ch].length is still AEC_PROC_FRAME_LENGTH though
     }
     //prev_y
     for(unsigned ch=0; ch<num_y_channels; ch++) {
