@@ -10,12 +10,13 @@ project(sw_avona)
 enable_language(CXX C ASM)
 
 ## Add libs and apps
-# add_subdirectory( modules )
+## Module specific options delcared in next level down in modules Cmakelists.txt
+add_subdirectory( modules )
 
 if(PROJECT_IS_TOP_LEVEL)
     find_package( Python3 COMPONENTS Interpreter )
 
-    ## Compile flags for C/C++ for all libs and apps (for all platforms)
+    ## Compile flags for C/C++ for all apps (for all platforms)
     list(APPEND   COMPILE_FLAGS        -MMD )
     list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
@@ -25,11 +26,10 @@ if(PROJECT_IS_TOP_LEVEL)
     if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
         set(XCORE_TARGET "XCORE-AI-EXPLORER")
     else()
-        list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1 -fPIC)
+        list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
     endif()
 
     add_compile_options( ${COMPILE_FLAGS} )
-    add_subdirectory( modules )
     add_subdirectory( examples )
 
     add_subdirectory( test )
