@@ -44,6 +44,9 @@ def float_to_uint8(array_float):
 
 
 # compare a two channel wav file and quantify how close they are
+# Any file that is 1 sample out in delay will show low results of 0.20 or worse
+# Arithmetic closeness is more sensitive than geo_closeness
+# Anything in the 0.90 region or more is extremely close indeed
 def pcm_closeness_metric(input_file, verbose=True):
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
     input_wav_data, input_channel_count, file_length = awu.parse_audio(input_wav_file)
