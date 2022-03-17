@@ -40,18 +40,14 @@ class ic_comparison:
     def __init__(self):
         self.ic = IC.adaptive_interference_canceller(frame_advance, proc_frame_length, num_phases, 0, 
         mu = 0.36956599983386695,
-        # delta = 7.450580593454381e-09, #two_mic_stereo.json
-        delta = 6.999999999379725e-05, #XC
-        # delta = 0.0156249999963620211929, #test_wav_ic.py
+        delta = 7.450580593454381e-09, #two_mic_stereo.json
         delay = 0,
         K = 1,
         lamda = 0.9995117188,
         gamma = 2.0,
-        leakage = 1.0,
-        # leakage = 0.995,
+        leakage = 0.995,
         channel_delay = x_channel_delay,
         remove_NQ = True,
-        # use_noise_minimisation = True,
         use_noise_minimisation = False,
         output_beamform_on_ch1 = True)
 
