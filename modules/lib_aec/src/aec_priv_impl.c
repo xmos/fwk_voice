@@ -729,14 +729,14 @@ float_s32_t aec_priv_calc_corr_factor(bfp_s32_t *y, bfp_s32_t *yhat) {
 }
 
 // Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
-static const fixed_s32_t WOLA_window_q31[UNUSED_TAPS_PER_PHASE*2] = {
+static const fixed_s32_t WOLA_window_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,
      370590464,  450910459,  536870911,  627693349,  722555272,  820597594,  920932429, 1022651130,
     1124832516, 1226551217, 1326886052, 1424928374, 1519790297, 1610612735, 1696573187, 1776893182,
     1850845329, 1917759906, 1977030925, 2028121618, 2070569300, 2103989558, 2128079733, 2142621660
 };
 
-static const fixed_s32_t WOLA_window_flpd_q31[UNUSED_TAPS_PER_PHASE*2] = {
+static const fixed_s32_t WOLA_window_flpd_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
     2142621660, 2128079733, 2103989558, 2070569300, 2028121618, 1977030925, 1917759906, 1850845329, 
     1776893182, 1696573187, 1610612735, 1519790297, 1424928374, 1326886052, 1226551217, 1124832516, 
     1022651130, 920932429, 820597594, 722555272, 627693349, 536870911, 450910459, 370590464, 
@@ -749,16 +749,16 @@ void aec_priv_create_output(
         bfp_s32_t *error)
 {
     bfp_s32_t win, win_flpd;
-    bfp_s32_init(&win, (int32_t*)&WOLA_window_q31[0], AEC_WINDOW_EXP, (UNUSED_TAPS_PER_PHASE*2), 0);
-    bfp_s32_init(&win_flpd, (int32_t*)&WOLA_window_flpd_q31[0], AEC_WINDOW_EXP, (UNUSED_TAPS_PER_PHASE*2) , 0);
+    bfp_s32_init(&win, (int32_t*)&WOLA_window_q31[0], AEC_WINDOW_EXP, (AEC_UNUSED_TAPS_PER_PHASE*2), 0);
+    bfp_s32_init(&win_flpd, (int32_t*)&WOLA_window_flpd_q31[0], AEC_WINDOW_EXP, (AEC_UNUSED_TAPS_PER_PHASE*2) , 0);
 
     //zero first 240 samples
     memset(error->data, 0, AEC_FRAME_ADVANCE*sizeof(int32_t));
 
     bfp_s32_t chunks[2];
-    bfp_s32_init(&chunks[0], &error->data[AEC_FRAME_ADVANCE], error->exp, UNUSED_TAPS_PER_PHASE*2, 0); //240-272 fwd win
+    bfp_s32_init(&chunks[0], &error->data[AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0); //240-272 fwd win
     chunks[0].hr = error->hr;
-    bfp_s32_init(&chunks[1], &error->data[2*AEC_FRAME_ADVANCE], error->exp, UNUSED_TAPS_PER_PHASE*2, 0); //480-512 flpd win
+    bfp_s32_init(&chunks[1], &error->data[2*AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0); //480-512 flpd win
     chunks[1].hr = error->hr;
 
     //window error
@@ -781,9 +781,9 @@ void aec_priv_create_output(
 
         //overlap add
         //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
-        bfp_s32_init(&chunks[0], &output->data[0], output->exp, UNUSED_TAPS_PER_PHASE*2, 0);
+        bfp_s32_init(&chunks[0], &output->data[0], output->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0);
         chunks[0].hr = output->hr;
-        bfp_s32_init(&chunks[1], &output->data[UNUSED_TAPS_PER_PHASE*2], output->exp, AEC_FRAME_ADVANCE-(UNUSED_TAPS_PER_PHASE*2), 0);
+        bfp_s32_init(&chunks[1], &output->data[AEC_UNUSED_TAPS_PER_PHASE*2], output->exp, AEC_FRAME_ADVANCE-(AEC_UNUSED_TAPS_PER_PHASE*2), 0);
         chunks[1].hr = output->hr;
 
         //Add previous frame's overlap to first 32 samples of output
@@ -794,7 +794,7 @@ void aec_priv_create_output(
     }
     
     //update overlap
-    memcpy(overlap->data, &error->data[2*AEC_FRAME_ADVANCE], (UNUSED_TAPS_PER_PHASE*2)*sizeof(int32_t));
+    memcpy(overlap->data, &error->data[2*AEC_FRAME_ADVANCE], (AEC_UNUSED_TAPS_PER_PHASE*2)*sizeof(int32_t));
     overlap->hr = error->hr;
     overlap->exp = error->exp;
 }

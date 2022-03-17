@@ -30,7 +30,7 @@ typedef struct {
     /** Memory pointed to by main filter aec_state_t::inv_X_energy*/
     int32_t inv_X_energy[AEC_MAX_X_CHANNELS][AEC_FD_FRAME_LENGTH];
     /** Memory pointed to by main filter aec_state_t::overlap*/
-    int32_t overlap[AEC_MAX_Y_CHANNELS][UNUSED_TAPS_PER_PHASE*2];
+    int32_t overlap[AEC_MAX_Y_CHANNELS][AEC_UNUSED_TAPS_PER_PHASE*2];
 }aec_memory_pool_t;
 
 typedef struct {
@@ -47,6 +47,6 @@ typedef struct {
     /** Memory pointed to by shadow_filter aec_state_t::inv_X_energy*/
     int32_t inv_X_energy[AEC_MAX_X_CHANNELS][AEC_FD_FRAME_LENGTH];
     /** Memory pointed to by shadow filter aec_state_t::overlap*/
-    int32_t overlap[AEC_MAX_Y_CHANNELS][UNUSED_TAPS_PER_PHASE*2];
+    int32_t overlap[AEC_MAX_Y_CHANNELS][AEC_UNUSED_TAPS_PER_PHASE*2];
 }aec_shadow_filt_memory_pool_t;
 #endif

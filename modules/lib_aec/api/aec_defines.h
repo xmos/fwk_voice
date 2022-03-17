@@ -87,11 +87,17 @@
  *
  * @ingroup aec_defines
  */
-#define UNUSED_TAPS_PER_PHASE (16)
+#define AEC_UNUSED_TAPS_PER_PHASE (16)
 
-#define AEC_INPUT_EXP (-31)
-#define AEC_WINDOW_EXP (-31)
+/** Extra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored
+ * after the in-place FFT. NOT USER MODIFIABLE.
+ *
+ * @ingroup aec_defines
+ */  
+//
 #define AEC_FFT_PADDING (2)
-#define AEC_ZEROVAL_EXP (-1024)
-#define AEC_ZEROVAL_HR (31)
+
+#define AEC_ZEROVAL_EXP (-1024) /// A very small exponent indicating 0 value.
+#define AEC_ZEROVAL_HR (31) /// Headroom value used in BFP arrays when indicating 0 value by setting exponent to AEC_ZEROVAL_EXP 
+
 #endif

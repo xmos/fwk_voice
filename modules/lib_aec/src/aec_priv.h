@@ -8,7 +8,11 @@
 #include "bfp_math.h"
 #include "xs3_math.h"
 
-//private AEC functions
+//private AEC functions and defines
+
+#define AEC_INPUT_EXP (-31) /// Exponent of AEC input and output
+#define AEC_WINDOW_EXP (-31) /// Hanning window coefficients exponent
+
 void aec_priv_main_init(
         aec_state_t *state,
         aec_shared_state_t *shared_state,
