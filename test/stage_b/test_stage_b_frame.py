@@ -84,6 +84,13 @@ class stage_b_comparison:
         ic_state = ic_vad_test_lib.test_get_ic_state()
         print(f"py_mu: {self.sb.ifc.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
         # print(pvc.float_s32_to_float(state.config_params.delta))
+
+        cies = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.input_energy_slow)
+        coes = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.output_energy_slow)
+        cief = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.input_energy_fast)
+        coef = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.output_energy_fast)
+        print(f"c - ies: {cies} oes: {coes} ief: {cief} oef: {coef}")
+        print(f"p - ies: {self.sb.input_energy} oes: {self.sb.output_energy} ief: {self.sb.input_energy0} oef: {self.sb.output_energy0}")
         return output_py[0], pvc.int32_to_float(output_c)
 
 

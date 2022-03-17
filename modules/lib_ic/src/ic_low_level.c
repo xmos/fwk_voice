@@ -104,7 +104,7 @@ void ic_update_td_ema_energy(
         const bfp_s32_t *input,
         unsigned start_offset,
         unsigned length,
-        const ic_config_params_t *conf){
+        const fixed_s32_t alpha){
     
     if(!length) {
         return;
@@ -114,7 +114,7 @@ void ic_update_td_ema_energy(
     input_chunk.hr = input->hr;
     float_s64_t dot64 = bfp_s32_dot(&input_chunk, &input_chunk);
     float_s32_t dot = float_s64_to_float_s32(dot64);
-    *ema_energy = float_s32_ema(*ema_energy, dot, conf->ema_alpha_q30);
+    *ema_energy = float_s32_ema(*ema_energy, dot, alpha);
 }
 
 /// FFT single channel real input
@@ -246,8 +246,6 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-#if 0 
-//Original implementation
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
