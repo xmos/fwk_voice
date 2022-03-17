@@ -9,7 +9,7 @@
 #define LOOKUP_PRECISION 8
 #define MEL_PRECISION 24
 
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
 #define mul_mel(h, l, s)                    mul_mel_sim(h, l, s)
 #define add_unsigned_hl(sumH, sumL, h, l)   add_unsigned_hl_sim(sumH, sumL, h, l)
 #else
@@ -58,7 +58,7 @@ int lookup_small_log2_linear_new(uint32_t x) {
 }
 
 int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
     int bits = clz_sim(h);
 #else
     // http://bugzilla.xmos.local/show_bug.cgi?id=18641
@@ -68,7 +68,7 @@ int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
     uint32_t x = 0;
     uint32_t exponent = 0;
     if (bits == 32) {
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
         bits = clz_sim(l);
 #else
         // http://bugzilla.xmos.local/show_bug.cgi?id=18641

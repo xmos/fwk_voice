@@ -14,6 +14,7 @@ int clz_sim(uint32_t x)
         }
         leading++;
     }
+    return leading;
 }
 
 

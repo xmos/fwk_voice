@@ -6,7 +6,7 @@
 
 int32_t vad_math_logistics_fast(int32_t x);
 
-#if !X86_BUILD
+#if !VAD_MODULE_X86_BUILD
     #include <xclib.h>
 #else
     int clz_sim(uint32_t x);
