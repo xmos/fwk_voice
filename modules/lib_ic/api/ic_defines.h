@@ -33,7 +33,9 @@
 /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. This
  * value is adjusted by the adaption rate controller if instability is detected.
  * @ingroup ic_defines */
-#define IC_INIT_LEAKAGE_ALPHA                       0.995 //from two_mic_stereo.json
+#define IC_INIT_LEAKAGE_ALPHA                       1.0 //from Python model. Note in a practical
+                                                        //system, stage B sets this to 1.0 even
+                                                        //though two_mic_stereo.json inits to 0.995
 
 /** The number of filter phases supported by the IC. Each filter phase represents 15ms of
  * filter length. Hence a 10 phase filter will allow cancellation of noise sources with
