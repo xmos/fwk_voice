@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "vad_helpers.h"
 #include "vad_mel.h"
@@ -10,7 +9,7 @@
 #define LOOKUP_PRECISION 8
 #define MEL_PRECISION 24
 
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
 #define mul_mel(h, l, s)                    mul_mel_sim(h, l, s)
 #define add_unsigned_hl(sumH, sumL, h, l)   add_unsigned_hl_sim(sumH, sumL, h, l)
 #else
@@ -37,7 +36,7 @@ static inline void add_unsigned_hl(uint32_t * sumH, uint32_t * sumL,
 }
 #endif
 
-static int lookup[33] = {
+static const int lookup[33] = {
     0,    11,  22,  33,  43,  53,  63,  73,
     82,   91, 100, 109, 117, 125, 134, 141,
     149, 157, 164, 172, 179, 186, 193, 200,
@@ -50,7 +49,7 @@ static int lookup[33] = {
 int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
-    int y = (x >> mask_bits)-32;
+    int y = (x >> mask_bits) - 32;
     int y1 = y + 1;
     int v0 = lookup[y], v1 = lookup[y1];
     int f1 = x & mask;
@@ -59,16 +58,17 @@ int lookup_small_log2_linear_new(uint32_t x) {
 }
 
 int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
     int bits = clz_sim(h);
 #else
     // http://bugzilla.xmos.local/show_bug.cgi?id=18641
     int bits = (h == 0) ? 32 : clz(h);
 #endif
-    uint32_t x;
-    uint32_t exponent;
+    // zeros are defaults here
+    uint32_t x = 0;
+    uint32_t exponent = 0;
     if (bits == 32) {
-#if X86_BUILD
+#if VAD_MODULE_X86_BUILD
         bits = clz_sim(l);
 #else
         // http://bugzilla.xmos.local/show_bug.cgi?id=18641
@@ -84,7 +84,7 @@ int log_exponent_new(uint32_t h, uint32_t l, uint32_t logN) {
         x = h << bits | l >> (32 - bits);
         exponent = 64 - bits;
     }
-    uint32_t log2 = lookup_small_log2_linear_new(x) + ((exponent-1 + logN) << MEL_PRECISION);
+    uint32_t log2 = lookup_small_log2_linear_new(x) + ((exponent - 1 + logN) << MEL_PRECISION);
     uint32_t ln2 = 2977044472;
     return (log2 * (uint64_t) ln2) >> 32;
 }
@@ -114,7 +114,9 @@ void vad_mel_compute_new(int32_t melValues[], uint32_t M,
         uint32_t scale = melTable[i];
         if (scale == 0 && i != 0) {
             int log = log_exponent_new(sumEvenH, sumEvenL, extraShift);
-            if(i<N)melValues[mels++] = log;
+            if(i < N){
+                melValues[mels++] = log;
+            }
             sumEvenH = 0;
             sumEvenL = 0;
         } else {

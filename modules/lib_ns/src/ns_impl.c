@@ -3,10 +3,8 @@
 #include <string.h>
 #include <limits.h>
 #include <bfp_math.h>
-
-#include <ns_api.h>
 #include "ns_priv.h"
-#include "ns_test.h"
+#include <ns_api.h>
 
 #define NS_SQRT_HANN_LUT           sqrt_hanning_480
 
@@ -45,7 +43,7 @@ int32_t sqrt_hanning_480[NS_WINDOW_LENGTH / 2] = {
 	};
 
 //reverse window
-void ns_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned length){
+void ns_priv_fill_rev_wind (int32_t * rev_wind, const int32_t * wind, const unsigned length){
 
 	for (int v = 0; v < length / 2; v++){
 		rev_wind[v] = wind[length - 1 - v];
@@ -53,14 +51,14 @@ void ns_fill_rev_wind (int32_t * rev_wind, int32_t * wind, const unsigned length
 	}
 }
 
-void ns_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value){
+void ns_priv_bfp_init(bfp_s32_t * a, int32_t * data, unsigned length, int32_t value){
 
     bfp_s32_init(a, data, NS_INT_EXP, length, 0);
     bfp_s32_set(a, value, NS_INT_EXP);
 }
 
 // pack 512 frame using the input and previous frames
-void ns_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev){
+void ns_priv_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev){
 
     memcpy(current->data, prev->data, (NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE) * sizeof(int32_t));
     memcpy(&current->data[NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE], input, NS_FRAME_ADVANCE * sizeof(int32_t));
@@ -74,7 +72,7 @@ void ns_pack_input(bfp_s32_t * current, const int32_t * input, bfp_s32_t * prev)
 }
 
 // apply overlap to the frame to get output and updated overlap
-void ns_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
+void ns_priv_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
     bfp_s32_t in_half, output;
     
     bfp_s32_init(&output, out, NS_INT_EXP, NS_FRAME_ADVANCE, 0);
@@ -94,41 +92,50 @@ void ns_form_output(int32_t * out, bfp_s32_t * in, bfp_s32_t * overlap){
 void ns_init(ns_state_t * ns){
     memset(ns, 0, sizeof(ns_state_t));
 
-    ns_bfp_init(&ns->S, ns->data_S, NS_PROC_FRAME_BINS, INT_MAX);
-    ns_bfp_init(&ns->S_min, ns->data_S_min, NS_PROC_FRAME_BINS, INT_MAX);
-    ns_bfp_init(&ns->S_tmp, ns->data_S_tmp, NS_PROC_FRAME_BINS, INT_MAX);
-    ns_bfp_init(&ns->p, ns->data_p, NS_PROC_FRAME_BINS, 0);
-    ns_bfp_init(&ns->alpha_d_tilde, ns->data_adt, NS_PROC_FRAME_BINS, 0);
-    ns_bfp_init(&ns->lambda_hat, ns->data_lambda_hat, NS_PROC_FRAME_BINS, 0);
+    ns_priv_bfp_init(&ns->S, ns->data_S, NS_PROC_FRAME_BINS, INT_MAX);
+    ns_priv_bfp_init(&ns->S_min, ns->data_S_min, NS_PROC_FRAME_BINS, INT_MAX);
+    ns_priv_bfp_init(&ns->S_tmp, ns->data_S_tmp, NS_PROC_FRAME_BINS, INT_MAX);
+    ns_priv_bfp_init(&ns->p, ns->data_p, NS_PROC_FRAME_BINS, 0);
+    ns_priv_bfp_init(&ns->alpha_d_tilde, ns->data_adt, NS_PROC_FRAME_BINS, 0);
+    ns_priv_bfp_init(&ns->lambda_hat, ns->data_lambda_hat, NS_PROC_FRAME_BINS, 0);
 
-    ns_bfp_init(&ns->prev_frame, ns->data_prev_frame, NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE, 0);
-    ns_bfp_init(&ns->overlap, ns->data_ovelap, NS_FRAME_ADVANCE, 0);
+    ns_priv_bfp_init(&ns->prev_frame, ns->data_prev_frame, NS_PROC_FRAME_LENGTH - NS_FRAME_ADVANCE, 0);
+    ns_priv_bfp_init(&ns->overlap, ns->data_ovelap, NS_FRAME_ADVANCE, 0);
 
-    ns_fill_rev_wind(ns->data_rev_wind, NS_SQRT_HANN_LUT, NS_WINDOW_LENGTH / 2);
+    ns_priv_fill_rev_wind(ns->data_rev_wind, NS_SQRT_HANN_LUT, NS_WINDOW_LENGTH / 2);
 
     bfp_s32_init(&ns->wind, NS_SQRT_HANN_LUT, NS_INT_EXP, NS_WINDOW_LENGTH / 2, 1);
     bfp_s32_init(&ns->rev_wind, ns->data_rev_wind, NS_INT_EXP, NS_WINDOW_LENGTH / 2, 1);
 
-    ns->reset_counter = 0;
-    ns->reset_period = (unsigned)(16000.0 * 0.15);
+    // delta = 1.5 exactly
+    ns->delta.mant = 1610612736;
+    ns->delta.exp = -30;
+
+    // If modifying any of these parameters, modify one_minus parameters as well!!
     // alpha_d = 0.95 to 9 d.p.
     ns->alpha_d.mant = 2040109466;
     ns->alpha_d.exp = -31;
-    // 1 - 0.95 to 9 d.p
-    ns->one_minus_aplha_d.mant = 26843546;
-    ns->one_minus_aplha_d.exp = -29;
     // alpha_s = 0.8 to 9 d.p.
     ns->alpha_s.mant = 1717986919;
     ns->alpha_s.exp = -31;
     // alpha_p = 0.2 to 10 d.p.
     ns->alpha_p.mant = 1717986919;
     ns->alpha_p.exp = -33;
-    // delta = 1.5 exactly
-    ns->delta.mant = 1610612736;
-    ns->delta.exp = -30;
+
+    // 1 - 0.95 to 9 d.p
+    ns->one_minus_aplha_d.mant = 26843546;
+    ns->one_minus_aplha_d.exp = -29;
+    // since alpha_s = 0.8 and 1 - 0.8 = 0.2, we can use alpha_p value here
+    ns->one_minus_alpha_s = ns->alpha_p;
+    // since alpha_p = 0.2 and 1 - 0.2 = 0.8, we can use alpha_s value here
+    ns->one_minus_alpha_p = ns->alpha_s;
+
+    ns->reset_counter = 0;
+    // we sample at 16 kHz and want to reset every 150 ms (every 10 frames)
+    ns->reset_period = (unsigned)(16000.0 * 0.15);
 }
 
-void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_window, const unsigned frame_length, const unsigned window_length){
+void ns_priv_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_window, const unsigned frame_length, const unsigned window_length){
 
     bfp_s32_t input_chunk[3];
 
@@ -140,13 +147,14 @@ void ns_apply_window(bfp_s32_t * input, bfp_s32_t * window, bfp_s32_t * rev_wind
     bfp_s32_mul(&input_chunk[1], &input_chunk[1], rev_window);
     bfp_s32_set(&input_chunk[2], 0, input->exp);
     
-    ns_priv_adjust_exp(&input_chunk[0], &input_chunk[1], input);
+    bfp_s32_use_exponent(&input_chunk[0], input->exp);
+    bfp_s32_use_exponent(&input_chunk[1], input->exp);
     bfp_s32_headroom(input);
 }
 
 // apply suppression
 // does not work well in some cases and takes a lot of cycles
-void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+void ns_priv_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     // leads to a poor precision
     //bfp_s32_inverse(orig_mag, orig_mag);
@@ -166,10 +174,17 @@ void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t
         t1.mant = new_mag->data[v];
         t1.exp = new_mag->exp;
 
-        if(t1.mant != 0)t2[v] = float_s32_div(t1, t);
-        else {t2[v].mant = 0;t2[v].exp = NS_INT_EXP;}
+        if(t1.mant != 0){
+            t2[v] = float_s32_div(t1, t);
+        }
+        else {
+            t2[v].mant = 0;
+            t2[v].exp = NS_INT_EXP;
+        }
         orig_mag->data[v] = t2[v].mant;
-        if(t2[v].exp > max_exp)max_exp = t2[v].exp;
+        if(t2[v].exp > max_exp){
+            max_exp = t2[v].exp;
+        }
     }
     orig_mag->exp = max_exp;
 
@@ -187,7 +202,7 @@ void ns_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
 }
 
-void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
+void ns_priv_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
     if(orig_mag){
         int64_t S = ((int64_t)new_mag)<<31;
         S /= orig_mag;
@@ -207,7 +222,7 @@ void ns_rescale(complex_s32_t * Y, int32_t new_mag, int32_t orig_mag){
 
 // apply suppression
 // new implementation
-void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
+void ns_priv_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag){
 
     // preparing input data
     left_shift_t lsh = new_mag->hr;
@@ -228,7 +243,7 @@ void ns_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * o
 
     // apply supression
     for(unsigned v = 0; v < NS_PROC_FRAME_BINS; v++){
-        ns_rescale(&Y->data[v], new_mag->data[v], orig_mag->data[v]);
+        ns_priv_rescale(&Y->data[v], new_mag->data[v], orig_mag->data[v]);
     }
 
     bfp_complex_s32_headroom(Y);
@@ -246,9 +261,9 @@ void ns_process_frame(ns_state_t * ns,
     bfp_s32_init(&abs_Y_suppressed, scratch1, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
     bfp_s32_init(&abs_Y_original, scratch2, NS_INT_EXP, NS_PROC_FRAME_BINS, 0);
 
-    ns_pack_input(&curr_frame, input, &ns->prev_frame);
+    ns_priv_pack_input(&curr_frame, input, &ns->prev_frame);
     
-    ns_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+    ns_priv_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
     bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
     bfp_fft_unpack_mono(curr_fft);
@@ -261,13 +276,13 @@ void ns_process_frame(ns_state_t * ns,
 
     ns_priv_process_frame(&abs_Y_suppressed, ns);
 
-    ns_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
+    ns_priv_rescale_vector(curr_fft, &abs_Y_suppressed, &abs_Y_original);
     // if using old implementation don't use abs_Y_orig after this point 
 
     bfp_fft_pack_mono(curr_fft);
     bfp_fft_inverse_mono(curr_fft);
 
-    ns_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+    ns_priv_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
-    ns_form_output(output, &curr_frame, &ns->overlap);
+    ns_priv_form_output(output, &curr_frame, &ns->overlap);
 }

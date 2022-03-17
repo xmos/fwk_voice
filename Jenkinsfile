@@ -7,7 +7,10 @@ pipeline {
   parameters {
     booleanParam(name: 'FULL_TEST_OVERRIDE',
                  defaultValue: false,
-                 description: 'Force a full test.')
+                 description: 'Force a full test. This increases the number of iterations/scope in some tests')
+    booleanParam(name: 'PIPELINE_FULL_RUN',
+                 defaultValue: false,
+                 description: 'Enables pipelines characterisation test which takes 2.5hrs by itself. Normally run nightly')
   }
   environment {
     REPO = 'sw_avona'
@@ -16,6 +19,7 @@ pipeline {
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
+    RUN_PIPELINE = """${params.PIPELINE_FULL_RUN ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -36,8 +40,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
               }
             }
@@ -48,27 +50,39 @@ pipeline {
             dir("${REPO}") {
               sh "mkdir build"
             }
+            // Do x86 versions first because it's hard to glob just for extensionless files
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  script {
-                      if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
-                      }
-                      else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
-                      }
-                  }
-                  sh "make -j8"
-                  sh 'rm CMakeCache.txt'
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+              archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+            }
+            // Now do xcore files
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh 'rm CMakeCache.txt'
+                  script {
+                      if (env.FULL_TEST == "1") {
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                      }
+                      else {
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                      }
+                  }
+                  sh "make -j8"
+                }
+              }
+            }
+            dir("${REPO}") {
+              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
             }
           }
         }
@@ -90,9 +104,9 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
-                  unstash 'cmake_build'
+                  unstash 'cmake_build_xcore'
+                  unstash 'cmake_build_x86'
+                  sh "pip install -e build/avona_deps/xscope_fileio"
 
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
@@ -254,18 +268,6 @@ pipeline {
         stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ns/ns_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('NS ns_priv_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_ns/ns_priv_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -460,6 +462,42 @@ pipeline {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('HPF test') {
+          steps {
+            dir("${REPO}/test/test_hpf") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('Pipeline tests') {
+          when {
+            expression { env.RUN_PIPELINE == "1" }
+          }
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+                      sh 'tree ../../build/examples/bare-metal/'
+                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
+                      junit "pytest_result.xml"
+                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
+                      archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
+                    }
+                  }
                 }
               }
             }

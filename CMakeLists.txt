@@ -8,47 +8,29 @@ endif()
 project(sw_avona)
 
 enable_language(CXX C ASM)
-## Set up the build options
-include(etc/build_options.cmake)
 
-## Fetch the Unity repo as a dependency
-
-find_package( Python3 COMPONENTS Interpreter )
-
-## Compile flags for C/C++ for all libs and apps (for all platforms)
-list(APPEND   COMPILE_FLAGS        -Os -g -MMD )
-list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
-
-## Platform-specific C/C++ compile flags
-
-if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
-    set(XCORE_TARGET "XCORE-AI-EXPLORER")
-    #list(APPEND   COMPILE_FLAGS  -march=xs3a -mcmodel=large)
-else()
-    list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
-endif()
-## CMake configuration stuff
-
-set( CMAKE_CXX_STANDARD           11  )
-set( CMAKE_CXX_STANDARD_REQUIRED  ON  )
-set( CMAKE_CXX_EXTENSIONS         OFF )
-
-add_compile_options( ${COMPILE_FLAGS} )
 ## Add libs and apps
-add_subdirectory( xcore_sdk EXCLUDE_FROM_ALL)
-
-message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
-message( STATUS "target name ${XCORE_TARGET}" )
-
 add_subdirectory( modules )
 
-if ( ${AVONA_BUILD_EXAMPLES} )
+if(PROJECT_IS_TOP_LEVEL)
+    find_package( Python3 COMPONENTS Interpreter )
+
+    ## Compile flags for C/C++ for all libs and apps (for all platforms)
+    list(APPEND   COMPILE_FLAGS        -MMD )
+    list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
+
+    message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
+
+    ## Platform-specific C/C++ compile flags
+    if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+        set(XCORE_TARGET "XCORE-AI-EXPLORER")
+    else()
+        list(APPEND   COMPILE_FLAGS  -DX86_BUILD=1)
+    endif()
+
+    add_compile_options( ${COMPILE_FLAGS} )
+
     add_subdirectory( examples )
-endif()
 
-## Get build dependencies
-
-if ( ${AVONA_BUILD_TESTS} )
-    include(etc/fetch_deps.cmake)
     add_subdirectory( test )
 endif()

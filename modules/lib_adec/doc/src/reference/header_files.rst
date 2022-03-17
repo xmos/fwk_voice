@@ -1,5 +1,5 @@
 ADEC Header Files
-================
+=================
 
 .. _adec_defines_h:
 

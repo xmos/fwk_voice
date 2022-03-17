@@ -8,7 +8,11 @@
 #include "bfp_math.h"
 #include "xs3_math.h"
 
-//private AEC functions
+//private AEC functions and defines
+
+#define AEC_INPUT_EXP (-31) /// Exponent of AEC input and output
+#define AEC_WINDOW_EXP (-31) /// Hanning window coefficients exponent
+
 void aec_priv_main_init(
         aec_state_t *state,
         aec_shared_state_t *shared_state,
@@ -52,7 +56,7 @@ void aec_priv_calc_coherence_mu(
         const float_s32_t *sum_X_energy,
         const int32_t *shadow_flag,
         unsigned num_y_channels,
-        unsigned num_x_channnels);
+        unsigned num_x_channels);
 
 void aec_priv_update_total_X_energy(
         bfp_s32_t *X_energy,
@@ -135,7 +139,7 @@ void aec_priv_calc_delta(
         const float_s32_t *max_X_energy,
         aec_config_params_t *conf,
         float_s32_t scale,
-        int channels);
+        uint32_t channels);
 
 float_s32_t aec_priv_calc_corr_factor(
         bfp_s32_t *y,

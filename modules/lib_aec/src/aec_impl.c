@@ -39,7 +39,7 @@ void aec_frame_init(
         // Copy current y samples
         memcpy(&main_state->shared_state->y[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &y_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->y[ch].exp = -31;
+        main_state->shared_state->y[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->y[ch]);
 
@@ -51,7 +51,7 @@ void aec_frame_init(
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->prev_y[ch]);
         // Update exp just in case
-        main_state->shared_state->prev_y[ch].exp = -31;
+        main_state->shared_state->prev_y[ch].exp = AEC_INPUT_EXP;
     }
     // x frame 
     for(unsigned ch=0; ch<num_x_channels; ch++) {
@@ -61,7 +61,7 @@ void aec_frame_init(
         // Copy current x samples
         memcpy(&main_state->shared_state->x[ch].data[AEC_PROC_FRAME_LENGTH - AEC_FRAME_ADVANCE], &x_data[ch][0], (AEC_FRAME_ADVANCE)*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->x[ch].exp = -31;
+        main_state->shared_state->x[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->x[ch]);
 
@@ -71,7 +71,7 @@ void aec_frame_init(
         // Copy current frame to previous
         memcpy(&main_state->shared_state->prev_x[ch].data[(AEC_PROC_FRAME_LENGTH - (2*AEC_FRAME_ADVANCE))], &x_data[ch][0], AEC_FRAME_ADVANCE*sizeof(int32_t));
         // Update exp just in case
-        main_state->shared_state->prev_x[ch].exp = -31;
+        main_state->shared_state->prev_x[ch].exp = AEC_INPUT_EXP;
         // Update headroom
         bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
@@ -86,14 +86,14 @@ void aec_frame_init(
 
     //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        main_state->Y_hat[ch].exp = -1024;
-        main_state->Y_hat[ch].hr = 0;
+        main_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
+        main_state->Y_hat[ch].hr = AEC_ZEROVAL_HR;
         memset(&main_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
     }
     if(shadow_state != NULL) {
         for(unsigned ch=0; ch<num_y_channels; ch++) {
-            shadow_state->Y_hat[ch].exp = -1024;
-            shadow_state->Y_hat[ch].hr = 0;
+            shadow_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
+            shadow_state->Y_hat[ch].hr = AEC_ZEROVAL_HR;
             memset(&shadow_state->Y_hat[ch].data[0], 0, ((AEC_PROC_FRAME_LENGTH/2)+1)*sizeof(complex_s32_t));
         }
     }
@@ -120,10 +120,10 @@ void aec_calc_time_domain_ema_energy(
 float_s32_t aec_calc_max_input_energy(const int32_t (*input_data)[AEC_FRAME_ADVANCE], int num_channels) {
     bfp_s32_t ref;
 
-    bfp_s32_init(&ref, (int32_t*)&input_data[0][0], -31, AEC_FRAME_ADVANCE, 1);
+    bfp_s32_init(&ref, (int32_t*)&input_data[0][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
     float_s32_t max = float_s64_to_float_s32(bfp_s32_energy(&ref));
     for(int ch=1; ch<num_channels; ch++) {
-        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
         float_s32_t current = float_s64_to_float_s32(bfp_s32_energy(&ref));
         if(float_s32_gt(current, max)){max = current;}
     }
@@ -136,13 +136,12 @@ void aec_forward_fft(
 {
     //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
     //This is done to avoid having to call bfp_s32_init() on the input every frame
-    int32_t len = input->length; 
+    uint32_t len = input->length; 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
     
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
     bfp_fft_unpack_mono(output);
     input->length = len;
-    return;
 }
 
 //per x-channel
@@ -160,7 +159,6 @@ void aec_calc_X_fifo_energy(
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
     aec_priv_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->shared_state->X_fifo[ch][0], X_ptr, state->num_phases, recalc_bin);
-    return;
 }
 //per x-channel
 void aec_update_X_fifo_and_calc_sigmaXX(
@@ -172,7 +170,6 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     uint32_t sigma_xx_shift = state->shared_state->config_params.aec_core_conf.sigma_xx_shift;
     float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
     aec_priv_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
-    return;
 }
 
 //per y-channel
@@ -196,13 +193,12 @@ void aec_inverse_fft(
 {
     //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
     //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
-    int32_t len = input->length;
+    uint32_t len = input->length;
     bfp_fft_pack_mono(input);
     bfp_s32_t *temp = bfp_fft_inverse_mono(input);
     memcpy(output, temp, sizeof(bfp_s32_t));
 
     input->length = len;
-    return;
 }
 
 float_s32_t aec_calc_corr_factor(
@@ -241,7 +237,6 @@ void aec_calc_coherence(
     temp.hr = state->shared_state->prev_y[ch].hr;
 
     aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
-    return;
 }
 
 void aec_calc_output(
@@ -255,16 +250,15 @@ void aec_calc_output(
 
     bfp_s32_t output_struct;
     if(output != NULL) {
-        bfp_s32_init(&output_struct, &output[0][0], -31, AEC_FRAME_ADVANCE, 0);
+        bfp_s32_init(&output_struct, &output[0][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     }
     else {
-        bfp_s32_init(&output_struct, NULL, -31, AEC_FRAME_ADVANCE, 0);
+        bfp_s32_init(&output_struct, NULL, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     }
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
     aec_priv_create_output(output_ptr, overlap_ptr, error_ptr);
-    return;
 }
 
 void aec_calc_freq_domain_energy(
@@ -295,7 +289,6 @@ void aec_calc_normalisation_spectrum(
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
     unsigned normdenom_apply_factor_of_2 = 1;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, &state->shared_state->config_params, state->delta, is_shadow, normdenom_apply_factor_of_2);
-    return;
 }
 
 void aec_filter_adapt(
@@ -379,39 +372,39 @@ void aec_update_X_fifo_1d(
 
 void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     aec_shared_state_t *shared_state = main_state->shared_state; 
-    int32_t y_channels = shared_state->num_y_channels;
-    int32_t x_channels = shared_state->num_x_channels;
-    int32_t main_phases = main_state->num_phases;
-    int32_t shadow_phases = shadow_state->num_phases;
+    uint32_t y_channels = shared_state->num_y_channels;
+    uint32_t x_channels = shared_state->num_x_channels;
+    uint32_t main_phases = main_state->num_phases;
+    uint32_t shadow_phases = shadow_state->num_phases;
     //Main H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
-            main_state->H_hat[ch][ph].exp = -1024;
-            main_state->H_hat[ch][ph].hr = 31;
+            main_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
+            main_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //Shadow H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*shadow_phases; ph++) {
-            shadow_state->H_hat[ch][ph].exp = -1024;
-            shadow_state->H_hat[ch][ph].hr = 31;
+            shadow_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
+            shadow_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //X_fifo
     for(int ch=0; ch<x_channels; ch++) {
         for(int ph=0; ph<main_phases; ph++) {
-            shared_state->X_fifo[ch][ph].exp = -1024;
-            shared_state->X_fifo[ch][ph].hr = 31;
+            shared_state->X_fifo[ch][ph].exp = AEC_ZEROVAL_EXP;
+            shared_state->X_fifo[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //X_energy, sigma_XX
     for(int ch=0; ch<x_channels; ch++) {
-        main_state->X_energy[ch].exp = -1024;
-        main_state->X_energy[ch].hr = 31;
-        shadow_state->X_energy[ch].exp = -1024;
-        shadow_state->X_energy[ch].hr = 31;
-        shared_state->sigma_XX[ch].exp = -1024;
-        shared_state->sigma_XX[ch].hr = 31;
+        main_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
+        main_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
+        shadow_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
+        shadow_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
+        shared_state->sigma_XX[ch].exp = AEC_ZEROVAL_EXP;
+        shared_state->sigma_XX[ch].hr = AEC_ZEROVAL_HR;
     }
 }
 
@@ -420,10 +413,10 @@ int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE]
     return abs_max_ref > threshold*/
     bfp_s32_t ref, abs;
     int32_t scratch[AEC_FRAME_ADVANCE];
-    bfp_s32_init(&abs, scratch, -31, AEC_FRAME_ADVANCE, 0);
+    bfp_s32_init(&abs, scratch, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
     int32_t ref_active_flag = 0; 
     for(int ch=0; ch<num_channels; ch++) {
-        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], -31, AEC_FRAME_ADVANCE, 1);
+        bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
         bfp_s32_abs(&abs, &ref);
         float_s32_t max = bfp_s32_max(&abs);
         max = float_s32_abs(max);

@@ -10,6 +10,7 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
+#include "hpf.h"
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
@@ -44,8 +45,8 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
-    adec_conf.bypass = 1; //Bypass automatic DE correction
-    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
+    adec_conf.bypass = 1; // Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     ic_init(&state->ic_state);
@@ -94,7 +95,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
 #endif
 
-    /**IC and VAD*/
+    /** IC and VAD*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 #if DISABLE_STAGE_2
     memcpy(&ic_output[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
@@ -109,18 +110,18 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
 #endif
 
-    //The comms channel will be produced by two channels averaging
+    // The comms channel will be produced by two channels averaging
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
         ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
     }
-    //The ASR channel will be produced by IC filtering
+    // The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     md.vad_flag = (vad > AGC_VAD_THRESHOLD);
     ic_adapt(&state->ic_state, vad, ic_output[0]);
 #endif
 
-    /**NS*/
+    /** NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 #if DISABLE_STAGE_3
     memcpy(&ns_output[0][0], &ic_output[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
@@ -129,6 +130,9 @@ void pipeline_process_frame(pipeline_state_t *state,
         ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
     }
 #endif
+
+    // Apply 100 Hz High-Pass filter for the comms channel
+    pre_agc_hpf(ns_output[1]);
     
     /** AGC*/
 #if DISABLE_STAGE_4

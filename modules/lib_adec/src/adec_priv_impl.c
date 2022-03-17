@@ -101,8 +101,8 @@ fixed_s32_t float_to_frac_bits(float_s32_t value){
   int headroom = HR_S32(value.mant);
   //since value is known to be positive, increase headroom by 1, since this function works on a normalised unsigned value
   headroom = headroom + 1;
-  uint32_t value_mant;
-  int32_t value_exp;
+  uint32_t value_mant=0;
+  int32_t value_exp=0;
   value_mant = (uint32_t)value.mant << headroom;
   value_exp = value.exp - headroom;
 
@@ -116,8 +116,12 @@ fixed_s32_t float_to_frac_bits(float_s32_t value){
 
   number_of_bits <<= Q24_FRAC_BITS;
   const unsigned shift_threshold = Q24_FRAC_BITS + 1;
-  if(LOG2_LOOKUP_TYPE_BITS > shift_threshold) number_of_bits += log2_lookup[top_n_bits] >> (LOG2_LOOKUP_TYPE_BITS - shift_threshold);
-  else number_of_bits += (uint32_t)log2_lookup[top_n_bits] << (shift_threshold - LOG2_LOOKUP_TYPE_BITS);
+  if(LOG2_LOOKUP_TYPE_BITS > shift_threshold) {
+      number_of_bits += (log2_lookup[top_n_bits] >> (LOG2_LOOKUP_TYPE_BITS - shift_threshold));
+  }
+  else {
+      number_of_bits += ((uint32_t)log2_lookup[top_n_bits] << (shift_threshold - LOG2_LOOKUP_TYPE_BITS));
+  }
 
   return (fixed_s32_t)number_of_bits;
 }

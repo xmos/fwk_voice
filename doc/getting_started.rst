@@ -32,7 +32,7 @@ procedure is currently supported on MacOS and Linux only.
 #. Run cmake to setup the build environment for the XMOS toolchain
      .. code-block:: console
 
-       cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake
+       cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
 #. Running make will then build the Avona libraries and example applications
      .. code-block:: console

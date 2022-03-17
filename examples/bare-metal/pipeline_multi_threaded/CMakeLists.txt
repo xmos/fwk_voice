@@ -25,6 +25,8 @@ target_link_libraries(${APP_NAME}
         avona::example::delay_buffer
         avona::example::stage_1
         avona::example::fileutils
+        avona::example::hpf
+        sdk::lib_xs3_math
         )
 
 target_compile_definitions(${APP_NAME}
