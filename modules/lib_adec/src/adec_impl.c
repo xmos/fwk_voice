@@ -235,6 +235,4 @@ void adec_process_frame(
   if (adec_output->delay_change_request_flag == 1){
       reset_stuff_on_AEC_mode_start(state, 1);
   }
-
-  return;
 }

@@ -450,12 +450,12 @@ void aec_l2_adapt_plus_fft_gc(
  */
 void aec_l2_bfp_complex_s32_unify_exponent(
         bfp_complex_s32_t *chunks,
-        int *final_exp,
-        int *final_hr,
-        const int *mapping,
-        int array_len,
-        int desired_index,
-        int min_headroom);
+        int32_t *final_exp,
+        uint32_t *final_hr,
+        const uint32_t *mapping,
+        uint32_t array_len,
+        uint32_t desired_index,
+        uint32_t min_headroom);
 
 /**
  * @brief Unify bfp_s32_t chunks into a single exponent and headroom
@@ -464,10 +464,10 @@ void aec_l2_bfp_complex_s32_unify_exponent(
  */
 void aec_l2_bfp_s32_unify_exponent(
         bfp_s32_t *chunks,
-        int *final_exp,
-        int *final_hr,
-        const int *mapping,
-        int array_len,
-        int desired_index,
-        int min_headroom);
+        int32_t *final_exp,
+        uint32_t *final_hr,
+        const uint32_t *mapping,
+        uint32_t array_len,
+        uint32_t desired_index,
+        uint32_t min_headroom);
 #endif
