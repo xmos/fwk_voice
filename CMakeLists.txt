@@ -10,7 +10,6 @@ project(sw_avona)
 enable_language(CXX C ASM)
 
 ## Add libs and apps
-## Module specific options delcared in next level down in modules Cmakelists.txt
 add_subdirectory( modules )
 
 if(PROJECT_IS_TOP_LEVEL)
