@@ -225,6 +225,7 @@ void agc_process_frame(agc_state_t *agc,
         // Add some headroom to avoid changing the exponent when gradually transitioning from
         // previous lc_gain to lc_target_gain. Anyway, 32 bits of precision is unnecessary.
         bfp_s32_shl(&lc_scale_bfp, &lc_scale_bfp, -8);
+        lc_scale_bfp.exp += 8;
 
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
             if (float_s32_gt(agc->lc_gain, lc_target_gain)) {
