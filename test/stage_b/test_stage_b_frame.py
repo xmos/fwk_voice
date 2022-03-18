@@ -29,6 +29,8 @@ import py_vs_c_utils as pvc
 
 ap_config_file = "../shared/config/two_mic_stereo_prev_arch.json"
 input_file = "../../examples/bare-metal/ic/input.wav"
+#sox ~/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav -c 2 loc1_noise2_60db.wav trim 120 120
+input_file = "loc1_noise2_60db.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[ap_config_file])
@@ -55,6 +57,11 @@ class stage_b_comparison:
         self.sb = ap_stage_b(self.frame_advance, stage_b_conf["ic_conf"], self.passthrough_channel_count, mic_shift=0, mic_saturate=0)
 
         ic_vad_test_lib.test_init()
+        
+        self.ic_state = None
+        self.py_vad = None
+        self.c_vad = None
+
 
     def process_frame(self, frame):
         #we need to delay the y for python as not done in model
@@ -67,6 +74,7 @@ class stage_b_comparison:
 
         output_py, metadata = self.sb.process_frame(frame, stage_a_md)
         py_vad = metadata.vad_result
+        self.py_vad = py_vad
 
         #Grab a pointer to the data storage of the numpy arrays
         y_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[0].data))
@@ -74,14 +82,17 @@ class stage_b_comparison:
         output_c = np.zeros((240), dtype=np.int32)
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_vad_test_lib.test_filter(y_data, x_data, output_c_ptr)
-        c_vad = ic_vad_test_lib.test_vad(output_c_ptr)
-        print(f"1py_vad: {py_vad:.2f}, c_vad: {pvc.uint8_to_float(np.array(c_vad)):.2f}")
+        c_vad = pvc.uint8_to_float(ic_vad_test_lib.test_vad(output_c_ptr))
+        self.c_vad = c_vad.copy()
+        print(f"1py_vad: {py_vad:.2f}, c_vad: {c_vad:.2f}")
+
         #note we override c_vad to match py_vad for comparison
         c_vad = pvc.float_to_uint8(np.array(py_vad))
-        print(f"2py_vad: {py_vad:.2f}, c_vad: {pvc.uint8_to_float(np.array(c_vad)):.2f}")
+        print(f"2py_vad: {py_vad:.2f}, c_vad: {c_vad:.2f}")
         ic_vad_test_lib.test_adapt(c_vad, output_c_ptr)
 
         ic_state = ic_vad_test_lib.test_get_ic_state()
+        self.ic_state = ic_state
         print(f"py_mu: {self.sb.ifc.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
         # print(pvc.float_s32_to_float(state.config_params.delta))
 
@@ -105,6 +116,8 @@ def test_frame_compare(test_config):
     delays = np.zeros(input_channel_count) #we do delay of y channel in process_frame above and in C rather than awu.get_frame
 
     output_wav_data = np.zeros((2, file_length))
+    mu_log = np.zeros((file_length//frame_advance, 2))
+    vad_log = np.zeros((file_length//frame_advance, 2))
 
     for frame_start in range(0, file_length-proc_frame_length*2, frame_advance):
         input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance, delays)[0:2,:]
@@ -113,12 +126,18 @@ def test_frame_compare(test_config):
             print ('# ' + str(frame_start // frame_advance))
 
         output_py, output_c = sbc.process_frame(input_frame)
+        mu_log[frame_start//frame_advance, :] = np.array([sbc.sb.ifc.mu, pvc.float_s32_to_float(sbc.ic_state.mu[0][0])])
+        vad_log[frame_start//frame_advance, :] = np.array([sbc.py_vad, sbc.c_vad])
 
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py
         output_wav_data[1, frame_start: frame_start + frame_advance] = output_c
         
     #Write a copy of the output for post analysis if needed
     scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
+
+    pvc.basic_line_graph("py_vs_c_mu", mu_log)
+    pvc.basic_line_graph("py_vs_c_vad", vad_log)
+
 
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
 

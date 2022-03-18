@@ -24,22 +24,22 @@ def float_s32_to_float(float_s32):
 
 # turn an int32 np array (Q1.30) into float
 def int32_to_float(array_int32):
-    array_float = array_int32.astype(np.float64) / (-np.iinfo(np.int32).min)
+    array_float = np.array(array_int32).astype(np.float64) / (-np.iinfo(np.int32).min)
     return array_float
 
 # turn an uint8 np array (Q0.8) into float
 def uint8_to_float(array_uint8):
-    array_float = array_uint8.astype(np.float64) / np.iinfo(np.uint8).max
+    array_float = np.array(array_uint8).astype(np.float64) / np.iinfo(np.uint8).max
     return array_float
 
 # turn a float into an int32 np array (Q1.30)
 def float_to_int32(array_float):
-    array_int32 = (array_float * np.iinfo(np.int32).max).astype(np.int32)
+    array_int32 = (np.array(array_float) * np.iinfo(np.int32).max).astype(np.int32)
     return array_int32
 
 # turn a float np array into uint8 (Q0.8)
 def float_to_uint8(array_float):
-    array_uint8 = (array_float * np.iinfo(np.uint8).max).astype(np.uint8)
+    array_uint8 = (np.array(array_float) * np.iinfo(np.uint8).max).astype(np.uint8)
     return array_uint8
 
 
@@ -92,3 +92,20 @@ def pcm_closeness_metric(input_file, verbose=True):
 
     return arith_closeness, geo_closeness, c_delay, peak2ave
 
+
+# Draw a simple graph
+def basic_line_graph(name, data):
+    import matplotlib.pyplot as plt
+
+    plt.clf()
+    if np.mean(data[:,0]) > np.mean(data[:,1]): #make sure larger values are behind so we can see smaller at front
+        plt.plot(data[:,0], label="Python", linestyle="", marker=".", color="orange")
+        plt.plot(data[:,1], label="Avona", linestyle="", marker=".", color="blue")
+    else:
+        plt.plot(data[:,1], label="Python", linestyle="", marker=".", color="orange")
+        plt.plot(data[:,0], label="Avona", linestyle="", marker=".", color="blue")
+    plt.title(name)
+    plt.legend()
+    filename = f'{name}.png'
+    plt.savefig(filename, bbox_inches='tight')
+    return filename
