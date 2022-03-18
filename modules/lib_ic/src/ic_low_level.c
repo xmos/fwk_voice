@@ -246,7 +246,7 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-#if 0 
+#if 1
 //Original implementation
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
@@ -299,6 +299,9 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         // mu = mu;
     }
 
+    //TMP HACK TO INVESTIGATE WWE SCORE
+    // mu.exp = mu.exp-1;
+
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;
@@ -306,6 +309,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     } 
 }
 #else
+//Python port
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
@@ -368,6 +372,9 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         ad_config->leakage_alpha = one;
         mu = noise_mu;
     }
+
+    //TMP HACK TO INVESTIGATE WWE SCORE
+    // mu.exp = mu.exp-1;
 
     //Now copy this into the actual state structure
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
