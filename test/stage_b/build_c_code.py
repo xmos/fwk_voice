@@ -26,20 +26,31 @@ INCLUDE_DIRS=[
 SRCS = f"../ic_vad_test.c".split()
 ffibuilder = FFI()
 
-#Extract all defines and state from lib_ic programatically
+#Extract all defines and state from lib_ic programatically as CFFI doesn't do that yet
 predefs = extract_pre_defs()
-# print(predefs)
-# Contains all the C defs visible from Python
-ffibuilder.cdef(
-predefs +
-"""
+predefs += """
     void test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
     uint8_t test_vad(const int32_t input[VAD_FRAME_ADVANCE]);
-""".replace("IC_FRAME_ADVANCE", "240").replace("VAD_FRAME_ADVANCE", "240")
-)
+"""
+#Bit of a faff having to do this. The preproc doesn't handle mul/div or enums or even #define so do it here manually
+replacements = [["bfp_flags_e", "int"],
+                ["IC_FRAME_ADVANCE", "240"],
+                ["VAD_FRAME_ADVANCE", "240"],
+                ["512 / 2", "256"],
+                ["2 * 240", "480"],
+                ["1*10", "10"],
+                ["10*1", "10"]]
+
+for replacement in replacements:
+    predefs = predefs.replace(*replacement)
+
+print(predefs)
+
+# Contains all the C defs visible from Python
+ffibuilder.cdef(predefs)
 
 # Contains the C source necessary to allow the cdefs to work
 ffibuilder.set_source("ic_vad_test_py",  # name of the output C extension
