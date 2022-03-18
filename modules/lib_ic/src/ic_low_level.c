@@ -300,7 +300,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     }
 
     //TMP HACK TO INVESTIGATE WWE SCORE
-    // mu.exp = mu.exp-1;
+    mu.exp = mu.exp-1;
 
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
