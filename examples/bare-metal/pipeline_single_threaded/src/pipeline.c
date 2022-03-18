@@ -52,10 +52,9 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
-    agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
     
     agc_init(&state->agc_state[0], &agc_conf_asr);
-    agc_init(&state->agc_state[1], &agc_conf_comms);
+    agc_init(&state->agc_state[1], &agc_conf_asr);
 }
 
 void pipeline_process_frame(pipeline_state_t *state,
@@ -70,14 +69,14 @@ void pipeline_process_frame(pipeline_state_t *state,
 
     /** IC and VAD*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    // The comms channel will be produced by two channels averaging
-    for(int v = 0; v < AP_FRAME_ADVANCE; v++){
-        ic_output[1][v] = (stage_1_out[0][v] >> 1) + (stage_1_out[1][v] >> 1);
-    }
     // The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     ic_adapt(&state->ic_state, vad, ic_output[0]);
+    // Copy IC output to the other channel
+    for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+        ic_output[1][v] = ic_output[0][v];
+    }
 
     /** NS*/
     int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -86,9 +85,6 @@ void pipeline_process_frame(pipeline_state_t *state,
         ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
     }
 
-    // Apply 100 Hz High-Pass filter for the comms channel
-    pre_agc_hpf(ns_output[1]);
-    
     /** AGC*/
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = max_ref_energy;

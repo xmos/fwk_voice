@@ -57,7 +57,7 @@ void agc_task(const char *input_file_name, const char *output_file_name) {
     // Initialise the AGC configuration using one of the pre-defined profiles in api/agc_profiles.h, and then
     // make any alterations to the defaults. In this application, there is no VAD, so adapt_on_vad must be
     // disabled. Also there is no AEC, so lc_enabled must be disabled.
-    agc_config_t conf = AGC_PROFILE_COMMS;
+    agc_config_t conf = AGC_PROFILE_ASR;
     conf.adapt_on_vad = 0;
     conf.lc_enabled = 0;
 
