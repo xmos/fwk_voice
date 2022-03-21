@@ -36,7 +36,7 @@ def pytest_sessionstart(session):
         print('Warning: RUN_QUICK_TEST environment variable not set. Running quick tests by default')
         quick_test_setting = 1
 
-    if quick_test_setting == 1:
+    if quick_test_setting == 0:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset")
