@@ -145,7 +145,7 @@ def test_frame_compare(test_config):
     assert geo_closeness > 0.99
     assert arith_closeness > 0.98
 
-
+#Check equivalence of adaption controller
 def test_adaption_controller(test_config):
     stage_b_conf = test_config
     #instantiate and init a stage B instance
@@ -153,16 +153,23 @@ def test_adaption_controller(test_config):
     #Init the avona instance
     ic_vad_test_lib.test_init()
 
-    vad_vects = [0, 0.1, 0.2, 0.1, 1.0]
-    in_energy_vects_slow = [0.1, 0.2, 0.3, 0.4, 0.2]
-    out_energy_vects_slow = [0.1, 0.15, 0.2, 0.3, 0.1]
-    in_energy_vects_fast = [0.1, 0.2, 0.3, 0.4, 0.2]
-    out_energy_vects_fast = [0.1, 0.3, 0.2, 0.1, 0,1]
+    #A few fixed sceanrios
+    vad_vects = [0, 0.1, 0.2, 0.1, 0.99, 1.0]
+    in_energy_vects_slow = [0.1, 0.2, 0.3, 0.4, 0.2, 0.2]
+    out_energy_vects_slow = [0.1, 0.15, 0.2, 0.3, 0.1, 0.1]
+    in_energy_vects_fast = [0.1, 0.2, 0.3, 0.4, 0.2, 0.2]
+    out_energy_vects_fast = [0.1, 0.3, 0.2, 0.1, 0.1, 0.1]
+
+    #A lot of random scenarios
+    for i in range(1000):
+        vad_vects.append(np.random.random(1)[0])
+        in_energy_vects_slow.append(np.random.random(1)[0])
+        out_energy_vects_slow.append(np.random.random(1)[0])
+        in_energy_vects_fast.append(np.random.random(1)[0])
+        out_energy_vects_fast.append(np.random.random(1)[0])
 
     for vad, in_s, out_s, in_f, out_f in zip(vad_vects, in_energy_vects_slow, out_energy_vects_slow,
                                             in_energy_vects_fast, out_energy_vects_fast):
-
-
         sb.input_energy = in_s 
         sb.output_energy = out_s 
         sb.input_energy0 = in_f 
@@ -170,14 +177,25 @@ def test_adaption_controller(test_config):
 
         sb.adaption_controller(vad)
         py_mu = sb.ifc.mu
+        py_svc = sb.smoothed_voice_chance
 
         c_vad = pvc.float_to_uint8(vad)
         ic_vad_test_lib.test_set_ic_energies(in_s, out_s, in_f, out_f)
         ic_vad_test_lib.test_adaption_controller(c_vad)
         ic_state = ic_vad_test_lib.test_get_ic_state()
         c_mu = pvc.float_s32_to_float(ic_state.mu[0][0])
+        c_svc = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.smoothed_voice_chance)
 
-        print(py_mu, c_mu)
+        # print(f"py_mu:{py_mu}, c_mu:{c_mu}")
+        # print(f"py_svc:{py_svc}, c_svc:{c_svc}")
+
+        rtol=1-(1/256)#Because we quantise to 8b for VAD input
+        atol=1/256
+
+        assert np.isclose(py_mu, c_mu, rtol=rtol, atol=atol)
+        assert np.isclose(py_svc, c_svc, rtol=rtol, atol=atol)
+
+
 
 
 

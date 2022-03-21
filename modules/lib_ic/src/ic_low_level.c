@@ -246,69 +246,6 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-#if 0
-//Original implementation
-void ic_adaption_controller(ic_state_t *state, uint8_t vad){
-    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
-
-    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
-        return;
-    }
-    exponent_t q0_8_exp = -8; 
-    float_s32_t r = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
-
-    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
-
-    if(float_s32_gt(r, ad_state->smoothed_voice_chance)){
-        ad_state->smoothed_voice_chance = r;
-    }
-    const float_s32_t one = {1, 0};
-    const float_s32_t zero = {0, 0};
-
-    float_s32_t mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
-    float_s32_t ratio = one;
-    if(float_s32_gt(ad_state->input_energy_slow, zero)){ //Protect against div by zero
-        ratio = float_s32_div(ad_state->output_energy_slow, ad_state->input_energy_slow);
-    }
-    if(ad_config->enable_filter_instability_recovery){
-        if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
-            ic_reset_filter(state);
-        }
-    }
-
-    if(float_s32_gte(ratio, one)){
-        //ratio clamps to one
-        ratio = one;
-    } else {
-        ratio = float_s32_sqrt(ratio);
-        ratio = float_s32_sqrt(ratio);
-    }
-
-    mu = float_s32_mul(mu, ratio);
-
-    float_s32_t fast_ratio = one;
-    if(float_s32_gt(ad_state->input_energy_fast, zero)){ //Protect against div by zero
-        fast_ratio = float_s32_div(ad_state->output_energy_fast, ad_state->input_energy_fast);
-    }
-    if(float_s32_gt(fast_ratio, one)){
-        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
-        mu = zero;
-    } else {
-        ad_config->leakage_alpha = one;
-        // mu = mu;
-    }
-
-    //TMP HACK TO INVESTIGATE WWE SCORE
-    // mu.exp = mu.exp-1;
-
-    for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
-        for(int xch=0; xch<IC_X_CHANNELS; xch++) {
-            state->mu[ych][xch] = mu;
-        }
-    } 
-}
-#else
 //Python port
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
@@ -346,12 +283,12 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     }
     noise_mu = float_s32_mul(noise_mu, ratio);
 
-    // THIS IS NOT IN PYTHON - TODO include
-    // if(ad_config->enable_filter_instability_recovery){
-    //     if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
-    //         ic_reset_filter(state);
-    //     }
-    // }
+    // THIS IS NOT IN PYTHON - Included as safety feature
+    if(ad_config->enable_filter_instability_recovery){
+        if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
+            ic_reset_filter(state);
+        }
+    }
 
     //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
     input_plus_delta = float_s32_add(ad_state->input_energy_fast, delta);
@@ -372,9 +309,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         ad_config->leakage_alpha = one;
         mu = noise_mu;
     }
-
-    //TMP HACK TO INVESTIGATE WWE SCORE
-    // mu.exp = mu.exp-1;
 
     //Now copy this into the actual state structure
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
