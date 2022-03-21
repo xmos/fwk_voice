@@ -376,19 +376,19 @@ pipeline {
             }
           }
         }
-        stage('Stage B tests') {
-          steps {
-            dir("${REPO}/test/stage_b") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_c_code.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
+        // stage('Stage B tests') {
+        //   steps {
+        //     dir("${REPO}/test/stage_b") {
+        //       viewEnv() {
+        //         withVenv {
+        //           runPython("python build_c_code.py")
+        //           sh "pytest -s --junitxml=pytest_result.xml"
+        //           junit "pytest_result.xml"
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
         stage('ADEC de_unit_tests') {
           steps {
             dir("${REPO}/test/lib_adec/de_unit_tests") {
