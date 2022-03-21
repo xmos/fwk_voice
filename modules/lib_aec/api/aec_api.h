@@ -403,7 +403,7 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
 /** @brief Detect activity on input channels.
  * 
  * This function implements a quick check for detecting activity on the input channels. It detects signal presence by checking
- * if the time domain input signal maximum is above a given threshold.
+ * if the maximum sample in the time domain input frame is above a given threshold.
  *
  * @param[in] input_data Pointer to input data frame. Input is assumed to be in Q1.31 fixed point format.
  * @param[in] active_threshold Threshold for detecting signal activity
@@ -412,7 +412,7 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state);
  * 
  * @ingroup aec_func
  */
-int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels);
+uint32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels);
 
 //TODO pending documentation and examples for L2 APIs
 /**
