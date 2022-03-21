@@ -103,7 +103,6 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     vad_init(&vad_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED buffer[AP_FRAME_ADVANCE];
     while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
@@ -123,12 +122,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
             ic_state.config_params.bypass = 0;
         }
 #endif
-        /**IC*/
-        // The buffer will store the the comms channel frame
-        for(int v = 0; v < AP_FRAME_ADVANCE; v++){
-            buffer[v] = (frame[0][v] >> 1) + (frame[1][v] >> 1);
-        }
-
+        /** IC*/
         // Calculating the ASR channel
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // Calculating voice activity probability
@@ -140,9 +134,9 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         // Adapting the IC
         ic_adapt(&ic_state, vad, frame[0]);
-        // Transferring the comms channel into the frame
+        // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
-            frame[1][v] = buffer[v];
+            frame[1][v] = frame[0][v];
         }
 
         // Transferring output frame
@@ -192,11 +186,10 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
-    agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
-    agc_init(&agc_state[1], &agc_conf_comms);
+    agc_init(&agc_state[1], &agc_conf_asr);
 
     agc_meta_data_t agc_md;
 
@@ -213,9 +206,6 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
         continue;
 #endif
-
-        // Apply 100 Hz High-Pass filter for the comms channel
-        pre_agc_hpf(frame[1]);
 
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {

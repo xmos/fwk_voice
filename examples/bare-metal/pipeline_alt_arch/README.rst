@@ -19,10 +19,10 @@ This example supports a maximum of 150ms of delay correction, in either directio
 
 In the absense of activity on the reference channels, when the AEC is disabled, mic input is copied directly to the output of the AEC.
 
-When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output interference cancelled output.
+When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output one channel of interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
 Hence the VAD is called to calculate the probability of the voice activity. The output of the VAD will allow IC to modulate the rate
-at which it adapts it's coefficients. When disabled, the IC stage configured in bypass mode.
+at which it adapts it's coefficients. The output of the IC is copied to the second channel as well. When disabled in the presence of reference channel activity, the IC stage configured in bypass mode.
 
 The NS is a single channel API, so two instances of NS should be initialised for 2 channel processing. The NS is configured the same way 
 for both channels. It will try to predict the background noise and cancel it from the frame before passing it to AGC.
