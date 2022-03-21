@@ -65,7 +65,6 @@ void test_detect_input_activity() {
         bfp_s32_clip(&dut_bfp[ch], &dut_bfp[ch], -dut_active_threshold.mant, dut_active_threshold.mant, dut_active_threshold.exp);
         bfp_s32_use_exponent(&dut_bfp[ch], -31);
         for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-            //printf("%.6f\n",ldexp(dut_bfp[ch].data[i], -31));
             ref[ch][i] = ldexp(dut[ch][i], -31);
         }
     }
@@ -85,7 +84,6 @@ void test_detect_input_activity() {
         bfp_s32_clip(&dut_bfp[ch], &dut_bfp[ch], -dut_active_threshold.mant, dut_active_threshold.mant, dut_active_threshold.exp);
         bfp_s32_use_exponent(&dut_bfp[ch], -31);
         for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-            //printf("%.6f\n",ldexp(dut_bfp[ch].data[i], -31));
             ref[ch][i] = ldexp(dut[ch][i], -31);
         }
     }
@@ -110,7 +108,6 @@ void test_detect_input_activity() {
         bfp_s32_clip(&dut_bfp[ch], &dut_bfp[ch], -dut_active_threshold.mant, dut_active_threshold.mant, dut_active_threshold.exp);
         bfp_s32_use_exponent(&dut_bfp[ch], -31);
         for(int i=0; i<AEC_FRAME_ADVANCE; i++) {
-            //printf("%.6f\n",ldexp(dut_bfp[ch].data[i], -31));
             ref[ch][i] = ldexp(dut[ch][i], -31);
         }
     }
@@ -119,7 +116,6 @@ void test_detect_input_activity() {
     n = (pseudo_rand_int32(&seed) & 0x7fffffff) % AEC_FRAME_ADVANCE;
     dut[m][n] = -(float_s32_use_exponent(dut_active_threshold, -31)).mant - 0x10; //Set to something slightly smaller than -threshold
     ref[m][n] = ldexp(dut[m][n], -31);
-    printf("%.12f\n",ref[m][n]);
     ref_active = detect_input_activity_fp(ref, ref_active_threshold, CHANNELS);
     dut_active = aec_detect_input_activity(dut, dut_active_threshold, CHANNELS);
     if(dut_active != 1) {
