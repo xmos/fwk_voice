@@ -19,6 +19,7 @@ py_ic_path = os.path.join(package_dir,'../../../lib_interference_canceller/pytho
 py_stage_b_path = os.path.join(package_dir,'../../../lib_audio_pipelines/python')
 py_vad_path = os.path.join(package_dir,'../../../lib_vad/python')
 pvc_path = os.path.join(package_dir, '../shared/python')
+hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 
 sys.path.append(att_path)
 sys.path.append(py_stage_b_path)
@@ -29,14 +30,21 @@ from ap_stage_b import ap_stage_b
 import py_vs_c_utils as pvc 
 
 ap_config_file = "../shared/config/two_mic_stereo_prev_arch.json"
-input_file = "../../examples/bare-metal/ic/input.wav"
-#sox ~/hydra_audio/xvf3510_no_processing_xmos_test_suite/InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav -c 2 loc1_noise2_60db.wav trim 120 30
-input_file = "loc1_noise2_60db.wav"
+input_file = "input.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[ap_config_file])
 def test_config(request):
     ap_conf = pvc.json_to_dict(request.param)
+    global hydra_audio_base_dir
+    try:
+        hydra_audio_base_dir = os.environ['hydra_audio_PATH']
+    except:
+        print(f'Warning: hydra_audio_PATH environment variable not set. Using local path {hydra_audio_base_dir}')
+    hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
+    test_track = os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_60dB__Take1.wav")
+    cmd = f"sox {test_track} -c 2 {input_file} trim 120 30"
+    subprocess.run(cmd.split())
 
     return ap_conf['ap_stage_b_conf']
 
