@@ -60,9 +60,20 @@ pipeline {
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                }
+              }
+            }
             dir("${REPO}") {
-              stash name: 'cmake_build_x86', includes: 'build/**/avona_example_bare_metal_*'
+              stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
+              //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
+              stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
             // Now do xcore files
             dir("${REPO}/build") {
@@ -104,18 +115,42 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  unstash 'cmake_build_xcore'
-                  unstash 'cmake_build_x86'
-                  sh "pip install -e build/avona_deps/xscope_fileio"
-
+                  sh "git submodule update --init --recursive --jobs 4"
                   //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
                   sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
-                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"
+                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"//head of develop
+
+                  //Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
                 }
               }
+            }
+          }
+        }
+        stage('Make/get bins and libs'){
+          steps {
+            dir("${REPO}") {
+              sh "mkdir build"
+            }
+            // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  // sh "make -j8"
+                  sh "make VERBOSE=1"
+
+                  //We need to put this here because it is not fetched until we build
+                  sh "pip install -e avona_deps/xscope_fileio"
+
+                }
+              }
+            }
+            dir("${REPO}") {
+             unstash 'cmake_build_xcore'
             }
           }
         }
@@ -271,6 +306,19 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }
@@ -496,7 +544,6 @@ pipeline {
         always {
           //All build files
           archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts

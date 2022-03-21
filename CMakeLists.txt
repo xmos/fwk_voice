@@ -15,7 +15,7 @@ add_subdirectory( modules )
 if(PROJECT_IS_TOP_LEVEL)
     find_package( Python3 COMPONENTS Interpreter )
 
-    ## Compile flags for C/C++ for all libs and apps (for all platforms)
+    ## Compile flags for C/C++ for all apps (for all platforms)
     list(APPEND   COMPILE_FLAGS        -MMD )
     list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
@@ -29,7 +29,6 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 
     add_compile_options( ${COMPILE_FLAGS} )
-
     add_subdirectory( examples )
 
     add_subdirectory( test )
