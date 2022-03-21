@@ -18,7 +18,7 @@ quick_test_pass_thresholds = {"Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1_extract_69s
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
-quick_test_setting = 1
+full_pipeline_run = 1
 # Select whether we run each test on xcore or using the x86 compiled example app
 targets = ("xcore", "x86")
 
@@ -32,14 +32,14 @@ def pytest_sessionstart(session):
         print(f'Warning: hydra_audio_PATH environment variable not set. Using local path {hydra_audio_base_dir}')
 
     try:
-        quick_test_setting = int(os.environ['RUN_QUICK_TEST'])
+        full_pipeline_run = int(os.environ['FULL_PIPELINE_RUN'])
     except:
-        print('Warning: RUN_QUICK_TEST environment variable not set. Running quick tests by default')
-        quick_test_setting = 1
+        print('Warning: FULL_PIPELINE_RUN environment variable not set. Running quick pipeline test by default')
+        full_pipeline_run = 0
     finally:
-        print(f"RUN_QUICK_TEST: {quick_test_setting}")
+        print(f"FULL_PIPELINE_RUN: {full_pipeline_run}")
 
-    if quick_test_setting == 0:
+    if full_pipeline_run != 0:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset")

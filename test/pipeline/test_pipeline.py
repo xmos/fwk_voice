@@ -4,7 +4,7 @@
 import os, sys, shutil
 import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
-from conftest import pipeline_input_dir, results_log_file, quick_test_setting, quick_test_pass_thresholds
+from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds
 from run_sensory import run_sensory
 import time, fcntl
 
@@ -38,7 +38,7 @@ def test_pipelines(test, record_property):
     record_property("Wakewords", detections)
 
     #Fail only if in quicktest mode
-    if quick_test_setting != 0:
+    if full_pipeline_run == 0:
         for key in quick_test_pass_thresholds:
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
