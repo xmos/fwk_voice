@@ -317,7 +317,6 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         }
     } 
 }
-#endif
 
 
 //Clear down filter to init state
