@@ -19,7 +19,7 @@ pipeline {
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
-    RUN_QUICK_PIPELINE_TEST = """${params.PIPELINE_FULL_RUN ? 0 : 1}"""
+    PIPELINE_FULL_RUN = """${params.PIPELINE_FULL_RUN ? 0 : 1}"""
   }
   options {
     skipDefaultCheckout()
@@ -532,7 +532,7 @@ pipeline {
           steps {
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["RUN_QUICK_TEST=${env.RUN_QUICK_PIPELINE_TEST}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                withEnv(["PIPELINE_FULL_RUN=${env.PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
