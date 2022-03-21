@@ -9,6 +9,7 @@ import subprocess
 
 xs3_math_types_api_dir = "../../build/avona_deps/lib_xs3_math/lib_xs3_math/api"
 lib_ic_api_dir = "../../modules/lib_ic/api/"
+lib_ic_src_dir = "../../modules/lib_ic/src/"
 lib_vad_api_dir = "../../modules/lib_vad/api/"
 lib_vad_src_dir = "../../modules/lib_vad/src/"
 state = []
@@ -47,7 +48,7 @@ def extract_pre_defs():
     extract_xs3_math()
 
     #Grab just ic_state related lines from the C pre-processed 
-    subprocess.call(f"gcc -E ic_vad_test.c -o ic_vad_test.i -I {lib_ic_api_dir} -I {lib_vad_api_dir} -I {lib_vad_src_dir} -I {xs3_math_types_api_dir}".split())
+    subprocess.call(f"gcc -E ic_vad_test.c -o ic_vad_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {lib_vad_api_dir} -I {lib_vad_src_dir} -I {xs3_math_types_api_dir}".split())
 
     with open("ic_vad_test.i") as pp:
         end_of_file = False

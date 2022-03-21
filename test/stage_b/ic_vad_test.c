@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "ic_api.h"
 #include "vad_api.h"
+#include "ic_low_level.h"
 
 ic_state_t ic_state;
 vad_state_t vad_state;
@@ -35,4 +36,15 @@ uint8_t test_vad(
         const int32_t input[VAD_FRAME_ADVANCE]){
     uint8_t vad = vad_probability_voice(input, &vad_state);
     return vad;
+}
+
+void test_adaption_controller(uint8_t vad){
+    ic_adaption_controller(&ic_state, vad);
+}
+
+void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f){
+    ic_state.ic_adaption_controller_state.input_energy_slow = double_to_float_s32(ie_s);
+    ic_state.ic_adaption_controller_state.output_energy_slow = double_to_float_s32(oe_s);
+    ic_state.ic_adaption_controller_state.input_energy_fast = double_to_float_s32(ie_f);
+    ic_state.ic_adaption_controller_state.output_energy_fast = double_to_float_s32(oe_f);
 }

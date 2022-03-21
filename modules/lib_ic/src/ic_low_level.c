@@ -246,7 +246,7 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-#if 1
+#if 0
 //Original implementation
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
@@ -300,7 +300,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     }
 
     //TMP HACK TO INVESTIGATE WWE SCORE
-    mu.exp = mu.exp-1;
+    // mu.exp = mu.exp-1;
 
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
@@ -326,9 +326,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     float_s32_t vad_float = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
 
     //self.smoothed_voice_chance = self.voice_chance_alpha*self.smoothed_voice_chance
+    //self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
     ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
-
-    // self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
     if(float_s32_gt(vad_float, ad_state->smoothed_voice_chance)){
         ad_state->smoothed_voice_chance = vad_float;
     }
@@ -361,14 +360,15 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     // if fast_ratio > 1.0:
     //     self.ifc.set_leakage(0.995)
     //     self.ifc.set_mu(0.0)
+    float_s32_t mu = zero;
+    if(float_s32_gt(fast_ratio, one)){
+        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;//in ic_defines.h
+        mu = zero;
+    } 
     // else:
         // self.ifc.set_leakage (1.0)
         // self.ifc.set_mu(noise_mu)
-   float_s32_t mu = zero;
-   if(float_s32_gt(fast_ratio, one)){
-        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;//in ic_defines.h
-        mu = zero;
-    } else {
+    else {
         ad_config->leakage_alpha = one;
         mu = noise_mu;
     }

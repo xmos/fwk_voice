@@ -22,24 +22,24 @@ def json_to_dict(config_file):
 def float_s32_to_float(float_s32):
     return np.ldexp(float_s32.mant, float_s32.exp)
 
-# turn an int32 np array (Q1.30) into float
+# turn an int32 np array (Q1.31) into float
 def int32_to_float(array_int32):
-    array_float = np.array(array_int32).astype(np.float64) / (-np.iinfo(np.int32).min)
+    array_float = np.array(array_int32).astype(np.float64) / (2**31)
     return array_float
 
 # turn an uint8 np array (Q0.8) into float
 def uint8_to_float(array_uint8):
-    array_float = np.array(array_uint8).astype(np.float64) / np.iinfo(np.uint8).max
+    array_float = np.array(array_uint8).astype(np.float64) / (2**8)
     return array_float
 
-# turn a float into an int32 np array (Q1.30)
+# turn a float into an int32 np array (Q1.31)
 def float_to_int32(array_float):
-    array_int32 = (np.array(array_float) * np.iinfo(np.int32).max).astype(np.int32)
+    array_int32 = np.clip((np.array(array_float) * (2**31)), np.iinfo(np.int32).min, np.iinfo(np.uint32).max).astype(np.int32)
     return array_int32
 
 # turn a float np array into uint8 (Q0.8)
 def float_to_uint8(array_float):
-    array_uint8 = (np.array(array_float) * np.iinfo(np.uint8).max).astype(np.uint8)
+    array_uint8 = np.clip((np.array(array_float) * (2**8)), np.iinfo(np.uint8).min, np.iinfo(np.uint8).max).astype(np.uint8)
     return array_uint8
 
 
@@ -97,15 +97,16 @@ def pcm_closeness_metric(input_file, verbose=True):
 def basic_line_graph(name, data):
     import matplotlib.pyplot as plt
 
+    markersize = 2
     plt.clf()
     if np.mean(data[:,0]) > np.mean(data[:,1]): #make sure larger values are behind so we can see smaller at front
-        plt.plot(data[:,0], label="Python", linestyle="", marker=".", color="orange")
-        plt.plot(data[:,1], label="Avona", linestyle="", marker=".", color="blue")
+        plt.plot(data[:,0], label="Python", linestyle="", marker=".", markersize=markersize, color="orange")
+        plt.plot(data[:,1], label="Avona", linestyle="", marker=".", markersize=markersize, color="blue")
     else:
-        plt.plot(data[:,1], label="Python", linestyle="", marker=".", color="orange")
-        plt.plot(data[:,0], label="Avona", linestyle="", marker=".", color="blue")
+        plt.plot(data[:,1], label="Python", linestyle="", marker=".", markersize=markersize, color="orange")
+        plt.plot(data[:,0], label="Avona", linestyle="", marker=".", markersize=markersize, color="blue")
     plt.title(name)
     plt.legend()
     filename = f'{name}.png'
-    plt.savefig(filename, bbox_inches='tight')
+    plt.savefig(filename, bbox_inches='tight', dpi=600)
     return filename

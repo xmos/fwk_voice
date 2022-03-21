@@ -85,12 +85,12 @@
 /** Initial smoothed voice chance at startup. This value is quickly replaced by the calculated
  * voice change value from the VAD signal.
  * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999//from ap_stage_b.py
+#define IC_INIT_SMOOTHED_VOICE_CHANCE               1.0//from ap_stage_b.py
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////Parameters below are fixed and are note designed to be configurable - DO NOT EDIT///////
-///////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 /** Number of Y channels input. This is fixed at 1 for the IC. The Y channel is delayed and used to 
  * generate the estimated noise signal to subtract from X. In practical terms it does not matter
