@@ -1,10 +1,10 @@
 
 pipeline_alt_arch
-=====================================
+==================
 
-This example demonstrates how the audio processing stages are put together in an alternate implementation of the pipeline, which is different from sequentially calling the stages one after the other. In this pipeline form, AEC and IC are selectively enabled and disabled based on the presence of reference input signal. Acoustic Echo Cancellation is performed only if activity is detected on the reference input channels and disabled otherwise. Interference Cancellation is performed only when AEC is disabled so in the absence of reference channel activity and disabled otherwise.
+This example demonstrates how the audio processing stages are put together in an alternate implementation of the pipeline, which is different from sequentially calling the stages one after the other. In this pipeline form, the AEC and the IC frame processing are selectively enabled and disabled based on the presence of reference input signal. Acoustic Echo Cancellation is performed only if activity is detected on the reference input channels and disabled otherwise. Interference Cancellation is performed only when AEC is disabled so in the absence of reference channel activity and disabled otherwise.
 
-In this example, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline stages frame by frame. The
+In this example, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline modules frame by frame. The
 example currently demonstrates a pipeline having AEC, IC, NS and AGC stages. It also demonstrates the use of ADEC module to
 do a one time estimation and correction for possible reference and loudspeaker delay offsets at start up in order to
 maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VAD is introduced
@@ -16,7 +16,8 @@ filter, when ADEC goes in delay estimation mode. This allows it to measure the r
 output is ignored and the mic input is directly sent to output. Once the new delay has been measured and the delay correction is
 applied, the AEC gets configured back to its original configuration and starts adapting and cancellation.
 This example supports a maximum of 150ms of delay correction, in either direction, between the reference and microphone input.
-In absense of activity on the reference channels, when the AEC is disabled, mic input is copied directly to the output of the AEC.
+
+In the absense of activity on the reference channels, when the AEC is disabled, mic input is copied directly to the output of the AEC.
 
 When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
@@ -30,7 +31,7 @@ The AGC is configured for ASR engine suitable gain control on both channels. The
 output of AGC stage is the pipeline output which is written into a 2 channel output wav file. The AGC also takes the output
 of the VAD to control when to adapt. This avoids noise being amplified during the absence of voice.
 
-The example build outputs 2 executables, a single thread and a multi-thread implementation of the pipeline. The single thread version runs all pipeline stages on a single thread. In the multi-thread version, the audio processing stages consume 5 hardware threads; 2 for AEC stage, 1 for IC and VAD, 1 for NS stage and 1 for AGC stage.
+The example build outputs 2 executables, a single thread and a multi-thread implementation of the pipeline. The single thread version does the entire pipeline processing on a single thread. In the multi-thread version, the audio processing consume 5 hardware threads; 2 for the AEC stage, 1 for the IC and VAD, 1 for the NS stage and 1 for the AGC stage.
 Note that it is possible to run the full pipeline in as little as two 75MHz threads if required using one thread for stage 1 and
 a second thread for all remaining blocks.
 
