@@ -116,9 +116,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
-                  sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
-                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"//head of develop
 
                   //Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
