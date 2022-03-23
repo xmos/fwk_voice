@@ -19,7 +19,7 @@ pipeline {
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
-    PIPELINE_FULL_RUN = """${params.PIPELINE_FULL_RUN ? 0 : 1}"""
+    PIPELINE_FULL_RUN = """${params.PIPELINE_FULL_RUN ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
