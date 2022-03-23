@@ -224,28 +224,6 @@ pipeline {
             }
           }
         }
-        stage('Pipeline tests') {
-          steps {
-            dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
-                  viewEnv {
-                    withVenv {
-                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-                      sh "set | grep PIPELINE"
-                      //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
-                      junit "pytest_result.xml"
-                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
-                      archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
         stage('VAD vad_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vad/vad_unit_tests") {
@@ -552,28 +530,28 @@ pipeline {
             }
           }
         }
-        // stage('Pipeline tests') {
-        //   steps {
-        //     dir("${REPO}/test/pipeline") {
-        //       withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-        //         withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
-        //           viewEnv {
-        //             withVenv {
-        //               echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-        //               sh "set | grep PIPELINE"
-        //               //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-        //               sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-        //               // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
-        //               junit "pytest_result.xml"
-        //               archiveArtifacts artifacts: "results_*.csv", fingerprint: true
-        //               archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
+                      sh "set | grep PIPELINE"
+                      //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
+                      junit "pytest_result.xml"
+                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
+                      archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }//stages
       post {
         always {
