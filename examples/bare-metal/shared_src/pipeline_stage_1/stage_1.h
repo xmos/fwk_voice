@@ -6,6 +6,8 @@
 #include "adec_api.h"
 #include "delay_buffer.h"
 
+#define REF_ACTIVE_THRESHOLD_dB (-60) // Reference input level above which it is considered active
+#define HOLD_AEC_LIMIT_SECONDS (3) // Keep AEC enabled for atleast 3seconds after detecting reference as inactive. Used only in alt arch configuration
 
 typedef struct {
     uint8_t num_x_channels;
