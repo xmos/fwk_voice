@@ -378,9 +378,13 @@ pipeline {
             dir("${REPO}/test/stage_b") {
               viewEnv() {
                 withVenv {
-                  runPython("python build_c_code.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
+                      runPython("python build_c_code.py")
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
                 }
               }
             }
