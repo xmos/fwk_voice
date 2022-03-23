@@ -150,8 +150,8 @@ def test_frame_compare(test_config):
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
 
     assert c_delay == 0
-    assert geo_closeness > 0.99
-    assert arith_closeness > 0.98
+    assert geo_closeness > 0.98
+    assert arith_closeness > 0.88 #Still very close over a 30s piece of audio with multiple blocks (adaption controller & IC)
 
 #Check equivalence of adaption controller
 def test_adaption_controller(test_config):
