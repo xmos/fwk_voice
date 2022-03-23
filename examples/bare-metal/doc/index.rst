@@ -36,3 +36,4 @@ build step has been completed prior to this.
    agc
    pipeline_single_threaded
    pipeline_multi_threaded
+   pipeline_alt_arch

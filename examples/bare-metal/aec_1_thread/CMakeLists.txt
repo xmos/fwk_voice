@@ -33,7 +33,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         PRIVATE
             "-target=${XCORE_TARGET}"
             "-report"
-            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope"
+            "${CONFIG_XSCOPE_PATH}/config.xscope"
     )
 else()
     target_link_libraries(avona_example_bare_metal_aec_1_thread

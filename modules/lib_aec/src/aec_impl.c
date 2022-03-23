@@ -408,19 +408,19 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     }
 }
 
-int32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels) {
+uint32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels) {
     /*abs_max_ref = abs(np.max(new_frame))
     return abs_max_ref > threshold*/
     bfp_s32_t ref, abs;
     int32_t scratch[AEC_FRAME_ADVANCE];
     bfp_s32_init(&abs, scratch, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
-    int32_t ref_active_flag = 0; 
     for(int ch=0; ch<num_channels; ch++) {
         bfp_s32_init(&ref, (int32_t*)&input_data[ch][0], AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 1);
         bfp_s32_abs(&abs, &ref);
         float_s32_t max = bfp_s32_max(&abs);
-        max = float_s32_abs(max);
-        ref_active_flag = ref_active_flag | (float_s32_gt(max, active_threshold));
+        if(float_s32_gt(max, active_threshold)) {
+            return 1;
+        }  
     }
-    return ref_active_flag;
+    return 0;
 }

@@ -215,6 +215,18 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_st.wav"
+
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_mt.wav"
+                  sh "diff output_st.wav output_mt.wav"
+                }
+              }
+            }
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
