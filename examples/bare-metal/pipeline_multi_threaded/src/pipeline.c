@@ -40,10 +40,17 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
 
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+#if ALT_ARCH_MODE
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#else
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
     aec_non_de_mode_conf.num_main_filt_phases = AEC_MAIN_FILTER_PHASES;
     aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#endif
 
     aec_de_mode_conf.num_y_channels = 1;
     aec_de_mode_conf.num_x_channels = 1;
@@ -57,20 +64,25 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE]; // stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_1
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
         
         // AEC, DE ADEC
-        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0], &frame[AP_MAX_Y_CHANNELS]);
+        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &md.ref_active_flag, &frame[0], &frame[AP_MAX_Y_CHANNELS]);
         // If AEC has processed fewer y channels than downstream stages (in DE mode for example), then copy aec_corr_factor[0] to other channels
         if(stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
             for(int ch=stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
                 md.aec_corr_factor[ch] = md.aec_corr_factor[0];
             }
         }
-
+        
         // Transmit metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
@@ -91,13 +103,25 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     vad_init(&vad_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED buffer[AP_FRAME_ADVANCE];
-    while(1){
+    while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
-
+#if DISABLE_STAGE_2
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
+        
+#if ALT_ARCH_MODE
+        if(md.ref_active_flag) {
+            ic_state.config_params.bypass = 1;
+        }
+        else {
+            ic_state.config_params.bypass = 0;
+        }
+#endif
         /** IC*/
         // Calculating the ASR channel
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
@@ -134,10 +158,15 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
     while(1){
         // Receive and bypass metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
-        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
-
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_3
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
+
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         /** NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
@@ -173,6 +202,10 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_4
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
 
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
