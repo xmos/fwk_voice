@@ -310,10 +310,11 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         mu = noise_mu;
     }
 
-    //Now copy this into the actual state structure
+    //Now copy this into the actual state structure along with scaling factor
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;
+            state->mu[ych][xch].exp -= 1;
         }
     } 
 }
