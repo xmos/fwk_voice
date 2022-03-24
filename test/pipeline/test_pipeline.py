@@ -4,7 +4,7 @@
 import os, sys, shutil
 import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
-from conftest import pipeline_input_dir, results_log_file
+from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds
 from run_sensory import run_sensory
 import time, fcntl
 
@@ -26,20 +26,22 @@ def test_pipelines(test, record_property):
 
     keyword_file = convert_keyword_wav(output_file, target)
     detections =run_sensory(keyword_file)
-    # print(f"{wav_name} : {detections}", file=sys.stderr)
+    print(f"{wav_name} : {detections}", file=sys.stderr)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)
         log.write(f"{wav_name},{target},{detections},\n") 
         fcntl.flock(log, fcntl.LOCK_UN)
 
-    # record_list = run_pipelines.run(filename_plus_config['targets_enabled'], filename_plus_config['config'],\
-    #               input_file=filename_plus_config['filename'], output_dir=filename_plus_config['output_dir'])
 
+    record_property("Target", target)
+    record_property("Wakewords", detections)
 
-    # for r in record_list:
-        #record_property("Wav", r['filename'])
-            # ("Wakewords", r['filename'] + '.'+r['result'])
-        #record_property("TimeElapsed", r['time_diff'])
+    #Fail only if in quicktest mode
+    if full_pipeline_run == 0:
+        for key in quick_test_pass_thresholds:
+            if key in keyword_file:
+                pass_mark = quick_test_pass_thresholds[key]
+                assert detections >= pass_mark, f"Quick test failed for file {wav_name}, target {target}. Expected {pass_mark} keywords, got {detections}"
             
     return True

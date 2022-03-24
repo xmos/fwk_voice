@@ -104,7 +104,7 @@ void ic_update_td_ema_energy(
         const bfp_s32_t *input,
         unsigned start_offset,
         unsigned length,
-        const ic_config_params_t *conf){
+        const fixed_s32_t alpha){
     
     if(!length) {
         return;
@@ -114,7 +114,7 @@ void ic_update_td_ema_energy(
     input_chunk.hr = input->hr;
     float_s64_t dot64 = bfp_s32_dot(&input_chunk, &input_chunk);
     float_s32_t dot = float_s64_to_float_s32(dot64);
-    *ema_energy = float_s32_ema(*ema_energy, dot, conf->ema_alpha_q30);
+    *ema_energy = float_s32_ema(*ema_energy, dot, alpha);
 }
 
 /// FFT single channel real input
@@ -246,6 +246,7 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
+//Python port
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
@@ -253,50 +254,63 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
         return;
     }
-    exponent_t q0_8_exp = -8; 
-    float_s32_t r = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
 
-    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
-
-    if(float_s32_gt(r, ad_state->smoothed_voice_chance)){
-        ad_state->smoothed_voice_chance = r;
-    }
     const float_s32_t one = {1, 0};
     const float_s32_t zero = {0, 0};
+    const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
 
-    float_s32_t mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
-    float_s32_t ratio = one;
-    if(float_s32_gt(ad_state->input_energy_slow, zero)){ //Protect against div by zero
-        ratio = float_s32_div(ad_state->output_energy_slow, ad_state->input_energy_slow);
+    exponent_t q0_8_exp = -8; 
+    float_s32_t vad_float = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
+
+    //self.smoothed_voice_chance = self.voice_chance_alpha*self.smoothed_voice_chance
+    //self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
+    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
+    if(float_s32_gt(vad_float, ad_state->smoothed_voice_chance)){
+        ad_state->smoothed_voice_chance = vad_float;
     }
+
+    //noise_mu = 1.0 - self.smoothed_voice_chance
+    float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
+
+
+    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
+    float_s32_t input_plus_delta = float_s32_add(ad_state->input_energy_slow, delta);
+    float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
+    ratio = float_s32_sqrt(ratio);
+    ratio = float_s32_sqrt(ratio);
+    if(float_s32_gt(one, ratio)){ 
+        ratio = one;
+    }
+    noise_mu = float_s32_mul(noise_mu, ratio);
+
+    // THIS IS NOT IN PYTHON - Included as safety feature
     if(ad_config->enable_filter_instability_recovery){
         if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
             ic_reset_filter(state);
         }
     }
 
-    if(float_s32_gte(ratio, one)){
-        //ratio clamps to one
-        ratio = one;
-    } else {
-        ratio = float_s32_sqrt(ratio);
-        ratio = float_s32_sqrt(ratio);
-    }
+    //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
+    input_plus_delta = float_s32_add(ad_state->input_energy_fast, delta);
+    float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
 
-    mu = float_s32_mul(mu, ratio);
-
-    float_s32_t fast_ratio = one;
-    if(float_s32_gt(ad_state->input_energy_fast, zero)){ //Protect against div by zero
-        fast_ratio = float_s32_div(ad_state->output_energy_fast, ad_state->input_energy_fast);
-    }
+    // if fast_ratio > 1.0:
+    //     self.ifc.set_leakage(0.995)
+    //     self.ifc.set_mu(0.0)
+    float_s32_t mu = zero;
     if(float_s32_gt(fast_ratio, one)){
-        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
+        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;//in ic_defines.h
         mu = zero;
-    } else {
+    } 
+    // else:
+        // self.ifc.set_leakage (1.0)
+        // self.ifc.set_mu(noise_mu)
+    else {
         ad_config->leakage_alpha = one;
-        // mu = mu;
+        mu = noise_mu;
     }
 
+    //Now copy this into the actual state structure
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;

@@ -19,7 +19,7 @@ pipeline {
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
-    RUN_PIPELINE = """${params.PIPELINE_FULL_RUN ? 1 : 0}"""
+    PIPELINE_FULL_RUN = """${params.PIPELINE_FULL_RUN ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -385,6 +385,23 @@ pipeline {
             }
           }
         }
+        stage('Stage B tests') {
+          steps {
+            dir("${REPO}/test/stage_b") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
+                      runPython("python build_c_code.py")
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('ADEC de_unit_tests') {
           steps {
             dir("${REPO}/test/lib_adec/de_unit_tests") {
@@ -525,17 +542,14 @@ pipeline {
           }
         }
         stage('Pipeline tests') {
-          when {
-            expression { env.RUN_PIPELINE == "1" }
-          }
           steps {
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["RUN_QUICK_TEST=1", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
+                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh 'tree ../../build/examples/bare-metal/'
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
@@ -552,7 +566,7 @@ pipeline {
       post {
         always {
           //All build files
-          archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
+          // archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts

@@ -44,7 +44,7 @@ typedef struct {
     int32_t gamma_log2;
     /** Down scaling factor for X energy for used for normalisation. */
     uint32_t sigma_xx_shift;
-    /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy. */
+    /** Alpha used for calculating error_ema_energy in adapt. */
     fixed_s32_t ema_alpha_q30;
     /** Delta value used in denominator to avoid large values when calculating inverse
      * X energy. */
@@ -71,9 +71,9 @@ typedef struct {
     float_s32_t voice_chance_alpha;
 
     /** Slow alpha used filtering input and output energies of IC. */
-    float_s32_t energy_alpha_slow;
+    fixed_s32_t energy_alpha_slow_q30;
     /** Fast alpha used filtering input and output energies of IC. */
-    float_s32_t energy_alpha_fast;
+    fixed_s32_t energy_alpha_fast_q30;
 
     /** Ratio of the output to input at which the filter will reset.
      * Setting it to 2.0 is a good rule of thumb. */
@@ -219,10 +219,6 @@ typedef struct {
     /** Storage for sigma_XX mantissas. */
     int32_t DWORD_ALIGNED sigma_XX[IC_X_CHANNELS][IC_FD_FRAME_LENGTH];
 
-    /** Filtered overall y energy. */
-    float_s32_t y_ema_energy[IC_Y_CHANNELS];
-    /** Filtered overall x energy. */
-    float_s32_t x_ema_energy[IC_X_CHANNELS];
     /** X energy sum used for maintaining the X FIFO. */
     float_s32_t sum_X_energy[IC_X_CHANNELS]; 
 
