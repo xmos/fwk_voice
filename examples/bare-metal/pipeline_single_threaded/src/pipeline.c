@@ -58,7 +58,7 @@ void pipeline_init(pipeline_state_t *state) {
     }
     
     // Initialise AGC
-    agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
+    agc_config_t agc_conf_asr = AGC_PROFILE_ASR_HIGH;
     
     agc_init(&state->agc_state[0], &agc_conf_asr);
     agc_init(&state->agc_state[1], &agc_conf_asr);
