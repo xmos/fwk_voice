@@ -71,9 +71,9 @@ typedef struct {
     float_s32_t voice_chance_alpha;
 
     /** Slow alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_slow;
+    fixed_s32_t energy_alpha_slow_q30;
     /** Fast alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_fast;
+    fixed_s32_t energy_alpha_fast_q30;
 
     /** Ratio of the output to input at which the filter will reset.
      * Setting it to 2.0 is a good rule of thumb. */

@@ -26,7 +26,7 @@ def test_pipelines(test, record_property):
 
     keyword_file = convert_keyword_wav(output_file, target)
     detections =run_sensory(keyword_file)
-    # print(f"{wav_name} : {detections}", file=sys.stderr)
+    print(f"{wav_name} : {detections}", file=sys.stderr)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)

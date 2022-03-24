@@ -39,7 +39,6 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
                   sh "git submodule update --init --recursive --jobs 4"
                 }
               }
@@ -550,7 +549,6 @@ pipeline {
                   viewEnv {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-                      sh "set | grep PIPELINE"
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
@@ -568,7 +566,7 @@ pipeline {
       post {
         always {
           //All build files
-          archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
+          // archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts

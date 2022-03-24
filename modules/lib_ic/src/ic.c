@@ -25,8 +25,8 @@ static void ic_init_config(ic_config_params_t *config){
 static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
     config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
     config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
-    config->energy_alpha_slow = Q1_30(IC_INIT_ENERGY_ALPHA_SLOW);
-    config->energy_alpha_fast = Q1_30(IC_INIT_ENERGY_ALPHA_FAST);
+    config->energy_alpha_slow_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_SLOW);
+    config->energy_alpha_fast_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_FAST);
 
     config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
     config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
@@ -156,9 +156,9 @@ void ic_filter(
     ///calculate input td ema energies
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_update_td_ema_energy(&state->ic_adaption_controller_state.input_energy_slow, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE,
-                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow);
+                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow_q30);
         ic_update_td_ema_energy(&state->ic_adaption_controller_state.input_energy_fast, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, 
-                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast);
+                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast_q30);
     }
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
@@ -206,9 +206,9 @@ void ic_filter(
 
     ///calculate output td ema energies
     ic_update_td_ema_energy(&state->ic_adaption_controller_state.output_energy_slow, state->error_bfp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE,
-                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow);
+                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow_q30);
     ic_update_td_ema_energy(&state->ic_adaption_controller_state.output_energy_fast, state->error_bfp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, 
-                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast);
+                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast_q30);
 
 }
 
