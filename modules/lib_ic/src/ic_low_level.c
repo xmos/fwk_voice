@@ -310,7 +310,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         mu = noise_mu;
     }
 
-    mu.exp -= 1; // divide mu by 2
+    mu.exp += 1; // mul mu by 2
 
     //Now copy this into the actual state structure
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
