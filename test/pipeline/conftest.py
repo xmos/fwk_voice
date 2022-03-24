@@ -32,13 +32,13 @@ def pytest_sessionstart(session):
     except:
         print(f'Warning: hydra_audio_PATH environment variable not set. Using local path {hydra_audio_base_dir}')
 
-    # try:
-    #     full_pipeline_run = int(os.environ['PIPELINE_FULL_RUN'])
-    # except:
-    #     print('Warning: PIPELINE_FULL_RUN environment variable not set. Running quick pipeline test by default')
-    #     full_pipeline_run = 0
-    # finally:
-    #     print(f"PIPELINE_FULL_RUN: {full_pipeline_run}")
+    try:
+        full_pipeline_run = int(os.environ['PIPELINE_FULL_RUN'])
+    except:
+        print('Warning: PIPELINE_FULL_RUN environment variable not set. Running quick pipeline test by default')
+        full_pipeline_run = 0
+    finally:
+        print(f"PIPELINE_FULL_RUN: {full_pipeline_run}")
 
     if full_pipeline_run != 0:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
