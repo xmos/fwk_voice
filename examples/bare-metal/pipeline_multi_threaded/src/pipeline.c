@@ -185,7 +185,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     // Initialise AGC
-    agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
+    agc_config_t agc_conf_asr = AGC_PROFILE_ASR_HIGH;
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
