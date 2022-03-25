@@ -1,6 +1,12 @@
 Avona Reference Design Change Log
 =================================
 
+0.3.0
+-----
+
+  * ADDED: Support for VAD.
+  * CHANGED: xcore_sdk no longer a submodule of avona.
+
 0.2.0
 -----
 
