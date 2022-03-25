@@ -170,7 +170,7 @@ pipeline {
             dir("${REPO}/test/lib_agc/test_process_frame") {
               viewEnv() {
                 withVenv {
-                  sh "xrun --io ../../../build/test/lib_agc/test_process_frame/bin/avona_agc_test_upper_threshold.xe"
+                  sh "xrun --id 0 --io ../../../build/test/lib_agc/test_process_frame/bin/avona_agc_test_upper_threshold.xe"
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
