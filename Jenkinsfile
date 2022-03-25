@@ -89,6 +89,7 @@ pipeline {
                       }
                   }
                   sh "make -j8"
+                  archiveArtifacts artifacts: "test/lib_agc/test_process_frame/bin/*.xe", fingerprint: true
                 }
               }
             }
@@ -169,7 +170,6 @@ pipeline {
             dir("${REPO}/test/lib_agc/test_process_frame") {
               viewEnv() {
                 withVenv {
-                  archiveArtifacts artifacts: "../../../build/test/lib_agc/test_process_frame/bin/*.xe", fingerprint: true
                   sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
