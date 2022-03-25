@@ -46,8 +46,6 @@ void test_lower_threshold() {
         lower_threshold = conf.lower_threshold;
     }
 
-    printf("Running %d iterations\n", (1<<12)/F);
-
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         unsigned frame;
 
@@ -68,15 +66,11 @@ void test_lower_threshold() {
             float_s32_t max = bfp_s32_max(&output_bfp);
 
             if (float_s32_gte(max, lower_threshold)) {
-                // printf("Hit threshold on iter %d frame %d\n", iter, frame);
                 break;
             }
         }
 
-        if (frame >= MAX_ADAPT_FRAMES){
-            printf("Test didn't make it iter: %d frame: %d MAX_ADAPT_FRAMES: %d\n", iter, frame, MAX_ADAPT_FRAMES);            
-        }
-        // TEST_ASSERT(frame < MAX_ADAPT_FRAMES);
+        TEST_ASSERT(frame < MAX_ADAPT_FRAMES);
 
         for (; frame < MAX_TEST_FRAMES; ++frame) {
             for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
@@ -92,10 +86,7 @@ void test_lower_threshold() {
             bfp_s32_abs(&output_bfp, &output_bfp);
             float_s32_t max = bfp_s32_max(&output_bfp);
 
-            if (float_s32_gt(lower_threshold, max)){
-                printf("Test didn't make it iter: %d frame: %d thresh: %f max: %f\n", iter, frame, ldexp(lower_threshold.mant, lower_threshold.exp), ldexp(max.mant, max.exp));            
-            }
-            // TEST_ASSERT_FALSE(float_s32_gt(lower_threshold, max));
+            TEST_ASSERT_FALSE(float_s32_gt(lower_threshold, max));
         }
     }
 }

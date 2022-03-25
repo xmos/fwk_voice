@@ -165,22 +165,6 @@ pipeline {
             }
           }
         }
-        stage('AGC tests TEMP DELME') {
-          steps {
-            dir("${REPO}/test/lib_agc/test_process_frame") {
-              viewEnv() {
-                withVenv {
-                  sh "xrun --id 0 --io ../../../build/test/lib_agc/test_process_frame/bin/avona_agc_test_lower_threshold.xe"
-
-                  sh "for file in `ls ../../../build/test/lib_agc/test_process_frame/bin/*.xe` ; do echo $file; xrun --id 0 --io ../../../build/test/lib_agc/test_process_frame/bin/$file; done"
-
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
