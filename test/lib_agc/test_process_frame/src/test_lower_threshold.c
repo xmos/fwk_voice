@@ -40,7 +40,7 @@ void test_lower_threshold() {
     float_s32_t scale = float_s32_mul(float_to_float_s32(0.0011), conf.lower_threshold);
 
     float_s32_t lower_threshold;
-    if(agc.config.soft_clipping){ //Soft clipping limits gain a bit at top end
+    if(conf.soft_clipping){ //Soft clipping limits gain a bit at top end
         lower_threshold = float_s32_mul(conf.lower_threshold, float_to_float_s32(0.90));
     }else{
         lower_threshold = conf.lower_threshold;
