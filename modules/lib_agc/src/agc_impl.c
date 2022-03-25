@@ -1,10 +1,9 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <limits.h>
-
+#include "agc_defines.h"
 #include <bfp_math.h>
 #include <agc_api.h>
-#include "agc_defines.h"
 
 void agc_init(agc_state_t *agc, agc_config_t *config)
 {
@@ -17,11 +16,11 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->lc_t_far = 0;
     agc->lc_t_near = 0;
 
-    agc->lc_near_power_est = float_to_float_s32(0.00001);
-    agc->lc_far_power_est = float_to_float_s32(0.01);
-    agc->lc_near_bg_power_est = float_to_float_s32(0.01);
+    agc->lc_near_power_est = float_to_float_s32(0.00001F);
+    agc->lc_far_power_est = float_to_float_s32(0.01F);
+    agc->lc_near_bg_power_est = float_to_float_s32(0.01F);
     agc->lc_gain = float_to_float_s32(1);
-    agc->lc_far_bg_power_est = float_to_float_s32(0.01);
+    agc->lc_far_bg_power_est = float_to_float_s32(0.01F);
     agc->lc_corr_val = float_to_float_s32(0);
 }
 
@@ -65,12 +64,10 @@ void agc_process_frame(agc_state_t *agc,
                        const int32_t input[AGC_FRAME_ADVANCE],
                        agc_meta_data_t *meta_data)
 {
-    int vad_flag;
+    int vad_flag = meta_data->vad_flag;
 
     if (agc->config.adapt_on_vad == 0) {
         vad_flag = 1;
-    } else {
-        vad_flag = meta_data->vad_flag;
     }
 
     bfp_s32_t input_bfp;
@@ -228,6 +225,7 @@ void agc_process_frame(agc_state_t *agc,
         // Add some headroom to avoid changing the exponent when gradually transitioning from
         // previous lc_gain to lc_target_gain. Anyway, 32 bits of precision is unnecessary.
         bfp_s32_shl(&lc_scale_bfp, &lc_scale_bfp, -8);
+        lc_scale_bfp.exp += 8;
 
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
             if (float_s32_gt(agc->lc_gain, lc_target_gain)) {

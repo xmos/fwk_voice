@@ -42,15 +42,10 @@ set( RUNNERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.runners )
 file( MAKE_DIRECTORY ${RUNNERS_DIR} )
 
 ## Sources
-# Unity
-file(GLOB UNITY_SOURCES ${UNITY_PATH}/src/*.c)
-
 file( GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c )
 
 # For every source file in aec_unit_tests/src
 foreach( testfile ${TEST_SOURCES} )
-    unset( SOURCES )
-    list( APPEND SOURCES ${COMMON_SOURCES} )
     # Get test name
     #cmake_path( GET testfile STEM TESTNAME )
     get_filename_component(TESTNAME ${testfile} NAME_WLE)

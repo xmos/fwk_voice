@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <ns_api.h>
-#include <ns_test.h>
+#include <ns_priv.h>
 #include <unity.h>
 
 #include "unity_fixture.h"
@@ -52,15 +52,15 @@ int32_t half_hanning[NS_WINDOW_LENGTH / 2] = {
 	2144564834, 2145248782, 2145841596, 2146343250, 2146753723, 2147072999, 2147301062, 2147437904, 
 	};
 
-TEST_GROUP_RUNNER(ns_apply_window){
-    RUN_TEST_CASE(ns_apply_window, case0);
+TEST_GROUP_RUNNER(ns_priv_apply_window){
+    RUN_TEST_CASE(ns_priv_apply_window, case0);
 }
 
-TEST_GROUP(ns_apply_window);
-TEST_SETUP(ns_apply_window) { fflush(stdout); }
-TEST_TEAR_DOWN(ns_apply_window) {}
+TEST_GROUP(ns_priv_apply_window);
+TEST_SETUP(ns_priv_apply_window) { fflush(stdout); }
+TEST_TEAR_DOWN(ns_priv_apply_window) {}
 
-TEST(ns_apply_window, case0){
+TEST(ns_priv_apply_window, case0){
     unsigned seed = SEED_FROM_FUNC_NAME();
     int32_t second_half[NS_WINDOW_LENGTH /2];
 
@@ -85,7 +85,7 @@ TEST(ns_apply_window, case0){
     for(int i = 0; i < 100; i++){
 
         for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){
-            frame_int[v] = pseudo_rand_int(&seed, 0, INT_MAX);
+            frame_int[v] = pseudo_rand_int(&seed, INT_MIN, INT_MAX);
             frame_fl.mant = frame_int[v];
             frame_fl.exp = EXP;
             expected[v] = float_s32_to_double(frame_fl);
@@ -95,9 +95,7 @@ TEST(ns_apply_window, case0){
             t.mant = half_hanning[v];
             t.exp = EXP;
             expected[v] *= float_s32_to_double(t);
-        }
 
-        for(int v = 0; v < (NS_WINDOW_LENGTH / 2); v++){
             t.mant = second_half[v];
             t.exp = EXP;
             expected[v + (NS_WINDOW_LENGTH / 2)] *= float_s32_to_double(t);
@@ -108,8 +106,8 @@ TEST(ns_apply_window, case0){
         }
 
         bfp_s32_t tmp;
-        bfp_s32_init(&tmp, frame_int, EXP, NS_PROC_FRAME_LENGTH, 0);
-        ns_apply_window(&tmp, &window, &rev_window, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
+        bfp_s32_init(&tmp, frame_int, EXP, NS_PROC_FRAME_LENGTH, 1);
+        ns_priv_apply_window(&tmp, &window, &rev_window, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
         double abs_diff = 0;
         int id = 0;
@@ -129,7 +127,7 @@ TEST(ns_apply_window, case0){
         }
 
         double rel_error = fabs(abs_diff/(expected[id] + ldexp(1, -40)));
-        double thresh = ldexp(1, -28);
+        double thresh = ldexp(1, -26);
         TEST_ASSERT(rel_error < thresh);
     }
 }

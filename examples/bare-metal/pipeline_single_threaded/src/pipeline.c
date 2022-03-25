@@ -4,10 +4,13 @@
 #include <stdlib.h>
 
 #include "aec_api.h"
+#include "ic_api.h"
+#include "vad_api.h"
 #include "ns_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
+#include "hpf.h"
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
@@ -23,10 +26,17 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Initialise AEC, DE, ADEC stage
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+#if ALT_ARCH_MODE
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#else
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
     aec_non_de_mode_conf.num_main_filt_phases = AEC_MAIN_FILTER_PHASES;
     aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#endif
 
     aec_de_mode_conf.num_y_channels = 1;
     aec_de_mode_conf.num_x_channels = 1;
@@ -35,10 +45,12 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
-    adec_conf.bypass = 1; //Bypass automatic DE correction
-    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
-
+    adec_conf.bypass = 1; // Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
+
+    ic_init(&state->ic_state);
+    vad_init(&state->vad_state);
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
@@ -47,39 +59,87 @@ void pipeline_init(pipeline_state_t *state) {
     
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
-    agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
+    
     agc_init(&state->agc_state[0], &agc_conf_asr);
-    for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_init(&state->agc_state[ch], &agc_conf_comms);
-    }
+    agc_init(&state->agc_state[1], &agc_conf_asr);
 }
+
+typedef struct {
+    float_s32_t max_ref_energy;
+    float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
+    int32_t vad_flag;
+    int32_t ref_active_flag;
+}pipeline_metadata_t;
 
 void pipeline_process_frame(pipeline_state_t *state,
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
+    pipeline_metadata_t md;
+    memset(&md, 0, sizeof(pipeline_metadata_t));
+
     /** Stage1 - AEC, DE, ADEC*/
-    int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    float_s32_t max_ref_energy, aec_corr_factor[AEC_MAX_Y_CHANNELS];
-    stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &max_ref_energy, &aec_corr_factor[0], input_y_data, input_x_data);
+    int32_t stage_1_out[AEC_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];// stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
 
-    /**NS*/
-    int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-
-    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-        ns_process_frame(&state->ns_state[ch], ns_output[ch], stage_1_out[ch]);
-    }
+#if DISABLE_STAGE_1
+    memcpy(&stage_1_out[0][0], &input_y_data[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
+    stage_1_process_frame(&state->stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &md.ref_active_flag, input_y_data, input_x_data);
     
+    if(state->stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
+        for(int ch=state->stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
+            md.aec_corr_factor[ch] = md.aec_corr_factor[0];
+        }
+    }
+#endif
+
+    /** IC and VAD*/
+    int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+#if DISABLE_STAGE_2
+    memcpy(&ic_output[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
+
+#if ALT_ARCH_MODE
+    if(md.ref_active_flag) {
+        state->ic_state.config_params.bypass = 1;
+    }
+    else {
+        state->ic_state.config_params.bypass = 0;
+    }
+#endif
+    // The ASR channel will be produced by IC filtering
+    ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
+    uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
+    md.vad_flag = (vad > AGC_VAD_THRESHOLD);
+    ic_adapt(&state->ic_state, vad, ic_output[0]);
+    // Copy IC output to the other channel
+    for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+        ic_output[1][v] = ic_output[0][v];
+    }
+#endif
+
+    /** NS*/
+    int32_t ns_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+#if DISABLE_STAGE_3
+    memcpy(&ns_output[0][0], &ic_output[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
+    for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
+        ns_process_frame(&state->ns_state[ch], ns_output[ch], ic_output[ch]);
+    }
+#endif
+
     /** AGC*/
+#if DISABLE_STAGE_4
+    memcpy(&output_data[0][0], &ns_output[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+#else
     agc_meta_data_t agc_md;
-    agc_md.aec_ref_power = max_ref_energy;
-    agc_md.vad_flag = AGC_META_DATA_NO_VAD;
+    agc_md.aec_ref_power = md.max_ref_energy;
+    agc_md.vad_flag = md.vad_flag;
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_md.aec_corr_factor = aec_corr_factor[ch];
+        agc_md.aec_corr_factor = md.aec_corr_factor[ch];
         agc_process_frame(&state->agc_state[ch], output_data[ch], ns_output[ch], &agc_md);
     }
+#endif
 }

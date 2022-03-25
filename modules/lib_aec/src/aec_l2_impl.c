@@ -29,11 +29,11 @@ void aec_l2_calc_Error_and_Y_hat(
         Error->hr = Y->hr;
 
         memset(Y_hat->data, 0, length*sizeof(complex_s32_t));
-        Y_hat->exp = -1024;
-        Y_hat->hr = 0;
+        Y_hat->exp = AEC_ZEROVAL_EXP;
+        Y_hat->hr = AEC_ZEROVAL_HR;
     }
     else {
-        int32_t phases = num_x_channels * num_phases;
+        uint32_t phases = num_x_channels * num_phases;
         for(unsigned ph=0; ph<phases; ph++) {
             //create input chunks
             bfp_complex_s32_t X_chunk, H_hat_chunk;
@@ -49,7 +49,6 @@ void aec_l2_calc_Error_and_Y_hat(
         Y_chunk.hr = Y->hr;
         bfp_complex_s32_sub(Error, &Y_chunk, Y_hat);
     }
-    return;
 }
 
 void aec_l2_adapt_plus_fft_gc(
@@ -66,10 +65,10 @@ void aec_l2_adapt_plus_fft_gc(
 
 void aec_l2_bfp_complex_s32_unify_exponent(
         bfp_complex_s32_t *chunks,
-        int *final_exp, int *final_hr,
-        const int *mapping, int array_len,
-        int desired_index,
-        int min_headroom)
+        int32_t *final_exp, uint32_t *final_hr,
+        const uint32_t *mapping, uint32_t array_len,
+        uint32_t desired_index,
+        uint32_t min_headroom)
 {
     *final_exp = INT_MIN; 
     for(int i=0; i<array_len; i++) {
@@ -89,12 +88,12 @@ void aec_l2_bfp_complex_s32_unify_exponent(
 }
 
 void aec_l2_bfp_s32_unify_exponent(
-        bfp_s32_t *chunks, int *final_exp,
-        int *final_hr,
-        const int *mapping,
-        int array_len,
-        int desired_index,
-        int min_headroom)
+        bfp_s32_t *chunks, int32_t *final_exp,
+        uint32_t *final_hr,
+        const uint32_t *mapping,
+        uint32_t array_len,
+        uint32_t desired_index,
+        uint32_t min_headroom)
 {
     *final_exp = INT_MIN; //find biggest exponent (fewest fraction bits) 
     for(int i=0; i<array_len; i++) {

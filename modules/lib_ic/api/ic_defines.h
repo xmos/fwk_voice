@@ -29,11 +29,11 @@
 #define IC_INIT_MU                                  0.369566 //From Python test_wav_ic
 /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy.
  * @ingroup ic_defines */
-#define IC_INIT_EMA_ALPHA                           0.9995117188 //From Pyhton model
+#define IC_INIT_EMA_ALPHA                           0.9995117188 //from two_mic_stereo.json
 /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. This
  * value is adjusted by the adaption rate controller if instability is detected.
  * @ingroup ic_defines */
-#define IC_INIT_LEAKAGE_ALPHA                       1.0 //From Python model
+#define IC_INIT_LEAKAGE_ALPHA                       0.995 //from two_mic_stereo.json
 
 /** The number of filter phases supported by the IC. Each filter phase represents 15ms of
  * filter length. Hence a 10 phase filter will allow cancellation of noise sources with
@@ -42,7 +42,7 @@
  * the maximum cancellation at the cost of increasesed xCORE resource usage and slower
  * adaption times.
  * @ingroup ic_defines */
-#define IC_FILTER_PHASES                            10 //From Python model
+#define IC_FILTER_PHASES                            10 //two_mic_stereo.json
 /** This is the delay, in samples that one of the microphone signals is delayed in order
  * for the filter to be effective. A larger number increases the delay through the filter
  * but may improve cancellation.
@@ -55,42 +55,42 @@
 #define IC_INIT_SIGMA_XX_SHIFT                      11  //From XC IC and Python AEC
 /** Up scaling factor for X energy calculation for used for LMS normalisation.
  * @ingroup ic_defines */
-#define IC_INIT_GAMMA_LOG2                          1   //From Pyhton IC (2^1 = 2.0)
+#define IC_INIT_GAMMA_LOG2                          1   //from two_mic_stereo.json(2^1 = 2.0)
 /** Delta value used in denominator to avoid large values when calculating inverse X energy.
  * @ingroup ic_defines */
-#define IC_INIT_DELTA                               0.0156249999963620211929 //From Python test_wav_ic
+#define IC_INIT_DELTA                               7.450580593454381e-09 //from two_mic_stereo.json
 
 
 /** Boolean which controls whether to enable detection and recovery from instability. 
  * Normally this should be enabled.
  * @ingroup ic_defines */
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1
+#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1//from ap_stage_b.py
 /** Ratio of the output to input at which the filter will reset.
  * Setting it to 2.0 or above is a good rule of thumb.
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0
+#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0//from ap_stage_b.py
 /** Alpha used for low pass filtering the voice chance estimate based on VAD input.
  * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99
+#define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99//from ap_stage_b.py
 /** Slow alpha used filtering input and output energies of IC used in the adaption controller.
  * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_SLOW                   0.999
+#define IC_INIT_ENERGY_ALPHA_SLOW                   0.999//from ap_stage_b.py
 /** Fast alpha used filtering input and output energies of IC used in the adaption controller.
  * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_FAST                   0.98
+#define IC_INIT_ENERGY_ALPHA_FAST                   0.98//from ap_stage_b.py
 /** Leakage alpha used in the case where instability is detected. This allows the filter to stabilise
  * without completely forgetting the adaption.
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995
+#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995//from ap_stage_b.py
 /** Initial smoothed voice chance at startup. This value is quickly replaced by the calculated
  * voice change value from the VAD signal.
  * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE               0.999999999999999
+#define IC_INIT_SMOOTHED_VOICE_CHANCE               1.0//from ap_stage_b.py
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////Parameters below are fixed and are note designed to be configurable - DO NOT EDIT///////
-///////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
+///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 /** Number of Y channels input. This is fixed at 1 for the IC. The Y channel is delayed and used to 
  * generate the estimated noise signal to subtract from X. In practical terms it does not matter

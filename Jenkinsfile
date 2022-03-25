@@ -7,7 +7,10 @@ pipeline {
   parameters {
     booleanParam(name: 'FULL_TEST_OVERRIDE',
                  defaultValue: false,
-                 description: 'Force a full test.')
+                 description: 'Force a full test. This increases the number of iterations/scope in some tests')
+    booleanParam(name: 'PIPELINE_FULL_RUN',
+                 defaultValue: false,
+                 description: 'Enables pipelines characterisation test which takes 2.5hrs by itself. Normally run nightly')
   }
   environment {
     REPO = 'sw_avona'
@@ -16,6 +19,7 @@ pipeline {
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
                     || env.BRANCH_NAME ==~ 'release/.*') ? 1 : 0}"""
+    PIPELINE_FULL_RUN = """${params.PIPELINE_FULL_RUN ? 1 : 0}"""
   }
   options {
     skipDefaultCheckout()
@@ -36,8 +40,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
                 }
               }
             }
@@ -48,27 +50,50 @@ pipeline {
             dir("${REPO}") {
               sh "mkdir build"
             }
+            // Do x86 versions first because it's hard to glob just for extensionless files
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  script {
-                      if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
-                      }
-                      else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xcore_sdk/tools/cmake_utils/xmos_xs3a_toolchain.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
-                      }
-                  }
-                  sh "make -j8"
-                  sh 'rm CMakeCache.txt'
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                }
+              }
+            }
             dir("${REPO}") {
-              stash name: 'cmake_build', includes: 'build/**/*.xe, build/**/conftest.py'
+              stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
+              //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
+              stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
+              archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
+            }
+            // Now do xcore files
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh 'rm CMakeCache.txt'
+                  script {
+                      if (env.FULL_TEST == "1") {
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                      }
+                      else {
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                      }
+                  }
+                  sh "make -j8"
+                }
+              }
+            }
+            dir("${REPO}") {
+              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
             }
           }
         }
@@ -90,18 +115,39 @@ pipeline {
             dir("${REPO}") {
               viewEnv() {
                 withVenv {
-                  sh "git submodule update --init"
-                  sh "pip install -e examples/bare-metal/shared_src/xscope_fileio"
-                  unstash 'cmake_build'
+                  sh "git submodule update --init --recursive --jobs 4"
 
-                  //For IC spec test and characterisation, we need the Python IC model (+VTB) and xtagctl. Note clone one dir level up
-                  sh "cd .. && git clone --branch feature/stability_fixes_from_AEC git@github.com:Allan-xmos/lib_interference_canceller.git && cd -"
-                  sh "cd .. && git clone git@github.com:xmos/lib_voice_toolbox.git && cd -"
+                  //Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   //For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
                 }
               }
+            }
+          }
+        }
+        stage('Make/get bins and libs'){
+          steps {
+            dir("${REPO}") {
+              sh "mkdir build"
+            }
+            // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
+            dir("${REPO}/build") {
+              viewEnv() {
+                withVenv {
+                  sh "cmake --version"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  // sh "make -j8"
+                  sh "make VERBOSE=1"
+
+                  //We need to put this here because it is not fetched until we build
+                  sh "pip install -e avona_deps/xscope_fileio"
+
+                }
+              }
+            }
+            dir("${REPO}") {
+             unstash 'cmake_build_xcore'
             }
           }
         }
@@ -140,6 +186,15 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
+                  sh "mv output.wav ic_example_output.wav"
+                }
+              }
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+            }
+            dir("${REPO}/examples/bare-metal/vad") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
                 }
               }
             }
@@ -159,12 +214,61 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_st.wav"
+
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_mt.wav"
+                  sh "diff output_st.wav output_mt.wav"
+                }
+              }
+            }
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
+            }
+          }
+        }
+        stage('VAD vad_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vad/vad_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD compare_xc_c') {
+          steps {
+            dir("${REPO}/test/lib_vad/compare_xc_c") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD test_profile') {
+          steps {
+            dir("${REPO}/test/lib_vad/test_vad_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
             }
           }
         }
@@ -205,24 +309,25 @@ pipeline {
             }
           }
         }
-        stage('NS ns_priv_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_ns/ns_priv_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
         stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }
@@ -238,6 +343,7 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
+              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
@@ -258,6 +364,7 @@ pipeline {
                   // sh "python plot_ic.py"
                 }
               }
+              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
@@ -273,6 +380,23 @@ pipeline {
                   //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
                   //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
                   // sh "python sweep_ic_delay.py"
+                }
+              }
+            }
+          }
+        }
+        stage('Stage B tests') {
+          steps {
+            dir("${REPO}/test/stage_b") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
+                      runPython("python build_c_code.py")
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
                 }
               }
             }
@@ -405,16 +529,44 @@ pipeline {
             }
           }
         }
+        stage('HPF test') {
+          steps {
+            dir("${REPO}/test/test_hpf") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
+                      //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
+                      junit "pytest_result.xml"
+                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
+                      archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }//stages
       post {
         always {
-          //IC artefacts
-          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/ic/output.wav", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           //All build files
-          archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
-          
+          // archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts

@@ -32,7 +32,10 @@ def run_ic_xe(ic_xe, audio_in, audio_out, profile_dump_file=None):
         
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         print(f"Running on {adapter_id} binary {ic_xe}")
-        stdout = xscope_fileio.run_on_target(adapter_id, ic_xe)
+        with open("ic_prof.txt", "w+") as ff:
+            xscope_fileio.run_on_target(adapter_id, ic_xe, stdout=ff)
+            ff.seek(0)
+            stdout = ff.readlines()
 
         xcore_stdo = []
         #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present

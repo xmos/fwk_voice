@@ -1,3 +1,6 @@
+
+add_subdirectory(external_deps)
+
 ######
 add_library(avona_example_shared_src_aec_1_thread INTERFACE)
 target_sources(avona_example_shared_src_aec_1_thread
@@ -67,18 +70,9 @@ target_include_directories(avona_example_shared_src_file_utils
         file_utils
 )
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_sources(avona_example_shared_src_file_utils
+    target_link_libraries(avona_example_shared_src_file_utils
         INTERFACE
-            xscope_fileio/xscope_fileio/src/xscope_io_device.c)
-
-    target_include_directories(avona_example_shared_src_file_utils
-        INTERFACE
-            xscope_fileio/xscope_fileio
-            xscope_fileio/xscope_fileio/api)
-
-    target_compile_definitions(avona_example_shared_src_file_utils
-        INTERFACE
-            TEST_WAV_XSCOPE=1)
+            avona_deps::xscope_fileio)
 endif()
 
 add_library(avona::example::fileutils ALIAS avona_example_shared_src_file_utils)
@@ -95,3 +89,20 @@ target_include_directories(avona_example_shared_src_profile_xcore
 )
 
 add_library(avona::example::profile_xcore ALIAS avona_example_shared_src_profile_xcore)
+
+######
+add_library(avona_example_shared_src_hpf INTERFACE)
+target_sources(avona_example_shared_src_hpf
+    INTERFACE
+        hpf/hpf.c
+)
+target_include_directories(avona_example_shared_src_hpf
+    INTERFACE
+        hpf
+)
+target_link_libraries(avona_example_shared_src_hpf
+    INTERFACE
+        sdk::lib_xs3_math
+)
+
+add_library(avona::example::hpf ALIAS avona_example_shared_src_hpf)

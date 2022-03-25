@@ -17,10 +17,14 @@ target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         avona::adec
         avona::ns
         avona::agc
+        avona::ic
+        avona::vad
         avona::example::aec1thread
         avona::example::delay_buffer
         avona::example::stage_1
         avona::example::fileutils
+        avona::example::hpf
+        sdk::lib_xs3_math
         )
 
 target_compile_definitions(avona_example_bare_metal_pipeline_single_thread
@@ -39,9 +43,15 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         PRIVATE
             "-target=${XCORE_TARGET}"
             "-report"
-            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
-else()
+            "${CONFIG_XSCOPE_PATH}/config.xscope")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    # Static linking doesn't work on Mac(ld: library not found for -lcrt0.o)
     target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         PRIVATE m)
+else()
+    # Note we link this app statically so that we can run it on a different machine
+    # that may not have all of the dependancies in the right places
+    target_link_libraries(avona_example_bare_metal_pipeline_single_thread
+        PRIVATE m "-static")
 endif()
 

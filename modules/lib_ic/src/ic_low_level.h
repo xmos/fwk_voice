@@ -1,5 +1,6 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 #ifndef IC_LOW_LEVEL_H
 #define IC_LOW_LEVEL_H
 
@@ -34,11 +35,11 @@ void ic_frame_init(
 
 /// Calculate average energy in time domain
 void ic_update_td_ema_energy(
-        float_s32_t *avg_energy,
+        float_s32_t *ema_energy,
         const bfp_s32_t *input,
         unsigned start_offset,
         unsigned length,
-        const ic_config_params_t *conf);
+        const fixed_s32_t alpha);
 
 /// FFT single channel real input
 void ic_fft(

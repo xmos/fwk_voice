@@ -13,9 +13,11 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
-
+#include "ic_api.h"
+#include "vad_api.h"
 #include "ns_api.h"
 #include "agc_api.h"
+#include "hpf.h"
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -28,6 +30,7 @@ extern void aec_process_frame_2threads(
 DECLARE_JOB(pipeline_stage_1, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_3, (chanend_t, chanend_t));
+DECLARE_JOB(pipeline_stage_4, (chanend_t, chanend_t));
 
 /// pipeline_stage_1
 // Stage 1 state
@@ -37,10 +40,17 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
 
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
+#if ALT_ARCH_MODE
+    aec_non_de_mode_conf.num_y_channels = 1;
+    aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
+    aec_non_de_mode_conf.num_main_filt_phases = 15;
+    aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#else
     aec_non_de_mode_conf.num_y_channels = AP_MAX_Y_CHANNELS;
     aec_non_de_mode_conf.num_x_channels = AP_MAX_X_CHANNELS;
     aec_non_de_mode_conf.num_main_filt_phases = AEC_MAIN_FILTER_PHASES;
     aec_non_de_mode_conf.num_shadow_filt_phases = AEC_SHADOW_FILTER_PHASES;
+#endif
 
     aec_de_mode_conf.num_y_channels = 1;
     aec_de_mode_conf.num_x_channels = 1;
@@ -49,25 +59,30 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
-    adec_conf.bypass = 1; //Bypass automatic DE correction
-    adec_conf.force_de_cycle_trigger = 1; //Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
-    
+    adec_conf.bypass = 1; // Bypass automatic DE correction
+    adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
+
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE]; // stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
     while(1) {
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_1
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
         
         // AEC, DE ADEC
-        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &frame[0], &frame[AP_MAX_Y_CHANNELS]);
+        stage_1_process_frame(&stage_1_state, &stage_1_out[0], &md.max_ref_energy, &md.aec_corr_factor[0], &md.ref_active_flag, &frame[0], &frame[AP_MAX_Y_CHANNELS]);
         // If AEC has processed fewer y channels than downstream stages (in DE mode for example), then copy aec_corr_factor[0] to other channels
         if(stage_1_state.aec_main_state.shared_state->num_y_channels < AP_MAX_Y_CHANNELS) {
             for(int ch=stage_1_state.aec_main_state.shared_state->num_y_channels; ch<AP_MAX_Y_CHANNELS; ch++) {
                 md.aec_corr_factor[ch] = md.aec_corr_factor[0];
             }
         }
-
+        
         // Transmit metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
@@ -81,7 +96,59 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
-    //Initialise NS
+    // Initialise IC and VAD
+    ic_state_t DWORD_ALIGNED ic_state;
+    vad_state_t DWORD_ALIGNED vad_state;
+    ic_init(&ic_state);
+    vad_init(&vad_state);
+
+    int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    while(1) {
+        // Receive metadata
+        chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        // Receive input frame
+        chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_2
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
+        
+#if ALT_ARCH_MODE
+        if(md.ref_active_flag) {
+            ic_state.config_params.bypass = 1;
+        }
+        else {
+            ic_state.config_params.bypass = 0;
+        }
+#endif
+        /** IC*/
+        // Calculating the ASR channel
+        ic_filter(&ic_state, frame[0], frame[1], frame[0]);
+        // Calculating voice activity probability
+        uint8_t vad = vad_probability_voice(frame[0], &vad_state);
+
+        // Transferring metadata
+        md.vad_flag = (vad > AGC_VAD_THRESHOLD);
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+
+        // Adapting the IC
+        ic_adapt(&ic_state, vad, frame[0]);
+        // Copy IC output to the other channel
+        for(int v = 0; v < AP_FRAME_ADVANCE; v++){
+            frame[1][v] = frame[0][v];
+        }
+
+        // Transferring output frame
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+    }
+}
+
+/// pipeline_stage_3
+void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
+    // Pipeline metadata
+    pipeline_metadata_t md;
+    // Initialise NS
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
         ns_init(&ns_state[ch]);
@@ -91,14 +158,19 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     while(1){
         // Receive and bypass metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
-        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
-
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_3
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
 
-        /**NS*/
+        chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
+
+        /** NS*/
         for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
-            //the frame buffer will be used for both input and output here
+            // The frame buffer will be used for both input and output here
             ns_process_frame(&ns_state[ch], frame[ch], frame[ch]);
         }
 
@@ -108,33 +180,32 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 }
 
 
-/// pipeline_stage_3
-void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
+/// pipeline_stage_4
+void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
-    agc_config_t agc_conf_comms = AGC_PROFILE_COMMS;
-    agc_conf_asr.adapt_on_vad = 0; // We don't have VAD yet
-    agc_conf_comms.adapt_on_vad = 0; // We don't have VAD yet
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
-    for(int ch=1; ch<AP_MAX_Y_CHANNELS; ch++) {
-        agc_init(&agc_state[ch], &agc_conf_comms);
-    }
+    agc_init(&agc_state[1], &agc_conf_asr);
 
     agc_meta_data_t agc_md;
-    agc_md.vad_flag = AGC_META_DATA_NO_VAD;
 
     int32_t frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
+        agc_md.vad_flag = md.vad_flag;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
+#if DISABLE_STAGE_4
+        chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
+        continue;
+#endif
 
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
@@ -151,13 +222,15 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 /// Pipeline
 void pipeline(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
-    // 3 stage pipeline. stage 1: AEC, stage 2: NS, stage 3: AGC
+    // 3 stage pipeline. stage 1: AEC, stage 2: IC and VAD, stage 3: NS, stage 4: AGC
     channel_t c_stage_1_to_2 = chan_alloc();
     channel_t c_stage_2_to_3 = chan_alloc();
+    channel_t c_stage_3_to_4 = chan_alloc();
     
     PAR_JOBS(
         PJOB(pipeline_stage_1, (c_pcm_in_b, c_stage_1_to_2.end_a)),
         PJOB(pipeline_stage_2, (c_stage_1_to_2.end_b, c_stage_2_to_3.end_a)),
-        PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_pcm_out_a))
+        PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_stage_3_to_4.end_a)),
+        PJOB(pipeline_stage_4, (c_stage_3_to_4.end_b, c_pcm_out_a))
     );
 }
