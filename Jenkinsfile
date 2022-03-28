@@ -89,6 +89,7 @@ pipeline {
                       }
                   }
                   sh "make -j8"
+                  archiveArtifacts artifacts: "test/lib_agc/test_process_frame/bin/*.xe", fingerprint: true
                 }
               }
             }
