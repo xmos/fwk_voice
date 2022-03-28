@@ -189,7 +189,7 @@ pipeline {
                   sh "mv output.wav ic_example_output.wav"
                 }
               }
-               artifacts: "ic_example_output.wav", fingerprint: true
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
             }
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
