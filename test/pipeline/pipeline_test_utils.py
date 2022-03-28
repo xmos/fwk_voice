@@ -41,7 +41,7 @@ def process_x86(bin_file, input_file, output_file):
 
 def process_file(input_file, arch, target="xcore"):
     wav_name = os.path.basename(input_file)
-    output_file = os.path.join(pipeline_output_base_dir + "_" + target, wav_name)
+    output_file = os.path.join(pipeline_output_base_dir + "_" + arch + "_" + target, wav_name)
 
     if not os.path.isfile(output_file): #optimisation for local testing
         pipeline_bin = pipeline_bins[arch][target]
@@ -80,9 +80,9 @@ def convert_input_wav(input_file, output_file):
             assert False, f"Error: input wav format not supported - chans:{chans}"
     return output_file
 
-def convert_keyword_wav(input_file, target):
+def convert_keyword_wav(input_file, arch, target):
     wav_name = os.path.basename(input_file)
-    keyword_file = os.path.join(keyword_input_base_dir + "_" + target, wav_name)
+    keyword_file = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, wav_name)
     # Strip off comms channel leaving just ASR. Sensory needs a 16b wav file
     subprocess.run(f"sox {input_file} -b 16 {keyword_file} remix 1".split())
     return keyword_file
