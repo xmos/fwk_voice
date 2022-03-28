@@ -569,8 +569,8 @@ pipeline {
           //NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           //Pipelines tests
-          archiveArtifacts artifacts: "results_*.csv", fingerprint: true
-          archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
         }
         cleanup {
           cleanWs()
