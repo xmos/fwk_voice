@@ -31,8 +31,8 @@
     .gain = float_to_float_s32(500), \
     .max_gain = float_to_float_s32(1000), \
     .min_gain = float_to_float_s32(0), \
-    .upper_threshold = float_to_float_s32(0.7079), \
-    .lower_threshold = float_to_float_s32(0.1905), \
+    .upper_threshold = float_to_float_s32(0.9999), \
+    .lower_threshold = float_to_float_s32(0.7000), \
     .gain_inc = float_to_float_s32(1.197), \
     .gain_dec = float_to_float_s32(0.87), \
     .lc_enabled = 0, \
@@ -82,5 +82,6 @@
     .lc_gain_silence = float_to_float_s32(0), \
     .lc_gain_min = float_to_float_s32(0), \
     }
+
 
 #endif

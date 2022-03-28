@@ -14,8 +14,13 @@ results_log_file = os.path.abspath("results.csv")
 xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
                                                 # The time to run the multithreaded example on xcore is approximately the wav length
                                                 # we run 2 xcore targets so, even if we queue 4 xcore jobs, they should never timeout
-# quick_test_pass_thresholds = {"Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1_extract_69s" : 8} #This is what lib_audio_pipelines scores so use this as passmark
-quick_test_pass_thresholds = {"Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1_extract_69s" : 6} #TODO - get this scoring 8 and update the passmark
+#These thresholds were arbitraily chosen but are designed to flag when a catastrophic drop off in pipeline performance occurs (regression test)
+quick_test_pass_thresholds = {
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Clean_XMOS_DUT1_80dB_Take1.wav" : 20, #24 max score. AEC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav" : 21, #25 max score. IC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav" : 20, #24 max score. AEC and IC test
+"InHouse_XVF3510v080_v1.2_20190423_Loc2_Noise1_65dB__Take1.wav" : 25, #25 max score. IC test mainly
+}
 
 # This is a list of tuples we will build consisting of test_wav and target
 all_tests_list = []
@@ -43,7 +48,7 @@ def pytest_sessionstart(session):
     if full_pipeline_run != 0:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
     else:
-        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset")
+        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
 
     global all_tests_list

@@ -39,9 +39,12 @@ def test_pipelines(test, record_property):
 
     #Fail only if in quicktest mode
     if full_pipeline_run == 0:
+        passed = True
         for key in quick_test_pass_thresholds:
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
-                assert detections >= pass_mark, f"Quick test failed for file {wav_name}, target {target}. Expected {pass_mark} keywords, got {detections}"
-            
+                if detections < pass_mark:
+                    print(f"Quick test failed for file {wav_name}, target {target}. Expected {pass_mark} keywords, got {detections}", file=sys.stderr)
+                    passed = False
+        assert passed
     return True
