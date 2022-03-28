@@ -12,7 +12,8 @@ import time, fcntl
 def test_pipelines(test, record_property):
     wav_file = test[0] 
     wav_name = os.path.basename(wav_file)
-    target = test[1]
+    arch = test[1]
+    target = test[2]
 
     input_file = os.path.join(pipeline_input_dir, wav_name)
     convert_input_wav(wav_file, input_file)
@@ -20,7 +21,7 @@ def test_pipelines(test, record_property):
     chans, rate, samps, bits = get_wav_info(input_file)
     print(f"Processing a {samps//rate}s track")
     t0 = time.time()
-    output_file = process_file(input_file, target)
+    output_file = process_file(input_file, arch, target)
     tot = time.time() - t0
     print(f"Processing took {tot:.2f}s")
 
@@ -44,7 +45,7 @@ def test_pipelines(test, record_property):
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
                 if detections < pass_mark:
-                    print(f"Quick test failed for file {wav_name}, target {target}. Expected {pass_mark} keywords, got {detections}", file=sys.stderr)
+                    print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {detections}", file=sys.stderr)
                     passed = False
         assert passed
     return True

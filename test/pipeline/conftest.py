@@ -8,18 +8,23 @@ hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 pipeline_input_dir = os.path.abspath("./pipeline_input/")
 pipeline_output_base_dir = os.path.abspath("./pipeline_output/")
 keyword_input_base_dir = os.path.abspath("./keyword_input/")
-pipeline_x86_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread")
-pipeline_xe_bin = os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")
+pipeline_bins = {
+                "prev_arch" :    {"x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread"),
+                                "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")},
+                "alt_arch"  :    {"x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread"),
+                                "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe")}
+                }
 results_log_file = os.path.abspath("results.csv")
 xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
                                                 # The time to run the multithreaded example on xcore is approximately the wav length
                                                 # we run 2 xcore targets so, even if we queue 4 xcore jobs, they should never timeout
 #These thresholds were arbitraily chosen but are designed to flag when a catastrophic drop off in pipeline performance occurs (regression test)
+#By default we run alt-arch for quicktest
 quick_test_pass_thresholds = {
-"InHouse_XVF3510v080_v1.2_20190423_Loc1_Clean_XMOS_DUT1_80dB_Take1.wav" : 20, #24 max score. AEC test mainly
-"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav" : 21, #25 max score. IC test mainly
-"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav" : 20, #24 max score. AEC and IC test
-"InHouse_XVF3510v080_v1.2_20190423_Loc2_Noise1_65dB__Take1.wav" : 25, #25 max score. IC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Clean_XMOS_DUT1_80dB_Take1.wav" : 24, #24 max score. AEC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav" : 22, #25 max score. IC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav" : 23, #24 max score. AEC and IC test
+"InHouse_XVF3510v080_v1.2_20190423_Loc2_Noise1_65dB__Take1.wav" : 24, #25 max score. IC test mainly
 }
 
 # This is a list of tuples we will build consisting of test_wav and target
@@ -27,6 +32,8 @@ all_tests_list = []
 full_pipeline_run = 1
 # Select whether we run each test on xcore or using the x86 compiled example app
 targets = ("xcore", "x86")
+# Select whether we run previous or al pipeline architecture. Default = alt hence first in list
+architectures = ("alt_arch", "prev_arch")
 
 
 """ before session.main() is called. """
@@ -58,7 +65,12 @@ def pytest_sessionstart(session):
         if '._InHouse' in input_wav_file:
             continue
         for target in targets:
-            all_tests_list.append([input_wav_file, target])
+            if full_pipeline_run:
+                for arch in architectures:
+                    all_tests_list.append([input_wav_file, arch, target])
+            else:
+                arch = architectures[0] #alt-arch only
+                all_tests_list.append([input_wav_file, arch, target])
        
     #create pipeline input and sensory input directories
     os.makedirs(pipeline_input_dir, exist_ok=True)
@@ -87,5 +99,5 @@ def pytest_sessionfinish(session):
 
 
 def pytest_generate_tests(metafunc):
-    ids = [os.path.basename(item[0]) + ", " + item[1] for item in all_tests_list]
+    ids = [os.path.basename(item[0]) + ", " + item[1] + ", " + item[2] for item in all_tests_list]
     metafunc.parametrize("test", all_tests_list, ids=ids)
