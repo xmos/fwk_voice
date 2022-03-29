@@ -16,7 +16,7 @@ if(PROJECT_IS_TOP_LEVEL)
     find_package( Python3 COMPONENTS Interpreter )
 
     ## Compile flags for C/C++ for all apps (for all platforms)
-    list(APPEND   COMPILE_FLAGS        -MMD )
+    list(APPEND   COMPILE_FLAGS        -Os -g -MMD )
     list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
     message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
