@@ -38,13 +38,13 @@ void print_output()
 void run_inference()
 {
     
-    uint64_t start = (uint64_t)get_reference_time();
+    //uint64_t start = (uint64_t)get_reference_time();
     interp_invoke(&ie);
-    uint64_t end = (uint64_t)get_reference_time();
-    printf("cycles = %lld\n",end-start);
-    //print_profiler_summary(&ie);
+    //uint64_t end = (uint64_t)get_reference_time();
+    //printf("cycles = %lld\n",end-start);
+    print_profiler_summary(&ie);
 
-    //print_output();
+    print_output();
 }
 
 
