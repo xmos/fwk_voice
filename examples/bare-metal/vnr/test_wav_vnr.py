@@ -28,8 +28,10 @@ def tflite_predict(interpreter_tflite, input_patches):
     # quantization spec
     if input_details["dtype"] in [np.int8, np.uint8]:
         input_scale, input_zero_point = input_details["quantization"]
+        #print(f"input_scale {input_scale} input_zero_point {input_zero_point}") 
     if output_details["dtype"] in [np.int8, np.uint8]:
         output_scale, output_zero_point = output_details["quantization"]
+        #print(f"output_scale {output_scale} output_zero_point {output_zero_point}") 
 
     predict_tflite = np.zeros(input_patches.shape[0])
 
@@ -56,7 +58,7 @@ def tflite_predict(interpreter_tflite, input_patches):
             output_data = output_data.astype(np.float64)
             output_data = (output_data - output_zero_point)*output_scale
         predict_tflite[n] = output_data[0, 0]
-    return predict_tflite[0]
+    return predict_tflite[0], this_patch
 
 
 def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
@@ -93,8 +95,10 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
     vnr_output_tf = np.zeros(file_length // frame_advance)
     vnr_output_tflite = np.zeros(file_length // frame_advance)
     x_data = np.zeros(proc_frame_length)
-
-    for frame_start in range(0, file_length-proc_frame_length, frame_advance):
+    
+    fp = open("features.bin", "w")
+    #for frame_start in range(0, file_length-proc_frame_length, frame_advance):
+    for frame_start in range(1):
         # buffer the input data into STFT slices
         new_x_frame = awu.get_frame(wav_data, frame_start, frame_advance)
         x_data = np.roll(x_data, -frame_advance, axis = 0)
@@ -106,7 +110,9 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
         vnr_output_tf[frame_start // frame_advance] = vnr_obj.run(normalised_patch)
 
         # do the prediction with tflite model
-        vnr_output_tflite[frame_start // frame_advance] = tflite_predict(interpreter_tflite, normalised_patch)
+        vnr_output_tflite[frame_start // frame_advance], features = tflite_predict(interpreter_tflite, normalised_patch)
+        fp.write(features)
+    fp.close()
 
     if plot_results:
         fig,ax = plt.subplots(2)
@@ -119,13 +125,27 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
         #plt.show()
         #plt.savefig("tf_qaware.png")
 
+def test():
+    a = np.arange(17,23).reshape(1,1,3,2)
+    print(a)
+    fp = open('test.bin', 'wb')
+    b = np.array(a, dtype=np.int8).flatten()
+    print(b)
+
+    for i in b:
+        print('i is', i)
+        fp.write(i)
+    fp.close()
+
 if __name__ == "__main__":
     args = parse_arguments()
     print(args.input_wav)
     print(args.model)
     print(args.tflite_model)
 
-    test_wav_vnr(args.input_wav, args.model, args.tflite_model, plot_results=True)
+    test()
+
+    #test_wav_vnr(args.input_wav, args.model, args.tflite_model, plot_results=True)
 
     
     #rwv.run_wav_vnr(args.input_wav, args.model, plot_results=True)

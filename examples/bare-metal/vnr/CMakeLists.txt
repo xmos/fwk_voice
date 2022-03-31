@@ -46,6 +46,10 @@ target_sources(${TARGET_NAME} PUBLIC ${APP_SOURCES})
 target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES})
 target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
-target_link_libraries(${TARGET_NAME} PUBLIC sdk::inferencing::lib_tflite_micro sdk::lib_xs3_math)
+target_link_libraries(${TARGET_NAME} PUBLIC 
+    sdk::inferencing::lib_tflite_micro
+    avona::example::fileutils
+    sdk::lib_xs3_math)
+
 target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS})
 unset(TARGET_NAME)

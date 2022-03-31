@@ -25,7 +25,8 @@ static int input_bytes = 0;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "fileio.h"
+#include "wav_utils.h"
 void print_output()
 {
   for (int i = 0; i < output_size; i++)
