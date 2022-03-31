@@ -13,6 +13,11 @@ target_include_directories(avona_module_lib_ic
         api
 )
 
+target_compile_options(avona_module_lib_ic
+    PRIVATE
+        "-Os"
+)
+
 target_link_libraries(avona_module_lib_ic
     PUBLIC
         sdk::lib_xs3_math
