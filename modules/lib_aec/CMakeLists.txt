@@ -17,6 +17,11 @@ target_include_directories(avona_module_lib_aec
         src ## this is needed for the IC
 )
 
+target_compile_options(avona_module_lib_aec
+    PRIVATE
+        "-Os"
+)
+
 target_link_libraries(avona_module_lib_aec
     PUBLIC
         sdk::lib_xs3_math
