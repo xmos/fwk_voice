@@ -419,11 +419,15 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_delay_estimator") {
               viewEnv() {
                 withVenv {
-                  sh 'mkdir -p ./input_wavs/'
-                  sh 'mkdir -p ./output_files/'
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  runPython("python print_stats.py")
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh 'mkdir -p ./input_wavs/'
+                      sh 'mkdir -p ./output_files/'
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                      runPython("python print_stats.py")
+                    }
+                  }
                 }
               }
             }
