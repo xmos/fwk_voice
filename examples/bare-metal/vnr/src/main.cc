@@ -67,6 +67,16 @@ void vnr_task(const char *input_file_name, const char *output_file_name){
   output_size = ie.output_sizes[0];   
 
   printf("input_size %d, output_size %d\n",input_size, output_size);
+  /*file_t features_file;
+  int ret = file_open(&features_file, input_file_name, "wb");
+  int8_t input_read_buffer[10] = {0};
+  file_read (&features_file, (uint8_t*)&input_read_buffer[0], 6);
+
+  for(int i=0; i<6; i++) {
+      printf("buffer[%d] = %d\n",i,input_read_buffer[i]);
+  }
+  shutdown_session();*/
+   
   // run inference with an all zero input tensor as a check
   memset(input_buffer, input_size, 0);
   run_inference();

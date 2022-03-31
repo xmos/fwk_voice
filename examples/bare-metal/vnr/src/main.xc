@@ -18,8 +18,8 @@ void vnr_task(const char *input_file_name, const char *output_file_name);
 #endif
 }
 
-#define IN_WAV_FILE_NAME    "input.wav"
-#define OUT_WAV_FILE_NAME   "output.wav"
+#define IN_WAV_FILE_NAME    "test.bin"
+#define OUT_WAV_FILE_NAME   "xcore_inference.bin"
 int main (void)
 {
   chan xscope_chan;
