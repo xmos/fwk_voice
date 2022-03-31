@@ -10,7 +10,7 @@ pipeline {
                  description: 'Force a full test. This increases the number of iterations/scope in some tests')
     booleanParam(name: 'PIPELINE_FULL_RUN',
                  defaultValue: false,
-                 description: 'Enables pipelines characterisation test which takes 2.5hrs by itself. Normally run nightly')
+                 description: 'Enables pipelines characterisation test which takes 5.0hrs by itself. Normally run nightly')
   }
   environment {
     REPO = 'sw_avona'
@@ -419,11 +419,15 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_delay_estimator") {
               viewEnv() {
                 withVenv {
-                  sh 'mkdir -p ./input_wavs/'
-                  sh 'mkdir -p ./output_files/'
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  runPython("python print_stats.py")
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh 'mkdir -p ./input_wavs/'
+                      sh 'mkdir -p ./output_files/'
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                      runPython("python print_stats.py")
+                    }
+                  }
                 }
               }
             }
@@ -553,8 +557,7 @@ pipeline {
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
-                      archiveArtifacts artifacts: "results_*.csv", fingerprint: true
-                      archiveArtifacts artifacts: "keyword_input_*/*.wav", fingerprint: true
+                      // Archive below (always section) even if fails
                     }
                   }
                 }
@@ -565,12 +568,13 @@ pipeline {
       }//stages
       post {
         always {
-          //All build files
-          // archiveArtifacts artifacts: "${REPO}/build/**/*", fingerprint: true
           //AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          //Pipelines tests
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
         }
         cleanup {
           cleanWs()

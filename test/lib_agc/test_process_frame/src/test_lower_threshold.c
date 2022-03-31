@@ -11,9 +11,9 @@
 // that threshold. The AGC is reset for each test iteration.
 
 // Number of frames allowed for the AGC to get the sample below the threshold
-#define MAX_ADAPT_FRAMES 10
+#define MAX_ADAPT_FRAMES 20
 // Total number of frames to test
-#define MAX_TEST_FRAMES (MAX_ADAPT_FRAMES + 30)
+#define MAX_TEST_FRAMES (MAX_ADAPT_FRAMES + 10)
 
 void test_lower_threshold() {
     int32_t input[AGC_FRAME_ADVANCE];
@@ -39,6 +39,13 @@ void test_lower_threshold() {
     // lower_threshold which the AGC is trying to exceed.
     float_s32_t scale = float_s32_mul(float_to_float_s32(0.0011), conf.lower_threshold);
 
+    float_s32_t lower_threshold;
+    if(conf.soft_clipping){ //Soft clipping limits gain a bit at top end
+        lower_threshold = float_s32_mul(conf.lower_threshold, float_to_float_s32(0.90));
+    }else{
+        lower_threshold = conf.lower_threshold;
+    }
+
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         unsigned frame;
 
@@ -58,7 +65,7 @@ void test_lower_threshold() {
             bfp_s32_abs(&output_bfp, &output_bfp);
             float_s32_t max = bfp_s32_max(&output_bfp);
 
-            if (float_s32_gte(max, agc.config.lower_threshold)) {
+            if (float_s32_gte(max, lower_threshold)) {
                 break;
             }
         }
@@ -79,7 +86,7 @@ void test_lower_threshold() {
             bfp_s32_abs(&output_bfp, &output_bfp);
             float_s32_t max = bfp_s32_max(&output_bfp);
 
-            TEST_ASSERT_FALSE(float_s32_gt(agc.config.lower_threshold, max));
+            TEST_ASSERT_FALSE(float_s32_gt(lower_threshold, max));
         }
     }
 }

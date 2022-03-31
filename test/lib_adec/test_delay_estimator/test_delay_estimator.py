@@ -1,4 +1,4 @@
-# Copyright 2018-2021 XMOS LIMITED.
+# Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from builtins import range
 from builtins import object
@@ -25,15 +25,21 @@ import glob
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_files")
+hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 
 delay_calc_output_file_name = "measured_delay_samples.bin"
 
+xe_path = os.path.abspath(glob.glob('../../../build/test/lib_adec/test_delay_estimator/bin/*.xe')[0])
 
 sample_rate = 16000
 proc_frame_length = 2**9 # = 512
 frame_advance = 240
 
-xe_path = os.path.abspath(glob.glob('../../../build/test/lib_adec/test_delay_estimator/bin/*.xe')[0])
+
+try:
+    hydra_audio_base_dir = os.environ['hydra_audio_PATH']
+except:
+    print(f'Warning: hydra_audio_PATH environment variable not set. Using local path {hydra_audio_base_dir}')
 
 class TestCase(object):
     def __init__(self, name, h_x, h_y, aud_x=None, aud_y=None, dont_check=[], invert_check=[]):
@@ -115,7 +121,7 @@ class DelaySpec(object):
     convergence_time = 2.0
 
 
-data, jazz = scipy.io.wavfile.read('input_wavs_fixed/jazz_4ch_record_10s.wav')
+data, jazz = scipy.io.wavfile.read(hydra_audio_base_dir+'/avona_tests/test_delay_estimator/jazz_4ch_record_10s.wav')
 jazz = jazz.T.astype(float) / np.iinfo(np.int32).max
 #jazz_y = np.sum(jazz[:2], axis=0)[:jazz_length*16000]
 #jazz_x = np.sum(jazz[2:], axis=0)[:jazz_length*16000]

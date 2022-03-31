@@ -13,6 +13,11 @@ target_include_directories(avona_module_lib_vad
         src
 )
 
+target_compile_options(avona_module_lib_vad
+    PRIVATE
+        "-Os"
+)
+
 target_link_libraries(avona_module_lib_vad
     PUBLIC
         sdk::lib_xs3_math

@@ -1,6 +1,12 @@
 Avona Reference Design Change Log
 =================================
 
+0.4.0
+-----
+
+  * CHANGED: Increased ASR AGC amplitude target
+  * ADDED: -Os compile option for modules, examples and tests
+
 0.3.0
 -----
 
