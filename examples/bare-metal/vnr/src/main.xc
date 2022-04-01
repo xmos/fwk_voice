@@ -12,14 +12,15 @@
 
 extern "C" {
 #include "xs3_math.h"
-void vnr_task(const char *input_file_name, const char *output_file_name);
+void vnr_task(const char *feature_in_filename, const char *feature_out_filename, const char *inference_out_filename);
 #if TEST_WAV_XSCOPE
     #include "xscope_io_device.h"
 #endif
 }
 
-#define IN_WAV_FILE_NAME    "test.bin"
-#define OUT_WAV_FILE_NAME   "xcore_inference.bin"
+#define FEATURE_IN_FILE_NAME    "features.bin"
+#define FEATURE_LOOPBACK_FILE_NAME   "loopback_features.bin"
+#define INFERENCE_OUTPUT_FILE_NAME "xcore_inference.bin"
 int main (void)
 {
   chan xscope_chan;
@@ -32,7 +33,7 @@ int main (void)
 #if TEST_WAV_XSCOPE
         xscope_io_init(xscope_chan);
 #endif 
-        vnr_task(IN_WAV_FILE_NAME, OUT_WAV_FILE_NAME);        
+        vnr_task(FEATURE_IN_FILE_NAME, FEATURE_LOOPBACK_FILE_NAME, INFERENCE_OUTPUT_FILE_NAME);
         _Exit(0);
     }
   }
