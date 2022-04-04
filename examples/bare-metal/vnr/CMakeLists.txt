@@ -22,8 +22,6 @@ set(APP_COMPILER_FLAGS
 )
 set(APP_COMPILE_DEFINITIONS
     DEBUG_PRINT_ENABLE=1
-    TF_LITE_STATIC_MEMORY=1
-    __xtflm_conf_h_exists__=1 
     CI_TESTING=${CI_TESTING}
     # NDEBUG                        # define this to remove debug and profiling
     # TF_LITE_STRIP_ERROR_STRINGS   # define this to remove logging
@@ -47,9 +45,8 @@ target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES})
 target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_libraries(${TARGET_NAME} PUBLIC 
-    sdk::inferencing::lib_tflite_micro
-    avona::example::fileutils
-    sdk::lib_xs3_math)
+    avona::vnr
+    avona::example::fileutils)
 
 target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS})
 unset(TARGET_NAME)
