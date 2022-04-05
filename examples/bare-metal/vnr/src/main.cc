@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <xcore/hwtimer.h>
-#include "vnr_api.h"
+#include "vnr_inference_api.h"
 
 static vnr_ie_t vnr_ie_state;
 

@@ -2,7 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
-#include "vnr_api.h"
+#include "vnr_features_api.h"
 
 void vnr_input_state_init(vnr_input_state_t *input_state) {
     memset(input_state, 0, sizeof(vnr_input_state_t));

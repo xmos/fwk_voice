@@ -2,7 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
-#include "vnr_api.h"
+#include "vnr_inference_api.h"
 
 static struct tflite_micro_objects tflmo;
 

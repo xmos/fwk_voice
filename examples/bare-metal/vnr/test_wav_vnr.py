@@ -104,7 +104,7 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
     with open("features.bin", "wb") as fp_features:
         fp_features.write(full_features)
     
-    # TODO Run xcore here
+    # Run xcore
     run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr.xe")
 
     #read inference results from xcore

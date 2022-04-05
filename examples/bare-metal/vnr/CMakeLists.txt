@@ -45,7 +45,7 @@ target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES})
 target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_libraries(${TARGET_NAME} PUBLIC 
-    avona::vnr
+    avona::vnr::inference
     avona::example::fileutils)
 
 target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS})
