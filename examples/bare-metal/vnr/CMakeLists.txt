@@ -25,6 +25,7 @@ set(APP_COMPILE_DEFINITIONS
     CI_TESTING=${CI_TESTING}
     # NDEBUG                        # define this to remove debug and profiling
     # TF_LITE_STRIP_ERROR_STRINGS   # define this to remove logging
+    TEST_FEATURES=1
 )
 
 set(APP_LINK_OPTIONS
@@ -46,6 +47,7 @@ target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_libraries(${TARGET_NAME} PUBLIC 
     avona::vnr::inference
+    avona::vnr::features
     avona::example::fileutils)
 
 target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS})

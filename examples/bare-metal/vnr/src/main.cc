@@ -14,6 +14,7 @@ extern "C" {
 #endif
 #include "fileio.h"
 #include "wav_utils.h"
+void test_features(const char *input_wav_file, const char *output_features_file, const char *output_exp_file);
 
 static uint32_t max_cycles = 0;
 static uint64_t sum_cycles = 0;
@@ -38,6 +39,7 @@ int8_t run_inference(vnr_ie_t *ie_state)
     return inference_output;
 }
 
+
 void vnr_task(const char *feature_in_filename, const char *feature_out_filename, const char *inference_out_filename)
 {
     vnr_inference_init(&vnr_ie_state);
@@ -61,12 +63,15 @@ void vnr_task(const char *feature_in_filename, const char *feature_out_filename,
         file_write(&features_loopback_file, (uint8_t*)vnr_ie_state.input_buffer, vnr_ie_state.input_size);
     }
     printf("Inference call: Mean cycles %d, Max cycles %d\n",mean_cycles, max_cycles);
-    shutdown_session();
 
     // run inference with an all zero input tensor as a check
     //memset(input_buffer, input_size, 0);
     //run_inference();
     //exit(0);
+#if TEST_FEATURES
+    test_features("data_16k/2035-152373-0002001.wav", "xcore_features.bin", "xcore_feature_exp.bin");
+#endif
+    shutdown_session();
 }
 #ifdef __cplusplus
 };

@@ -1,9 +1,10 @@
 
+## inference
 add_library(avona_module_lib_vnr_inference STATIC)
 
-file(GLOB_RECURSE VNR_SOURCES src/inference/*.c src/inference/*.cc)
+file(GLOB_RECURSE VNR_INFERENCE_SOURCES src/inference/*.c src/inference/*.cc)
 
-target_sources(avona_module_lib_vnr_inference PRIVATE ${VNR_SOURCES})
+target_sources(avona_module_lib_vnr_inference PRIVATE ${VNR_INFERENCE_SOURCES})
 
 target_include_directories(avona_module_lib_vnr_inference PUBLIC api/inference src/inference src/inference/model)
 
@@ -37,3 +38,26 @@ target_link_libraries(avona_module_lib_vnr_inference
         )
 
 add_library(avona::vnr::inference ALIAS avona_module_lib_vnr_inference)
+
+
+## features
+add_library(avona_module_lib_vnr_features STATIC)
+
+file(GLOB_RECURSE VNR_FEATURES_SOURCES src/features/*.c)
+
+target_sources(avona_module_lib_vnr_features PRIVATE ${VNR_FEATURES_SOURCES})
+
+target_include_directories(avona_module_lib_vnr_features PUBLIC api/features)
+
+target_compile_options(avona_module_lib_vnr_features
+    PRIVATE
+        "-Os"
+        "-g"       
+)
+
+target_link_libraries(avona_module_lib_vnr_features
+    PUBLIC
+        sdk::lib_xs3_math
+        )
+
+add_library(avona::vnr::features ALIAS avona_module_lib_vnr_features)
