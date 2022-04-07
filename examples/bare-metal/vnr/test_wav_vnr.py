@@ -70,8 +70,57 @@ def tflite_predict(interpreter_tflite, input_patches):
         predict_tflite[n] = output_data_float[0, 0]
     return predict_tflite[0], output_data[0,0], this_patch
 
+def test_fft_features(interpreter_tflite, vnr_obj_test_xcore_features):
+    dtype=np.dtype([('r', np.int32),('q', np.int32)])
+    with open("xcore_features.bin", "rb") as fxcore:
+        xcore_fft_out = np.fromfile(fxcore, dtype=dtype)
+        xcore_fft_out = [complex(*item) for item in xcore_fft_out]
+        xcore_fft_out = np.array(xcore_fft_out, dtype=np.complex128)
+    # Read xcore FFT output exponents
+    with open("xcore_feature_exp.bin", "rb") as fxcore:
+        xcore_fft_out_exp = np.fromfile(fxcore, dtype=np.int32)
+    
+    # Convert FFT output to float
+    frames = len(xcore_fft_out_exp)
+    vnr_output_tflite_xcore_features = np.zeros(frames)
+    spect_save = np.empty(0, dtype=np.complex128)
+    for fr in range(frames-1):
+        exp = xcore_fft_out_exp[fr]
+        spect = np.array(xcore_fft_out[fr*257:(fr+1)*257] * (float(2)**exp))
+        spect_save = np.append(spect_save, spect)
+
+        # Extract features using xcore FFT output
+        normalised_patch = rwv.extract_features_no_fft(spect, vnr_obj_test_xcore_features)
+        # do the prediction with tflite model
+        vnr_output_tflite_xcore_features[fr],_,_ = tflite_predict(interpreter_tflite, normalised_patch)
+    return vnr_output_tflite_xcore_features, spect_save 
+
+def test_squaredmag_features(interpreter_tflite, vnr_obj_test_xcore_features):
+    with open("xcore_features.bin", "rb") as fxcore:
+        xcore_out = np.fromfile(fxcore, dtype=np.int32)
+    with open("xcore_feature_exp.bin", "rb") as fxcore:
+        xcore_out_exp = np.fromfile(fxcore, dtype=np.int32)
+
+    #Convert to float
+    frames = len(xcore_out_exp)
+    vnr_output_tflite_xcore_features = np.zeros(frames)
+    spect_save = np.empty(0, dtype=np.int32)
+    for fr in range(frames-1):
+        exp = xcore_out_exp[fr]
+        spect = np.array(xcore_out[fr*257:(fr+1)*257] * (float(2)**exp))
+        spect_save = np.append(spect_save, spect)
+
+        # Extract features using xcore FFT output
+        normalised_patch = rwv.extract_features_no_fft_no_abs(spect, vnr_obj_test_xcore_features)
+        # do the prediction with tflite model
+        vnr_output_tflite_xcore_features[fr],_,_ = tflite_predict(interpreter_tflite, normalised_patch)
+    return vnr_output_tflite_xcore_features, spect_save 
 
 def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
+    test_xcore_fft = 0
+    test_xcore_squared_mag = 1
+    test_xcore_features = test_xcore_fft | test_xcore_squared_mag
+
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(args.tflite_model))
 
@@ -145,41 +194,25 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
     print("max diff (tflite xcore)", diff, diff_quant)
     
 ########## Test with xcore features. xcore_features + tflite inference against python features + tflite inference
-    # Read xcore FFT output  
-    dtype=np.dtype([('r', np.int32),('q', np.int32)])
-    with open("xcore_features.bin", "rb") as fxcore:
-        xcore_fft_out = np.fromfile(fxcore, dtype=dtype)
-        xcore_fft_out = [complex(*item) for item in xcore_fft_out]
-        xcore_fft_out = np.array(xcore_fft_out, dtype=np.complex128)
-    # Read xcore FFT output exponents
-    with open("xcore_feature_exp.bin", "rb") as fxcore:
-        xcore_fft_out_exp = np.fromfile(fxcore, dtype=np.int32)
-    
-    # Convert FFT output to float
-    frames = len(xcore_fft_out_exp)
-    vnr_output_tflite_xcore_features = np.zeros(frames)
-    spect_save = np.empty(0, dtype=np.complex128)
-    for fr in range(frames-1):
-        exp = xcore_fft_out_exp[fr]
-        spect = np.array(xcore_fft_out[fr*257:(fr+1)*257] * (float(2)**exp))
-        spect_save = np.append(spect_save, spect)
+    # Read xcore FFT output
+    if(test_xcore_fft):
+        vnr_output_tflite_xcore_features, spect_save = test_fft_features(interpreter_tflite, vnr_obj_test_xcore_features)
+                
+        # Compute XCORE FFT and python FFT max diff per frame
+        diff_spectrum = np.empty(0, dtype = np.float64)
+        for i in range(0,len(spect_save),257):
+            diff_spectrum = np.append(diff_spectrum, np.max(np.abs(X_spect_save[i:i+257] - spect_save[i:i+257])))
 
-        # Extract features using xcore FFT output
-        normalised_patch = rwv.extract_features_no_fft(spect, vnr_obj_test_xcore_features)
-        # do the prediction with tflite model
-        vnr_output_tflite_xcore_features[fr],_,_ = tflite_predict(interpreter_tflite, normalised_patch)
-    
-    # Compare XCore features + tflite inference with python features + tflite inference
-    diff_xcore_features = np.abs(vnr_output_tflite[:frames] - vnr_output_tflite_xcore_features[:frames])
-    max_diff_xcore_features = max(diff_xcore_features)
-    print("max diff (tflite, tflite+xcore features)", max_diff_xcore_features)
-    
-    # Compute XCORE FFT and python FFT max diff per frame
-    diff_spectrum = np.empty(0, dtype = np.float64)
-    for i in range(0,len(spect_save),257):
-        diff_spectrum = np.append(diff_spectrum, np.max(np.abs(X_spect_save[i:i+257] - spect_save[i:i+257])))
+        print(f"max FFT spectrum diff across all frames = {max(diff_spectrum)}")
 
-    print(f"max FFT spectrum diff across all frames = {max(diff_spectrum)}")
+    if(test_xcore_squared_mag):
+        vnr_output_tflite_xcore_features, spect_save = test_squaredmag_features(interpreter_tflite, vnr_obj_test_xcore_features)
+
+    if(test_xcore_features): 
+        # Compare XCore features + tflite inference with python features + tflite inference
+        diff_xcore_features = np.abs(vnr_output_tflite[:frames] - vnr_output_tflite_xcore_features[:frames])
+        max_diff_xcore_features = max(diff_xcore_features)
+        print("max diff (tflite, tflite+xcore features)", max_diff_xcore_features)
 
 ############ Plot various inference outputs
     if plot_results:
@@ -191,8 +224,9 @@ def test_wav_vnr(input_file, model_file, tflite_model_file, plot_results=False):
         ax[1].plot(vnr_output_tflite)
         ax[2].set_title('xcore model plot')
         ax[2].plot(vnr_output_xcore)
-        ax[3].set_title('tflite model + xcore fft plot')
-        ax[3].plot(vnr_output_tflite_xcore_features)
+        if(test_xcore_features): 
+            ax[3].set_title('tflite model + xcore features plot')
+            ax[3].plot(vnr_output_tflite_xcore_features)
         fig_instance = plt.gcf() #get current fig instance so it can be saved later
         plt.show()
         plotfile = "plot_" + os.path.splitext(os.path.basename(tflite_model_file))[0] + ".png"

@@ -54,6 +54,10 @@ void test_features(const char *input_wav_file, const char *output_features_file,
     bfp_complex_s32_t debug_bfp;
     bfp_complex_s32_init(&debug_bfp, debug_output, 0, VNR_FD_FRAME_LENGTH, 0);
 
+    int32_t debug_sq_mag[VNR_FD_FRAME_LENGTH];
+    bfp_s32_t debug_sq_mag_bfp;
+    bfp_s32_init(&debug_sq_mag_bfp, debug_sq_mag, 0, VNR_FD_FRAME_LENGTH, 0);
+
     for(unsigned b=0; b<block_count; b++) {
         //printf("frame %d\n",b);
         long input_location =  wav_get_frame_start(&input_header_struct, b * VNR_FRAME_ADVANCE, input_header_size);
@@ -63,9 +67,11 @@ void test_features(const char *input_wav_file, const char *output_features_file,
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        vnr_extract_features(&vnr_input_state, new_frame, &debug_bfp);
+        vnr_extract_features(&vnr_input_state, new_frame, &debug_bfp, &debug_sq_mag_bfp);
         
-        file_write(&feature_file, (uint8_t*)(debug_bfp.data), debug_bfp.length*sizeof(complex_s32_t));
-        file_write(&exp_file, (uint8_t*)(&debug_bfp.exp), 1*sizeof(exponent_t));
+        //file_write(&feature_file, (uint8_t*)(debug_bfp.data), debug_bfp.length*sizeof(complex_s32_t));
+        //file_write(&exp_file, (uint8_t*)(&debug_bfp.exp), 1*sizeof(exponent_t));
+        file_write(&feature_file, (uint8_t*)(debug_sq_mag_bfp.data), debug_sq_mag_bfp.length*sizeof(int32_t));
+        file_write(&exp_file, (uint8_t*)(&debug_sq_mag_bfp.exp), 1*sizeof(exponent_t));
     }
 }
