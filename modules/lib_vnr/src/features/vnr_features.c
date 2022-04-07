@@ -44,8 +44,8 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
         unsigned filter_length = mel_filter_512_24_compact_start_bins[2*(i+1)] - filter_start;
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
-        bfp_s32_init(&spect_subset, &squared_mag->data[filter_start], squared_mag->exp, filter_length, 0);
-        spect_subset.hr = squared_mag->hr;
+        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 0);
+        spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter
         bfp_s32_t filter_subset;
@@ -64,8 +64,8 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
         unsigned filter_length = mel_filter_512_24_compact_start_bins[(2*(i+1)) + 1] - filter_start;
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
-        bfp_s32_init(&spect_subset, &squared_mag->data[filter_start], squared_mag->exp, filter_length, 0);
-        spect_subset.hr = squared_mag->hr;
+        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 0);
+        spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter
         bfp_s32_t filter_subset;
