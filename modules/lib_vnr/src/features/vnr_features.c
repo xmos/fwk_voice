@@ -25,6 +25,7 @@ void vnr_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(&x);
     //printf("post fft hr = reported %d, actual %d\n",temp->hr, bfp_complex_s32_headroom(temp));
+    temp->hr = bfp_complex_s32_headroom(temp); // bfp_fft_forward_mono() reported headroom is sometimes incorrect
     bfp_fft_unpack_mono(temp);
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
@@ -32,7 +33,6 @@ void vnr_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
 void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
     // Calculate squared magnitude spectrum
     int32_t DWORD_ALIGNED squared_mag_data[VNR_FD_FRAME_LENGTH];
-    X->hr = bfp_complex_s32_headroom(X);
     bfp_s32_t squared_mag;
     bfp_s32_init(&squared_mag, squared_mag_data, 0, X->length, 0);
     bfp_complex_s32_squared_mag(&squared_mag, X);
@@ -41,15 +41,6 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
             printf("X[%d] bfp = (re %ld im %ld), (exp %d, hr %d), sq_mag = (%ld, exp %d, hr %d)\n", i, X->data[i].re, X->data[i].im, X->exp, X->hr, squared_mag.data[i], squared_mag.exp, squared_mag.hr);
             printf("X[%d] = (%.6f. %.6f), sq_mag = %.6f\n",i, ldexp(X->data[i].re, X->exp), ldexp(X->data[i].im, X->exp), ldexp(squared_mag.data[i], squared_mag.exp) );
         }
-
-        complex_s32_t tmp;
-        tmp.re = 72847554;
-        tmp.im = 430025362;
-        bfp_complex_s32_t tmp_bfp;
-        bfp_complex_s32_init(&tmp_bfp, &tmp, -25, 1, 1);
-        printf("computed hr = %d\n",tmp_bfp.hr);
-
-
     }*/
 
     // Mel filtering

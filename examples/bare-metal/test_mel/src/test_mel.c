@@ -11,21 +11,34 @@
 
 #define AUDIO_FEATURES_NUM_MELS (24)
 static int framenum=0;
-//TODO profile
+static uint32_t max_fft_cycles=0, max_mel_cycles=0;
+
 void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file) {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
     
+    uint64_t start_fft, end_fft, start_mel, end_mel;
+    start_fft = (uint64_t)get_reference_time();
     bfp_complex_s32_t X;
-    vnr_forward_fft(&X, x_data);    
+    vnr_forward_fft(&X, x_data);
+    end_fft = (uint64_t)get_reference_time();
 
     file_write(fft_file, (uint8_t*)(X.data), X.length*sizeof(complex_s32_t));
     file_write(fft_exp_file, (uint8_t*)(&X.exp), 1*sizeof(exponent_t));
     
     // MEL
+    start_mel = (uint64_t)get_reference_time();
     float_s64_t mel_output[AUDIO_FEATURES_NUM_MELS];
     vnr_mel_compute(&X, mel_output);
-    
+    end_mel = (uint64_t)get_reference_time();
+
+    //profile
+    uint32_t fft_cycles = (uint32_t)(end_fft-start_fft);
+    uint32_t mel_cycles = (uint32_t)(end_mel-start_mel);
+    if(max_fft_cycles < fft_cycles) {max_fft_cycles = fft_cycles;}
+    if(max_mel_cycles < mel_cycles) {max_mel_cycles = mel_cycles;}
+
+    //printf("FFT cycles %ld, MEL cycles %ld\n", (uint32_t)(end_fft-start_fft), (uint32_t)(end_mel-start_mel));
     for(int i=0; i<AUDIO_FEATURES_NUM_MELS; i++) {
         file_write(mel_file, (uint8_t*)(&mel_output[i].mant), sizeof(int64_t));
         file_write(mel_exp_file, (uint8_t*)(&mel_output[i].exp), sizeof(exponent_t));
@@ -95,5 +108,6 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
             break;
         }*/
     }
+    printf("Profile: max_fft_cycles = %ld, max_mel_cycles = %ld\n",max_fft_cycles, max_mel_cycles);
     shutdown_session(); 
 }
