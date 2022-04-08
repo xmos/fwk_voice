@@ -34,12 +34,18 @@ def test_mel(plot_results=False):
             dut_mel_exp = np.fromfile(fdutexp, dtype=np.int32)
             dut_mel = np.array(dut_mel_mant*(float(2)**dut_mel_exp), dtype=np.float64)
     
+    with open("mel_log2.bin", "rb") as fdut:
+        dut_mel_log2 = np.fromfile(fdut, dtype=np.int32)
+        dut_mel_log2 = np.array(dut_mel_log2, dtype=np.float64)
+        dut_mel_log2 = dut_mel_log2 * (float(2)**-24) #DUT mel log2 is always in 8.24 format 
+
     # Convert FFT output to float
     frames = len(dut_fft_out_exp)
     print(f"{frames} frames sent to python")
 
     ref_X_spect_full = np.empty(0, dtype=np.complex128)
     ref_mel = np.empty(0, dtype=np.float64)
+    ref_mel_log2 = np.empty(0, dtype=np.float64)
     for fr in range(frames):
         exp = dut_fft_out_exp[fr]
         X_spect = np.array(dut_fft_out[fr*257:(fr+1)*257] * (float(2)**exp))
@@ -50,26 +56,36 @@ def test_mel(plot_results=False):
         #    print("abs_spect\n",out_spect[:20])
         out_spect = np.dot(out_spect, vnr_obj.mel_fbank)        
         ref_mel = np.append(ref_mel, out_spect)
+        out_spect = np.log2(out_spect)        
+        ref_mel_log2 = np.append(ref_mel_log2, out_spect)
 
-    max_diff_per_frame = np.empty(0, dtype=np.float64) 
+    max_mel_diff_per_frame = np.empty(0, dtype=np.float64) 
+    max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
     for i in range(0, len(ref_mel), vnr_obj.mel_filters):
         fr = i/vnr_obj.mel_filters
         ref = ref_mel[i:i+vnr_obj.mel_filters]
         dut = dut_mel[i:i+vnr_obj.mel_filters]
-        max_diff_per_frame = np.append(max_diff_per_frame, np.max(np.abs(ref-dut)))
+        max_mel_diff_per_frame = np.append(max_mel_diff_per_frame, np.max(np.abs(ref-dut)))
+        ref = ref_mel_log2[i:i+vnr_obj.mel_filters]
+        dut = dut_mel_log2[i:i+vnr_obj.mel_filters]
+        max_mel_log2_diff_per_frame = np.append(max_mel_log2_diff_per_frame, np.max(np.abs(ref-dut)))
+
         #if fr == 66:
         #    print("ref mel\n",ref)
         #    print("dut mel\n",dut)
         #    print(f"frame {i} diff {max(abs(ref-dut))}, max_ref {max(abs(ref))}, max_dut {max(abs(dut))}")
-    print("Max mel_output diff across all frames = ",np.max(max_diff_per_frame)) 
+    print("Max mel diff across all frames = ",np.max(max_mel_diff_per_frame)) 
+    print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
     if(plot_results):
-        fig,ax = plt.subplots(2)
+        fig,ax = plt.subplots(3)
         fig.set_size_inches(12,10)
         ax[0].set_title('mel output')
         ax[0].plot(ref_mel)
         ax[0].plot(dut_mel)
         ax[1].set_title('max mel output diff per frame')
-        ax[1].plot(max_diff_per_frame)
+        ax[1].plot(max_mel_diff_per_frame)
+        ax[2].set_title('max mel log2 diff per frame')
+        ax[2].plot(max_mel_log2_diff_per_frame)
         fig_instance = plt.gcf() #get current figure instance so we can save in a file later
         plt.show()
         plot_file = "ref_dut_mel_compare.png"
