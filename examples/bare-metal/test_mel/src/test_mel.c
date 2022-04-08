@@ -28,8 +28,8 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
     
     // MEL
     start_mel = (uint64_t)get_reference_time();
-    float_s64_t mel_output[AUDIO_FEATURES_NUM_MELS];
-    vnr_mel_compute(&X, mel_output);
+    float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
+    vnr_mel_compute(mel_output, &X);
     end_mel = (uint64_t)get_reference_time();
 
     //profile
@@ -40,7 +40,7 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
 
     //printf("FFT cycles %ld, MEL cycles %ld\n", (uint32_t)(end_fft-start_fft), (uint32_t)(end_mel-start_mel));
     for(int i=0; i<AUDIO_FEATURES_NUM_MELS; i++) {
-        file_write(mel_file, (uint8_t*)(&mel_output[i].mant), sizeof(int64_t));
+        file_write(mel_file, (uint8_t*)(&mel_output[i].mant), sizeof(int32_t));
         file_write(mel_exp_file, (uint8_t*)(&mel_output[i].exp), sizeof(exponent_t));
     }
     
@@ -104,7 +104,7 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
         }
         dut_mel(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file);
         framenum += 1;
-        /*if(framenum == 5) {
+        /*if(framenum == 1) {
             break;
         }*/
     }

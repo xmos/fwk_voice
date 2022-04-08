@@ -28,7 +28,7 @@ def test_mel(plot_results=False):
 
     # read dut mel output
     with open("dut_mel.bin", "rb") as fdut:        
-        dut_mel_mant = np.fromfile(fdut, dtype=np.int64)
+        dut_mel_mant = np.fromfile(fdut, dtype=np.int32)
         dut_mel_mant = np.array(dut_mel_mant, dtype=np.float64)
         with open("dut_mel_exp.bin", "rb") as fdutexp:        
             dut_mel_exp = np.fromfile(fdutexp, dtype=np.int32)
@@ -61,7 +61,7 @@ def test_mel(plot_results=False):
         #    print("ref mel\n",ref)
         #    print("dut mel\n",dut)
         #    print(f"frame {i} diff {max(abs(ref-dut))}, max_ref {max(abs(ref))}, max_dut {max(abs(dut))}")
-    
+    print("Max mel_output diff across all frames = ",np.max(max_diff_per_frame)) 
     if(plot_results):
         fig,ax = plt.subplots(2)
         fig.set_size_inches(12,10)

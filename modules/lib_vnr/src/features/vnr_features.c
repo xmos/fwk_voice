@@ -2,6 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include "vnr_features_api.h"
 #include "mel_filter_512_24_compact.h"
 
@@ -24,13 +25,21 @@ void vnr_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     bfp_s32_init(&x, x_data, VNR_INPUT_EXP, VNR_PROC_FRAME_LENGTH, 1);
 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(&x);
+#if HEADROOM_CHECK
+    headroom_t reported_hr = temp->hr;
+    headroom_t actual_hr = bfp_complex_s32_headroom(temp);
+    if(reported_hr != actual_hr) {
+        printf("ERROR: bfp_fft_forward_mono(), reported hr %d, actual %d\n",reported_hr, actual_hr);
+        assert(0);
+    }
+#endif
     //printf("post fft hr = reported %d, actual %d\n",temp->hr, bfp_complex_s32_headroom(temp));
     temp->hr = bfp_complex_s32_headroom(temp); // bfp_fft_forward_mono() reported headroom is sometimes incorrect
     bfp_fft_unpack_mono(temp);
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
 
-void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
+void vnr_mel_compute(float_s32_t *filter_output, bfp_complex_s32_t *X) {
     // Calculate squared magnitude spectrum
     int32_t DWORD_ALIGNED squared_mag_data[VNR_FD_FRAME_LENGTH];
     bfp_s32_t squared_mag;
@@ -42,6 +51,14 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
             printf("X[%d] = (%.6f. %.6f), sq_mag = %.6f\n",i, ldexp(X->data[i].re, X->exp), ldexp(X->data[i].im, X->exp), ldexp(squared_mag.data[i], squared_mag.exp) );
         }
     }*/
+#if HEADROOM_CHECK
+    headroom_t reported_hr = squared_mag.hr;
+    headroom_t actual_hr = bfp_s32_headroom(&squared_mag);
+    if(reported_hr != actual_hr) {
+        printf("ERROR: bfp_complex_s32_squared_mag(), reported hr %d, actual %d\n",reported_hr, actual_hr);
+        assert(0);
+    }
+#endif
 
     // Mel filtering
     unsigned num_bands = AUDIO_FEATURES_NUM_MELS + 1; //Extra band for the 2nd half of the last filter  
@@ -62,7 +79,7 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
         bfp_s32_init(&filter_subset, &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
         filter_subset.hr = filter_hr;
         
-        filter_output[2*i] = bfp_s32_dot(&spect_subset, &filter_subset);
+        filter_output[2*i] = float_s64_to_float_s32(bfp_s32_dot(&spect_subset, &filter_subset));
     }
 
     bfp_s32_t filter;
@@ -87,9 +104,56 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
         bfp_s32_init(&filter_subset, &odd_band_filters.data[filter_start], odd_band_filters.exp, filter_length, 0);
         filter_subset.hr = odd_band_filters.hr;
 
-        filter_output[(2*i)+1] = bfp_s32_dot(&spect_subset, &filter_subset);
+        filter_output[(2*i)+1] = float_s64_to_float_s32(bfp_s32_dot(&spect_subset, &filter_subset));
     }
     framenum++;
+}
+
+void vnr_log2(fixed_s32_t *output_q24, const float_s32_t *input, unsigned length) {
+    for(unsigned i=0; i<length; i++) {
+        output_q24[i] = float_s32_to_fixed_q24_log2(input[i]);
+    }
+}
+
+#define LOOKUP_PRECISION 8
+#define MEL_PRECISION 24
+static const int lookup[33] = {
+    0,    11,  22,  33,  43,  53,  63,  73,
+    82,   91, 100, 109, 117, 125, 134, 141,
+    149, 157, 164, 172, 179, 186, 193, 200,
+    206, 213, 219, 225, 232, 238, 244, 250,
+    256
+};
+
+
+
+int lookup_small_log2_linear_new(uint32_t x) {
+    int mask_bits = 26;
+    int mask = (1 << mask_bits) - 1;
+    int y = (x >> mask_bits) - 32;
+    int y1 = y + 1;
+    int v0 = lookup[y], v1 = lookup[y1];
+    int f1 = x & mask;
+    int f0 = mask + 1 - f1;
+    return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
+}
+
+fixed_s32_t float_s32_to_fixed_q24_log2(float_s32_t x) {
+    headroom_t hr = HR_S32(x.mant);
+    hr = hr + 1;
+    uint32_t x_mant = 0;
+    exponent_t x_exp = 0;
+    x_mant = (uint32_t)x.mant << hr;
+    x_exp = x.exp - hr;
+
+    //Handle case for zero mantissa which is possible with float_s32_t
+    if (x_mant == 0) return INT_MIN;
+
+    int32_t number_of_bits = 31 + x_exp;
+    number_of_bits <<= MEL_PRECISION;
+
+    uint32_t log2 = lookup_small_log2_linear_new(x_mant) + number_of_bits;
+    return log2;
 }
 
 void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out)
@@ -128,6 +192,9 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
     squared_mag_out->exp -= ls;
     
     // MEL
-    float_s64_t mel_output[AUDIO_FEATURES_NUM_MELS];
-    vnr_mel_compute(&X, mel_output);
+    float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
+    vnr_mel_compute(mel_output, &X);
+
+    fixed_s32_t log2_mel[AUDIO_FEATURES_NUM_MELS];
+    vnr_log2(log2_mel, mel_output, AUDIO_FEATURES_NUM_MELS);
 }
