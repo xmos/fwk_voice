@@ -5,6 +5,7 @@
 #include "vnr_features_api.h"
 #include "mel_filter_512_24_compact.h"
 
+static int framenum=0;
 void vnr_input_state_init(vnr_input_state_t *input_state) {
     memset(input_state, 0, sizeof(vnr_input_state_t));
 }
@@ -23,6 +24,7 @@ void vnr_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     bfp_s32_init(&x, x_data, VNR_INPUT_EXP, VNR_PROC_FRAME_LENGTH, 1);
 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(&x);
+    //printf("post fft hr = reported %d, actual %d\n",temp->hr, bfp_complex_s32_headroom(temp));
     bfp_fft_unpack_mono(temp);
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
@@ -30,15 +32,32 @@ void vnr_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
 void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
     // Calculate squared magnitude spectrum
     int32_t DWORD_ALIGNED squared_mag_data[VNR_FD_FRAME_LENGTH];
+    X->hr = bfp_complex_s32_headroom(X);
     bfp_s32_t squared_mag;
     bfp_s32_init(&squared_mag, squared_mag_data, 0, X->length, 0);
     bfp_complex_s32_squared_mag(&squared_mag, X);
+    /*if(framenum==66) {
+        for(int i=0; i<20; i++) {
+            printf("X[%d] bfp = (re %ld im %ld), (exp %d, hr %d), sq_mag = (%ld, exp %d, hr %d)\n", i, X->data[i].re, X->data[i].im, X->exp, X->hr, squared_mag.data[i], squared_mag.exp, squared_mag.hr);
+            printf("X[%d] = (%.6f. %.6f), sq_mag = %.6f\n",i, ldexp(X->data[i].re, X->exp), ldexp(X->data[i].im, X->exp), ldexp(squared_mag.data[i], squared_mag.exp) );
+        }
+
+        complex_s32_t tmp;
+        tmp.re = 72847554;
+        tmp.im = 430025362;
+        bfp_complex_s32_t tmp_bfp;
+        bfp_complex_s32_init(&tmp_bfp, &tmp, -25, 1, 1);
+        printf("computed hr = %d\n",tmp_bfp.hr);
+
+
+    }*/
 
     // Mel filtering
     unsigned num_bands = AUDIO_FEATURES_NUM_MELS + 1; //Extra band for the 2nd half of the last filter  
     unsigned num_even_filters = num_bands / 2;
     unsigned num_odd_filters = AUDIO_FEATURES_NUM_MELS - num_even_filters;
     int filter_exp = -(31-AUDIO_FEATURES_MEL_HEADROOM_BITS);
+    int filter_hr = AUDIO_FEATURES_MEL_HEADROOM_BITS;
     for(unsigned i=0; i<num_even_filters; i++) {
         unsigned filter_start = mel_filter_512_24_compact_start_bins[2*i];
         unsigned filter_length = mel_filter_512_24_compact_start_bins[2*(i+1)] - filter_start;
@@ -50,14 +69,19 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
         //Create BFP for the filter
         bfp_s32_t filter_subset;
         bfp_s32_init(&filter_subset, &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
-
+        filter_subset.hr = filter_hr;
+        
         filter_output[2*i] = bfp_s32_dot(&spect_subset, &filter_subset);
     }
+
+    bfp_s32_t filter;
+    bfp_s32_init(&filter, &mel_filter_512_24_compact_q31[0], filter_exp, AUDIO_FEATURES_NUM_BINS, 0);
 
     int32_t odd_band_filters_data[AUDIO_FEATURES_NUM_BINS];
     bfp_s32_t odd_band_filters;
     bfp_s32_init(&odd_band_filters, odd_band_filters_data, 0, AUDIO_FEATURES_NUM_BINS, HR_S32(AUDIO_FEATURES_MEL_MAX));
     bfp_s32_set(&odd_band_filters, AUDIO_FEATURES_MEL_MAX, filter_exp);
+    bfp_s32_sub(&odd_band_filters, &odd_band_filters, &filter);
 
     for(unsigned i=0; i<num_odd_filters; i++) {
         unsigned filter_start = mel_filter_512_24_compact_start_bins[(2*i) + 1];
@@ -69,13 +93,14 @@ void vnr_mel_compute(bfp_complex_s32_t *X, float_s64_t *filter_output) {
 
         //Create BFP for the filter
         bfp_s32_t filter_subset;
-        bfp_s32_init(&filter_subset, &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
+        bfp_s32_init(&filter_subset, &odd_band_filters.data[filter_start], odd_band_filters.exp, filter_length, 0);
+        filter_subset.hr = odd_band_filters.hr;
 
         filter_output[(2*i)+1] = bfp_s32_dot(&spect_subset, &filter_subset);
     }
+    framenum++;
 }
 
-static int framenum=0;
 void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out)
 {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
@@ -114,6 +139,4 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
     // MEL
     float_s64_t mel_output[AUDIO_FEATURES_NUM_MELS];
     vnr_mel_compute(&X, mel_output);
-
-    framenum++;
 }

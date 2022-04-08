@@ -10,6 +10,8 @@
 #include "wav_utils.h"
 
 #define AUDIO_FEATURES_NUM_MELS (24)
+static int framenum=0;
+//TODO profile
 void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file) {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
@@ -17,10 +19,9 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
     bfp_complex_s32_t X;
     vnr_forward_fft(&X, x_data);    
 
-    file_write(fft_file, (uint8_t*)(&X.data), X.length*sizeof(complex_s32_t));
+    file_write(fft_file, (uint8_t*)(X.data), X.length*sizeof(complex_s32_t));
     file_write(fft_exp_file, (uint8_t*)(&X.exp), 1*sizeof(exponent_t));
     
-
     // MEL
     float_s64_t mel_output[AUDIO_FEATURES_NUM_MELS];
     vnr_mel_compute(&X, mel_output);
@@ -89,6 +90,10 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
         dut_mel(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file);
+        framenum += 1;
+        /*if(framenum == 5) {
+            break;
+        }*/
     }
     shutdown_session(); 
 }
