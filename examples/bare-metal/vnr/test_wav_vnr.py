@@ -27,11 +27,13 @@ def tflite_predict(interpreter_tflite, input_patches):
 
     # Get input and output tensors.
     input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]
+    output_details = interpreter_tflite.get_output_details()[0]    
 
     # quantization spec
     if input_details["dtype"] in [np.int8, np.uint8]:
         input_scale, input_zero_point = input_details["quantization"]
+        print("input_scale = ", input_scale)
+        print("input_zero_point = ", input_zero_point)
     if output_details["dtype"] in [np.int8, np.uint8]:
         output_scale, output_zero_point = output_details["quantization"]
 

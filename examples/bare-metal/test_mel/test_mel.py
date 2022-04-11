@@ -58,6 +58,8 @@ def test_mel(plot_results=False):
         ref_mel = np.append(ref_mel, out_spect)
         out_spect = np.log2(out_spect)        
         ref_mel_log2 = np.append(ref_mel_log2, out_spect)
+        new_slice = out_spect
+        vnr_obj.add_new_slice(new_slice, buffer_number=0)
 
     max_mel_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 

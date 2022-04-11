@@ -156,6 +156,25 @@ fixed_s32_t float_s32_to_fixed_q24_log2(float_s32_t x) {
     return log2;
 }
 
+void vnr_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice)
+{
+    for(unsigned index=0; index<VNR_PATCH_WIDTH - 1; index++) {
+        memcpy(feature_buffers[index], feature_buffers[index+1], VNR_MEL_FILTERS*sizeof(int32_t));
+    }
+    memcpy(feature_buffers[VNR_PATCH_WIDTH - 1], new_slice, VNR_MEL_FILTERS*sizeof(int32_t));
+}
+
+void vnr_normalise_patch(bfp_s32_t *normalised_patch, const fixed_s32_t (*feature_patch)[VNR_MEL_FILTERS])
+{
+    //norm_patch = feature_patch - np.max(feature_patch)   
+    bfp_s32_t feature_patch_bfp;
+    bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_patch[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH*sizeof(int32_t), 1);
+    float_s32_t max = bfp_s32_max(&feature_patch_bfp);
+    float_s32_t one = {1, 0};
+    float_s32_t neg_max = float_s32_sub(one, max);
+    bfp_s32_add_scalar(normalised_patch, &feature_patch_bfp, neg_max);
+}
+
 void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out)
 {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
@@ -197,4 +216,13 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
 
     fixed_s32_t log2_mel[AUDIO_FEATURES_NUM_MELS];
     vnr_log2(log2_mel, mel_output, AUDIO_FEATURES_NUM_MELS);
+
+    vnr_add_new_slice(input_state->feature_buffers, log2_mel);
+#if (VNR_FD_FRAME_LENGTH < (VNR_MEL_FILTERS*VNR_PATCH_WIDTH))
+    #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
+#endif
+    bfp_s32_t normalised_patch;
+    // Reuse squared_mag_data memory for normalised_patch
+    bfp_s32_init(&normalised_patch, squared_mag_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
+    vnr_normalise_patch(&normalised_patch, input_state->feature_buffers);
 }
