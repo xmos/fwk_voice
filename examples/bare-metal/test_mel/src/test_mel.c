@@ -13,7 +13,7 @@
 static int framenum=0;
 static uint32_t max_fft_cycles=0, max_mel_cycles=0, max_log2_cycles=0;
 
-void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file, file_t *log2_file) {
+void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file, file_t *log2_file, file_t *quant_patch_file) {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
     
@@ -38,6 +38,19 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
     vnr_log2(mel_log2, mel_output, AUDIO_FEATURES_NUM_MELS);
     end_log2 = (uint64_t)get_reference_time();
 
+    vnr_add_new_slice(input_state->feature_buffers, mel_log2);
+#if (VNR_FD_FRAME_LENGTH < (VNR_MEL_FILTERS*VNR_PATCH_WIDTH))
+    #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
+#endif
+
+    bfp_s32_t normalised_patch;
+    // Reuse x_data memory for normalised_patch
+    bfp_s32_init(&normalised_patch, x_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
+    vnr_normalise_patch(&normalised_patch, input_state->feature_buffers);
+
+    int8_t quantised_patch[VNR_MEL_FILTERS*VNR_PATCH_WIDTH];
+    vnr_quantise_patch(quantised_patch, &normalised_patch, &input_state->vnr_features_config); 
+    
     //profile
     uint32_t fft_cycles = (uint32_t)(end_fft-start_fft);
     uint32_t mel_cycles = (uint32_t)(end_mel-start_mel);
@@ -53,11 +66,13 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
     }
     
     file_write(log2_file, (uint8_t*)(mel_log2), AUDIO_FEATURES_NUM_MELS*sizeof(int32_t));
+
+    file_write(quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
 }
 
 void test_mel(const char *in_filename, const char *mel_filename, const char *mel_exp_filename, const char *fft_filename, const char *fft_exp_filename)
 {
-    file_t input_file, mel_file, mel_exp_file, fft_file, fft_exp_file, mel_log2_file;
+    file_t input_file, mel_file, mel_exp_file, fft_file, fft_exp_file, mel_log2_file, quant_patch_file;
 
     int ret = file_open(&input_file, in_filename, "rb");
     assert((!ret) && "Failed to open file");
@@ -73,6 +88,9 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
     assert((!ret) && "Failed to open file");
 
     ret = file_open(&mel_log2_file, "mel_log2.bin", "wb");
+    assert((!ret) && "Failed to open file");
+
+    ret = file_open(&quant_patch_file, "quant_patch.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct;
@@ -114,7 +132,7 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        dut_mel(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file, &mel_log2_file);
+        dut_mel(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file, &mel_log2_file, &quant_patch_file);
         framenum += 1;
         /*if(framenum == 1) {
             break;

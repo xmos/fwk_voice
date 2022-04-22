@@ -14,7 +14,15 @@
 #define VNR_LOG2_OUTPUT_EXP (-24)
 
 typedef struct {
+    float_s32_t input_scale_inv; // 1/input_scale
+    float_s32_t input_zero_point;
+    float_s32_t output_scale;
+    float_s32_t output_zero_point;
+}vnr_features_config_t;
+
+typedef struct {
     int32_t DWORD_ALIGNED prev_input_samples[VNR_PROC_FRAME_LENGTH - VNR_FRAME_ADVANCE];
-    fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS]; 
+    fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
+    vnr_features_config_t vnr_features_config;
 }vnr_input_state_t;
 #endif

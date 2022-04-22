@@ -9,6 +9,11 @@
 static int framenum=0;
 void vnr_input_state_init(vnr_input_state_t *input_state) {
     memset(input_state, 0, sizeof(vnr_input_state_t));
+    input_state->vnr_features_config.input_scale_inv = double_to_float_s32(1/0.09976799786090851); //from interpreter_tflite.get_input_details()[0] call in python 
+    input_state->vnr_features_config.input_zero_point = double_to_float_s32(127);
+
+    input_state->vnr_features_config.output_scale = double_to_float_s32(0.00390625); //from interpreter_tflite.get_output_details()[0] call in python 
+    input_state->vnr_features_config.output_zero_point = double_to_float_s32(-128);
 }
 
 void vnr_form_input_frame(vnr_input_state_t *input_state, int32_t *x_data, const int32_t *new_x_frame) {
@@ -106,7 +111,6 @@ void vnr_mel_compute(float_s32_t *filter_output, bfp_complex_s32_t *X) {
 
         filter_output[(2*i)+1] = float_s64_to_float_s32(bfp_s32_dot(&spect_subset, &filter_subset));
     }
-    framenum++;
 }
 
 void vnr_log2(fixed_s32_t *output_q24, const float_s32_t *input, unsigned length) {
@@ -168,11 +172,75 @@ void vnr_normalise_patch(bfp_s32_t *normalised_patch, const fixed_s32_t (*featur
 {
     //norm_patch = feature_patch - np.max(feature_patch)   
     bfp_s32_t feature_patch_bfp;
-    bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_patch[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH*sizeof(int32_t), 1);
+    bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_patch[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
     float_s32_t max = bfp_s32_max(&feature_patch_bfp);
-    float_s32_t one = {1, 0};
-    float_s32_t neg_max = float_s32_sub(one, max);
+    float_s32_t zero = {0, 0};
+    float_s32_t neg_max = float_s32_sub(zero, max);
     bfp_s32_add_scalar(normalised_patch, &feature_patch_bfp, neg_max);
+    /*printf("framenum %d\n",framenum);
+    printf("max = %.6f\n",ldexp(max.mant, max.exp));
+    for(int i=0; i<VNR_MEL_FILTERS*VNR_PATCH_WIDTH; i++) {
+        printf("patch[%d] = %.6f\n",i, ldexp(normalised_patch->data[i], normalised_patch->exp));
+    }*/
+
+}
+#include <xcore/hwtimer.h>
+void vnr_quantise_patch(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_features_config_t *features_config) {
+    uint64_t start = (uint64_t)get_reference_time();
+    // this_patch = this_patch / input_scale + input_zero_point        
+    bfp_s32_scale(normalised_patch, normalised_patch, features_config->input_scale_inv);
+    bfp_s32_add_scalar(normalised_patch, normalised_patch, features_config->input_zero_point);
+    // this_patch = np.round(this_patch)
+    bfp_s32_use_exponent(normalised_patch, -24);
+
+    /*printf("framenum %d\n",framenum);
+    printf("Before rounding\n");
+    for(int i=0; i<VNR_MEL_FILTERS*VNR_PATCH_WIDTH; i++) {
+        printf("patch[%d] = %.6f\n",i, ldexp(normalised_patch->data[i], normalised_patch->exp));
+    }*/
+    //Test a few values
+    /*normalised_patch->data[0] = (int)((2.3278371)*(1<<24));
+    normalised_patch->data[1] = (int)((-2.3278371)*(1<<24));
+    normalised_patch->data[2] = (int)((2.5809)*(1<<24));
+    normalised_patch->data[3] = (int)((-2.5809)*(1<<24));
+    normalised_patch->data[4] = (int)((2.50000)*(1<<24));
+    normalised_patch->data[5] = (int)((-2.50000)*(1<<24));
+    normalised_patch->data[6] = (int)((4.5)*(1<<24));
+    normalised_patch->data[7] = (int)((-4.5)*(1<<24));
+    normalised_patch->data[8] = (int)((5.5)*(1<<24));
+    normalised_patch->data[9] = (int)((-5.5)*(1<<24));
+    normalised_patch->data[10] = (int)((5.51)*(1<<24));
+    normalised_patch->data[11] = (int)((-5.51)*(1<<24));*/
+    float_s32_t round_lsb = {(1<<23), -24};
+    bfp_s32_add_scalar(normalised_patch, normalised_patch, round_lsb);
+    bfp_s32_use_exponent(normalised_patch, -24);
+    left_shift_t ls = -24;
+    bfp_s32_shl(normalised_patch, normalised_patch, ls);
+    normalised_patch->exp -= -24; 
+    /*printf("In rounding\n");
+    for(int i=0; i<VNR_MEL_FILTERS*VNR_PATCH_WIDTH; i++) {
+        printf("patch[%d] = %.6f\n",i, ldexp(normalised_patch->data[i], normalised_patch->exp));
+    }*/
+    
+    for(int i=0; i<96; i++) {
+        quantised_patch[i] = (int8_t)normalised_patch->data[i]; 
+    }
+
+    uint64_t end = (uint64_t)get_reference_time();
+
+    /*printf("quant_cycles = %ld\n", (int32_t)(end-start));
+    printf("After rounding\n");
+    for(int i=0; i<VNR_MEL_FILTERS*VNR_PATCH_WIDTH; i++) {
+        printf("patch[%d] = %.6f, final_val = %d\n",i, ldexp(normalised_patch->data[i], normalised_patch->exp), quantised_patch[i]);
+    }*/
+    framenum++;
+}
+
+void vnr_dequantise_output(float_s32_t *dequant_output, const int8_t* quant_output, const vnr_features_config_t *features_config) {
+    dequant_output->mant = ((int32_t)*quant_output) << 24; //8.24
+    dequant_output->exp = -24;
+    *dequant_output = float_s32_sub(*dequant_output, features_config->output_zero_point);
+    *dequant_output = float_s32_mul(*dequant_output, features_config->output_scale);
 }
 
 void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out)
@@ -194,22 +262,6 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
     bfp_complex_s32_shl(fft_output, fft_output, ls);
     fft_output->exp -= ls;
     
-    // Calculate squared magnitude spectrum
-    int32_t DWORD_ALIGNED squared_mag_data[VNR_FD_FRAME_LENGTH];
-    bfp_s32_t squared_mag;
-    bfp_s32_init(&squared_mag, squared_mag_data, 0, X.length, 0);
-    bfp_complex_s32_squared_mag(&squared_mag, &X);
-    
-    //for debug
-    squared_mag_out->hr = squared_mag.hr;
-    squared_mag_out->exp = squared_mag.exp;
-    squared_mag_out->length = squared_mag.length;
-    memcpy(squared_mag_out->data, squared_mag.data, squared_mag_out->length*sizeof(int32_t));
-    // Normalise to log max precision output
-    ls = bfp_s32_headroom(squared_mag_out); 
-    bfp_s32_shl(squared_mag_out, squared_mag_out, ls);
-    squared_mag_out->exp -= ls;
-    
     // MEL
     float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
     vnr_mel_compute(mel_output, &X);
@@ -221,8 +273,11 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
 #if (VNR_FD_FRAME_LENGTH < (VNR_MEL_FILTERS*VNR_PATCH_WIDTH))
     #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
 #endif
+    // Reuse x_data memory for normalised_patch
     bfp_s32_t normalised_patch;
-    // Reuse squared_mag_data memory for normalised_patch
-    bfp_s32_init(&normalised_patch, squared_mag_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
+    bfp_s32_init(&normalised_patch, x_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
     vnr_normalise_patch(&normalised_patch, input_state->feature_buffers);
+
+    int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
+    vnr_quantise_patch(quantised_patch, &normalised_patch, &input_state->vnr_features_config); 
 }
