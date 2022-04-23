@@ -6,6 +6,7 @@
 #include <xcore/hwtimer.h>
 
 #include "vnr_features_api.h"
+#include "vnr_inference_api.h"
 #include "fileio.h"
 #include "wav_utils.h"
 
@@ -13,7 +14,7 @@
 static int framenum=0;
 static uint32_t max_fft_cycles=0, max_mel_cycles=0, max_log2_cycles=0;
 
-void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file, file_t *log2_file, file_t *quant_patch_file) {
+void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file, file_t *log2_file, file_t *quant_patch_file) {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
     
@@ -67,12 +68,12 @@ void dut_mel(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t 
     
     file_write(log2_file, (uint8_t*)(mel_log2), AUDIO_FEATURES_NUM_MELS*sizeof(int32_t));
 
-    file_write(quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
+    //file_write(quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
 }
 
 void test_mel(const char *in_filename, const char *mel_filename, const char *mel_exp_filename, const char *fft_filename, const char *fft_exp_filename)
 {
-    file_t input_file, mel_file, mel_exp_file, fft_file, fft_exp_file, mel_log2_file, quant_patch_file;
+    file_t input_file, mel_file, mel_exp_file, fft_file, fft_exp_file, mel_log2_file, quant_patch_file, dequant_output_file;
 
     int ret = file_open(&input_file, in_filename, "rb");
     assert((!ret) && "Failed to open file");
@@ -91,6 +92,9 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
     assert((!ret) && "Failed to open file");
 
     ret = file_open(&quant_patch_file, "quant_patch.bin", "wb");
+    assert((!ret) && "Failed to open file");
+
+    ret = file_open(&dequant_output_file, "dequant_output.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct;
@@ -120,6 +124,17 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
     vnr_input_state_t DWORD_ALIGNED vnr_input_state;
     vnr_input_state_init(&vnr_input_state);
 
+    vnr_input_state_t DWORD_ALIGNED vnr_input_state_check;
+    vnr_input_state_init(&vnr_input_state_check);
+
+    vnr_ie_t vnr_ie_state;
+    vnr_inference_init(&vnr_ie_state);
+    if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
+        printf("Error: Feature size mismatch\n");
+        assert(0);
+    }
+    
+
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
     int16_t input_read_buffer[VNR_FRAME_ADVANCE] = {0}; // Array for storing interleaved input read from wav file
     int32_t new_frame[VNR_FRAME_ADVANCE] = {0};
@@ -132,7 +147,20 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        dut_mel(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file, &mel_log2_file, &quant_patch_file);
+        dut_feature_extraction(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file, &mel_log2_file, &quant_patch_file);
+
+
+        int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
+        vnr_extract_features(quantised_patch, &vnr_input_state_check, new_frame);        
+        file_write(&quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
+
+        int8_t inference_output;
+        vnr_inference(&vnr_ie_state, &inference_output, quantised_patch);
+
+        float_s32_t dequant_output;
+        vnr_dequantise_output(&dequant_output, &inference_output, &vnr_input_state_check.vnr_features_config);
+        file_write(&dequant_output_file, (uint8_t*)&dequant_output, sizeof(float_s32_t));
+
         framenum += 1;
         /*if(framenum == 1) {
             break;

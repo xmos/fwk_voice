@@ -22,8 +22,10 @@ void vnr_inference_init(vnr_ie_t *ie_ptr) {
     printf("input_size %d, output_size %d\n", ie_ptr->input_size, ie_ptr->output_size);
 }
 
-void vnr_inference(vnr_ie_t *ie_ptr, int8_t *vnr_output) {
-    interp_invoke(&ie_ptr->ie);
-    memcpy(vnr_output, ie_ptr->output_buffer, ie_ptr->output_size*sizeof(int8_t));
+
+void vnr_inference(vnr_ie_t *ie_state, int8_t *vnr_output, const int8_t *features) {
+    memcpy(ie_state->input_buffer, features, ie_state->input_size);
+    interp_invoke(&ie_state->ie);
+    memcpy(vnr_output, ie_state->output_buffer, ie_state->output_size*sizeof(int8_t));
 }
 

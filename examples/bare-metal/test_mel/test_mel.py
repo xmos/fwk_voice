@@ -157,6 +157,13 @@ def test_mel(tflite_model, plot_results=False):
     with open("quant_patch.bin", "rb") as fdut:
         dut_quant_patch = np.fromfile(fdut, dtype=np.int8)
 
+    with open("dequant_output.bin", "rb") as fdut:
+        dut_output = np.fromfile(fdut, dtype=np.int32)
+        mant = np.array(dut_output[0::2], dtype=np.float64)
+        exp = dut_output[1::2]
+        dut_tflite_output = mant * (float(2)**exp)
+    
+
     # Convert FFT output to float
     frames = len(dut_fft_out_exp)
     print(f"{frames} frames sent to python")
@@ -191,12 +198,12 @@ def test_mel(tflite_model, plot_results=False):
     
     #DUT features + ref tflite inference
     quant_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
-    dut_tflite_output = np.empty(0, dtype=np.float64)
+    dut_features_ref_tflite_output = np.empty(0, dtype=np.float64)
     for i in range(0, len(dut_quant_patch), quant_patch_len):
         patch = dut_quant_patch[i:i+quant_patch_len]
         patch = patch.reshape((1,1,4,24))
         dut_tflite_output_quant = run_tflite_inference(interpreter_tflite, patch)
-        dut_tflite_output = np.append(dut_tflite_output, dequantise_tflite_output(interpreter_tflite, dut_tflite_output_quant)) 
+        dut_features_ref_tflite_output = np.append(dut_features_ref_tflite_output, dequantise_tflite_output(interpreter_tflite, dut_tflite_output_quant)) 
 
     max_mel_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
@@ -223,22 +230,36 @@ def test_mel(tflite_model, plot_results=False):
     print("Max mel diff across all frames = ",np.max(max_mel_diff_per_frame)) 
     print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
     print("Max quant_patch diff across all frames = ",np.max(max_quant_patch_diff_per_frame)) 
+    print("Max ref-dut_features_ref_inference tflite output diff = ",np.max(np.abs(ref_tflite_output - dut_features_ref_tflite_output))) 
+    print("Max dut_features_ref_inference-dut tflite output diff = ",np.max(np.abs(dut_features_ref_tflite_output - dut_tflite_output))) 
     print("Max ref-dut tflite output diff = ",np.max(np.abs(ref_tflite_output - dut_tflite_output))) 
+    a = np.abs(ref_tflite_output - dut_tflite_output)
+    b = np.abs(ref_tflite_output - dut_features_ref_tflite_output)
+
     if(plot_results):
         fig,ax = plt.subplots(3,2)
         fig.set_size_inches(20,10)
         ax[0,0].set_title('mel output')
-        ax[0,0].plot(ref_mel)
-        ax[0,0].plot(dut_mel)
+        ax[0,0].plot(ref_mel, label="ref")
+        ax[0,0].plot(dut_mel, label="dut")
+        ax[0,0].legend(loc="upper right")
+
         ax[0,1].set_title('max mel output diff per frame')
         ax[0,1].plot(max_mel_diff_per_frame)
+
         ax[1,0].set_title('max mel log2 diff per frame')
         ax[1,0].plot(max_mel_log2_diff_per_frame)
+
         ax[2,0].set_title('ref tflite output')
-        ax[2,0].plot(ref_tflite_output)
+        ax[2,0].plot(ref_tflite_output, label='ref')
+        ax[2,0].plot(dut_features_ref_tflite_output, label='dut_features_ref_inf', linestyle="--")
+        ax[2,0].plot(dut_tflite_output, label='dut', linestyle=':')
+        ax[2,0].legend(loc="upper right")
+
         ax[2,1].set_title('dut tflite output')
-        ax[2,0].plot(ref_tflite_output)
-        ax[2,1].plot(dut_tflite_output)
+        ax[2,1].plot(ref_tflite_output, label="ref")
+        ax[2,1].plot(dut_tflite_output, label="dut", linestyle='--')
+        ax[2,1].legend(loc="upper right")
         fig_instance = plt.gcf() #get current figure instance so we can save in a file later
         plt.show()
         plot_file = "ref_dut_mel_compare.png"

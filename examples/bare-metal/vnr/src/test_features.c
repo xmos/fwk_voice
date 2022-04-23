@@ -67,11 +67,12 @@ void test_features(const char *input_wav_file, const char *output_features_file,
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        vnr_extract_features(&vnr_input_state, new_frame, &debug_bfp, &debug_sq_mag_bfp);
+        int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
+        vnr_extract_features(quantised_patch, &vnr_input_state, new_frame);
         
         //file_write(&feature_file, (uint8_t*)(debug_bfp.data), debug_bfp.length*sizeof(complex_s32_t));
         //file_write(&exp_file, (uint8_t*)(&debug_bfp.exp), 1*sizeof(exponent_t));
-        file_write(&feature_file, (uint8_t*)(debug_sq_mag_bfp.data), debug_sq_mag_bfp.length*sizeof(int32_t));
-        file_write(&exp_file, (uint8_t*)(&debug_sq_mag_bfp.exp), 1*sizeof(exponent_t));
+        //file_write(&feature_file, (uint8_t*)(debug_sq_mag_bfp.data), debug_sq_mag_bfp.length*sizeof(int32_t));
+        //file_write(&exp_file, (uint8_t*)(&debug_sq_mag_bfp.exp), 1*sizeof(exponent_t));
     }
 }

@@ -243,7 +243,7 @@ void vnr_dequantise_output(float_s32_t *dequant_output, const int8_t* quant_outp
     *dequant_output = float_s32_mul(*dequant_output, features_config->output_scale);
 }
 
-void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out)
+void vnr_extract_features(int8_t* quantised_patch, vnr_input_state_t *input_state, const int32_t *new_x_frame)
 {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
@@ -251,17 +251,6 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
     bfp_complex_s32_t X;
     vnr_forward_fft(&X, x_data);
 
-    //For debug.
-    fft_output->hr = X.hr;
-    fft_output->exp = X.exp;
-    fft_output->length = X.length;
-    memcpy(fft_output->data, X.data, fft_output->length*sizeof(complex_s32_t));
-
-    // Normalise to log max precision output
-    left_shift_t ls = bfp_complex_s32_headroom(fft_output); // TODO Why is this not the same as fft_output->hr?
-    bfp_complex_s32_shl(fft_output, fft_output, ls);
-    fft_output->exp -= ls;
-    
     // MEL
     float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
     vnr_mel_compute(mel_output, &X);
@@ -278,6 +267,5 @@ void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_f
     bfp_s32_init(&normalised_patch, x_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
     vnr_normalise_patch(&normalised_patch, input_state->feature_buffers);
 
-    int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
     vnr_quantise_patch(quantised_patch, &normalised_patch, &input_state->vnr_features_config); 
 }

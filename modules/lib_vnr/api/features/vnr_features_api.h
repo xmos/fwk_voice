@@ -17,5 +17,5 @@ void vnr_dequantise_output(float_s32_t *dequant_output, const int8_t* quant_outp
 fixed_s32_t float_s32_to_fixed_q24_log2(float_s32_t x);
 
 //full functionality API
-void vnr_extract_features(vnr_input_state_t *input_state, const int32_t *new_x_frame, /*for debug*/ bfp_complex_s32_t *fft_output, bfp_s32_t *squared_mag_out);
+void vnr_extract_features(int8_t* quantised_patch, vnr_input_state_t *input_state, const int32_t *new_x_frame);
 #endif
