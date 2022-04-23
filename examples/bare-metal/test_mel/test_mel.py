@@ -9,6 +9,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import os
 import sys
+import audio_wav_utils as awu
 sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
 import run_xcoreai
 
@@ -129,26 +130,7 @@ def test_mel(tflite_model, plot_results=False):
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
-    vnr_obj = vnr.Vnr(model_file=None)    
-    dtype=np.dtype([('r', np.int32),('q', np.int32)])
-    # read dut fft output that will be used as input to the python mel
-    with open("dut_fft.bin", "rb") as fdut:        
-        dut_fft_out = np.fromfile(fdut, dtype=dtype)
-        #print("dut_fft_out from file", dut_fft_out[0])
-        dut_fft_out = [complex(*item) for item in dut_fft_out]
-        dut_fft_out = np.array(dut_fft_out, dtype=np.complex128)
-    # Read dut FFT output exponents
-    with open("dut_fft_exp.bin", "rb") as fdut:
-        dut_fft_out_exp = np.fromfile(fdut, dtype=np.int32)
-
-    # read dut mel output
-    with open("dut_mel.bin", "rb") as fdut:        
-        dut_mel_mant = np.fromfile(fdut, dtype=np.int32)
-        dut_mel_mant = np.array(dut_mel_mant, dtype=np.float64)
-        with open("dut_mel_exp.bin", "rb") as fdutexp:        
-            dut_mel_exp = np.fromfile(fdutexp, dtype=np.int32)
-            dut_mel = np.array(dut_mel_mant*(float(2)**dut_mel_exp), dtype=np.float64)
-    
+    # read dut output from various files
     with open("mel_log2.bin", "rb") as fdut:
         dut_mel_log2 = np.fromfile(fdut, dtype=np.int32)
         dut_mel_log2 = np.array(dut_mel_log2, dtype=np.float64)
@@ -163,39 +145,45 @@ def test_mel(tflite_model, plot_results=False):
         exp = dut_output[1::2]
         dut_tflite_output = mant * (float(2)**exp)
     
+    #################################################################################
+    # Reference feature extraction and inference
+    #The number of samples of data in the frame
+    proc_frame_length = 2**9
+    frame_advance = 240
+    frame_buffer = np.zeros(3*proc_frame_length)
+    vnr_obj = vnr.Vnr(model_file=None)    
+    rate, wav_file = scipy.io.wavfile.read("data_16k/2035-152373-0002001.wav", 'r')
+    wav_data, channel_count, file_length = awu.parse_audio(wav_file)
+    
+    vnr_output = np.zeros(file_length // frame_advance)
+    x_data = np.zeros(proc_frame_length)
 
-    # Convert FFT output to float
-    frames = len(dut_fft_out_exp)
-    print(f"{frames} frames sent to python")
-
-    ref_X_spect_full = np.empty(0, dtype=np.complex128)
     ref_mel = np.empty(0, dtype=np.float64)
     ref_mel_log2 = np.empty(0, dtype=np.float64)
     ref_quant_patch = np.empty(0, dtype=np.int8)
     ref_tflite_output = np.empty(0, dtype=np.float64)
-    for fr in range(frames):
-        exp = dut_fft_out_exp[fr]
-        X_spect = np.array(dut_fft_out[fr*257:(fr+1)*257] * (float(2)**exp))
-        ref_X_spect_full = np.append(ref_X_spect_full, X_spect)
+    framecount = 0;
+    for frame_start in range(0, file_length-frame_advance, frame_advance):
+        # buffer the input data into STFT slices
+        new_x_frame = awu.get_frame(wav_data, frame_start, frame_advance)
+        x_data = np.roll(x_data, -frame_advance, axis = 0)
+        x_data[proc_frame_length - frame_advance:] = new_x_frame
+        X_spect = np.fft.rfft(x_data, vnr_obj.nfft)
 
-        out_spect = np.abs(X_spect)**2
-        #if(fr == 66):
-        #    print("abs_spect\n",out_spect[:20])
-        out_spect = np.dot(out_spect, vnr_obj.mel_fbank)        
-        ref_mel = np.append(ref_mel, out_spect)
-        out_spect = np.log2(out_spect)        
+        out_spect = vnr_obj.make_slice(X_spect)
         ref_mel_log2 = np.append(ref_mel_log2, out_spect)
-        new_slice = out_spect
-        vnr_obj.add_new_slice(new_slice, buffer_number=0)
+
+        vnr_obj.add_new_slice(out_spect, buffer_number=0)
         normalised_patch = vnr_obj.normalise_patch(vnr_obj.feature_buffers[0])
         #print("python normalised_patch\n",normalised_patch)
         quantised_patch_8b = quantise_patch(interpreter_tflite, normalised_patch)
         ref_quant_patch = np.append(ref_quant_patch, quantised_patch_8b)
         ref_tflite_output_quant = run_tflite_inference(interpreter_tflite, quantised_patch_8b)
-        ref_tflite_output = np.append(ref_tflite_output, dequantise_tflite_output(interpreter_tflite, ref_tflite_output_quant)) 
-        #ref_tflite_output = np.append(ref_tflite_output, tflite_output)
-        #print("python quantised_patch\n",quantised_patch)
+        ref_tflite_output = np.append(ref_tflite_output, dequantise_tflite_output(interpreter_tflite, ref_tflite_output_quant))
+        framecount = framecount + 1
     
+    #################################################################################
+
     #DUT features + ref tflite inference
     quant_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     dut_features_ref_tflite_output = np.empty(0, dtype=np.float64)
@@ -205,29 +193,19 @@ def test_mel(tflite_model, plot_results=False):
         dut_tflite_output_quant = run_tflite_inference(interpreter_tflite, patch)
         dut_features_ref_tflite_output = np.append(dut_features_ref_tflite_output, dequantise_tflite_output(interpreter_tflite, dut_tflite_output_quant)) 
 
-    max_mel_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_quant_patch_diff_per_frame = np.empty(0, dtype=np.int8)
-    for i in range(0, len(ref_mel), vnr_obj.mel_filters):
+    for i in range(0, len(ref_mel_log2), vnr_obj.mel_filters):
         fr = i/vnr_obj.mel_filters
-        ref = ref_mel[i:i+vnr_obj.mel_filters]
-        dut = dut_mel[i:i+vnr_obj.mel_filters]
-        max_mel_diff_per_frame = np.append(max_mel_diff_per_frame, np.max(np.abs(ref-dut)))
         ref = ref_mel_log2[i:i+vnr_obj.mel_filters]
         dut = dut_mel_log2[i:i+vnr_obj.mel_filters]
         max_mel_log2_diff_per_frame = np.append(max_mel_log2_diff_per_frame, np.max(np.abs(ref-dut)))
 
-        #if fr == 66:
-        #    print("ref mel\n",ref)
-        #    print("dut mel\n",dut)
-        #    print(f"frame {i} diff {max(abs(ref-dut))}, max_ref {max(abs(ref))}, max_dut {max(abs(dut))}")
-    
     for i in range(0, len(ref_quant_patch), quant_patch_len):
         dut = dut_quant_patch[i:i+quant_patch_len]
         ref = ref_quant_patch[i:i+quant_patch_len]
         max_quant_patch_diff_per_frame = np.append(max_quant_patch_diff_per_frame, np.max(np.abs(ref-dut))) 
 
-    print("Max mel diff across all frames = ",np.max(max_mel_diff_per_frame)) 
     print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
     print("Max quant_patch diff across all frames = ",np.max(max_quant_patch_diff_per_frame)) 
     print("Max ref-dut_features_ref_inference tflite output diff = ",np.max(np.abs(ref_tflite_output - dut_features_ref_tflite_output))) 
@@ -237,29 +215,24 @@ def test_mel(tflite_model, plot_results=False):
     b = np.abs(ref_tflite_output - dut_features_ref_tflite_output)
 
     if(plot_results):
-        fig,ax = plt.subplots(3,2)
+        fig,ax = plt.subplots(2,2)
         fig.set_size_inches(20,10)
-        ax[0,0].set_title('mel output')
-        ax[0,0].plot(ref_mel, label="ref")
-        ax[0,0].plot(dut_mel, label="dut")
-        ax[0,0].legend(loc="upper right")
+        ax[0,0].set_title('max mel log2 diff per frame')
+        ax[0,0].plot(max_mel_log2_diff_per_frame)
 
-        ax[0,1].set_title('max mel output diff per frame')
-        ax[0,1].plot(max_mel_diff_per_frame)
+        ax[0,1].set_title('max_quant_patch_diff_per_frame')
+        ax[0,1].plot(max_quant_patch_diff_per_frame)
 
-        ax[1,0].set_title('max mel log2 diff per frame')
-        ax[1,0].plot(max_mel_log2_diff_per_frame)
+        ax[1,0].set_title('tflite output')
+        ax[1,0].plot(ref_tflite_output, label='ref')
+        ax[1,0].plot(dut_features_ref_tflite_output, label='dut_features_ref_inf', linestyle="--")
+        ax[1,0].plot(dut_tflite_output, label='dut', linestyle=':')
+        ax[1,0].legend(loc="upper right")
 
-        ax[2,0].set_title('ref tflite output')
-        ax[2,0].plot(ref_tflite_output, label='ref')
-        ax[2,0].plot(dut_features_ref_tflite_output, label='dut_features_ref_inf', linestyle="--")
-        ax[2,0].plot(dut_tflite_output, label='dut', linestyle=':')
-        ax[2,0].legend(loc="upper right")
-
-        ax[2,1].set_title('dut tflite output')
-        ax[2,1].plot(ref_tflite_output, label="ref")
-        ax[2,1].plot(dut_tflite_output, label="dut", linestyle='--')
-        ax[2,1].legend(loc="upper right")
+        ax[1,1].set_title('tflite output')
+        ax[1,1].plot(ref_tflite_output, label="ref")
+        ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
+        ax[1,1].legend(loc="upper right")
         fig_instance = plt.gcf() #get current figure instance so we can save in a file later
         plt.show()
         plot_file = "ref_dut_mel_compare.png"

@@ -14,7 +14,7 @@
 static int framenum=0;
 static uint32_t max_fft_cycles=0, max_mel_cycles=0, max_log2_cycles=0;
 
-void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *mel_file, file_t *mel_exp_file, file_t *fft_file, file_t *fft_exp_file, file_t *log2_file, file_t *quant_patch_file) {
+void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *log2_file, file_t *quant_patch_file) {
     int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     vnr_form_input_frame(input_state, x_data, new_x_frame);
     
@@ -24,9 +24,6 @@ void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x
     vnr_forward_fft(&X, x_data);
     end_fft = (uint64_t)get_reference_time();
 
-    file_write(fft_file, (uint8_t*)(X.data), X.length*sizeof(complex_s32_t));
-    file_write(fft_exp_file, (uint8_t*)(&X.exp), 1*sizeof(exponent_t));
-    
     // MEL
     start_mel = (uint64_t)get_reference_time();
     float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
@@ -61,31 +58,16 @@ void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x
     if(max_log2_cycles < log2_cycles) {max_log2_cycles = log2_cycles;} 
 
     //printf("FFT cycles %ld, MEL cycles %ld\n", (uint32_t)(end_fft-start_fft), (uint32_t)(end_mel-start_mel));
-    for(int i=0; i<AUDIO_FEATURES_NUM_MELS; i++) {
-        file_write(mel_file, (uint8_t*)(&mel_output[i].mant), sizeof(int32_t));
-        file_write(mel_exp_file, (uint8_t*)(&mel_output[i].exp), sizeof(exponent_t));
-    }
-    
     file_write(log2_file, (uint8_t*)(mel_log2), AUDIO_FEATURES_NUM_MELS*sizeof(int32_t));
 
     //file_write(quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
 }
 
-void test_mel(const char *in_filename, const char *mel_filename, const char *mel_exp_filename, const char *fft_filename, const char *fft_exp_filename)
+void test_mel(const char *in_filename)
 {
-    file_t input_file, mel_file, mel_exp_file, fft_file, fft_exp_file, mel_log2_file, quant_patch_file, dequant_output_file;
+    file_t input_file, mel_log2_file, quant_patch_file, dequant_output_file;
 
     int ret = file_open(&input_file, in_filename, "rb");
-    assert((!ret) && "Failed to open file");
-
-    ret = file_open(&mel_file, mel_filename, "wb");
-    assert((!ret) && "Failed to open file");
-    ret = file_open(&mel_exp_file, mel_exp_filename, "wb");
-    assert((!ret) && "Failed to open file");
-    
-    ret = file_open(&fft_file, fft_filename, "wb");
-    assert((!ret) && "Failed to open file");
-    ret = file_open(&fft_exp_file, fft_exp_filename, "wb");
     assert((!ret) && "Failed to open file");
 
     ret = file_open(&mel_log2_file, "mel_log2.bin", "wb");
@@ -147,7 +129,7 @@ void test_mel(const char *in_filename, const char *mel_filename, const char *mel
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        dut_feature_extraction(&vnr_input_state, new_frame, &mel_file, &mel_exp_file, &fft_file, &fft_exp_file, &mel_log2_file, &quant_patch_file);
+        dut_feature_extraction(&vnr_input_state, new_frame, &mel_log2_file, &quant_patch_file);
 
 
         int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
