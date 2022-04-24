@@ -75,7 +75,7 @@ def test_wav_vnr(input_file, tflite_model, plot_results=False):
     
     #################################################################################
     # Run DUT
-    run_xcoreai.run("../../../build/examples/bare-metal/test_mel/bin/avona_test_mel.xe", input_file)
+    #run_xcoreai.run("../../../build/examples/bare-metal/test_mel/bin/avona_test_mel.xe", input_file)
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
         dut_new_slice = np.fromfile(fdut, dtype=np.int32)
