@@ -17,5 +17,5 @@ typedef struct {
     int32_t DWORD_ALIGNED scratch_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     int32_t DWORD_ALIGNED prev_input_samples[VNR_PROC_FRAME_LENGTH - VNR_FRAME_ADVANCE];
     fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
-}vnr_input_state_t;
+}vnr_feature_state_t;
 #endif

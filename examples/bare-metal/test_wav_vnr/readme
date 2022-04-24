@@ -1,1 +1,1 @@
-python test_mel.py data_16k/8842-302203-0010001.wav model/reshaped_model/model_qaware_reshape.tflite
+python test_wav_vnr.py data_16k/8842-302203-0010001.wav model/reshaped_model/model_qaware_reshape.tflite

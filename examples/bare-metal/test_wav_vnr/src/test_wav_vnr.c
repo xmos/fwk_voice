@@ -53,11 +53,11 @@ void test_wav_vnr(const char *in_filename)
     unsigned block_count = frame_count / VNR_FRAME_ADVANCE;
     printf("%d Frames in this test input wav\n",block_count);
 
-    vnr_input_state_t DWORD_ALIGNED vnr_input_state;
-    vnr_input_state_init(&vnr_input_state);
+    vnr_feature_state_t DWORD_ALIGNED vnr_feature_state;
+    vnr_feature_state_init(&vnr_feature_state);
 
-    vnr_input_state_t DWORD_ALIGNED vnr_input_state_check;
-    vnr_input_state_init(&vnr_input_state_check);
+    vnr_feature_state_t DWORD_ALIGNED vnr_feature_state_check;
+    vnr_feature_state_init(&vnr_feature_state_check);
 
     vnr_ie_state_t vnr_ie_state;
     vnr_inference_init(&vnr_ie_state);
@@ -83,14 +83,14 @@ void test_wav_vnr(const char *in_filename)
         // VNR feature extraction
         start_feature_cycles = (uint64_t)get_reference_time();
         bfp_complex_s32_t X;
-        vnr_form_input_frame(&vnr_input_state, &X, new_frame);
-        fixed_s32_t *new_slice = vnr_make_slice(&vnr_input_state, &X);
-        vnr_add_new_slice(vnr_input_state.feature_buffers, new_slice);
+        vnr_form_input_frame(&vnr_feature_state, &X, new_frame);
+        fixed_s32_t *new_slice = vnr_make_slice(&vnr_feature_state, &X);
+        vnr_add_new_slice(vnr_feature_state.feature_buffers, new_slice);
         bfp_s32_t normalised_patch;
-        vnr_normalise_patch(&vnr_input_state, &normalised_patch);
+        vnr_normalise_patch(&vnr_feature_state, &normalised_patch);
         end_feature_cycles = (uint64_t)get_reference_time();
 
-        file_write(&new_slice_file, (uint8_t*)(vnr_input_state.feature_buffers[VNR_PATCH_WIDTH-1]), VNR_MEL_FILTERS*sizeof(int32_t));       
+        file_write(&new_slice_file, (uint8_t*)(vnr_feature_state.feature_buffers[VNR_PATCH_WIDTH-1]), VNR_MEL_FILTERS*sizeof(int32_t));       
         file_write(&norm_patch_file, (uint8_t*)&normalised_patch.exp, 1*sizeof(int32_t));
         file_write(&norm_patch_file, (uint8_t*)normalised_patch.data, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int32_t));
         
