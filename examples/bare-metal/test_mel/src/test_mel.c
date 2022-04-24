@@ -10,73 +10,23 @@
 #include "fileio.h"
 #include "wav_utils.h"
 
-#define AUDIO_FEATURES_NUM_MELS (24)
 static int framenum=0;
-static uint32_t max_fft_cycles=0, max_mel_cycles=0, max_log2_cycles=0;
+static uint32_t max_feature_cycles=0, max_inference_cycles=0;
 
-void dut_feature_extraction(vnr_input_state_t *input_state, const int32_t *new_x_frame, file_t *log2_file, file_t *quant_patch_file) {
-    int32_t DWORD_ALIGNED x_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
-    vnr_form_input_frame(input_state, x_data, new_x_frame);
-    
-    uint64_t start_fft, end_fft, start_mel, end_mel, start_log2, end_log2;
-    start_fft = (uint64_t)get_reference_time();
-    bfp_complex_s32_t X;
-    vnr_forward_fft(&X, x_data);
-    end_fft = (uint64_t)get_reference_time();
-
-    // MEL
-    start_mel = (uint64_t)get_reference_time();
-    float_s32_t mel_output[AUDIO_FEATURES_NUM_MELS];
-    vnr_mel_compute(mel_output, &X);
-    end_mel = (uint64_t)get_reference_time();
-
-    //log2
-    start_log2 = (uint64_t)get_reference_time();
-    fixed_s32_t mel_log2[AUDIO_FEATURES_NUM_MELS];
-    vnr_log2(mel_log2, mel_output, AUDIO_FEATURES_NUM_MELS);
-    end_log2 = (uint64_t)get_reference_time();
-
-    vnr_add_new_slice(input_state->feature_buffers, mel_log2);
-#if (VNR_FD_FRAME_LENGTH < (VNR_MEL_FILTERS*VNR_PATCH_WIDTH))
-    #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
-#endif
-
-    bfp_s32_t normalised_patch;
-    // Reuse x_data memory for normalised_patch
-    bfp_s32_init(&normalised_patch, x_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
-    vnr_normalise_patch(&normalised_patch, input_state->feature_buffers);
-
-    int8_t quantised_patch[VNR_MEL_FILTERS*VNR_PATCH_WIDTH];
-    vnr_quantise_patch(quantised_patch, &normalised_patch, &input_state->vnr_features_config); 
-    
-    //profile
-    uint32_t fft_cycles = (uint32_t)(end_fft-start_fft);
-    uint32_t mel_cycles = (uint32_t)(end_mel-start_mel);
-    uint32_t log2_cycles = (uint32_t)(end_log2 - start_log2);
-    if(max_fft_cycles < fft_cycles) {max_fft_cycles = fft_cycles;}
-    if(max_mel_cycles < mel_cycles) {max_mel_cycles = mel_cycles;}
-    if(max_log2_cycles < log2_cycles) {max_log2_cycles = log2_cycles;} 
-
-    //printf("FFT cycles %ld, MEL cycles %ld\n", (uint32_t)(end_fft-start_fft), (uint32_t)(end_mel-start_mel));
-    file_write(log2_file, (uint8_t*)(mel_log2), AUDIO_FEATURES_NUM_MELS*sizeof(int32_t));
-
-    //file_write(quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
-}
-
-void test_mel(const char *in_filename)
+void test_wav_vnr(const char *in_filename)
 {
-    file_t input_file, mel_log2_file, quant_patch_file, dequant_output_file;
+    file_t input_file, new_slice_file, norm_patch_file, inference_output_file;
 
     int ret = file_open(&input_file, in_filename, "rb");
     assert((!ret) && "Failed to open file");
 
-    ret = file_open(&mel_log2_file, "mel_log2.bin", "wb");
+    ret = file_open(&new_slice_file, "new_slice.bin", "wb");
     assert((!ret) && "Failed to open file");
 
-    ret = file_open(&quant_patch_file, "quant_patch.bin", "wb");
+    ret = file_open(&norm_patch_file, "normalised_patch.bin", "wb");
     assert((!ret) && "Failed to open file");
 
-    ret = file_open(&dequant_output_file, "dequant_output.bin", "wb");
+    ret = file_open(&inference_output_file, "inference_output.bin", "wb");
     assert((!ret) && "Failed to open file");
 
     wav_header input_header_struct;
@@ -109,14 +59,14 @@ void test_mel(const char *in_filename)
     vnr_input_state_t DWORD_ALIGNED vnr_input_state_check;
     vnr_input_state_init(&vnr_input_state_check);
 
-    vnr_ie_t vnr_ie_state;
+    vnr_ie_state_t vnr_ie_state;
     vnr_inference_init(&vnr_ie_state);
     if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
         printf("Error: Feature size mismatch\n");
         assert(0);
     }
     
-
+    uint64_t start_feature_cycles, end_feature_cycles, start_inference_cycles, end_inference_cycles;
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
     int16_t input_read_buffer[VNR_FRAME_ADVANCE] = {0}; // Array for storing interleaved input read from wav file
     int32_t new_frame[VNR_FRAME_ADVANCE] = {0};
@@ -129,25 +79,41 @@ void test_mel(const char *in_filename)
         for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
             new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
         }
-        dut_feature_extraction(&vnr_input_state, new_frame, &mel_log2_file, &quant_patch_file);
+        
+        // VNR feature extraction
+        start_feature_cycles = (uint64_t)get_reference_time();
+        bfp_complex_s32_t X;
+        vnr_form_input_frame(&vnr_input_state, &X, new_frame);
+        fixed_s32_t *new_slice = vnr_make_slice(&vnr_input_state, &X);
+        vnr_add_new_slice(vnr_input_state.feature_buffers, new_slice);
+        bfp_s32_t normalised_patch;
+        vnr_normalise_patch(&vnr_input_state, &normalised_patch);
+        end_feature_cycles = (uint64_t)get_reference_time();
 
+        file_write(&new_slice_file, (uint8_t*)(vnr_input_state.feature_buffers[VNR_PATCH_WIDTH-1]), VNR_MEL_FILTERS*sizeof(int32_t));       
+        file_write(&norm_patch_file, (uint8_t*)&normalised_patch.exp, 1*sizeof(int32_t));
+        file_write(&norm_patch_file, (uint8_t*)normalised_patch.data, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int32_t));
+        
+        // VNR inference
+        start_inference_cycles = (uint64_t)get_reference_time();
+        float_s32_t inference_output;
+        vnr_inference(&vnr_ie_state, &inference_output, &normalised_patch);
+        end_inference_cycles = (uint64_t)get_reference_time();
+        
 
-        int8_t quantised_patch[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
-        vnr_extract_features(quantised_patch, &vnr_input_state_check, new_frame);        
-        file_write(&quant_patch_file, (uint8_t*)quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
+        file_write(&inference_output_file, (uint8_t*)&inference_output, sizeof(float_s32_t));
 
-        int8_t inference_output;
-        vnr_inference(&vnr_ie_state, &inference_output, quantised_patch);
-
-        float_s32_t dequant_output;
-        vnr_dequantise_output(&dequant_output, &inference_output, &vnr_input_state_check.vnr_features_config);
-        file_write(&dequant_output_file, (uint8_t*)&dequant_output, sizeof(float_s32_t));
+        //profile
+        uint32_t fe = (uint32_t)(end_feature_cycles - start_feature_cycles);
+        uint32_t ie = (uint32_t)(end_inference_cycles - start_inference_cycles);
+        if(max_feature_cycles < fe) {max_feature_cycles = fe;}
+        if(max_inference_cycles < ie) {max_inference_cycles = ie;}
 
         framenum += 1;
         /*if(framenum == 1) {
             break;
         }*/
     }
-    printf("Profile: max_fft_cycles = %ld, max_mel_cycles = %ld, max_log2_cycles = %ld\n",max_fft_cycles, max_mel_cycles, max_log2_cycles);
+    printf("Profile: max_feature_extraction_cycles = %ld, max_inference_cycles = %ld, max_total_cycles = %ld\n",max_feature_cycles, max_inference_cycles, max_feature_cycles+max_inference_cycles);
     shutdown_session(); 
 }

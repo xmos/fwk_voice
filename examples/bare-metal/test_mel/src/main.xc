@@ -12,7 +12,7 @@
 
 extern "C" {
 #include "xs3_math.h"
-void test_mel(const char *in_filename);
+void test_wav_vnr(const char *in_filename);
 #if TEST_WAV_XSCOPE
     #include "xscope_io_device.h"
 #endif
@@ -31,7 +31,7 @@ int main (void)
 #if TEST_WAV_XSCOPE
         xscope_io_init(xscope_chan);
 #endif 
-        test_mel(IN_FILE_NAME);
+        test_wav_vnr(IN_FILE_NAME);
         _Exit(0);
     }
   }
