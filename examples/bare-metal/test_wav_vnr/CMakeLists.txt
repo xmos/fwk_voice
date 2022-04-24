@@ -1,11 +1,11 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_executable(avona_test_mel)
+add_executable(avona_test_wav_vnr)
 
-target_sources(avona_test_mel PRIVATE src/test_mel.c)
+target_sources(avona_test_wav_vnr PRIVATE src/test_wav_vnr.c)
 
-target_include_directories(avona_test_mel PRIVATE src)
+target_include_directories(avona_test_wav_vnr PRIVATE src)
 
 set(APP_COMPILER_FLAGS
     -Os
@@ -17,19 +17,19 @@ set(APP_COMPILER_FLAGS
     ${CONFIG_XSCOPE_PATH}/config.xscope
     -target=${XCORE_TARGET}
 )
-target_link_libraries(avona_test_mel 
+target_link_libraries(avona_test_wav_vnr 
     PUBLIC
         avona::vnr::features
         avona::vnr::inference
         avona::example::fileutils)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_sources(avona_test_mel PRIVATE src/main.xc)
+    target_sources(avona_test_wav_vnr PRIVATE src/main.xc)
 
-    target_compile_options(avona_test_mel
+    target_compile_options(avona_test_wav_vnr
         PRIVATE ${APP_COMPILER_FLAGS})
 
-    target_link_options(avona_test_mel
+    target_link_options(avona_test_wav_vnr
         PRIVATE
             -lquadspi
             -w            

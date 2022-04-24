@@ -9,7 +9,6 @@ add_subdirectory( aec_1_thread )
 add_subdirectory( agc )
 add_subdirectory( pipeline_single_threaded )
 add_subdirectory( pipeline_alt_arch )
-add_subdirectory(test_mel)
 
 ## Multi thread example builds only on XCORE
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
@@ -17,6 +16,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_subdirectory( aec_2_threads )
 
     add_subdirectory( pipeline_multi_threaded )
-    add_subdirectory(vnr)
+    add_subdirectory(test_wav_vnr)
 endif()
 
