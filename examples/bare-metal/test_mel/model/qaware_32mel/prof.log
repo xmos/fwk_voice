@@ -1,0 +1,15 @@
+[DEVICE] input_size 128, output_size 1
+[DEVICE] Operator   0 XC_Conv2DValidDir    took     0 ms
+[DEVICE] Operator   1 XC_Conv2DValidDir    took     0 ms
+[DEVICE] Operator   2 XC_Conv2DValidDir    took     0 ms
+[DEVICE] Operator   3 CONV_2D              took     0 ms
+[DEVICE] Operator   4 RESHAPE              took     0 ms
+[DEVICE] Operator   5 LOGISTIC             took     0 ms
+[DEVICE] TOTAL 8641 ticks
+[DEVICE] Operator-class XC_Conv2DValidDir    took     0 ms  38%
+[DEVICE] Operator-class CONV_2D              took     0 ms  48%
+[DEVICE] Operator-class RESHAPE              took     0 ms   1%
+[DEVICE] Operator-class LOGISTIC             took     0 ms  11%
+[DEVICE] Output index=0, value=-128
+[DEVICE] DONE!
+
