@@ -18,7 +18,7 @@ void test_wav_vnr(const char *in_filename);
 #endif
 }
 
-#define IN_FILE_NAME    "data_16k/2035-152373-0002001.wav"
+#define IN_FILE_NAME "input.wav"
 int main (void)
 {
   chan xscope_chan;

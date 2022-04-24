@@ -10,12 +10,14 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import audio_wav_utils as awu
+import subprocess
 sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
 import run_xcoreai
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("tflite_model", nargs='?', help=".tflite_model")
+    parser.add_argument("input_wav", nargs='?', help="input wav file")
+    parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
     args = parser.parse_args()
     return args
 
@@ -64,9 +66,7 @@ def tflite_predict(interpreter_tflite, input_patches):
     return predict_tflite[0]
 
 
-def test_vnr(tflite_model, plot_results=False):
-    run_xcoreai.run("../../../build/examples/bare-metal/test_mel/bin/avona_test_mel.xe")
-    
+def test_wav_vnr(input_file, tflite_model, plot_results=False):    
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
 
@@ -74,6 +74,8 @@ def test_vnr(tflite_model, plot_results=False):
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     #################################################################################
+    # Run DUT
+    run_xcoreai.run("../../../build/examples/bare-metal/test_mel/bin/avona_test_mel.xe", input_file)
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
         dut_new_slice = np.fromfile(fdut, dtype=np.int32)
@@ -104,7 +106,7 @@ def test_vnr(tflite_model, plot_results=False):
     proc_frame_length = 2**9
     frame_advance = 240
     frame_buffer = np.zeros(3*proc_frame_length)
-    rate, wav_file = scipy.io.wavfile.read("data_16k/2035-152373-0002001.wav", 'r')
+    rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
     wav_data, channel_count, file_length = awu.parse_audio(wav_file)
     
     vnr_output = np.zeros(file_length // frame_advance)
@@ -164,20 +166,18 @@ def test_vnr(tflite_model, plot_results=False):
         ax[0,1].set_title('max_norm_patch_diff_per_frame')
         ax[0,1].plot(max_norm_patch_diff_per_frame)
 
-        ax[1,0].set_title('normalised patch output')
-        ax[1,0].plot(ref_norm_patch, label='ref')
-        ax[1,0].plot(dut_norm_patch, label='dut', linestyle='--')
-        ax[1,0].legend(loc="upper right")
+        ax[1,0].set_title('ref-dut inference output diff')
+        ax[1,0].plot(np.abs(ref_tflite_output - dut_tflite_output))
 
-        ax[1,1].set_title('tflite output')
+        ax[1,1].set_title('tflite inference output')
         ax[1,1].plot(ref_tflite_output, label="ref")
         ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
         ax[1,1].legend(loc="upper right")
         fig_instance = plt.gcf() #get current figure instance so we can save in a file later
         plt.show()
-        plot_file = "ref_dut_mel_compare.png"
+        plot_file = f"plot_{os.path.splitext(os.path.basename(input_file))[0]}.png"
         fig.savefig(plot_file)
         
 if __name__ == "__main__":
     args = parse_arguments()
-    test_vnr(args.tflite_model, plot_results=True)
+    test_wav_vnr(args.input_wav, args.tflite_model, plot_results=True)
