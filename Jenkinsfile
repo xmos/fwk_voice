@@ -13,8 +13,9 @@ pipeline {
                  description: 'Enables pipelines characterisation test which takes 2.5hrs by itself. Normally run nightly')
   }
   environment {
-    REPO = 'sw_avona_vnr'
-    VIEW = getViewName(REPO)
+    REPO = 'sw_avona'
+    //VIEW = getViewName(REPO)
+    VIEW = 'sw_avona_vnr'
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
