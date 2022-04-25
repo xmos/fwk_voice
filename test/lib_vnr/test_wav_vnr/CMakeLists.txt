@@ -14,7 +14,7 @@ set(APP_COMPILER_FLAGS
     -fxscope
     -mcmodel=large
     -Wno-xcore-fptrgroup
-    ${CONFIG_XSCOPE_PATH}/config.xscope
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope
     -target=${XCORE_TARGET}
 )
 target_link_libraries(avona_test_wav_vnr 

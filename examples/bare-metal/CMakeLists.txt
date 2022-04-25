@@ -16,6 +16,5 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_subdirectory( aec_2_threads )
 
     add_subdirectory( pipeline_multi_threaded )
-    add_subdirectory(test_wav_vnr)
 endif()
 

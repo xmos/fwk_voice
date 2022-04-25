@@ -11,7 +11,7 @@ import os
 import sys
 import audio_wav_utils as awu
 import subprocess
-sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
+sys.path.append(os.path.join(os.getcwd(), "../../../examples/bare-metal/shared_src/python"))
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
 
@@ -98,7 +98,7 @@ def test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
     
     #################################################################################
     # Run DUT
-    run_xcoreai.run("../../../build/examples/bare-metal/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+    run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
         dut_new_slice = np.fromfile(fdut, dtype=np.int32)
