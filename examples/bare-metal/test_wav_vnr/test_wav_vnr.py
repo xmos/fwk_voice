@@ -13,11 +13,13 @@ import audio_wav_utils as awu
 import subprocess
 sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
 import run_xcoreai
+import tensorflow_model_optimization as tfmot
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
+    parser.add_argument("tf_model", nargs='?', help="tf model")
     args = parser.parse_args()
     return args
 
@@ -66,11 +68,33 @@ def tflite_predict(interpreter_tflite, input_patches):
     return predict_tflite[0]
 
 
-def test_wav_vnr(input_file, tflite_model, plot_results=False):    
+def print_model_details(interpreter_tflite):
+    input_details = interpreter_tflite.get_input_details()[0]
+    output_details = interpreter_tflite.get_output_details()[0]    
+
+    # quantization spec
+    if input_details["dtype"] in [np.int8, np.uint8]:
+        input_scale, input_zero_point = input_details["quantization"]
+    else:
+        assert(False),"Error: Only 8bit input supported"
+    if output_details["dtype"] in [np.int8, np.uint8]:
+        output_scale, output_zero_point = output_details["quantization"]
+    else:
+        assert(False),"Error: Only 8bit output supported"
+    
+    print("input_scale = ",input_scale, " input_zero_point = ",input_zero_point)
+    print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
+
+
+def test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
+    print(tflite_model, tf_model)
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
-
-    vnr_obj = vnr.Vnr(model_file=None)    
+    
+    print_model_details(interpreter_tflite)
+    
+    with tfmot.quantization.keras.quantize_scope():
+        vnr_obj = vnr.Vnr(model_file=tf_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     #################################################################################
@@ -180,4 +204,6 @@ def test_wav_vnr(input_file, tflite_model, plot_results=False):
         
 if __name__ == "__main__":
     args = parse_arguments()
-    test_wav_vnr(args.input_wav, args.tflite_model, plot_results=True)
+    print("tflite_model = ",args.tflite_model)
+    print("tflite_model = ",args.tf_model)
+    test_wav_vnr(args.input_wav, args.tflite_model, args.tf_model, plot_results=True)
