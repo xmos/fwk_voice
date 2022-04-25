@@ -31,6 +31,9 @@ soundfile==0.10.3.post1
 webrtcvad==2.0.10
 tensorflow==2.1.1
 h5py==2.10.0
+tensorflow_model_optimization
+xmos-ai-tools
+jinja2
 
 # Development dependencies
 #
@@ -45,3 +48,4 @@ h5py==2.10.0
 # of its own setup.py file, then this list must include an entry for that
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
 -e ./../audio_test_tools/python
+-e ./../py_vnr

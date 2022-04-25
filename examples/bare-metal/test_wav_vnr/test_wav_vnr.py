@@ -87,7 +87,6 @@ def print_model_details(interpreter_tflite):
 
 
 def test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
-    print(tflite_model, tf_model)
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
