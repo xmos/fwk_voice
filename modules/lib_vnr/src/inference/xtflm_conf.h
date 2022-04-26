@@ -4,7 +4,7 @@
 #ifndef XTFLM_CONF_h_
 #define XTFLM_CONF_h_
 
-#define XTFLM_OPERATORS        (32)
+#define XTFLM_OPERATORS        (6)
 
 #define NETWORK_NUM_THREADS    (1)
 #define AISRV_GPIO_LENGTH      (4)

@@ -99,7 +99,6 @@ target_sources(xcore_sdk_inferencing_tflite_micro
         ${LIB_TFLITE_MICRO_SUBMODULES_PATH}/tflite-micro/tensorflow/lite/micro/kernels/circular_buffer.cc
         ${LIB_TFLITE_MICRO_SUBMODULES_PATH}/tflite-micro/tensorflow/lite/micro/kernels/activations_common.cc
         ${LIB_TFLITE_MICRO_SUBMODULES_PATH}/tflite-micro/tensorflow/lite/micro/kernels/logistic_common.cc
-        ${LIB_TFLITE_MICRO_SUBMODULES_PATH}/tflite-micro/tensorflow/lite/micro/kernels/dequantize_common.cc
 )
 target_include_directories(xcore_sdk_inferencing_tflite_micro
     INTERFACE
