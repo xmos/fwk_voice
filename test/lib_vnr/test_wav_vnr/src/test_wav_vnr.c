@@ -37,8 +37,8 @@ void test_wav_vnr(const char *in_filename)
     }
     file_seek(&input_file, input_header_size, SEEK_SET);
     // Ensure 16bit wav file
-    if(input_header_struct.bit_depth != 16){
-        printf("Test works on only 16 bit wav files. %d bit wav input provided\n",input_header_struct.bit_depth);
+    if((input_header_struct.bit_depth != 32) && (input_header_struct.bit_depth != 16)){
+        printf("Test works on only 16 bit or 32 bit wav files. %d bit wav input provided\n",input_header_struct.bit_depth);
         assert(0);
     }
 
@@ -61,6 +61,7 @@ void test_wav_vnr(const char *in_filename)
 
     vnr_ie_state_t vnr_ie_state;
     vnr_inference_init(&vnr_ie_state);
+
     if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
         printf("Error: Feature size mismatch\n");
         assert(0);
@@ -74,11 +75,18 @@ void test_wav_vnr(const char *in_filename)
     for(unsigned b=0; b<block_count; b++) {
         long input_location =  wav_get_frame_start(&input_header_struct, b * VNR_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
-        file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* VNR_FRAME_ADVANCE);
-        // Convert to 32 bit
-        for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
-            new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
+        
+        if(input_header_struct.bit_depth == 16){
+            file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* VNR_FRAME_ADVANCE);
+            // Convert to 32 bit
+            for(int i=0; i<VNR_FRAME_ADVANCE; i++) {
+                new_frame[i] = (int32_t)input_read_buffer[i] << 16; //1.31
+            }
         }
+        else {
+            file_read (&input_file, (uint8_t*)&new_frame[0], bytes_per_frame* VNR_FRAME_ADVANCE);
+        }
+
         
         // VNR feature extraction
         start_feature_cycles = (uint64_t)get_reference_time();

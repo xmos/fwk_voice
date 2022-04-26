@@ -67,7 +67,6 @@ def tflite_predict(interpreter_tflite, input_patches):
         predict_tflite[n] = output_data_float[0, 0]
     return predict_tflite[0]
 
-
 def print_model_details(interpreter_tflite):
     input_details = interpreter_tflite.get_input_details()[0]
     output_details = interpreter_tflite.get_output_details()[0]    
@@ -96,6 +95,16 @@ def test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
         vnr_obj = vnr.Vnr(model_file=tf_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
+    '''
+    rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
+    wav_data, channel_count, file_length = awu.parse_audio(wav_file)
+    print(wav_data.dtype)
+    wav_data_32bit = awu.convert_to_32_bit(wav_data)
+    print(wav_data_32bit.dtype, wav_data_32bit.shape)
+    scipy.io.wavfile.write("test32.wav", rate, wav_data_32bit.T)
+    return
+    '''
+
     #################################################################################
     # Run DUT
     run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
