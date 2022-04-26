@@ -236,6 +236,17 @@ pipeline {
             }
           }
         }
+        stage('VNR test_wav_vnr') {
+          steps {
+            dir("${REPO}/test/lib_vnr/test_wav_vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python test_wav_vnr.py data_16k/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite model/model_output_0_0_2/model_qaware.h5"
+                }
+              }
+            }
+          }
+        }
         stage('VAD vad_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vad/vad_unit_tests") {

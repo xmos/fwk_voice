@@ -20,7 +20,6 @@ void vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     ie_ptr->input_size = ie_ptr->ie.input_sizes[0];
     ie_ptr->output_buffer = (int8_t *) ie_ptr->ie.output_buffers[0];
     ie_ptr->output_size = ie_ptr->ie.output_sizes[0];   
-    printf("input_size %d, output_size %d\n", ie_ptr->input_size, ie_ptr->output_size);
     
     // Initialise input quant and output dequant parameters
     ie_ptr->ie_config.input_scale_inv = double_to_float_s32(1/0.10857683420181274); //from interpreter_tflite.get_input_details()[0] call in python 

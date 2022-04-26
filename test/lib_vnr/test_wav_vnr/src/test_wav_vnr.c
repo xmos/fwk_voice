@@ -53,6 +53,7 @@ void test_wav_vnr(const char *in_filename)
     unsigned block_count = frame_count / VNR_FRAME_ADVANCE;
     printf("%d Frames in this test input wav\n",block_count);
     
+    uint64_t start_init_cycles = (uint64_t)get_reference_time();
     vnr_input_state_t vnr_input_state;
     vnr_input_state_init(&vnr_input_state);
 
@@ -61,6 +62,8 @@ void test_wav_vnr(const char *in_filename)
 
     vnr_ie_state_t vnr_ie_state;
     vnr_inference_init(&vnr_ie_state);
+    uint64_t end_init_cycles = (uint64_t)get_reference_time();
+    uint32_t vnr_init_cycles = (uint32_t)(end_init_cycles - start_init_cycles);
 
     if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
         printf("Error: Feature size mismatch\n");
@@ -124,6 +127,7 @@ void test_wav_vnr(const char *in_filename)
             break;
         }*/
     }
-    printf("Profile: max_feature_extraction_cycles = %ld, max_inference_cycles = %ld, max_total_cycles = %ld\n",max_feature_cycles, max_inference_cycles, max_feature_cycles+max_inference_cycles);
+    printf("Profile: max_feature_extraction_cycles = %ld, max_inference_cycles = %ld, vnr_init_cycles = %ld\n",max_feature_cycles, max_inference_cycles, vnr_init_cycles);
+    printf("Profile: max_vnr_cycles (init + 2 feature+inference calls) = %ld\n", vnr_init_cycles + 2*(max_feature_cycles+max_inference_cycles));
     shutdown_session(); 
 }

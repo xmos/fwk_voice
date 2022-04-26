@@ -189,29 +189,29 @@ def test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
     
     #################################################################################
     # Plot
+    fig,ax = plt.subplots(2,2)
+    fig.set_size_inches(20,10)
+    ax[0,0].set_title('max mel log2 diff per frame')
+    ax[0,0].plot(max_mel_log2_diff_per_frame)
+
+    ax[0,1].set_title('max_norm_patch_diff_per_frame')
+    ax[0,1].plot(max_norm_patch_diff_per_frame)
+
+    ax[1,0].set_title('ref-dut inference output diff')
+    ax[1,0].plot(np.abs(ref_tflite_output - dut_tflite_output))
+
+    ax[1,1].set_title('tflite inference output')
+    ax[1,1].plot(ref_tflite_output, label="ref")
+    ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
+    ax[1,1].legend(loc="upper right")
+    fig_instance = plt.gcf() #get current figure instance so we can save in a file later
     if(plot_results):
-        fig,ax = plt.subplots(2,2)
-        fig.set_size_inches(20,10)
-        ax[0,0].set_title('max mel log2 diff per frame')
-        ax[0,0].plot(max_mel_log2_diff_per_frame)
-
-        ax[0,1].set_title('max_norm_patch_diff_per_frame')
-        ax[0,1].plot(max_norm_patch_diff_per_frame)
-
-        ax[1,0].set_title('ref-dut inference output diff')
-        ax[1,0].plot(np.abs(ref_tflite_output - dut_tflite_output))
-
-        ax[1,1].set_title('tflite inference output')
-        ax[1,1].plot(ref_tflite_output, label="ref")
-        ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
-        ax[1,1].legend(loc="upper right")
-        fig_instance = plt.gcf() #get current figure instance so we can save in a file later
         plt.show()
-        plot_file = f"plot_{os.path.splitext(os.path.basename(input_file))[0]}.png"
-        fig.savefig(plot_file)
+    plot_file = f"vnr_plot_{os.path.splitext(os.path.basename(input_file))[0]}.png"
+    fig.savefig(plot_file)
         
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
     print("tflite_model = ",args.tf_model)
-    test_wav_vnr(args.input_wav, args.tflite_model, args.tf_model, plot_results=True)
+    test_wav_vnr(args.input_wav, args.tflite_model, args.tf_model, plot_results=False)
