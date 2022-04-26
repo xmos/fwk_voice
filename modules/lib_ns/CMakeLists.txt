@@ -14,6 +14,11 @@ target_include_directories(avona_module_lib_ns
         src
 )
 
+target_compile_options(avona_module_lib_ns
+    PRIVATE
+        "-Os"
+)
+
 target_link_libraries(avona_module_lib_ns
     PUBLIC
         sdk::lib_xs3_math
