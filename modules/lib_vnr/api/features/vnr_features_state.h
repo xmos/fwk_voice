@@ -14,8 +14,10 @@
 #define VNR_LOG2_OUTPUT_EXP (-24)
 
 typedef struct {
-    int32_t DWORD_ALIGNED scratch_data[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
     int32_t DWORD_ALIGNED prev_input_samples[VNR_PROC_FRAME_LENGTH - VNR_FRAME_ADVANCE];
+}vnr_input_state_t;
+
+typedef struct {
     fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
 }vnr_feature_state_t;
 #endif

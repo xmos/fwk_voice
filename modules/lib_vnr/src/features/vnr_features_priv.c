@@ -24,7 +24,38 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
 
-void vnr_priv_mel_compute(float_s32_t *filter_output, bfp_complex_s32_t *X) {
+void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X) {
+    // MEL
+    float_s32_t mel_output[VNR_MEL_FILTERS];
+    
+    vnr_priv_mel_compute(mel_output, X);
+
+    vnr_priv_log2(new_slice, mel_output, VNR_MEL_FILTERS); //Calculate new_slice in state->scratch_data
+}
+
+void vnr_priv_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice)
+{
+    for(unsigned index=0; index<VNR_PATCH_WIDTH - 1; index++) {
+        memcpy(feature_buffers[index], feature_buffers[index+1], VNR_MEL_FILTERS*sizeof(int32_t));
+    }
+    memcpy(feature_buffers[VNR_PATCH_WIDTH - 1], new_slice, VNR_MEL_FILTERS*sizeof(int32_t));
+}
+
+void vnr_priv_normalise_patch(bfp_s32_t *normalised_patch, int32_t *normalised_patch_data, const vnr_feature_state_t *feature_state)
+{
+#if (VNR_FD_FRAME_LENGTH < (VNR_MEL_FILTERS*VNR_PATCH_WIDTH))
+    #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
+#endif
+    bfp_s32_init(normalised_patch, normalised_patch_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
+    //norm_patch = feature_patch - np.max(feature_patch)   
+    bfp_s32_t feature_patch_bfp;
+    bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_state->feature_buffers[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
+    float_s32_t max = bfp_s32_max(&feature_patch_bfp);
+    float_s32_t zero = {0, 0};
+    float_s32_t neg_max = float_s32_sub(zero, max);
+    bfp_s32_add_scalar(normalised_patch, &feature_patch_bfp, neg_max);
+}
+void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X) {
 #if VNR_MEL_FILTERS != AUDIO_FEATURES_NUM_MELS
     #error VNR_MEL_FILTERS not the same as AUDIO_FEATURES_NUM_MELS
 #endif
@@ -33,12 +64,6 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, bfp_complex_s32_t *X) {
     bfp_s32_t squared_mag;
     bfp_s32_init(&squared_mag, squared_mag_data, 0, X->length, 0);
     bfp_complex_s32_squared_mag(&squared_mag, X);
-    /*if(framenum==66) {
-        for(int i=0; i<20; i++) {
-            printf("X[%d] bfp = (re %ld im %ld), (exp %d, hr %d), sq_mag = (%ld, exp %d, hr %d)\n", i, X->data[i].re, X->data[i].im, X->exp, X->hr, squared_mag.data[i], squared_mag.exp, squared_mag.hr);
-            printf("X[%d] = (%.6f. %.6f), sq_mag = %.6f\n",i, ldexp(X->data[i].re, X->exp), ldexp(X->data[i].im, X->exp), ldexp(squared_mag.data[i], squared_mag.exp) );
-        }
-    }*/
 #if HEADROOM_CHECK
     headroom_t reported_hr = squared_mag.hr;
     headroom_t actual_hr = bfp_s32_headroom(&squared_mag);
