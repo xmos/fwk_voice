@@ -241,7 +241,11 @@ pipeline {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
               viewEnv() {
                 withVenv {
-                  sh "python test_wav_vnr.py data_16k/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite model/model_output_0_0_2/model_qaware.h5"
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
+                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    }
+                  }
                 }
               }
             }
@@ -583,6 +587,8 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          //VNR artifacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
         }
         cleanup {
           cleanWs()
