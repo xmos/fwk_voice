@@ -14,7 +14,7 @@ import ic_test_py.lib as ic_test_lib
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../lib_interference_canceller/python')
+py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic')
 pvc_path = os.path.join(package_dir, '../../shared/python')
 
 sys.path.append(att_path)
@@ -38,18 +38,20 @@ def pre_test_stuff(request):
 
 class ic_comparison:
     def __init__(self):
-        self.ic = IC.adaptive_interference_canceller(frame_advance, proc_frame_length, num_phases, 0, 
+        self.ic = IC.adaptive_interference_canceller(frame_advance, proc_frame_length, num_phases, 
+        #0, 
         mu = 0.36956599983386695,
         delta = 7.450580593454381e-09, #two_mic_stereo.json
-        delay = 0,
+        #delay = 0,
         K = 1,
         lamda = 0.9995117188,
         gamma = 2.0,
         leakage = 0.995,
         channel_delay = x_channel_delay,
         remove_NQ = True,
-        use_noise_minimisation = False,
-        output_beamform_on_ch1 = True)
+        #use_noise_minimisation = False,
+        #output_beamform_on_ch1 = True
+        )
 
         ic_test_lib.test_init()
         self.input_delay_py = np.zeros(frame_advance + x_channel_delay)
@@ -64,9 +66,11 @@ class ic_comparison:
         #first copy the input data for C ver before we modfiy it
         frame_int = pvc.float_to_int32(frame)
         #now delay y samples for the python version (not done internally)
-        frame[0] = self.delay_y_samples(frame[0])
+        #####frame[0] = self.delay_y_samples(frame[0])
+
         all_channels_output, Error_ap = self.ic.process_frame(frame)
-        self.ic.adapt(Error_ap)
+
+        #####self.ic.adapt(Error_ap)
         output_py = all_channels_output[0,:]
 
         #Grab a pointer to the data storage of the numpy arrays
@@ -75,8 +79,9 @@ class ic_comparison:
         output_c = np.zeros((240), dtype=np.int32)
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
-        vad = int(0)
-        ic_test_lib.test_adapt(vad, output_c_ptr)
+
+        ####vad = int(0)
+        ####ic_test_lib.test_adapt(vad, output_c_ptr)
 
         state = ic_test_lib.test_get_state()
         # print(pvc.float_s32_to_float(state.mu[0][0]))

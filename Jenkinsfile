@@ -14,7 +14,7 @@ pipeline {
   }
   environment {
     REPO = 'sw_avona'
-    VIEW = getViewName(REPO)
+    VIEW = 'sw_avona_ic_test'
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
@@ -235,6 +235,19 @@ pipeline {
             }
           }
         }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('VAD vad_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vad/vad_unit_tests") {
@@ -315,19 +328,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('IC Python C equivalence') {
-          steps {
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }
