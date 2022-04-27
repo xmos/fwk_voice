@@ -47,7 +47,7 @@ class ic_comparison:
         lamda = 0.9995117188,
         gamma = 2.0,
         leakage = 0.995,
-        channel_delay = x_channel_delay,
+        y_channel_delay = x_channel_delay,
         remove_NQ = True,
         #use_noise_minimisation = False,
         #output_beamform_on_ch1 = True
