@@ -13,7 +13,7 @@ import audio_wav_utils as awu
 import subprocess
 sys.path.append(os.path.join(os.getcwd(), "../../../examples/bare-metal/shared_src/python"))
 import run_xcoreai
-#import tensorflow_model_optimization as tfmot #TODO Not working on Jenkins agent
+import tensorflow_model_optimization as tfmot
 import glob
 import pytest
 
@@ -97,8 +97,8 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
     
     print_model_details(interpreter_tflite)
     
-    #with tfmot.quantization.keras.quantize_scope(): 
-    vnr_obj = vnr.Vnr(model_file=tf_model) 
+    with tfmot.quantization.keras.quantize_scope(): 
+        vnr_obj = vnr.Vnr(model_file=tf_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -220,7 +220,7 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
 def test_wav_vnr(input_wav):
     #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
     # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/reshaped_model/trained_model_reshape.h5", plot_results=False)
+    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()

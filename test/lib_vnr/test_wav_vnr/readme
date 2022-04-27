@@ -8,4 +8,4 @@ To get the .c and .h file (already generated and committed)
 /../../../tools/tflite_micro/convert_tflite_to_c_source.py --input model/model_output_0_0_2/model_qaware_xcore.tflite --header model/model_output_0_0_2/vnr_model_data.h --source model/model_output_0_0_2/vnr_model_data.c --variable-name vnr
 
 To run the test
-python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite model/reshaped_model/trained_model_reshape.h5
+python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite model/model_output_0_0_2/model_qaware.h5
