@@ -84,7 +84,7 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
         unsigned filter_length = mel_filter_512_24_compact_start_bins[2*(i+1)] - filter_start;
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
-        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 0);
+        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
         spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter
@@ -100,8 +100,9 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
 
     int32_t odd_band_filters_data[AUDIO_FEATURES_NUM_BINS];
     bfp_s32_t odd_band_filters;
-    bfp_s32_init(&odd_band_filters, odd_band_filters_data, 0, AUDIO_FEATURES_NUM_BINS, HR_S32(AUDIO_FEATURES_MEL_MAX));
+    bfp_s32_init(&odd_band_filters, odd_band_filters_data, 0, AUDIO_FEATURES_NUM_BINS, 0);
     bfp_s32_set(&odd_band_filters, AUDIO_FEATURES_MEL_MAX, filter_exp);
+    odd_band_filters.hr = HR_S32(AUDIO_FEATURES_MEL_MAX);
     bfp_s32_sub(&odd_band_filters, &odd_band_filters, &filter);
 
     for(unsigned i=0; i<num_odd_filters; i++) {
@@ -109,7 +110,7 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
         unsigned filter_length = mel_filter_512_24_compact_start_bins[(2*(i+1)) + 1] - filter_start;
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
-        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 0);
+        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
         spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter

@@ -61,9 +61,9 @@ void test_wav_vnr(const char *in_filename)
     vnr_feature_state_init(&vnr_feature_state);
 
     vnr_ie_state_t vnr_ie_state;
-    int32_t ret = vnr_inference_init(&vnr_ie_state);
-    if(ret) {
-        printf("vnr_inference_init() returned error %d. Exiting.\n", ret);
+    int32_t err = vnr_inference_init(&vnr_ie_state);
+    if(err) {
+        printf("vnr_inference_init() returned error %ld. Exiting.\n", err);
         assert(0);
     }
 
