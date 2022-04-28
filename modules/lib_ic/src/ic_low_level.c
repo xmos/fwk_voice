@@ -9,9 +9,6 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
-#include <stdio.h>
-
-
 ///Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE]){
@@ -253,14 +250,9 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
-    float leak = float_s32_to_float(state->ic_adaption_controller_state.adaption_controller_config.leakage_alpha);
-    printf("leak before if = %f ", leak);
-
     if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
         return;
     }
-
-    printf("after if = %f ", leak);
 
     const float_s32_t one = {1, 0};
     const float_s32_t zero = {0, 0};
