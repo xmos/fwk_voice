@@ -30,7 +30,6 @@ num_phases = 10
 x_channel_delay = 180 #For python only, this is already compiled into the C lib
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
-disable_adapt_controller = True
 
 @pytest.fixture(params=[34])
 def pre_test_stuff(request):
@@ -40,41 +39,26 @@ def pre_test_stuff(request):
 class ic_comparison:
     def __init__(self):
         self.ic = IC.adaptive_interference_canceller(frame_advance, proc_frame_length, num_phases, 
-        #0, 
         mu = 0.36956599983386695,
         delta = 7.450580593454381e-09, #two_mic_stereo.json
-        #delay = 0,
         K = 1,
         lamda = 0.9995117188,
         gamma = 2.0,
-        #leakage = 0.995,
-        leakage = 1,
+        leakage = 0.995,
         y_channel_delay = x_channel_delay,
         remove_NQ = True,
-        #use_noise_minimisation = False,
-        #output_beamform_on_ch1 = True
         )
 
         ic_test_lib.test_init()
 
-        if disable_adapt_controller:
-            state = ic_test_lib.test_get_state()
-            state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.mant = int(1)
-            state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha.exp = int(0)
-            state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = pvc.float_to_uint8(0.0)
-            print('Leakage initialised to: ', pvc.float_s32_to_float(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha))
-            print('Enable set to: ', pvc.uint8_to_float(state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller))
 
     def process_frame(self, frame):
         #we need to delay the y for python as not done in model
         #first copy the input data for C ver before we modfiy it
         frame_int = pvc.float_to_int32(frame)
-        #now delay y samples for the python version (not done internally)
 
-        all_channels_output, Error_ap = self.ic.process_frame(frame)
+        output_py, Error_ap = self.ic.process_frame(frame)
         self.ic.adapt(Error_ap)
-
-        output_py = all_channels_output[0,:]
 
         #Grab a pointer to the data storage of the numpy arrays
         y_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[0].data))
@@ -89,7 +73,7 @@ class ic_comparison:
 
         state = ic_test_lib.test_get_state()
         #print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)
-        print('leakage_c = ', pvc.float_s32_to_float(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha), ', leakage_py = ', self.ic.leakage)
+        #print('leakage_c = ', pvc.float_s32_to_float(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha), ', leakage_py = ', self.ic.leakage)
         # print(pvc.float_s32_to_float(state.config_params.delta))
         return output_py, pvc.int32_to_float(output_c)
 
@@ -121,9 +105,3 @@ def test_frame_compare(pre_test_stuff):
     assert arith_closeness > 0.98
     assert geo_closeness > 0.99
     assert c_delay == 0
-
-
-
-
-
-
