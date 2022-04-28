@@ -69,8 +69,8 @@ class ic_comparison:
         #####frame[0] = self.delay_y_samples(frame[0])
 
         all_channels_output, Error_ap = self.ic.process_frame(frame)
-
-        #####self.ic.adapt(Error_ap)
+        self.ic.adapt(Error_ap)
+        
         output_py = all_channels_output[0,:]
 
         #Grab a pointer to the data storage of the numpy arrays
@@ -79,12 +79,16 @@ class ic_comparison:
         output_c = np.zeros((240), dtype=np.int32)
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
-
-        ####vad = int(0)
-        ####ic_test_lib.test_adapt(vad, output_c_ptr)
+        state = ic_test_lib.test_get_state()
+        state.adaption_controller_config.leakage_alpha.mant = int(1)
+        state.adaption_controller_config.leakage_alpha.exp = int(0)
+        state.adaption_controller_config.enable_adaption_controller = pvc.float_to_uint8(0.0)
+        vad = int(0)
+        ic_test_lib.test_adapt(vad, output_c_ptr)
 
         state = ic_test_lib.test_get_state()
-        # print(pvc.float_s32_to_float(state.mu[0][0]))
+        print(pvc.float_s32_to_float(state.mu[0][0]))
+        print(pvc.float_s32_to_float(state.adaption_controller_config.leakage_alpha))
         # print(pvc.float_s32_to_float(state.config_params.delta))
         return output_py, pvc.int32_to_float(output_c)
 
