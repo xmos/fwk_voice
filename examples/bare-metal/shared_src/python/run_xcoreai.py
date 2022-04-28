@@ -58,20 +58,22 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
-if __name__ == "__main__":
-    args = parse_arguments()
-    assert args.xe is not None, "Specify vaild .xe file"
-    adapter_id = get_adapter_id()
-    print("Running on adapter_id ",adapter_id)
-    print(f"args.input = {args.input}")
-
+def run(xe, input_file):
     try:
-        shutil.copy2(args.input, "input.wav")
+        shutil.copy2(input_file, "input.wav")
     except shutil.SameFileError as e:
         pass
     except IOError as e:
          print('Error: %s' % e.strerror)
          assert False, "Invalid input file"
-
-    xscope_fileio.run_on_target(adapter_id, args.xe)
+    adapter_id = get_adapter_id()
+    print("Running on adapter_id ",adapter_id)
+    xscope_fileio.run_on_target(adapter_id, xe)
+    
+if __name__ == "__main__":
+    args = parse_arguments()
+    assert args.xe is not None, "Specify vaild .xe file"
+    print(f"args.input = {args.input}")
+         
+    run(args.xe, args.input)
 
