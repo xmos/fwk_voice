@@ -7,14 +7,17 @@
 
 static struct tflite_micro_objects tflmo;
 
-void vnr_inference_init(vnr_ie_state_t *ie_ptr) {
+int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     auto *resolver = inference_engine_initialize(&ie_ptr->ie, (uint32_t *)&ie_ptr->tensor_arena, TENSOR_ARENA_SIZE_BYTES, (uint32_t *) vnr_model_data, vnr_model_data_len, &tflmo);
     resolver->AddConv2D();
     resolver->AddReshape();
     resolver->AddLogistic();
     resolver->AddCustom(tflite::ops::micro::xcore::Conv2D_V2_OpCode,
             tflite::ops::micro::xcore::Register_Conv2D_V2());
-    inference_engine_load_model(&ie_ptr->ie, vnr_model_data_len, (uint32_t *) vnr_model_data, 0);
+    int ret = inference_engine_load_model(&ie_ptr->ie, vnr_model_data_len, (uint32_t *) vnr_model_data, 0);
+
+    //printf("ret from inference_engine_load_model = %d, memory primary bytes = %d, %d\n",ret, ie_ptr->ie.memory_primary_bytes, ie_ptr->ie.xtflm->interpreter->arena_used_bytes());
+
     
     ie_ptr->input_buffer = (int8_t *) ie_ptr->ie.input_buffers[0];
     ie_ptr->input_size = ie_ptr->ie.input_sizes[0];
@@ -27,6 +30,7 @@ void vnr_inference_init(vnr_ie_state_t *ie_ptr) {
 
     ie_ptr->ie_config.output_scale = double_to_float_s32(0.00390625); //from interpreter_tflite.get_output_details()[0] call in python 
     ie_ptr->ie_config.output_zero_point = double_to_float_s32(-128);
+    return ret;
 }
 
 
