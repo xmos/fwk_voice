@@ -88,7 +88,7 @@ class ic_comparison:
         ic_test_lib.test_adapt(vad, output_c_ptr)
 
         state = ic_test_lib.test_get_state()
-        print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)
+        #print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)
         print('leakage_c = ', pvc.float_s32_to_float(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha), ', leakage_py = ', self.ic.leakage)
         # print(pvc.float_s32_to_float(state.config_params.delta))
         return output_py, pvc.int32_to_float(output_c)
