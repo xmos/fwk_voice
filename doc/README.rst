@@ -2,7 +2,7 @@
 Documentation Source
 ####################
 
-This folder contains source files for the **Avona Reference Design** documentation.  The sources do not render well in GitHub or an RST viewer.  In addition, some information 
+This folder contains source files for the **Avona Reference Design** documentation.  The sources do not render well in GitHub or an RST viewer.  In addition, some information
 is not visible at all and some links will not be functional.
 
 **********************
@@ -57,7 +57,7 @@ A: No, but ``livehtml`` support may be added to the XMOS ``doc_builder`` Docker 
 
 Q: Where can I learn more about the XMOS ``doc_builder`` Docker container?
 
-A: See the https://github.com/xmos/doc_builder repository.  See the ``doc_builder`` repository README for details on additional build options.  
+A: See the https://github.com/xmos/doc_builder repository.  See the ``doc_builder`` repository README for details on additional build options.
 
 Q: How do I suggest enhancements to the XMOS ``doc_builder`` Docker container?
 
