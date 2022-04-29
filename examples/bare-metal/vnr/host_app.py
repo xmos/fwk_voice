@@ -110,11 +110,10 @@ class Endpoint(object):
         self._error = length
         self._assert("[ERROR]You can't use xscope_bytes() in this application")
 
-        if self.output_offset < input_file_length:
-            #print('[HOST]Record callback has been triggered value = {}'.format(dataval))
-            self.output_data_array = np.append(self.output_data_array, dataval)
-            self.output_offset += 1
-            #print("[HOST]Values recieved: ", self.output_offset, " Values expected: ", input_file_length)
+        #print('[HOST]Record callback has been triggered value = {}'.format(dataval))
+        self.output_data_array = np.append(self.output_data_array, dataval)
+        self.output_offset += 1
+        #print("[HOST]Values recieved: ", self.output_offset")
 
     def on_register(self, id, type, name, uint, data_type):
         print ('[HOST]Probe registered: id = {}, type = {}, name = {}, uint = {}, data type = {}'.format(id, type, name, uint, data_type))
@@ -146,13 +145,10 @@ class Endpoint(object):
             time.sleep(SLEEP_DURATION)
 
     def publish_wav(self, array):
-
-        padded_array = np.pad(array, (0, FRAME_LENGTH - len(array) % FRAME_LENGTH), 'constant')
-        self.num_frames = int(len(padded_array)/FRAME_LENGTH)
+        self.num_frames = int(len(array)/FRAME_LENGTH)
         print("total frames = ",self.num_frames)
-        for i in range(0, len(padded_array), FRAME_LENGTH):
-            #print(padded_array[i : i + FRAME_LENGTH])
-            self.publish_frame(padded_array[i : i + FRAME_LENGTH].tobytes())
+        for i in range(0, len(array), FRAME_LENGTH):
+            self.publish_frame(array[i : i + FRAME_LENGTH].tobytes())
 
 def run_with_python_xscope_host(input_file, output_file):
     sr, input_data_array = wavfile.read(input_file)
@@ -185,8 +181,9 @@ def run_with_python_xscope_host(input_file, output_file):
     #print(err)
     time.sleep(1)
     ep.disconnect()
-
-    ep.output_data_array.tofile(output_file)
+    
+    print(len(ep.output_data_array), ep.output_data_array.dtype)
+    ep.output_data_array.astype(np.int32).tofile(output_file)
     print('[HOST]END!')
     return ep.output_data_array
 
