@@ -3,7 +3,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_executable(avona_example_bare_metal_vnr)
 
-target_sources(avona_example_bare_metal_vnr PRIVATE src/main.c)
+target_sources(avona_example_bare_metal_vnr PRIVATE src/main.c src/vnr_task.c)
 
 target_include_directories(avona_example_bare_metal_vnr PRIVATE src)
 
