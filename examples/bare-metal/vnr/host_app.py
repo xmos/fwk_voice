@@ -9,6 +9,19 @@ import numpy as np
 import time
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
+import argparse
+import shutil
+sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
+import run_xcoreai
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_wav", nargs='?', help="input wav file")
+    parser.add_argument("output_bin", nargs='?', help="vnr output bin file")
+    parser.add_argument("--run_with_xscope_fileio", type=int, default=0, help="run with xscope_fileio")
+    args = parser.parse_args()
+    return args
+
 
 FRAME_LENGTH = 240
 
@@ -27,19 +40,6 @@ REGISTER_CALLBACK = ctypes.CFUNCTYPE(
     None, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint,
     ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint, ctypes.c_char_p
 )
-
-sr, input_data_array = wavfile.read(sys.argv[1])
-
-if (sr != 16000):
-    print("[ERROR]Only 16kHz sample rate is supported")
-    assert 0
-
-if len(np.shape(input_data_array)) != 1:
-    print("[ERROR]Only single channel inputs are supported in this application")
-    assert 0
-
-
-input_file_length = len(input_data_array)
 
 class Endpoint(object):
     def __init__(self):
@@ -154,37 +154,68 @@ class Endpoint(object):
             #print(padded_array[i : i + FRAME_LENGTH])
             self.publish_frame(padded_array[i : i + FRAME_LENGTH].tobytes())
 
-ep = Endpoint()
-if ep.connect():
-    print("[ERROR]Failed to connect the endpoint")
-else:
-    print("[HOST]Endpoint connected")
+def run_with_python_xscope_host(input_file, output_file):
+    sr, input_data_array = wavfile.read(input_file)
+
+    if (sr != 16000):
+        print("[ERROR]Only 16kHz sample rate is supported")
+        assert 0
+
+    if len(np.shape(input_data_array)) != 1:
+        print("[ERROR]Only single channel inputs are supported in this application")
+        assert 0
+
+    input_file_length = len(input_data_array)
+
+    ep = Endpoint()
+    if ep.connect():
+        print("[ERROR]Failed to connect the endpoint")
+    else:
+        print("[HOST]Endpoint connected")
+        time.sleep(1)
+
+        ep.publish_wav(input_data_array)
+         
+        print("output_offset = ",ep.output_offset)
+        while not ep.is_done():
+            pass
+
+    done_msg = "DONE"
+    #err = ep.lib_xscope.xscope_ep_request_upload(ctypes.c_uint(len(done_msg)), ctypes.c_char_p(done_msg))
+    #print(err)
     time.sleep(1)
+    ep.disconnect()
 
-    ep.publish_wav(input_data_array)
-     
-    print("output_offset = ",ep.output_offset)
-    while not ep.is_done():
-        pass
+    ep.output_data_array.tofile(output_file)
+    print('[HOST]END!')
+    return ep.output_data_array
 
-done_msg = "DONE"
-#err = ep.lib_xscope.xscope_ep_request_upload(ctypes.c_uint(len(done_msg)), ctypes.c_char_p(done_msg))
-#print(err)
-time.sleep(1)
-ep.disconnect()
+def run_with_xscope_fileio(input_file, output_file):
+    run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file)    
+    shutil.copyfile("vnr_out.bin", output_file)
+    return np.fromfile(output_file, dtype=np.int32)
 
-#Plot VNR output
-mant = np.array(ep.output_data_array[0::2], dtype=np.float64)
-exp = np.array(ep.output_data_array[1::2], dtype=np.int32)
-vnr_out = mant * (float(2)**exp)
-plt.plot(vnr_out)
-plt.xlabel('frames')
-plt.ylabel('vnr estimate')
-fig_instance = plt.gcf()
-plt.show()
-plotfile = f"plot_{os.path.splitext(os.path.basename(sys.argv[1]))[0]}.png"
-fig_instance.savefig(plotfile)
+def plot_result(vnr_out, out_file):
+    #Plot VNR output
+    mant = np.array(vnr_out[0::2], dtype=np.float64)
+    exp = np.array(vnr_out[1::2], dtype=np.int32)
+    vnr_out = mant * (float(2)**exp)
+    plt.plot(vnr_out)
+    plt.xlabel('frames')
+    plt.ylabel('vnr estimate')
+    fig_instance = plt.gcf()
+    plt.show()
+    plotfile = f"plot_{os.path.splitext(os.path.basename(out_file))[0]}.png"
+    fig_instance.savefig(plotfile)
 
+    
+if __name__ == "__main__":
+    args = parse_arguments()
+    print(f"input_file: {args.input_wav}, output_file: {args.output_bin}")
+    if args.run_with_xscope_fileio:
+        vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin)
+    else:
+        vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin)
 
-#wavfile.write(sys.argv[2], sr, output_data_array.astype(np.int32))
-print('[HOST]END!')
+    plot_result(vnr_out, args.input_wav)
+

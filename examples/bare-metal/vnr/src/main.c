@@ -8,8 +8,6 @@
 #include <string.h>
 #include <xs3_math.h>
 
-extern void vnr_task_init();
-extern float_s32_t vnr_process_frame(int32_t *new_frame);
 
 void get_frame(chanend_t xscope_chan, chanend_t c_frame_out){
   char buffer[256];
