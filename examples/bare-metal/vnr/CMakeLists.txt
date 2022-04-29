@@ -14,7 +14,7 @@ set(APP_COMPILER_FLAGS
     -fxscope
     -mcmodel=large
     -Wno-xcore-fptrgroup
-    ${CONFIG_XSCOPE_PATH}/config.xscope
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope
     -target=${XCORE_TARGET}
 )
 target_link_libraries(avona_example_bare_metal_vnr 
@@ -35,8 +35,16 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             -w            
             "-target=${XCORE_TARGET}"
             "-report"
-            "${CONFIG_XSCOPE_PATH}/config.xscope")
+            "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
     target_link_libraries(
         PRIVATE m)
 endif()
+
+add_custom_target(run_avona_example_vnr
+  COMMAND xrun --xscope-port localhost:10234 bin/avona_example_bare_metal_vnr.xe
+  DEPENDS avona_example_bare_metal_vnr
+  COMMENT
+    "Run application"
+  VERBATIM
+)
