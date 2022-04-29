@@ -1,0 +1,7 @@
+In the first terminal
+cd <sw_avona_path>/build
+make run_avona_example_vnr
+
+On the second terminal
+cd <sw_avona_path/examples/bare-metal/vnr>
+python host_app.py test_stream_1.wav

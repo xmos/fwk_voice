@@ -8,6 +8,7 @@ import ctypes
 import numpy as np
 import time
 from scipy.io import wavfile
+import matplotlib.pyplot as plt
 
 FRAME_LENGTH = 240
 
@@ -39,7 +40,6 @@ if len(np.shape(input_data_array)) != 1:
 
 
 input_file_length = len(input_data_array)
-output_data_array = np.zeros(input_file_length).astype(np.int32)
 
 class Endpoint(object):
     def __init__(self):
@@ -55,6 +55,8 @@ class Endpoint(object):
         self.lib_xscope = ctypes.CDLL(lib_path)
 
         self.output_offset = 0
+        self.num_output_ints_per_frame = 2 #One float_s32_t output value per frame from vnr
+        self.output_data_array = np.empty(0, dtype=np.int32)
 
         self._print_cb = self._print_callback_func()
         self._error = self.lib_xscope.xscope_ep_set_print_cb(self._print_cb)
@@ -110,7 +112,7 @@ class Endpoint(object):
 
         if self.output_offset < input_file_length:
             #print('[HOST]Record callback has been triggered value = {}'.format(dataval))
-            output_data_array[self.output_offset] = dataval
+            self.output_data_array = np.append(self.output_data_array, dataval)
             self.output_offset += 1
             #print("[HOST]Values recieved: ", self.output_offset, " Values expected: ", input_file_length)
 
@@ -118,7 +120,7 @@ class Endpoint(object):
         print ('[HOST]Probe registered: id = {}, type = {}, name = {}, uint = {}, data type = {}'.format(id, type, name, uint, data_type))
 
     def is_done(self):
-        if self.output_offset == input_file_length:
+        if self.output_offset == (self.num_output_ints_per_frame * self.num_frames):
             return 1
         else:
             return 0
@@ -146,6 +148,8 @@ class Endpoint(object):
     def publish_wav(self, array):
 
         padded_array = np.pad(array, (0, FRAME_LENGTH - len(array) % FRAME_LENGTH), 'constant')
+        self.num_frames = int(len(padded_array)/FRAME_LENGTH)
+        print("total frames = ",self.num_frames)
         for i in range(0, len(padded_array), FRAME_LENGTH):
             #print(padded_array[i : i + FRAME_LENGTH])
             self.publish_frame(padded_array[i : i + FRAME_LENGTH].tobytes())
@@ -158,15 +162,29 @@ else:
     time.sleep(1)
 
     ep.publish_wav(input_data_array)
-
+     
+    print("output_offset = ",ep.output_offset)
     while not ep.is_done():
         pass
 
-#done_msg = "DONE"
+done_msg = "DONE"
 #err = ep.lib_xscope.xscope_ep_request_upload(ctypes.c_uint(len(done_msg)), ctypes.c_char_p(done_msg))
 #print(err)
 time.sleep(1)
 ep.disconnect()
 
-wavfile.write(sys.argv[2], sr, output_data_array.astype(np.int32))
+#Plot VNR output
+mant = np.array(ep.output_data_array[0::2], dtype=np.float64)
+exp = np.array(ep.output_data_array[1::2], dtype=np.int32)
+vnr_out = mant * (float(2)**exp)
+plt.plot(vnr_out)
+plt.xlabel('frames')
+plt.ylabel('vnr estimate')
+fig_instance = plt.gcf()
+plt.show()
+plotfile = f"plot_{os.path.splitext(os.path.basename(sys.argv[1]))[0]}.png"
+fig_instance.savefig(plotfile)
+
+
+#wavfile.write(sys.argv[2], sr, output_data_array.astype(np.int32))
 print('[HOST]END!')
