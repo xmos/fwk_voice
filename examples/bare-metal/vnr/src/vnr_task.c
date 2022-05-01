@@ -6,7 +6,12 @@
 #include "vnr_inference_api.h"
 #if PROFILE_PROCESSING
 #include "profile.h"
+#else
+static void prof(int n, const char* str) {}
+static void print_prof(int a, int b, int framenum){}
 #endif
+
+
 
 
 void vnr(chanend_t c_frame_in, chanend_t c_frame_out)

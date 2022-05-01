@@ -153,6 +153,7 @@ class Endpoint(object):
         for i in range(0, len(array), FRAME_LENGTH):
             self.publish_frame(array[i : i + FRAME_LENGTH].tobytes())
 
+#TODO support both 16 and 32 bit wav files
 def run_with_python_xscope_host(input_file, output_file):
     sr, input_data_array = wavfile.read(input_file)
 
@@ -308,7 +309,7 @@ def run_with_xscope_fileio(input_file, output_file):
     shutil.copyfile("vnr_out.bin", output_file)
     return np.fromfile(output_file, dtype=np.int32)
 
-def plot_result(vnr_out, out_file):
+def plot_result(vnr_out, out_file, show_plot=False):
     #Plot VNR output
     mant = np.array(vnr_out[0::2], dtype=np.float64)
     exp = np.array(vnr_out[1::2], dtype=np.int32)
@@ -317,7 +318,8 @@ def plot_result(vnr_out, out_file):
     plt.xlabel('frames')
     plt.ylabel('vnr estimate')
     fig_instance = plt.gcf()
-    plt.show()
+    if show_plot:
+        plt.show()
     plotfile = f"plot_{os.path.splitext(os.path.basename(out_file))[0]}.png"
     fig_instance.savefig(plotfile)
 

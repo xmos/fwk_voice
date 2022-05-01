@@ -20,7 +20,6 @@ target_link_libraries(avona_example_bare_metal_vnr
     PUBLIC
         avona::vnr::features
         avona::vnr::inference
-        avona::example::profile_xcore
         )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
@@ -29,8 +28,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_compile_options(avona_example_bare_metal_vnr
         PRIVATE ${APP_COMPILER_FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope)
 
-    target_compile_definitions(avona_example_bare_metal_vnr
-        PRIVATE PROFILE_PROCESSING=1)
+    #target_compile_definitions(avona_example_bare_metal_vnr
+     #   PRIVATE PROFILE_PROCESSING=1)
     
     target_link_options(avona_example_bare_metal_vnr
         PRIVATE
