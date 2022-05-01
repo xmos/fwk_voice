@@ -21,7 +21,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("output_bin", nargs='?', help="vnr output bin file")
-    parser.add_argument("--run_with_xscope_fileio", type=int, default=0, help="run with xscope_fileio")
+    parser.add_argument("--run_with_xscope_fileio", type=int, default=0, help="run with lib xscope_fileio instead of python xscope host")
+    parser.add_argument("--show-plot", type=int, default=0, help="show the VNR output plot")
     args = parser.parse_args()
     return args
 
@@ -60,6 +61,7 @@ class Endpoint(object):
         self.output_offset = 0
         self.num_output_ints_per_frame = 2 #One float_s32_t output value per frame from vnr
         self.output_data_array = np.empty(0, dtype=np.int32)
+        self.stdo = []
 
         self._print_cb = self._print_callback_func()
         self._error = self.lib_xscope.xscope_ep_set_print_cb(self._print_cb)
@@ -104,8 +106,9 @@ class Endpoint(object):
 
     def on_print(self, timestamp, data):
         msg = data.decode().rstrip()
-
-        print(msg)
+        print(f"[DEVICE] {msg}")
+        self.stdo.append(f"[DEVICE] {msg}")
+        
 
     def on_record(self, id, length, dataval):
         self._error = id
@@ -154,7 +157,7 @@ class Endpoint(object):
             self.publish_frame(array[i : i + FRAME_LENGTH].tobytes())
 
 #TODO support both 16 and 32 bit wav files
-def run_with_python_xscope_host(input_file, output_file):
+def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
     sr, input_data_array = wavfile.read(input_file)
 
     if (sr != 16000):
@@ -189,6 +192,9 @@ def run_with_python_xscope_host(input_file, output_file):
     print(len(ep.output_data_array), ep.output_data_array.dtype)
     ep.output_data_array.astype(np.int32).tofile(output_file)
     print('[HOST]END!')
+
+    if parse_profile:
+        parse_profiling_info(ep.stdo)
     return ep.output_data_array
 
 '''
@@ -303,9 +309,10 @@ def parse_profiling_info(stdo):
     #print(xcore_stdo)
     parse_profile_log(xcore_stdo, worst_case_file=f"vnr_prof.log")
     
-def run_with_xscope_fileio(input_file, output_file):
+def run_with_xscope_fileio(input_file, output_file, parse_profile=False):
     stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
-    parse_profiling_info(stdo)
+    if parse_profile:
+        parse_profiling_info(stdo)
     shutil.copyfile("vnr_out.bin", output_file)
     return np.fromfile(output_file, dtype=np.int32)
 
@@ -326,11 +333,11 @@ def plot_result(vnr_out, out_file, show_plot=False):
     
 if __name__ == "__main__":
     args = parse_arguments()
-    print(f"input_file: {args.input_wav}, output_file: {args.output_bin}")
+    print(f"input_file: {args.input_wav}, output_file: {args.output_bin}, with_xscope_fileio={args.run_with_xscope_fileio}, show_plot={args.show_plot}")
     if args.run_with_xscope_fileio:
-        vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin)
+        vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin, parse_profile=True)
     else:
-        vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin)
+        vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin, parse_profile=True)
 
-    plot_result(vnr_out, args.input_wav)
+    plot_result(vnr_out, args.input_wav, show_plot=bool(args.show_plot))
 
