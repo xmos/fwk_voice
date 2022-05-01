@@ -153,7 +153,7 @@ class Endpoint(object):
     def publish_wav(self, array):
         self.num_frames = int(len(array)/FRAME_LENGTH)
         print("total frames = ",self.num_frames)
-        for i in range(0, len(array), FRAME_LENGTH):
+        for i in range(0, self.num_frames*FRAME_LENGTH, FRAME_LENGTH): 
             self.publish_frame(array[i : i + FRAME_LENGTH].tobytes())
 
 #TODO support both 16 and 32 bit wav files
