@@ -327,7 +327,7 @@ def plot_result(vnr_out, out_file, show_plot=False):
     fig_instance = plt.gcf()
     if show_plot:
         plt.show()
-    plotfile = f"plot_{os.path.splitext(os.path.basename(out_file))[0]}.png"
+    plotfile = f"vnr_example_plot_{os.path.splitext(os.path.basename(out_file))[0]}.png"
     fig_instance.savefig(plotfile)
 
     

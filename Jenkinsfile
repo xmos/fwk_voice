@@ -233,6 +233,13 @@ pipeline {
                 }
               }
             }
+            dir("${REPO}/examples/bare-metal/vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python host_app.py test_stream_1.wav out2.bin --run_with_xscope_fileio=1"
+                }
+              }
+            }
           }
         }
         stage('VNR test_wav_vnr') {
@@ -589,6 +596,8 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           //VNR artifacts
           archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           //Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
