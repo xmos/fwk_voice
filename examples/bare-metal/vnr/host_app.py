@@ -13,9 +13,19 @@ import argparse
 import shutil
 sys.path.append(os.path.join(os.getcwd(), "../shared_src/python"))
 import run_xcoreai
-import re
-import glob
-from collections import defaultdict
+import socket
+import subprocess
+import signal
+from profile import parse_profiling_info, parse_profile_log
+
+# How long in seconds we would expect xrun to open a port for the host app
+# The firmware will have already been loaded so 5s is more than enough
+# as long as the host CPU is not too busy. This can be quite long (10s+)
+# for a busy CPU
+XRUN_TIMEOUT = 20
+
+FRAME_LENGTH = 240
+CHUNK_SIZE = 256
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -26,10 +36,6 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
-
-FRAME_LENGTH = 240
-
-CHUNK_SIZE = 256
 
 PRINT_CALLBACK = ctypes.CFUNCTYPE(
     None, ctypes.c_ulonglong, ctypes.c_uint, ctypes.c_char_p
@@ -156,166 +162,47 @@ class Endpoint(object):
         for i in range(0, self.num_frames*FRAME_LENGTH, FRAME_LENGTH): 
             self.publish_frame(array[i : i + FRAME_LENGTH].tobytes())
 
-#TODO support both 16 and 32 bit wav files
-def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
-    sr, input_data_array = wavfile.read(input_file)
+def _get_open_port():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("localhost", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
 
-    if (sr != 16000):
-        print("[ERROR]Only 16kHz sample rate is supported")
-        assert 0
+def _test_port_is_open(port):
+    port_open = True
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.bind(("localhost", port))
+    except OSError:
+        port_open = False
+    s.close()
+    return port_open
 
-    if len(np.shape(input_data_array)) != 1:
-        print("[ERROR]Only single channel inputs are supported in this application")
-        assert 0
+def start_xrun(firmware_xe):
+    port = _get_open_port()
+    xrun_cmd = (
+        f"--xscope-port localhost:{port} {firmware_xe}"
+    )
+    xrun_proc = subprocess.Popen(["xrun"]+xrun_cmd.split())
+    print("Waiting for xrun", end="")
+    timeout = time.time() + XRUN_TIMEOUT
+    while _test_port_is_open(port):
+        print(".", end="", flush=True)
+        time.sleep(0.1)
+        if time.time() > timeout:
+            xrun_proc.kill()
+            assert 0, f"xrun timed out - took more than {XRUN_TIMEOUT} seconds to start"
+    return xrun_proc, port
 
-    input_file_length = len(input_data_array)
-
-    ep = Endpoint()
-    if ep.connect():
-        print("[ERROR]Failed to connect the endpoint")
-    else:
-        print("[HOST]Endpoint connected")
-        time.sleep(1)
-
-        ep.publish_wav(input_data_array)
-         
-        print("output_offset = ",ep.output_offset)
-        while not ep.is_done():
-            pass
-
-    done_msg = "DONE"
-    #err = ep.lib_xscope.xscope_ep_request_upload(ctypes.c_uint(len(done_msg)), ctypes.c_char_p(done_msg))
-    #print(err)
+def stop_xrun(xrun_proc):
+    xrun_proc.send_signal(signal.SIGINT)
+    time.sleep(2)
+    xrun_proc.kill()
     time.sleep(1)
-    ep.disconnect()
-    
-    print(len(ep.output_data_array), ep.output_data_array.dtype)
-    ep.output_data_array.astype(np.int32).tofile(output_file)
-    print('[HOST]END!')
 
-    if parse_profile:
-        parse_profiling_info(ep.stdo)
-    return ep.output_data_array
-
-'''
-output: profile_file contains profiling info for all frames.
-output: worst_case_file contains profiling info for worst case frame
-output: mapping_file contains the profiling index to tag string mapping. This is useful when adding a new prof() call to look-up indexes that are already used
-        in order to avoid duplicating indexes
-'''
-def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_file="worst_case.log"):
-    src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
-    profile_strings = {}
-    profile_regex = re.compile(r'\s*prof\s*\(\s*(\d+)\s*,\s*"(.*)"\s*\)\s*;')
-    #find all source files that might have a prof() function call
-    src_files = glob.glob(f'{src_folder}/**/*.c', recursive=True)
-    for file in src_files:
-        with open(file, 'r') as fd:
-            lines = fd.readlines()
-        for line in lines:
-            #look for prof(profiling_index, tag_string) type of calls
-            m = profile_regex.match(line)
-            if m:
-                if m.group(1) in profile_strings:
-                    print(f"Profiling index {m.group(1)} used more than once with tags '{profile_strings[m.group(1)]}' and '{m.group(2)}'.")
-                    assert(False)
-                #add to a dict[profile_index] = tag_string structure to create a integer index -> tag string mapping
-                profile_strings[m.group(1)] = m.group(2)
- 
-    #parse stdo output and for every frame, generate a dictionary that stores dict[tag_string] = timer_snapshot 
-    all_frames = []
-    tags = {} #dictionary that stores dict[tag_string] = timer_snapshot information
-    profile_regex = re.compile(r'Profile\s*(\d+)\s*,\s*(\d+)')
-    #look for start of frame
-    frame_regex = re.compile(r'frame\s*(\d+)')
-    frame_num = 0
-    for line in prof_stdo:
-        m = frame_regex.match(line)
-        if m:
-            if frame_num:
-                #append previous frames profiling info to all_frames
-                all_frames.append(tags)
-                tags = {} #reset tags
-            frame_num += 1
-        m = profile_regex.match(line)
-        if m:
-            prof_index = m.group(1)
-            prof_str = profile_strings[prof_index]
-            tags[profile_strings[m.group(1)]] = int(m.group(2))
-    
-    frame_num = 0
-    worst_case_frame = ()
-    worst_case_dict = defaultdict(lambda : {'cycles': 0, 'frame_num': -1}) #Worst case cycles and the frame at which they happen for every tag string
-    with open(profile_file, 'w') as fp:
-        fp.write(f'{"Tag":<44} {"Cycles":<12} {"% of total cycles":<10}\n')
-        for tags in all_frames: #look at framewise profiling information
-            fp.write(f"Frame {frame_num}\n")
-            total_cycles = 0
-            #convert from (start_ tag_string, timer_snapshot), (end_ tag_string, timer_snapshot) type information to (tag_string without start_ or end_ prefix, timer cycles between start_ and end_ tag_string) 
-            this_frame_tags = {} #structure to store this frame's dict[tag_string] = cycles_between_start_and_end info so that we can use it later to print cycles as well as % of overall cycles
-            worst_case_cycles = {} #Store (worst case cycles for every tag string, framenum for worst case cycles for that tag string)
-            for tag in tags:
-                if tag.startswith('start_'):
-                    end_tag = 'end_' + tag[6:]
-                    cycles = tags[end_tag] - tags[tag]
-                    this_frame_tags[tag[6:]] = cycles
-                    if worst_case_dict[tag[6:]]['cycles'] < cycles:
-                        worst_case_dict[tag[6:]] = {'cycles': cycles, 'frame_num': frame_num} 
-                    total_cycles += cycles
-            #this_frame is a tuple of (dictionary dict[tag_string] = cycles_between_start_and_end, total cycle count, frame_num)
-            this_frame = (this_frame_tags, total_cycles, frame_num)
-
-            #now write this frame's info in file
-            for key, value in this_frame[0].items():
-                fp.write(f'{key:<44} {value:<12} {round((value/float(this_frame[1]))*100,2):>10}% \n')
-            fp.write(f'{"TOTAL_CYCLES":<32} {this_frame[1]}\n')
-            if frame_num == 0:
-                worst_case_frame = this_frame
-            else:
-                if worst_case_frame[1] < this_frame[1]:
-                    worst_case_frame = this_frame
-            frame_num += 1
-        
-        total_cycles = 0
-        for key, val in worst_case_dict.items():
-            total_cycles = total_cycles + val['cycles']
-        
-        name = "Function"
-        worst_case ="worst_case_frame"
-        cycles = "100MHz_timer_ticks"
-        mcps = "120MHz_processor_MCPS"
-        percent = "%_total"
-        with open(worst_case_file, 'w') as fp:
-            fp.write(f'{name:<24} {worst_case:<24} {cycles:<24} {mcps:<26} {percent}\n')
-            for key, val in worst_case_dict.items():
-                worst_case_frame = val['frame_num']
-                worst_case_cycles_100MHz_timer = val['cycles']
-                percentage_total = (float(worst_case_cycles_100MHz_timer)/total_cycles)*100
-                processor_cycles_120MHz = (float(worst_case_cycles_100MHz_timer)/100)*120
-                #0.015 is seconds_per_frame. 1/0.015 is the frames_per_second.
-                #processor_cycles_per_frame * frames_per_sec = processor_cycles_per_sec.
-                #processor_cycles_per_sec/1000000 => MCPS
-                mcps = (processor_cycles_120MHz/0.015)/1000000 
-                fp.write(f'{key:<24}: {worst_case_frame:<26} {round(worst_case_cycles_100MHz_timer,2):<24} {round(mcps,3):<24} {round(percentage_total, 3)}%\n')
-
-def parse_profiling_info(stdo):
-    xcore_stdo = []
-    #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
-    for line in stdo:
-        m = re.search(r'^\s*\[DEVICE\]', line)
-        if m is not None:
-            xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
-
-    #print(xcore_stdo)
-    parse_profile_log(xcore_stdo, worst_case_file=f"vnr_prof.log")
-    
-def run_with_xscope_fileio(input_file, output_file, parse_profile=False):
-    stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
-    if parse_profile:
-        parse_profiling_info(stdo)
-    shutil.copyfile("vnr_out.bin", output_file)
-    return np.fromfile(output_file, dtype=np.int32)
-
+   
 def plot_result(vnr_out, out_file, show_plot=False):
     #Plot VNR output
     mant = np.array(vnr_out[0::2], dtype=np.float64)
@@ -329,6 +216,55 @@ def plot_result(vnr_out, out_file, show_plot=False):
         plt.show()
     plotfile = f"vnr_example_plot_{os.path.splitext(os.path.basename(out_file))[0]}.png"
     fig_instance.savefig(plotfile)
+
+
+def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
+    # Get input data
+    sr, input_data_array = wavfile.read(input_file)
+    assert(sr == 16000), "[ERROR]Only 16kHz sample rate is supported"
+    assert(len(np.shape(input_data_array)) == 1), "[ERROR]Only single channel inputs are supported in this application" 
+    if input_data_array.dtype == np.int16:
+        input_data_array = np.array(input_data_array << 16, dtype=np.int32)
+    assert(input_data_array.dtype == np.int32), "[ERROR] Only 16bit or 32bit wav files supported"
+    
+    # Start device
+    firmware_xe = "../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr.xe"
+    xrun_proc, port = start_xrun(firmware_xe)
+    
+    # Start host app
+    print("Starting host app...", end="\n")
+    ep = Endpoint()
+    if ep.connect(port=str(port)):
+        print("[ERROR]Failed to connect the endpoint")
+    else:
+        print("[HOST]Endpoint connected")
+        time.sleep(1)
+        ep.publish_wav(input_data_array)
+        print("output_offset = ",ep.output_offset)
+        while not ep.is_done():
+            pass
+
+    done_msg = "DONE"
+    time.sleep(1)
+    ep.disconnect()
+    ep.output_data_array.astype(np.int32).tofile(output_file)
+    print('[HOST]END!')
+
+    # Stop xrun process
+    stop_xrun(xrun_proc)
+    
+    # Parse and log profiling info
+    if parse_profile:
+        parse_profiling_info(ep.stdo)
+    return ep.output_data_array
+
+
+def run_with_xscope_fileio(input_file, output_file, parse_profile=False):
+    stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
+    if parse_profile:
+        parse_profiling_info(stdo)
+    shutil.copyfile("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
+    return np.fromfile(output_file, dtype=np.int32)
 
     
 if __name__ == "__main__":
