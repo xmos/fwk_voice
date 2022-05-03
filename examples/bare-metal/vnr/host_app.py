@@ -199,6 +199,10 @@ def start_xrun(firmware_xe):
 def stop_xrun(xrun_proc):
     xrun_proc.send_signal(signal.SIGINT)
     time.sleep(2)
+    xrun_proc.send_signal(signal.SIGINT)
+    time.sleep(1)
+    xrun_proc.send_signal(signal.SIGINT)
+    time.sleep(2)
     xrun_proc.kill()
     time.sleep(1)
 

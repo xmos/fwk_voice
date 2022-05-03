@@ -50,7 +50,6 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
             tags[profile_strings[m.group(1)]] = int(m.group(2))
     
     frame_num = 0
-    worst_case_frame = ()
     worst_case_dict = defaultdict(lambda : {'cycles': 0, 'frame_num': -1}) #Worst case cycles and the frame at which they happen for every tag string
     with open(profile_file, 'w') as fp:
         fp.write(f'{"Tag":<44} {"Cycles":<12} {"% of total cycles":<10}\n')
@@ -62,11 +61,12 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
             worst_case_cycles = {} #Store (worst case cycles for every tag string, framenum for worst case cycles for that tag string)
             for tag in tags:
                 if tag.startswith('start_'):
-                    end_tag = 'end_' + tag[6:]
+                    tag_string = tag[6:] #Extract the string id after the start_. Eg. start_vnr_init has tag_string vnr_init.
+                    end_tag = 'end_' + tag_string
                     cycles = tags[end_tag] - tags[tag]
-                    this_frame_tags[tag[6:]] = cycles
-                    if worst_case_dict[tag[6:]]['cycles'] < cycles:
-                        worst_case_dict[tag[6:]] = {'cycles': cycles, 'frame_num': frame_num} 
+                    this_frame_tags[tag_string] = cycles
+                    if worst_case_dict[tag_string]['cycles'] < cycles: # Update worst case cycles and framenum for that string id.
+                        worst_case_dict[tag_string] = {'cycles': cycles, 'frame_num': frame_num} 
                     total_cycles += cycles
             #this_frame is a tuple of (dictionary dict[tag_string] = cycles_between_start_and_end, total cycle count, frame_num)
             this_frame = (this_frame_tags, total_cycles, frame_num)
@@ -75,11 +75,6 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
             for key, value in this_frame[0].items():
                 fp.write(f'{key:<44} {value:<12} {round((value/float(this_frame[1]))*100,2):>10}% \n')
             fp.write(f'{"TOTAL_CYCLES":<32} {this_frame[1]}\n')
-            if frame_num == 0:
-                worst_case_frame = this_frame
-            else:
-                if worst_case_frame[1] < this_frame[1]:
-                    worst_case_frame = this_frame
             frame_num += 1
         
         total_cycles = 0
