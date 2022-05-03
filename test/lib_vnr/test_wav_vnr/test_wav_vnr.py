@@ -12,10 +12,12 @@ import sys
 import audio_wav_utils as awu
 import subprocess
 sys.path.append(os.path.join(os.getcwd(), "../../../examples/bare-metal/shared_src/python"))
+sys.path.append(os.path.join(os.getcwd(), "../../shared/python"))
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
 import glob
 import pytest
+import py_vs_c_utils as pvc
 
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 print(hydra_audio_path)
@@ -174,7 +176,40 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
         framecount = framecount + 1
     
     #################################################################################
+    #print(ref_new_slice.shape, dut_new_slice.shape, ref_norm_patch.shape, dut_norm_patch.shape, ref_tflite_output.shape, dut_tflite_output.shape)
+    #print(ref_new_slice.dtype, dut_new_slice.dtype, ref_norm_patch.dtype, dut_norm_patch.dtype, ref_tflite_output.dtype, dut_tflite_output.dtype)
+    
+    output_file = "temp.wav"
+    # new_slice
+    output_wav_data = np.zeros((2, len(ref_new_slice)))
+    output_wav_data[0,:] = ref_new_slice
+    output_wav_data[1,:] = dut_new_slice
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"new_slice: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "new_slice geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "new_slice arith_closeness below pass threshold"
 
+    # norm_patch
+    output_wav_data = np.zeros((2, len(ref_norm_patch)))
+    output_wav_data[0,:] = ref_norm_patch
+    output_wav_data[1,:] = dut_norm_patch
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
+
+    # tflite_output
+    output_wav_data = np.zeros((2, len(ref_tflite_output)))
+    output_wav_data[0,:] = ref_tflite_output
+    output_wav_data[1,:] = dut_tflite_output
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "tflite_output arith_closeness below pass threshold"
+    
     # Calculate and print various ref-dut differences
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_norm_patch_diff_per_frame = np.empty(0, dtype=np.float64)

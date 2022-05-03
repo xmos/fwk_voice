@@ -166,15 +166,6 @@ pipeline {
         }
         stage('Examples') {
           steps {
-            dir("${REPO}/examples/bare-metal/vnr") {
-              viewEnv() {
-                withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1"
-                  sh "python host_app.py test_stream_1.wav vnr_out1.bin"
-                  sh "diff vnr_out1.bin vnr_out2.bin"
-                }
-              }
-            }
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
@@ -239,6 +230,15 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
+                  sh "diff vnr_out1.bin vnr_out2.bin"
                 }
               }
             }
