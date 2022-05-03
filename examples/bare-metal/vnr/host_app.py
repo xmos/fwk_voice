@@ -181,9 +181,10 @@ def _test_port_is_open(port):
     return port_open
 
 def start_xrun(firmware_xe):
+    adapter_id = run_xcoreai.get_adapter_id()
     port = _get_open_port()
     xrun_cmd = (
-        f"--xscope-port localhost:{port} {firmware_xe}"
+        f"--xscope-port localhost:{port} --adapter-id {adapter_id} {firmware_xe}"
     )
     xrun_proc = subprocess.Popen(["xrun"]+xrun_cmd.split())
     print("Waiting for xrun", end="")
