@@ -8,7 +8,6 @@ import sys
 import os
 import shutil
 import tempfile
-from json_utils import json_to_dict
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
