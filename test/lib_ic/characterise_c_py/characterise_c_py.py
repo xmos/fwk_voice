@@ -11,7 +11,7 @@ import tempfile
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic')
+py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/python/')
 
 sys.path.append(att_path)
 sys.path.append(py_ic_path)
