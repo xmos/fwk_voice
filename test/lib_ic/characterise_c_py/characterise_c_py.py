@@ -103,11 +103,11 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
 
 def process_py(input_file, output_file, audio_dir="."):
-    config_file = os.path.join('test_json.json')
-    ic_params = json_to_dict(config_file)
+    config_file = 'test_json.json'
+
     test_wav_ic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
-                          ic_params)
+                          config_file)
 
 
 def process_c(input_file, output_file, audio_dir="."):
