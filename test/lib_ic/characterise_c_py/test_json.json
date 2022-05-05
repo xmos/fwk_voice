@@ -10,6 +10,6 @@
     "gamma" : 2.0,
     "leakage" : 0.995,
     "remove_NQ" : true,
-    "vnr_model" : "../py_vnr/model_output_0_0_2/trained_model.h5",
+    "vnr_model" : "../../../../py_vnr/model_output_0_0_2/trained_model.h5",
     "adaption_config": "IC_ADAPTION_ON"
 }
