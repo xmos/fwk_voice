@@ -8,6 +8,7 @@ import sys
 import os
 import shutil
 import tempfile
+from json_utils import json_to_dict
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
@@ -101,10 +102,12 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
     scipy.io.wavfile.write(file_path, SAMPLE_RATE, output)
 
 
-def process_py(input_file, output_file, x_channel_delay, audio_dir="."):
+def process_py(input_file, output_file, audio_dir="."):
+    config_file = os.path.join('test_json.json')
+    ic_params = json_to_dict(config_file)
     test_wav_ic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
-                          PHASES, x_channel_delay, FRAME_ADVANCE, PROC_FRAME_LENGTH, verbose=False)
+                          ic_params)
 
 
 def process_c(input_file, output_file, audio_dir="."):
@@ -151,14 +154,14 @@ def get_attenuation(input_file, output_file, audio_dir="."):
 
     return attenuation
 
-def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60, x_channel_delay):
+def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60):
     input_file = "input_{}.wav".format(test_id) # Required by test_wav_suppression.xe
     output_file_py = "output_{}_py.wav".format(test_id)
     output_file_c = "output_{}_c.wav".format(test_id)
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_theta, rt60)
-    process_py(input_file, output_file_py, x_channel_delay, audio_dir)
+    process_py(input_file, output_file_py, audio_dir)
     process_c(input_file, output_file_c, audio_dir)
 
     attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)
@@ -199,7 +202,7 @@ def main():
     start_time = time.time()
     args = parse_arguments()
     angle_theta = args.angle * np.pi/180
-    get_attenuation_c_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60, args.ic_delay)
+    get_attenuation_c_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60)
     print("--- {0:.2f} seconds ---".format(time.time() - start_time))
 
 

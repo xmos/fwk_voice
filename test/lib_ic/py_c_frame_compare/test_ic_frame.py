@@ -47,7 +47,7 @@ class ic_comparison:
         leakage = 0.995,
         y_channel_delay = x_channel_delay,
         remove_NQ = True,
-        adaptation_config = 'IC_ADAPTION_FORCE_ON'
+        adaption_config = 'IC_ADAPTION_FORCE_ON'
         )
 
         ic_test_lib.test_init()
