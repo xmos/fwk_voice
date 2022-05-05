@@ -11,7 +11,7 @@ import tempfile
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/python/')
+py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
 
 sys.path.append(att_path)
 sys.path.append(py_ic_path)
@@ -29,7 +29,7 @@ import scipy
 try:
     import test_wav_ic
 except ModuleNotFoundError:
-    print(f"Please install lib_interference_canceller at root of project to support model testing")
+    print(f"Please install py_ic at root of project to support model testing")
 
 import xtagctl, xscope_fileio
 

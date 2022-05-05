@@ -49,3 +49,4 @@ jinja2
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
 -e ./../audio_test_tools/python
 -e ./../py_vnr
+-e ./../py_ic/py_ic
