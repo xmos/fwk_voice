@@ -210,7 +210,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
 def test_wav_vnr(input_wav):
     #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
     # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
+    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
