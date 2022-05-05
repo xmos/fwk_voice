@@ -47,7 +47,7 @@ class ic_comparison:
         leakage = 0.995,
         y_channel_delay = x_channel_delay,
         remove_NQ = True,
-        vnr_model = '../../../../py_vnr/model_output_0_0_2/trained_model.h5'
+        vnr_model = '../../../../py_vnr/model_output_0_0_2/trained_model.h5',
         adaption_config = 'IC_ADAPTION_FORCE_ON'
         )
 
