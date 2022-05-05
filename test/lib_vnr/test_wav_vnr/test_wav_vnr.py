@@ -27,53 +27,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
-    parser.add_argument("tf_model", nargs='?', help="tf model")
     args = parser.parse_args()
     return args
-
-def tflite_predict(interpreter_tflite, input_patches):
-    interpreter_tflite.allocate_tensors()
-
-    # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]    
-
-    # quantization spec
-    if input_details["dtype"] in [np.int8, np.uint8]:
-        input_scale, input_zero_point = input_details["quantization"]
-    else:
-        assert(False),"Error: Only 8bit input supported"
-    if output_details["dtype"] in [np.int8, np.uint8]:
-        output_scale, output_zero_point = output_details["quantization"]
-    else:
-        assert(False),"Error: Only 8bit output supported"
-
-    predict_tflite = np.zeros(input_patches.shape[0])
-
-    for n in range(len(predict_tflite)):
-        this_patch = input_patches[n:n+1]
-
-        # quantize and set type as required 
-        if input_details['dtype'] in [np.int8, np.uint8]:            
-            this_patch = this_patch / input_scale + input_zero_point
-            this_patch = np.round(this_patch)
-        this_patch = this_patch.astype(input_details["dtype"])
-
-        # set the input tensor to a test_audio slice
-        interpreter_tflite.set_tensor(input_details['index'], this_patch)
-
-        # run the model
-        interpreter_tflite.invoke()
-
-        # get output
-        output_data = interpreter_tflite.get_tensor(output_details['index'])
-
-        # dequantize output as required
-        if output_details['dtype'] in [np.int8, np.uint8]:
-            output_data_float = output_data.astype(np.float64)
-            output_data_float = (output_data_float - output_zero_point)*output_scale
-        predict_tflite[n] = output_data_float[0, 0]
-    return predict_tflite[0]
 
 def print_model_details(interpreter_tflite):
     input_details = interpreter_tflite.get_input_details()[0]
@@ -93,14 +48,14 @@ def print_model_details(interpreter_tflite):
     print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
 
 
-def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
+def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
     print_model_details(interpreter_tflite)
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.Vnr(model_file=tf_model) 
+        vnr_obj = vnr.Vnr(model_file=tflite_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -172,7 +127,7 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
         ref_norm_patch = np.append(ref_norm_patch, normalised_patch)
 
         #print("python normalised_patch\n",normalised_patch)
-        ref_tflite_output = np.append(ref_tflite_output, tflite_predict(interpreter_tflite, normalised_patch))
+        ref_tflite_output = np.append(ref_tflite_output, vnr_obj.run(normalised_patch))
         framecount = framecount + 1
     
     #################################################################################
@@ -255,10 +210,9 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
 def test_wav_vnr(input_wav):
     #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
     # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
+    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
-    print("tflite_model = ",args.tf_model)    
-    run_test_wav_vnr(args.input_wav, args.tflite_model, args.tf_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, args.tflite_model, plot_results=False)
