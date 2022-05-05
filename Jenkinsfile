@@ -235,14 +235,18 @@ pipeline {
             }
           }
         }
-        stage('IC Python C equivalence') {
+        stage('IC characterisation') {
           steps {
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+            dir("${REPO}/test/lib_ic/characterise_c_py") {
               viewEnv() {
                 withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
+                  //This test compares the suppression performance across angles between model and C implementation
+                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
+                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
                   junit "pytest_result.xml"
+                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+                  // sh "python sweep_ic_delay.py"
                 }
               }
             }
@@ -349,6 +353,19 @@ pipeline {
             }
           }
         }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('IC test profile') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
@@ -380,23 +397,6 @@ pipeline {
                 }
               }
               archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
-            }
-          }
-        }
-        stage('IC characterisation') {
-          steps {
-            dir("${REPO}/test/lib_ic/characterise_c_py") {
-              viewEnv() {
-                withVenv {
-                  //This test compares the suppression performance across angles between model and C implementation
-                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
-                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
-                  junit "pytest_result.xml"
-                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
-                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
-                  // sh "python sweep_ic_delay.py"
-                }
-              }
             }
           }
         }
