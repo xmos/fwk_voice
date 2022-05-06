@@ -10,11 +10,11 @@ import shutil
 import tempfile
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
-att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
+#att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
+#py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
 
-sys.path.append(att_path)
-sys.path.append(py_ic_path)
+#sys.path.append(att_path)
+#sys.path.append(py_ic_path)
 
 from audio_generation import get_band_limited_noise, write_data
 import subprocess
@@ -27,7 +27,7 @@ import pyroomacoustics as pra
 import scipy
 
 try:
-    import test_wav_ic
+    import py_ic.test_wav_ic as twic
 except ModuleNotFoundError:
     print(f"Please install py_ic at root of project to support model testing")
 
@@ -104,7 +104,8 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 def process_py(input_file, output_file, audio_dir="."):
     config_file = 'test_json.json'
 
-    test_wav_ic.test_file(os.path.join(audio_dir, input_file),
+    #test_wav_ic.test_file
+    twic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
                           config_file)
 
