@@ -121,7 +121,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
 
         out_spect = vnr_obj.make_slice(X_spect)
         ref_new_slice = np.append(ref_new_slice, out_spect)
-
+        
         vnr_obj.add_new_slice(out_spect, buffer_number=0)
         normalised_patch = vnr_obj.normalise_patch(vnr_obj.feature_buffers[0])
         ref_norm_patch = np.append(ref_norm_patch, normalised_patch)

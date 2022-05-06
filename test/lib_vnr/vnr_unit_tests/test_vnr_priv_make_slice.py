@@ -18,7 +18,7 @@ def test_vnr_priv_make_slice():
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))    
     min_int = -2**31
     max_int = 2**31
-    test_frames = 20
+    test_frames = 2048
 
     x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)    
     ref_output_float = np.empty(0, dtype=np.float64)
@@ -58,7 +58,7 @@ def test_vnr_priv_make_slice():
     print(f"max diff percent = {np.max(percent_diff)*100}%", " max int diff = ",np.max(np.abs(dut_output_int - ref_output_int)), "all_close = ",np.allclose(dut_output_float, ref_output_float, rtol=0.05))
     plt.plot(ref_output_float)
     plt.plot(dut_output_float)
-    plt.show()
+    #plt.show()
 
 if __name__ == "__main__":
     test_vnr_priv_make_slice()
