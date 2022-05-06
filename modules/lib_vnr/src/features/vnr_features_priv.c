@@ -85,7 +85,6 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
         bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
-        spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter
         bfp_s32_t filter_subset;
@@ -111,7 +110,6 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
         //Create the bfp for spectrum subset
         bfp_s32_t spect_subset;
         bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
-        spect_subset.hr = squared_mag.hr;
 
         //Create BFP for the filter
         bfp_s32_t filter_subset;
@@ -139,7 +137,8 @@ static const int lookup[33] = {
 };
 
 
-
+// Lookup table entries k=0,1,...,32:
+//lookup[k] = 256log2(1 + k/32)
 int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
