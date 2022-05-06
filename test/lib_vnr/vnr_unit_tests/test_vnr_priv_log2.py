@@ -1,0 +1,60 @@
+
+import numpy as np
+import data_processing.frame_preprocessor as fp
+import os
+import test_utils
+import matplotlib.pyplot as plt
+
+def test_vnr_priv_log2():
+    np.random.seed(1243)
+
+    # No. of int32 values sent to dut as input per frame
+    input_words_per_frame = fp.MEL_FILTERS*2 # MEL_FILTERS float_s32_t values 
+
+    # No. of int32 output values expected from dut per frame
+    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -8
+
+    input_data = np.empty(0, dtype=np.int32)
+    input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
+    min_int = -2**31
+    max_int = 2**31
+    test_frames = 2048
+
+    ref_output_float = np.empty(0, dtype=np.float64)
+    ref_output_int = np.empty(0, dtype=np.int32)
+    dut_output_float = np.empty(0, dtype=np.float64)
+    for itt in range(0,test_frames):
+        hr = np.random.randint(5)
+        data = np.zeros(fp.MEL_FILTERS*2, dtype=np.int32)
+        data[0::2] = np.random.randint(1, high=max_int, size=fp.MEL_FILTERS) # mant
+        data[0::2] = data[0::2] >> hr
+        data[1::2] = np.random.randint(-32, high=16) # exp
+        data = np.array(data, dtype=np.int32)
+        input_data = np.append(input_data, data)
+
+        # Ref log2 implementation
+        mant = data[0::2].astype(np.float64)
+        exp = data[1::2]
+        ref = mant * (2.0 ** exp)
+        y = np.log2(ref)
+        ref_output_float = np.append(ref_output_float, y)
+
+    op = test_utils.run_dut(input_data, "test_vnr_priv_log2", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_priv_log2.xe'))
+    dut_output_int = op.astype(np.int32)
+    dut_mant = op.astype(np.float64)
+    dut_exp = -24 # dut output is always 8.24
+    dut = test_utils.int32_to_double(dut_mant, dut_exp)
+    dut_output_float = np.append(dut_output_float, dut)
+    ref_output_int = test_utils.double_to_int32(ref_output_float, -24)
+
+    for fr in range(0, test_frames):
+        dut = dut_output_float[fr*fp.MEL_FILTERS : (fr+1)*fp.MEL_FILTERS]
+        ref = ref_output_float[fr*fp.MEL_FILTERS : (fr+1)*fp.MEL_FILTERS]
+        percent_diff = np.abs((dut_output_float - ref_output_float)/ref_output_float)
+        assert(np.allclose(dut, ref, rtol=0.05)), "ERROR: test_vnr_priv_log2 relative diff exceeds rtol=0.05"
+
+    percent_diff = np.abs((dut_output_float - ref_output_float)/ref_output_float)
+    print("max diff percent = ",np.max(percent_diff)*100, " max int diff = ",np.max(np.abs(dut_output_int - ref_output_int)), "all_close = ",np.allclose(dut_output_float, ref_output_float, rtol=0.05))
+
+if __name__ == "__main__":
+    test_vnr_priv_log2()
