@@ -12,7 +12,7 @@ def test_vnr_priv_log2():
     input_words_per_frame = fp.MEL_FILTERS*2 # MEL_FILTERS float_s32_t values 
 
     # No. of int32 output values expected from dut per frame
-    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -8
+    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -24
 
     input_data = np.empty(0, dtype=np.int32)
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
@@ -43,8 +43,8 @@ def test_vnr_priv_log2():
     dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24
-    dut = test_utils.int32_to_double(dut_mant, dut_exp)
-    dut_output_float = np.append(dut_output_float, dut)
+    d = test_utils.int32_to_double(dut_mant, dut_exp)
+    dut_output_float = np.append(dut_output_float, d)
     ref_output_int = test_utils.double_to_int32(ref_output_float, -24)
 
     for fr in range(0, test_frames):
