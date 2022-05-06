@@ -1,7 +1,7 @@
 {
     "frame_advance": 240,
     "proc_frame_length": 512,
-    "phases": 10,
+    "phases": 6,
     "mu" : 0.36956599983386695,
     "delta" : 7.450580593454381e-09,
     "y_channel_delay": 180,
