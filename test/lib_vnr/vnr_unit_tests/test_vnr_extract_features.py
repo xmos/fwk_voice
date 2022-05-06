@@ -54,19 +54,26 @@ def test_vnr_extract_features():
     for fr in range(0,test_frames):
         dut = test_utils.int32_to_double(dut_mants[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)], dut_exp[fr])
         ref = ref_output_float[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)]
-        #print(dut_exp[fr])
         dut_output_float = np.append(dut_output_float, dut)
-        #print(dut_output_float)
-        #print(np.abs(np.divide(ref_output_float - dut_output_float, ref_output_float+np.finfo(float).eps)))
+        
+        diff = np.abs((dut - ref))
+        relative_diff = np.abs((dut - ref)/(ref+np.finfo(float).eps))
+        assert(np.max(diff) < 0.005)
+        assert(np.max(relative_diff) < 0.15)
+        ii = np.where(relative_diff > 0.05)
+        if len(ii[0]):
+            for index in ii[0]:
+                print(f"frame {fr}. diff = {diff[index]}, ref {ref[index]} dut {dut[index]}")
+        
         output_file = "temp.wav"
         # new_slice
         output_wav_data = np.zeros((2, len(ref)))
         output_wav_data[0,:] = ref
         output_wav_data[1,:] = dut
         scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-        arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
-        assert(geo_closeness > 0.998), "new_slice geo_closeness below pass threshold"
-        assert(arith_closeness > 0.998), "new_slice arith_closeness below pass threshold"
+        arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
+        assert(geo_closeness > 0.999), f"ERROR: frame {fr}. new_slice geo_closeness below pass threshold"
+        assert(arith_closeness > 0.999), f"ERROR: frame {fr}. new_slice arith_closeness below pass threshold"
     
     diff = np.abs((dut_output_float - ref_output_float))
     percent_diff = np.abs((dut_output_float - ref_output_float)/(ref_output_float+np.finfo(float).eps))

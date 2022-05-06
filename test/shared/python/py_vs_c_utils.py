@@ -59,7 +59,8 @@ def pcm_closeness_metric(input_file, verbose=True):
     #Extract a section from the middle and do full cross correlation to estimate delay
     num_samples_to_correlate = 16000
     if num_samples_to_correlate > file_length:
-        print(f"Warning - insufficient samples {file_length} to estimate delay. Need {num_samples_to_correlate}.", file=sys.stderr)
+        if verbose:
+            print(f"Warning - insufficient samples {file_length} to estimate delay. Need {num_samples_to_correlate}.", file=sys.stderr)
         c_delay = None
         peak2ave = None
     else:
