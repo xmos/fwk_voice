@@ -10,15 +10,15 @@ import sys
 import os
 import warnings
 
-py_env = os.environ.copy()
-sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
-                            "audio_test_tools/python",
-                            "lib_interference_canceller/python",
-                            "lib_vad/python",
-                            "lib_audio_pipelines/python",
-                            ]
-                         ]
-py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
+#py_env = os.environ.copy()
+#sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
+#                            "audio_test_tools/python",
+#                            "lib_interference_canceller/python",
+#                            "lib_vad/python",
+#                            "lib_audio_pipelines/python",
+#                            ]
+#                         ]
+#py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
 
 from scipy.signal import convolve
 import scipy.io.wavfile
@@ -141,7 +141,7 @@ def process_py(input_data, test_name):
     ic_parameters = json_to_dict(config_file)
     ic_parameters['phases'] = 10
 
-    output = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
+    output, Mu, Input_vnr_pred, Output_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
