@@ -12,12 +12,8 @@ from ic_test_py import ffi
 import ic_test_py.lib as ic_test_lib
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
-#att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-#py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
 pvc_path = os.path.join(package_dir, '../../shared/python')
 
-#sys.path.append(att_path)
-#sys.path.append(py_ic_path)
 sys.path.append(pvc_path)
 try:
     import IC
@@ -30,7 +26,7 @@ import py_vs_c_utils as pvc
 proc_frame_length = 512
 frame_advance = 240
 num_phases = 10
-y_channel_delay = 180 #For python only, this is already compiled into the C lib
+y_channel_delay = 180
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 

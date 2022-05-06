@@ -28,6 +28,7 @@ import pytest
 import subprocess
 import numpy as np
 import filters
+from common_utils import json_to_dict
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
@@ -134,12 +135,13 @@ def write_output(test_name, output, c_or_py):
 
 
 def process_py(input_data, test_name):
-    phases = 10
-    x_channel_delay = 180
+
     file_length = input_data.shape[1]
-    output = test_wav_ic.test_data(input_data, 16000, file_length, phases,
-                                   x_channel_delay, frame_advance=frame_advance,
-                                   proc_frame_length=proc_frame_length, verbose=False)
+    config_file = '../characterise_c_py/test_json.json'
+    ic_parameters = json_to_dict(config_file)
+    ic_parameters['phases'] = 10
+
+    output = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
