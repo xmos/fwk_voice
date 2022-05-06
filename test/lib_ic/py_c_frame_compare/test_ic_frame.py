@@ -4,7 +4,6 @@
 import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
-import ctypes
 import pytest
 import sys, os
 
@@ -13,21 +12,25 @@ from ic_test_py import ffi
 import ic_test_py.lib as ic_test_lib
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
-att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
+#att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
+#py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
 pvc_path = os.path.join(package_dir, '../../shared/python')
 
-sys.path.append(att_path)
-sys.path.append(py_ic_path)
+#sys.path.append(att_path)
+#sys.path.append(py_ic_path)
 sys.path.append(pvc_path)
-import IC
+try:
+    import IC
+except ModuleNotFoundError:
+    print(f"Please install py_ic at root of project to support model testing")
+
 import py_vs_c_utils as pvc 
 
 
 proc_frame_length = 512
 frame_advance = 240
 num_phases = 10
-x_channel_delay = 180 #For python only, this is already compiled into the C lib
+y_channel_delay = 180 #For python only, this is already compiled into the C lib
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 
@@ -45,7 +48,7 @@ class ic_comparison:
         lamda = 0.9995117188,
         gamma = 2.0,
         leakage = 0.995,
-        y_channel_delay = x_channel_delay,
+        y_channel_delay = y_channel_delay,
         remove_NQ = True,
         vnr_model = '../../../../py_vnr/model_output_0_0_2/trained_model.h5',
         adaption_config = 'IC_ADAPTION_FORCE_ON'

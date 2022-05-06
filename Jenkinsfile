@@ -244,6 +244,19 @@ pipeline {
             }
           }
         }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('IC characterisation') {
           steps {
             dir("${REPO}/test/lib_ic/characterise_c_py") {
@@ -356,19 +369,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('IC Python C equivalence') {
-          steps {
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
               }

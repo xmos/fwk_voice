@@ -2,22 +2,12 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from __future__ import division
 from __future__ import print_function
-from builtins import str
 from builtins import range
-import sys
 import os
 import shutil
 import tempfile
 
-package_dir = os.path.dirname(os.path.abspath(__file__))
-#att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-#py_ic_path = os.path.join(package_dir,'../../../../py_ic/py_ic/')
-
-#sys.path.append(att_path)
-#sys.path.append(py_ic_path)
-
-from audio_generation import get_band_limited_noise, write_data
-import subprocess
+from audio_generation import get_band_limited_noise
 import time
 import numpy as np
 import scipy.io.wavfile as wavfile
