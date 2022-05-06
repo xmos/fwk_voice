@@ -27,7 +27,7 @@ import pyroomacoustics as pra
 import scipy
 
 try:
-    import py_ic.test_wav_ic as twic
+    import test_wav_ic as twic
 except ModuleNotFoundError:
     print(f"Please install py_ic at root of project to support model testing")
 
