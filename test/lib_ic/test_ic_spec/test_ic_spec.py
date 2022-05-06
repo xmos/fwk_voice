@@ -215,7 +215,7 @@ def get_suppression_arr(input_audio, output_audio):
     for i in np.arange(0, num_frames*frame_advance, frame_advance):
         i = int(i)
         in_rms = rms(input_audio[0][i:i+frame_advance])
-        out_rms = rms(output_audio[0][i:i+frame_advance])
+        out_rms = rms(output_audio[i:i+frame_advance])
         if in_rms == 0 or out_rms == 0:
             suppression_db = 0.0
         elif i - frame_advance < ICSpec.expected_delay:
