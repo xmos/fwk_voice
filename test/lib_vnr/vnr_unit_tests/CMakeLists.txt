@@ -2,7 +2,7 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 
-set(COMMON_SOURCES_C src/main.c)
+set(COMMON_SOURCES_C src/main.c ${CMAKE_SOURCE_DIR}/modules/lib_vnr/src/inference/vnr_inference_priv.cc)
 set(COMMON_SOURCES_XC src/main.xc)
 
 set(APP_COMPILER_FLAGS

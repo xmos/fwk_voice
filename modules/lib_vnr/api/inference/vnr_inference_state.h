@@ -6,7 +6,6 @@
 #include "inference_engine.h"
 
 #include "xs3_math.h"
-#include "bfp_math.h"
 #define TENSOR_ARENA_SIZE_BYTES 100000
 typedef struct {
     float_s32_t input_scale_inv; // 1/input_scale
