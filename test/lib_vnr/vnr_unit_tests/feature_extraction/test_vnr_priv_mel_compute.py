@@ -6,8 +6,7 @@ import test_utils
 import py_vnr.vnr as vnr
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
-def test_vnr_priv_mel_compute():
+def test_vnr_priv_mel_compute(tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
     
@@ -60,5 +59,3 @@ def test_vnr_priv_mel_compute():
     print(f"allclose = {np.allclose(dut_output_float, ref_output_float)}")
     print(f"Max diff = {np.max(np.abs(dut_output_int - ref_output_int))}")
 
-if __name__ == "__main__":
-    test_vnr_priv_mel_compute()

@@ -24,8 +24,7 @@ def quantise_patch(model_file, this_patch):
     if output_details["dtype"] in [np.int8, np.uint8]:
         output_scale, output_zero_point = output_details["quantization"]
 
-tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
-def test_vnr_extract_features(verbose=False):
+def test_vnr_extract_features(tflite_model, verbose=False):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -120,6 +119,3 @@ def test_vnr_extract_features(verbose=False):
     plt.plot(ref_normalised_output)
     plt.plot(dut_normalised_output)
     #plt.show()
-
-if __name__ == "__main__":
-    test_vnr_extract_features()

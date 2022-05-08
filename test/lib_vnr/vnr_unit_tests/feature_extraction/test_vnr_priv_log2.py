@@ -58,5 +58,3 @@ def test_vnr_priv_log2():
     print(f"max log2 output diff = {np.max(np.abs(dut_output_float - ref_output_float))}")
     print("max diff percent = ",np.max(percent_diff)*100, "all_close = ",np.allclose(dut_output_float, ref_output_float, rtol=0.05))
 
-if __name__ == "__main__":
-    test_vnr_priv_log2()

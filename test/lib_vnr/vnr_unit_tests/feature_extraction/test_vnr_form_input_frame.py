@@ -61,9 +61,3 @@ def test_vnr_form_input_frame():
         max_diff_imag = max(max_diff_imag, diff)
 
     print(f"max_diff: real {max_diff_real}, imag {max_diff_imag}")
-
-
-
-        
-if __name__ == "__main__":
-    test_vnr_form_input_frame()

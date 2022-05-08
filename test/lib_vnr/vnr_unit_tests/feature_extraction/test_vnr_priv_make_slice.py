@@ -5,8 +5,7 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
-def test_vnr_priv_make_slice():
+def test_vnr_priv_make_slice(tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -62,5 +61,3 @@ def test_vnr_priv_make_slice():
     plt.plot(dut_output_float)
     #plt.show()
 
-if __name__ == "__main__":
-    test_vnr_priv_make_slice()

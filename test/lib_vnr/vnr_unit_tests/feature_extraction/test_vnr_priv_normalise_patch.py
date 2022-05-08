@@ -5,8 +5,7 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
-def test_vnr_priv_add_new_slice():
+def test_vnr_priv_add_new_slice(tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -52,9 +51,3 @@ def test_vnr_priv_add_new_slice():
         max_diff = max(max_diff, diff)
 
     print("max_diff = ",max_diff)
-        
-
-        
-
-if __name__ == "__main__":
-    test_vnr_priv_add_new_slice()
