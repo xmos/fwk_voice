@@ -5,10 +5,6 @@ import py_vnr.run_wav_vnr as rwv
 import os
 import test_utils
 import matplotlib.pyplot as plt
-import scipy.io.wavfile
-import sys
-sys.path.append(os.path.join(os.getcwd(), "../../shared/python"))
-import py_vs_c_utils as pvc
 import tensorflow as tf
 
 def quantise_patch(model_file, this_patch):
@@ -95,20 +91,15 @@ def test_vnr_extract_features(verbose=False):
         
         diff = np.abs((dut - ref))
         relative_diff = np.abs((dut - ref)/(ref+np.finfo(float).eps))
-        assert(np.max(diff) < 0.005)
-        assert(np.max(relative_diff) < 0.15)
+        assert(np.max(diff) < 0.005), f"ERROR: test_vnr_extract_features. frame {fr} normalised features max diff exceeds threshold" 
+        assert(np.max(relative_diff) < 0.15), f"ERROR: test_vnr_extract_features. frame {fr} normalised features max relative diff exceeds threshold" 
         if verbose:
             ii = np.where(relative_diff > 0.05) 
             if len(ii[0]):
                 for index in ii[0]:
                     print(f"frame {fr}. diff = {diff[index]}, ref {ref[index]} dut {dut[index]}")
         
-        output_file = "temp.wav"
-        output_wav_data = np.zeros((2, len(ref)))
-        output_wav_data[0,:] = ref
-        output_wav_data[1,:] = dut
-        scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-        arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
+        arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref, dut)
         assert(geo_closeness > 0.999), f"ERROR: frame {fr}. normalised_output geo_closeness below pass threshold"
         assert(arith_closeness > 0.999), f"ERROR: frame {fr}. normalised_output arith_closeness below pass threshold"
 

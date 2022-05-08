@@ -140,7 +140,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     output_wav_data[0,:] = ref_new_slice
     output_wav_data[1,:] = dut_new_slice
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     #print(f"new_slice: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "new_slice geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "new_slice arith_closeness below pass threshold"
@@ -150,7 +150,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     output_wav_data[0,:] = ref_norm_patch
     output_wav_data[1,:] = dut_norm_patch
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     #print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
@@ -160,7 +160,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     output_wav_data[0,:] = ref_tflite_output
     output_wav_data[1,:] = dut_tflite_output
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     #print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "tflite_output arith_closeness below pass threshold"

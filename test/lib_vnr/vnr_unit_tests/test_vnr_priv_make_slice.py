@@ -53,9 +53,11 @@ def test_vnr_priv_make_slice():
         ref = ref_output_float[fr*fp.MEL_FILTERS : (fr+1)*fp.MEL_FILTERS]
         percent_diff = np.abs((dut_output_float - ref_output_float)/ref_output_float)
         assert(np.allclose(dut, ref, rtol=0.05)), "ERROR: test_vnr_priv_make_slice relative diff exceeds rtol=0.05"
+        assert(np.max(np.abs(dut-ref)) < 0.005), f"ERROR: test_vnr_priv_make_slice frame {fr}. make_slice diff exceeds 0.005"
 
     percent_diff = np.abs((dut_output_float - ref_output_float)/ref_output_float)
-    print(f"max diff percent = {np.max(percent_diff)*100}%", " max int diff = ",np.max(np.abs(dut_output_int - ref_output_int)), "all_close = ",np.allclose(dut_output_float, ref_output_float, rtol=0.05))
+    print(f"max make_slice output diff = {np.max(np.abs(dut_output_float - ref_output_float))}")
+    print(f"max diff percent = {np.max(percent_diff)*100}%", " max int diff = ", "all_close = ",np.allclose(dut_output_float, ref_output_float, rtol=0.05))
     plt.plot(ref_output_float)
     plt.plot(dut_output_float)
     #plt.show()
