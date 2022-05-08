@@ -34,7 +34,7 @@ def test_vnr_form_input_frame():
         ref_output = np.append(ref_output, X_spect)
         
         
-    op = test_utils.run_dut(input_data, "test_vnr_form_input_frame", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_form_input_frame.xe')) # dut data has exponent followed by 257*2 data values
+    op = test_utils.run_dut(input_data, "test_vnr_form_input_frame", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_form_input_frame.xe')) # dut data has exponent followed by 257*2 data values
     
     # Separate out mantissas and exponents
     exp_indices = np.arange(0, len(op), output_words_per_frame) # Every (257*2 + 1)th value starting from index 0 is the exponent

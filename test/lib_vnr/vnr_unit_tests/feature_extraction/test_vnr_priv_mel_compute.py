@@ -6,7 +6,7 @@ import test_utils
 import py_vnr.vnr as vnr
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
+tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
 def test_vnr_priv_mel_compute():
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -44,7 +44,7 @@ def test_vnr_priv_mel_compute():
 
         ref_output_float = np.append(ref_output_float, out_spect)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_mel_compute", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_priv_mel_compute.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_mel_compute", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_priv_mel_compute.xe'))
     mant = op[0::2].astype(np.float64)
     exp = op[1::2]
     dut_output_float = mant * (2.0 ** exp)

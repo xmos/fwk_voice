@@ -5,7 +5,7 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
+tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
 def test_vnr_priv_add_new_slice():
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -34,7 +34,7 @@ def test_vnr_priv_add_new_slice():
         normalised_patch = vnr_obj.normalise_patch(vnr_obj.feature_buffers[0])
         ref_output_float = np.append(ref_output_float, normalised_patch)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_normalise_patch", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_priv_normalise_patch.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_normalise_patch", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_priv_normalise_patch.xe'))
 
     exp_indices = np.arange(0, len(op), output_words_per_frame) # Every (257*2 + 1)th value starting from index 0 is the exponent
     exp_indices = exp_indices.astype(np.int32)

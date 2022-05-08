@@ -5,7 +5,7 @@ import xtagctl
 import os
 import tempfile
 import sys
-sys.path.append(os.path.join(os.getcwd(), "../../shared/python"))
+sys.path.append(os.path.join(os.getcwd(), "../../../shared/python"))
 import py_vs_c_utils as pvc
 import scipy.io.wavfile
 

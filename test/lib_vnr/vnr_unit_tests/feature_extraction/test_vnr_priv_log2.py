@@ -39,7 +39,7 @@ def test_vnr_priv_log2():
         y = np.log2(ref)
         ref_output_float = np.append(ref_output_float, y)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_log2", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_priv_log2.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_log2", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_priv_log2.xe'))
     dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24

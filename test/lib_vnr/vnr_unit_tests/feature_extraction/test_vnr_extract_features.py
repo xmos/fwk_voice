@@ -24,7 +24,7 @@ def quantise_patch(model_file, this_patch):
     if output_details["dtype"] in [np.int8, np.uint8]:
         output_scale, output_zero_point = output_details["quantization"]
 
-tflite_model = os.path.abspath("../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
+tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
 def test_vnr_extract_features(verbose=False):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -61,7 +61,7 @@ def test_vnr_extract_features(verbose=False):
         ref_normalised_output = np.append(ref_normalised_output, normalised_patch)
         
     ref_quantised_output = quantise_patch(tflite_model, ref_normalised_output)
-    op = test_utils.run_dut(input_data, "test_vnr_extract_features", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_extract_features.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_extract_features", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_extract_features.xe'))
     # Deinterleave dut output into normalised and quantised patches
     sections = []
     ii = 0

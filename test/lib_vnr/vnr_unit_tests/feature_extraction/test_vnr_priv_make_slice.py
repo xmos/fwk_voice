@@ -5,7 +5,7 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 
-tflite_model = os.path.abspath("../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
+tflite_model = os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite")
 def test_vnr_priv_make_slice():
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -41,7 +41,7 @@ def test_vnr_priv_make_slice():
 
         ref_output_float = np.append(ref_output_float, new_slice)
         
-    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", os.path.abspath('../../../build/test/lib_vnr/vnr_unit_tests/bin/avona_test_vnr_priv_make_slice.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_priv_make_slice.xe'))
     dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24
