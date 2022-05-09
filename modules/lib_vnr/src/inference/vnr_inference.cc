@@ -7,6 +7,8 @@
 
 static struct tflite_micro_objects tflmo;
 
+// TODO: unsure why the stack can not be computed automatically here
+#pragma stackfunction 4000
 int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     auto *resolver = inference_engine_initialize(&ie_ptr->ie, (uint32_t *)&ie_ptr->tensor_arena, TENSOR_ARENA_SIZE_BYTES, (uint32_t *) vnr_model_data, vnr_model_data_len, &tflmo);
     resolver->AddConv2D();
@@ -34,6 +36,7 @@ int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
 }
 
 
+#pragma stackfunction 4000
 void vnr_inference(vnr_ie_state_t *ie_state, float_s32_t *vnr_output, bfp_s32_t *features) {
     // Quantise features to 8bit
     vnr_priv_feature_quantise(ie_state->input_buffer, features, &ie_state->ie_config);

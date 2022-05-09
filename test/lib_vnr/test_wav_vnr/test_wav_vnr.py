@@ -12,10 +12,12 @@ import sys
 import audio_wav_utils as awu
 import subprocess
 sys.path.append(os.path.join(os.getcwd(), "../../../examples/bare-metal/shared_src/python"))
+sys.path.append(os.path.join(os.getcwd(), "../../shared/python"))
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
 import glob
 import pytest
+import py_vs_c_utils as pvc
 
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 print(hydra_audio_path)
@@ -25,53 +27,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
-    parser.add_argument("tf_model", nargs='?', help="tf model")
     args = parser.parse_args()
     return args
-
-def tflite_predict(interpreter_tflite, input_patches):
-    interpreter_tflite.allocate_tensors()
-
-    # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]    
-
-    # quantization spec
-    if input_details["dtype"] in [np.int8, np.uint8]:
-        input_scale, input_zero_point = input_details["quantization"]
-    else:
-        assert(False),"Error: Only 8bit input supported"
-    if output_details["dtype"] in [np.int8, np.uint8]:
-        output_scale, output_zero_point = output_details["quantization"]
-    else:
-        assert(False),"Error: Only 8bit output supported"
-
-    predict_tflite = np.zeros(input_patches.shape[0])
-
-    for n in range(len(predict_tflite)):
-        this_patch = input_patches[n:n+1]
-
-        # quantize and set type as required 
-        if input_details['dtype'] in [np.int8, np.uint8]:            
-            this_patch = this_patch / input_scale + input_zero_point
-            this_patch = np.round(this_patch)
-        this_patch = this_patch.astype(input_details["dtype"])
-
-        # set the input tensor to a test_audio slice
-        interpreter_tflite.set_tensor(input_details['index'], this_patch)
-
-        # run the model
-        interpreter_tflite.invoke()
-
-        # get output
-        output_data = interpreter_tflite.get_tensor(output_details['index'])
-
-        # dequantize output as required
-        if output_details['dtype'] in [np.int8, np.uint8]:
-            output_data_float = output_data.astype(np.float64)
-            output_data_float = (output_data_float - output_zero_point)*output_scale
-        predict_tflite[n] = output_data_float[0, 0]
-    return predict_tflite[0]
 
 def print_model_details(interpreter_tflite):
     input_details = interpreter_tflite.get_input_details()[0]
@@ -91,14 +48,14 @@ def print_model_details(interpreter_tflite):
     print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
 
 
-def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
+def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
     print_model_details(interpreter_tflite)
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.Vnr(model_file=tf_model) 
+        vnr_obj = vnr.Vnr(model_file=tflite_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -170,11 +127,44 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
         ref_norm_patch = np.append(ref_norm_patch, normalised_patch)
 
         #print("python normalised_patch\n",normalised_patch)
-        ref_tflite_output = np.append(ref_tflite_output, tflite_predict(interpreter_tflite, normalised_patch))
+        ref_tflite_output = np.append(ref_tflite_output, vnr_obj.run(normalised_patch))
         framecount = framecount + 1
     
     #################################################################################
+    #print(ref_new_slice.shape, dut_new_slice.shape, ref_norm_patch.shape, dut_norm_patch.shape, ref_tflite_output.shape, dut_tflite_output.shape)
+    #print(ref_new_slice.dtype, dut_new_slice.dtype, ref_norm_patch.dtype, dut_norm_patch.dtype, ref_tflite_output.dtype, dut_tflite_output.dtype)
+    
+    output_file = "temp.wav"
+    # new_slice
+    output_wav_data = np.zeros((2, len(ref_new_slice)))
+    output_wav_data[0,:] = ref_new_slice
+    output_wav_data[1,:] = dut_new_slice
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"new_slice: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "new_slice geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "new_slice arith_closeness below pass threshold"
 
+    # norm_patch
+    output_wav_data = np.zeros((2, len(ref_norm_patch)))
+    output_wav_data[0,:] = ref_norm_patch
+    output_wav_data[1,:] = dut_norm_patch
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
+
+    # tflite_output
+    output_wav_data = np.zeros((2, len(ref_tflite_output)))
+    output_wav_data[0,:] = ref_tflite_output
+    output_wav_data[1,:] = dut_tflite_output
+    scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
+    #print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.98), "tflite_output arith_closeness below pass threshold"
+    
     # Calculate and print various ref-dut differences
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
     max_norm_patch_diff_per_frame = np.empty(0, dtype=np.float64)
@@ -220,10 +210,9 @@ def run_test_wav_vnr(input_file, tflite_model, tf_model, plot_results=False):
 def test_wav_vnr(input_wav):
     #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
     # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
+    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
-    print("tflite_model = ",args.tf_model)    
-    run_test_wav_vnr(args.input_wav, args.tflite_model, args.tf_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, args.tflite_model, plot_results=False)
