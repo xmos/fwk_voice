@@ -8,6 +8,8 @@ import sys
 sys.path.append(os.path.join(os.getcwd(), "../../../shared/python"))
 import py_vs_c_utils as pvc
 import scipy.io.wavfile
+import math
+import tensorflow as tf
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))
@@ -31,6 +33,12 @@ def int32_to_double(x, exp):
     y = x.astype(np.float64) * (2.0 ** exp)
     return y
 
+def double_to_float_s32(d):
+    m,e = math.frexp(d)
+    m_int = int(m * (2.0 ** 31))
+    e = e-31
+    return (m_int, e)
+
 def get_closeness_metric(ref, dut):
     tmp_folder = tempfile.mkdtemp(dir=".")
     prev_path = os.getcwd()
@@ -44,3 +52,18 @@ def get_closeness_metric(ref, dut):
     os.chdir(prev_path)
     os.system("rm -r {}".format(tmp_folder))
     return arith_closeness, geo_closeness
+
+def quantise_patch(model_file, this_patch):
+    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
+    # Get input and output tensors.
+    input_details = interpreter_tflite.get_input_details()[0]
+    output_details = interpreter_tflite.get_output_details()[0]
+    # quantization spec
+    assert(input_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for quantisation"
+    if input_details["dtype"] in [np.int8, np.uint8]:
+        input_scale, input_zero_point = input_details["quantization"]
+        this_patch = this_patch / input_scale + input_zero_point
+        this_patch = np.round(this_patch)
+        this_patch = this_patch.astype(input_details["dtype"])
+        return this_patch
+

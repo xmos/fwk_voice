@@ -7,23 +7,6 @@ import test_utils
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-def quantise_patch(model_file, this_patch):
-    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
-    # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]
-    # quantization spec
-    if input_details["dtype"] in [np.int8, np.uint8]:
-        input_scale, input_zero_point = input_details["quantization"]
-        this_patch = this_patch / input_scale + input_zero_point
-        this_patch = np.round(this_patch)
-        this_patch = this_patch.astype(input_details["dtype"])
-        return this_patch
-    else:
-        assert(False), "Need 8bit model for quantisation"
-    if output_details["dtype"] in [np.int8, np.uint8]:
-        output_scale, output_zero_point = output_details["quantization"]
-
 def test_vnr_extract_features(tflite_model, verbose=False):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -59,7 +42,7 @@ def test_vnr_extract_features(tflite_model, verbose=False):
         normalised_patch = rwv.extract_features(x_data, vnr_obj)
         ref_normalised_output = np.append(ref_normalised_output, normalised_patch)
         
-    ref_quantised_output = quantise_patch(tflite_model, ref_normalised_output)
+    ref_quantised_output = test_utils.quantise_patch(tflite_model, ref_normalised_output)
     op = test_utils.run_dut(input_data, "test_vnr_extract_features", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_extract_features.xe'))
     # Deinterleave dut output into normalised and quantised patches
     sections = []

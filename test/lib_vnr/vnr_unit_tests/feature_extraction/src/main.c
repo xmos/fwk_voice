@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "vnr_features_api.h"
 #include "fileio.h"
 #include "wav_utils.h"
 

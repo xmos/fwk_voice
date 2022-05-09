@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 #include "vnr_features_api.h"
-#include "vnr_inference_state.h" // TODO Hack. Local copy of vnr_inference_state.h included in the test instead of the the one in avona::vnr::inference
+#include "vnr_inference_state.h" // TODO Hack. Local copy of vnr_inference_state.h included in the test instead of the the one in avona::vnr::inference to be able to compile this test for x86
 
 extern void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config);
 extern void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config);
