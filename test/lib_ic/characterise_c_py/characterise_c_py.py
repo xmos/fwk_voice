@@ -36,7 +36,7 @@ import xtagctl, xscope_fileio
 NOISE_FLOOR_dBFS = -63.0
 SIGMA2_AWGN = ((10 ** (float(NOISE_FLOOR_dBFS)/20)) * np.iinfo(np.int32).max) ** 2
 
-PHASES = 6
+PHASES = 10
 FRAME_ADVANCE = 240
 PROC_FRAME_LENGTH = 512
 
