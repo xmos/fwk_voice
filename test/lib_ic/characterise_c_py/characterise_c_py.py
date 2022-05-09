@@ -26,10 +26,6 @@ import xtagctl, xscope_fileio
 NOISE_FLOOR_dBFS = -63.0
 SIGMA2_AWGN = ((10 ** (float(NOISE_FLOOR_dBFS)/20)) * np.iinfo(np.int32).max) ** 2
 
-PHASES = 10
-FRAME_ADVANCE = 240
-PROC_FRAME_LENGTH = 512
-
 SAMPLE_RATE = 16000
 SAMPLE_COUNT = 160080
 
@@ -94,7 +90,6 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 def process_py(input_file, output_file, audio_dir="."):
     config_file = 'char_test.json'
 
-    #test_wav_ic.test_file
     twic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
                           config_file)
@@ -134,9 +129,10 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     for i in range(len(in_power_l) // SAMPLE_RATE):
         window_start = i*SAMPLE_RATE
         window_end = window_start + SAMPLE_RATE
-        av_in_power_l = np.mean(in_power_l[window_start:window_end])
-        av_in_power_r = np.mean(in_power_r[window_start:window_end])
-        av_in_power = (av_in_power_l + av_in_power_r) / 2
+        #av_in_power_l = np.mean(in_power_l[window_start:window_end])
+        #av_in_power_r = np.mean(in_power_r[window_start:window_end])
+        #av_in_power = (av_in_power_l + av_in_power_r) / 2
+        av_in_power = np.mean(in_power_l[window_start:window_end])
 
         av_out_power = np.mean(out_power[window_start:window_end])
         new_atten = 10 * np.log10(av_in_power / av_out_power) if av_out_power != 0 else 1000
