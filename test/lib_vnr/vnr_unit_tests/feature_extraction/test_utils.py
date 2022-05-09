@@ -76,3 +76,23 @@ def dequantise_output(model_file, output_data):
     output_data = (output_data - output_zero_point)*output_scale
     return output_data
 
+def get_feature_patch_min_limit(model_file):
+    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
+    # Get input tensors.
+    input_details = interpreter_tflite.get_input_details()[0]
+    # quantization spec
+    assert (input_details["dtype"] in [np.int8, np.uint8]), "Only 8bit quantised tflite models supported"
+    input_scale, input_zero_point = input_details["quantization"]
+
+    # quant output = np.round(this_patch / input_scale + input_zero_point).astype(np.int8)
+    # quantisation output is in the range [-128,127]. Find the min and max values before quantisation that lead to -128 and 127 post quantisation
+    max_val = (127-input_zero_point)*input_scale
+    min_val = (-128-input_zero_point)*input_scale
+    print(f"max_val = {max_val}, min_val = {min_val}")
+    # We'll only test within input range [min_val, max_val]
+    assert(max_val == 0.0), "ERROR: Normalised features always have a max at 0dB"
+    min_mant, min_exp = double_to_float_s32(min_val)
+    return min_mant, min_exp
+
+
+

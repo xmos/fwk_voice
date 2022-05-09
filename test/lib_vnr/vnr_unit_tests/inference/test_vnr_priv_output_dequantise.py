@@ -40,7 +40,7 @@ def test_vnr_priv_output_dequantise(tflite_model):
         dut = dut_mant[fr]
         ref = int(ref_output_double[fr] * (2.0 ** -dut_exp[fr]))
         diff = np.abs(ref-dut)
-        assert(diff < 1)
+        assert(diff < 1), "ERROR: test_vnr_priv_output_dequantise frame {fr}. diff exceeds threshold"
     
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
 
