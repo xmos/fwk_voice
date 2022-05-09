@@ -15,8 +15,8 @@ def run_xtflm_interpreter(xcore_opt_model):
     #ie = xtflm.XTFLMInterpreter(model_path="xcore_opt.tflite")
     #print(f"Arena size = {ie.tensor_arena_size} bytes")
     ie = xtflm.XTFLMInterpreter(model_path=xcore_opt_model)
-    #ie.allocate_tensors()
-    print(f"Tensor arena size = {ie.tensor_arena_size} bytes")
+    ie.allocate_tensors()
+    print(f"Tensor arena size = {ie.tensor_arena_size} bytes", dir(ie))
 
 if __name__ == "__main__":
     args = parse_arguments()

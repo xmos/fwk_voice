@@ -67,3 +67,12 @@ def quantise_patch(model_file, this_patch):
         this_patch = this_patch.astype(input_details["dtype"])
         return this_patch
 
+def dequantise_output(model_file, output_data):
+    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
+    output_details = interpreter_tflite.get_output_details()[0]
+    assert(output_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for dequantisation"
+    output_scale, output_zero_point = output_details["quantization"]
+    output_data = output_data.astype(np.float64)
+    output_data = (output_data - output_zero_point)*output_scale
+    return output_data
+

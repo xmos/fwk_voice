@@ -72,7 +72,7 @@ def test_vnr_priv_feature_quantise(tflite_model):
         diff = np.max(np.abs(ref-dut))
         assert(diff < 1), "ERROR: test_vnr_priv_feature_quantise frame {fr}. diff exceeds 0"
 
-    print(np.max(np.abs(ref_output-dut_output)))
+    print("max_diff = ",np.max(np.abs(ref_output-dut_output)))
 
 if __name__ == "__main__":
     test_vnr_priv_feature_quantise(os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"))
