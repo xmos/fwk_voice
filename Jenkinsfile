@@ -164,6 +164,57 @@ pipeline {
             }
           }
         }
+        stage('IC Python C equivalence') {
+          steps {
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC characterisation') {
+          steps {
+            dir("${REPO}/test/lib_ic/characterise_c_py") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the suppression performance across angles between model and C implementation
+                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
+                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
+                  junit "pytest_result.xml"
+                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+                  // sh "python sweep_ic_delay.py"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test specification') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_ic_spec") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the model and C implementation over a range of scenarious for:
+                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
+                  //and expected group delay. It will fail if these are not met.
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                  sh "python print_stats.py > ic_spec_summary.txt"
+                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
+                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
+                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
+                  // sh "python plot_ic.py"
+                }
+              }
+              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
+            }
+          }
+        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -239,57 +290,6 @@ pipeline {
                   sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
                   sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
                   sh "diff vnr_out1.bin vnr_out2.bin"
-                }
-              }
-            }
-          }
-        }
-        stage('IC Python C equivalence') {
-          steps {
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('IC test specification') {
-          steps {
-            dir("${REPO}/test/lib_ic/test_ic_spec") {
-              viewEnv() {
-                withVenv {
-                  //This test compares the model and C implementation over a range of scenarious for:
-                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
-                  //and expected group delay. It will fail if these are not met.
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  sh "python print_stats.py > ic_spec_summary.txt"
-                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
-                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
-                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
-                  // sh "python plot_ic.py"
-                }
-              }
-              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
-            }
-          }
-        }
-        stage('IC characterisation') {
-          steps {
-            dir("${REPO}/test/lib_ic/characterise_c_py") {
-              viewEnv() {
-                withVenv {
-                  //This test compares the suppression performance across angles between model and C implementation
-                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
-                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
-                  junit "pytest_result.xml"
-                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
-                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
-                  // sh "python sweep_ic_delay.py"
                 }
               }
             }
