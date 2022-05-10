@@ -202,16 +202,16 @@ pipeline {
                   //This test compares the model and C implementation over a range of scenarious for:
                   //convergence_time, db_suppression, maximum noise added to input (to test for stability)
                   //and expected group delay. It will fail if these are not met.
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  sh "python print_stats.py > ic_spec_summary.txt"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
+                  //sh "python print_stats.py > ic_spec_summary.txt"
                   //This script generates a number of polar plots of attenuation vs null point angle vs freq
                   //It currently only uses the python model to do this. It takes about 40 mins for all plots
                   //and generates a series of IC_performance_xxxHz.svg files which could be archived
                   // sh "python plot_ic.py"
                 }
               }
-              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
+              //archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
@@ -220,76 +220,76 @@ pipeline {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/aec_2_threads") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   // Make sure 1 thread and 2 threads output is bitexact
-                  sh "diff output.wav ../aec_1_thread/output.wav"
+                  //sh "diff output.wav ../aec_1_thread/output.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/ic") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
-                  sh "mv output.wav ic_example_output.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
+                  //sh "mv output.wav ic_example_output.wav"
                 }
               }
-              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+              //archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
             }
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   // Make sure single thread and multi threads pipeline output is bitexact
-                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                  //sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  sh "mv output.wav output_st.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  //sh "mv output.wav output_st.wav"
 
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  sh "mv output.wav output_mt.wav"
-                  sh "diff output_st.wav output_mt.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  //sh "mv output.wav output_mt.wav"
+                  //sh "diff output_st.wav output_mt.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/vnr") {
               viewEnv() {
                 withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
-                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
-                  sh "diff vnr_out1.bin vnr_out2.bin"
+                  //sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
+                  //sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
+                  //sh "diff vnr_out1.bin vnr_out2.bin"
                 }
               }
             }
@@ -302,7 +302,7 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
-                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                        //sh "pytest -n 1 --junitxml=pytest_result.xml"
                     }
                   }
                 }
@@ -315,8 +315,8 @@ pipeline {
             dir("${REPO}/test/lib_vad/vad_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -327,8 +327,8 @@ pipeline {
             dir("${REPO}/test/lib_vad/compare_xc_c") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -s --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -339,11 +339,11 @@ pipeline {
             dir("${REPO}/test/lib_vad/test_vad_profile") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -s --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
-              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
+              //archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
             }
           }
         }
@@ -352,8 +352,8 @@ pipeline {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -365,8 +365,8 @@ pipeline {
               copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -377,8 +377,8 @@ pipeline {
             dir("${REPO}/test/lib_ns/ns_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 1 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -389,8 +389,8 @@ pipeline {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -401,11 +401,11 @@ pipeline {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
               viewEnv() {
                 withVenv {
-                  sh "pytest --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
-              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
+              //archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
@@ -416,9 +416,9 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      runPython("python build_c_code.py")
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
+                      //runPython("python build_c_code.py")
+                      //sh "pytest -s --junitxml=pytest_result.xml"
+                      //junit "pytest_result.xml"
                     }
                   }
                 }
@@ -431,8 +431,8 @@ pipeline {
             dir("${REPO}/test/lib_adec/de_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -447,9 +447,9 @@ pipeline {
                     withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
                       sh 'mkdir -p ./input_wavs/'
                       sh 'mkdir -p ./output_files/'
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                      runPython("python print_stats.py")
+                      //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      //junit "pytest_result.xml"
+                      //runPython("python print_stats.py")
                     }
                   }
                 }
@@ -464,8 +464,8 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
+                      //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      //junit "pytest_result.xml"
                     }
                   }
                 }
@@ -480,8 +480,8 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
+                      //sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      //junit "pytest_result.xml"
                     }
                   }
                 }
@@ -497,8 +497,8 @@ pipeline {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
                       sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
+                      //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      //junit "pytest_result.xml"
                     }
                   }
                 }
@@ -511,8 +511,8 @@ pipeline {
             dir("${REPO}/test/lib_aec/aec_unit_tests") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -529,17 +529,17 @@ pipeline {
                       sh 'mv excluded_tests_quick.txt excluded_tests.txt'
                     }
                   }
-                  sh "python generate_audio.py"
-                  sh "pytest -n 2 --junitxml=pytest_result.xml test_process_audio.py"
-                  sh "cp pytest_result.xml results_process.xml"
+                  //sh "python generate_audio.py"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml test_process_audio.py"
+                  //sh "cp pytest_result.xml results_process.xml"
                   catchError {
-                    sh "pytest --junitxml=pytest_result.xml test_check_output.py"
+                    //sh "pytest --junitxml=pytest_result.xml test_check_output.py"
                   }
-                  sh "cp pytest_result.xml results_check.xml"
-                  sh "python parse_results.py"
-                  sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
-                  sh "cp pytest_result.xml results_final.xml"
-                  junit "results_final.xml"
+                  //sh "cp pytest_result.xml results_check.xml"
+                  //sh "python parse_results.py"
+                  //sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
+                  //sh "cp pytest_result.xml results_final.xml"
+                  //junit "results_final.xml"
                 }
               }
             }
@@ -550,8 +550,8 @@ pipeline {
             dir("${REPO}/test/lib_agc/test_process_frame") {
               viewEnv() {
                 withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -562,8 +562,8 @@ pipeline {
             dir("${REPO}/test/test_hpf") {
               viewEnv() {
                 withVenv {
-                  sh "pytest --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -578,9 +578,9 @@ pipeline {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      //sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
-                      junit "pytest_result.xml"
+                      //junit "pytest_result.xml"
                       // Archive below (always section) even if fails
                     }
                   }
@@ -593,16 +593,18 @@ pipeline {
       post {
         always {
           //AEC aretfacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          //IC artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/characterise_c_py/*.wav", fingerprint true
           //VNR artifacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           //Pipelines tests
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
+          //archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
         }
         cleanup {
           cleanWs()
