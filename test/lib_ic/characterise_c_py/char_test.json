@@ -9,7 +9,7 @@
     "lamda" : 0.9995117188, 
     "gamma" : 2.0,
     "leakage" : 0.995,
-    "remove_NQ" : true,
+    "remove_NQ" : false,
     "vnr_model" : "../../../../py_vnr/model_output_0_0_2/trained_model.h5",
     "adaption_config": "IC_ADAPTION_FORCE_ON"
 }
