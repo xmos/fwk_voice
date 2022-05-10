@@ -15,7 +15,7 @@ def test_vnr_inference(tflite_model):
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent
-    output_words_per_frame = 2 # 1 int32 value out of which one byte is relevant
+    output_words_per_frame = 2
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
 
     min_mant, min_exp = test_utils.get_feature_patch_min_limit(tflite_model) # Exponent and mantissa of the minimum limit of the normalised patch. Quantisation will not work correctly for anything below this

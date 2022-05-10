@@ -34,7 +34,7 @@ def test_vnr_extract_features(tflite_model, verbose=False):
         data = np.array(data, dtype=np.int32)
         data = data >> hr
         input_data = np.append(input_data, data)
-        new_x_frame = data.astype(np.float64) * (2.0 ** -31) 
+        new_x_frame = test_utils.int32_to_double(data, -31)
 
         # Ref form input frame implementation
         x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
