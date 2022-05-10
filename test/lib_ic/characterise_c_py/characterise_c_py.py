@@ -123,7 +123,11 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     print(input_file, ' has ', in_channel_count, ' channels and ', in_wav_data.shape, 'shape')
     print(output_file, ' has ', out_channel_count, 'channels and ', out_wav_data.shape, 'shape')
     in_power = np.power(in_wav_data[0, :], 2)
-    out_power = np.power(out_wav_data[0, :], 2)
+    if len(out_wav_data.shape) > 1:
+        out_power = np.power(out_wav_data[0, :], 2)
+    else:
+        out_power = np.power(out_wav_data, 2)
+    #out_power = np.power(out_wav_data[0, :], 2)
 
     attenuation = []
 
