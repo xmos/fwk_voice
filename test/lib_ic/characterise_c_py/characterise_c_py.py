@@ -126,13 +126,13 @@ def get_attenuation(input_file, output_file, audio_dir="."):
 
     attenuation = []
 
-    for i in range(len(in_power_r) // SAMPLE_RATE):
+    for i in range(len(in_power_l) // SAMPLE_RATE):
         window_start = i*SAMPLE_RATE
         window_end = window_start + SAMPLE_RATE
         #av_in_power_l = np.mean(in_power_l[window_start:window_end])
         #av_in_power_r = np.mean(in_power_r[window_start:window_end])
         #av_in_power = (av_in_power_l + av_in_power_r) / 2
-        av_in_power = np.mean(in_power_r[window_start:window_end])
+        av_in_power = np.mean(in_power_l[window_start:window_end])
 
         av_out_power = np.mean(out_power[window_start:window_end])
         new_atten = 10 * np.log10(av_in_power / av_out_power) if av_out_power != 0 else 1000
