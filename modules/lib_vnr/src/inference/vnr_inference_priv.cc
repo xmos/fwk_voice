@@ -4,6 +4,15 @@
 #include <string.h>
 #include "vnr_inference_priv.h"
 
+void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config)
+{
+    ie_config->input_scale_inv = double_to_float_s32(1/0.10857683420181274); //from interpreter_tflite.get_input_details()[0] call in python 
+    ie_config->input_zero_point = double_to_float_s32(127);
+
+    ie_config->output_scale = double_to_float_s32(0.00390625); //from interpreter_tflite.get_output_details()[0] call in python 
+    ie_config->output_zero_point = double_to_float_s32(-128);
+}
+
 void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config) {
     // this_patch = this_patch / input_scale + input_zero_point        
     bfp_s32_scale(normalised_patch, normalised_patch, ie_config->input_scale_inv);

@@ -6,8 +6,13 @@
 #include "inference_engine.h"
 
 #include "xs3_math.h"
-#include "bfp_math.h"
-#define TENSOR_ARENA_SIZE_BYTES 100000
+
+// xmos-ai-tools version 0.1.8.dev93 has the fix for tensor_arena_size to indicate the actual scratch memory that is required by the inference engine
+//ie = xtflm.XTFLMInterpreter(model_path=xcore_opt_model)
+//ie.allocate_tensors()
+//print(f"Tensor arena size = {ie.tensor_arena_size} bytes", dir(ie))
+#define TENSOR_ARENA_SIZE_BYTES 22016
+
 typedef struct {
     float_s32_t input_scale_inv; // 1/input_scale
     float_s32_t input_zero_point;
