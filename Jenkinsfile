@@ -597,7 +597,7 @@ pipeline {
           //NS artefacts
           //archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           //IC artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_ic/characterise_c_py/*.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/characterise_c_py/pytest_audio/*.wav", fingerprint: true
           //VNR artifacts
           //archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
           //archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
