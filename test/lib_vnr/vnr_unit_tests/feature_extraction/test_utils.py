@@ -11,16 +11,22 @@ import py_vs_c_utils as pvc
 import scipy.io.wavfile
 import math
 import tensorflow as tf
+import subprocess
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
     input_data.astype(np.int32).tofile("input.bin")
-    with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-        xscope_fileio.run_on_target(adapter_id, xe)
-        with open("output.bin", "rb") as fdut:
-            dut_output = np.fromfile(fdut, dtype=np.int32)
+
+    if(os.path.splitext(xe)[-1] == ".xe"): # xcore run
+        with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
+            xscope_fileio.run_on_target(adapter_id, xe)
+    else: # x86 run
+        subprocess.run([xe])
+        
+    with open("output.bin", "rb") as fdut:
+        dut_output = np.fromfile(fdut, dtype=np.int32)
     os.chdir(prev_path)
     os.system("rm -r {}".format(tmp_folder))
     return dut_output

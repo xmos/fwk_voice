@@ -47,7 +47,7 @@ foreach(testfile ${TEST_SOURCES})
                 "-report"
                 "${CONFIG_XSCOPE_PATH}/config.xscope")
     else()
-        target_link_libraries(
+        target_link_libraries(${APP_NAME}
             PRIVATE m)
     endif()
 endforeach()

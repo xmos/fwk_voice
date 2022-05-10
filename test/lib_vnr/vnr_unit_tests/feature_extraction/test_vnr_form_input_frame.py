@@ -2,12 +2,14 @@ import numpy as np
 import data_processing.frame_preprocessor as fp
 import os
 import test_utils
+import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_form_input_frame.xe')
 
-def test_vnr_form_input_frame():
+@pytest.mark.parametrize("target", ["xcore", "x86"])
+def test_vnr_form_input_frame(target):
     np.random.seed(1243)
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE #No. of int32 values sent to dut as input per frame
@@ -36,9 +38,11 @@ def test_vnr_form_input_frame():
         x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
         X_spect = np.fft.rfft(x_data, fp.NFFT)
         ref_output = np.append(ref_output, X_spect)
-        
-        
-    op = test_utils.run_dut(input_data, "test_vnr_form_input_frame", xe) # dut data has exponent followed by 257*2 data values
+    
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_form_input_frame", exe_name) # dut data has exponent followed by 257*2 data values
     
     # Separate out mantissas and exponents
     exp_indices = np.arange(0, len(op), output_words_per_frame) # Every (257*2 + 1)th value starting from index 0 is the exponent

@@ -34,8 +34,8 @@ void test_vnr_unit(const char *input_file_name, const char *output_file_name)
     int num_frames = (filesize_words - 2)/input_framesize;
     printf("num_frames = %d\n",num_frames);
     
-    int32_t biggest_possible_input_frame[2048]; //TODO
-    int32_t biggest_possible_output_frame[2048]; //TODO
+    int32_t biggest_possible_input_frame[2048];
+    int32_t biggest_possible_output_frame[512];
 
     test_init();
     for(int fr=0; fr<num_frames; fr++)
@@ -46,3 +46,10 @@ void test_vnr_unit(const char *input_file_name, const char *output_file_name)
     }
     shutdown_session();
 }
+
+#if X86_BUILD
+int main(int argc, char **argv) {
+    test_vnr_unit("input.bin", "output.bin");
+    return 0;
+}
+#endif

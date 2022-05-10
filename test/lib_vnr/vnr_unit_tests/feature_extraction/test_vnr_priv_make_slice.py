@@ -4,12 +4,14 @@ import py_vnr.vnr as vnr
 import os
 import test_utils
 import matplotlib.pyplot as plt
+import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_priv_make_slice.xe')
 
-def test_vnr_priv_make_slice(tflite_model):
+@pytest.mark.parametrize("target", ["xcore", "x86"])
+def test_vnr_priv_make_slice(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -44,7 +46,10 @@ def test_vnr_priv_make_slice(tflite_model):
 
         ref_output_float = np.append(ref_output_float, new_slice)
         
-    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", exe_name)
     dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24

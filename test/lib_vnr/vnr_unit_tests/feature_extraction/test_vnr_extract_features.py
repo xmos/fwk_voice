@@ -6,12 +6,14 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_extract_features.xe')
 
-def test_vnr_extract_features(tflite_model, verbose=False):
+@pytest.mark.parametrize("target", ["xcore", "x86"])
+def test_vnr_extract_features(target, tflite_model, verbose=False):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -47,7 +49,10 @@ def test_vnr_extract_features(tflite_model, verbose=False):
         ref_normalised_output = np.append(ref_normalised_output, normalised_patch)
         
     ref_quantised_output = test_utils.quantise_patch(tflite_model, ref_normalised_output)
-    op = test_utils.run_dut(input_data, "test_vnr_extract_features", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_extract_features", exe_name)
     # Deinterleave dut output into normalised and quantised patches
     sections = []
     ii = 0
