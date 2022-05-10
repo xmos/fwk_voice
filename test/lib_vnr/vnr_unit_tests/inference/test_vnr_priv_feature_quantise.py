@@ -3,10 +3,14 @@ import data_processing.frame_preprocessor as fp
 import py_vnr.vnr as vnr
 import os
 import sys
-sys.path.append(os.path.abspath("../feature_extraction"))
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
 import tensorflow as tf
 import math
+
+exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
+xe = os.path.join(exe_dir, 'avona_test_vnr_priv_feature_quantise.xe')
 
 def test_vnr_priv_feature_quantise(tflite_model):
     np.random.seed(1243)
@@ -41,7 +45,7 @@ def test_vnr_priv_feature_quantise(tflite_model):
         quant_patch = test_utils.quantise_patch(tflite_model, this_patch)
         ref_output = np.append(ref_output, quant_patch)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_feature_quantise", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/avona_test_vnr_priv_feature_quantise.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_feature_quantise", xe)
     dut_output = op.view(np.int8)
 
     for fr in range(0,test_frames):

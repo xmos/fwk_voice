@@ -1,3 +1,6 @@
+
+set( CONFIG_XSCOPE_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/etc )
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_subdirectory(feature_extraction)
     add_subdirectory(inference)

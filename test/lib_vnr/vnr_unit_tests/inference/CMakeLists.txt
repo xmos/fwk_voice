@@ -12,7 +12,7 @@ set(APP_COMPILER_FLAGS
     -fxscope
     -mcmodel=large
     -Wno-xcore-fptrgroup
-    ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope
+    ${CONFIG_XSCOPE_PATH}/config.xscope
     -target=${XCORE_TARGET}
 )
 
@@ -45,7 +45,7 @@ foreach(testfile ${TEST_SOURCES})
                 -w            
                 "-target=${XCORE_TARGET}"
                 "-report"
-                "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
+                "${CONFIG_XSCOPE_PATH}/config.xscope")
     else()
         target_link_libraries(
             PRIVATE m)

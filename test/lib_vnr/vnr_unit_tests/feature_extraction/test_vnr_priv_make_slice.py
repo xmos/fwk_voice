@@ -5,6 +5,10 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
+xe = os.path.join(exe_dir, 'avona_test_vnr_priv_make_slice.xe')
+
 def test_vnr_priv_make_slice(tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
@@ -40,7 +44,7 @@ def test_vnr_priv_make_slice(tflite_model):
 
         ref_output_float = np.append(ref_output_float, new_slice)
         
-    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/avona_test_vnr_priv_make_slice.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_make_slice", xe)
     dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24

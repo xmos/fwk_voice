@@ -3,11 +3,15 @@ import data_processing.frame_preprocessor as fp
 import py_vnr.vnr as vnr
 import os
 import sys
-sys.path.append(os.path.abspath("../feature_extraction"))
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
 import tensorflow as tf
 import math
 import matplotlib.pyplot as plt
+
+exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
+xe = os.path.join(exe_dir, 'avona_test_vnr_inference.xe')
 
 def test_vnr_inference(tflite_model):
     np.random.seed(1243)
@@ -43,7 +47,7 @@ def test_vnr_inference(tflite_model):
         this_patch = this_patch.reshape(1, 1, fp.PATCH_WIDTH, fp.MEL_FILTERS)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
-    op = test_utils.run_dut(input_data, "test_vnr_inference", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/avona_test_vnr_inference.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_inference", xe)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)

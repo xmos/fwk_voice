@@ -4,11 +4,15 @@ import py_vnr.vnr as vnr
 import py_vnr.run_wav_vnr as rwv
 import os
 import sys
-sys.path.append(os.path.abspath("../feature_extraction"))
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
 import tensorflow as tf
 import math
 import matplotlib.pyplot as plt
+
+exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
+xe = os.path.join(exe_dir, 'avona_test_vnr_full.xe')
 
 def test_vnr_full(tflite_model):
     np.random.seed(1243)
@@ -41,7 +45,7 @@ def test_vnr_full(tflite_model):
         this_patch = rwv.extract_features(x_data, vnr_obj)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
-    op = test_utils.run_dut(input_data, "test_vnr_full", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/avona_test_vnr_full.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_full", xe)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)

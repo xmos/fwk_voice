@@ -1,3 +1,4 @@
+
 import numpy as np
 import data_processing.frame_preprocessor as fp
 import xscope_fileio
@@ -5,7 +6,7 @@ import xtagctl
 import os
 import tempfile
 import sys
-sys.path.append(os.path.join(os.getcwd(), "../../../shared/python"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../shared/python"))
 import py_vs_c_utils as pvc
 import scipy.io.wavfile
 import math

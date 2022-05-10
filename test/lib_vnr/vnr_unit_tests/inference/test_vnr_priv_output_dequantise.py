@@ -3,10 +3,14 @@ import data_processing.frame_preprocessor as fp
 import py_vnr.vnr as vnr
 import os
 import sys
-sys.path.append(os.path.abspath("../feature_extraction"))
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
 import tensorflow as tf
 import math
+
+exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
+xe = os.path.join(exe_dir, 'avona_test_vnr_priv_output_dequantise.xe')
 
 def test_vnr_priv_output_dequantise(tflite_model):
     np.random.seed(1243)
@@ -31,7 +35,7 @@ def test_vnr_priv_output_dequantise(tflite_model):
         dequant_output = test_utils.dequantise_output(tflite_model, data)
         ref_output_double = np.append(ref_output_double, dequant_output)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_output_dequantise", os.path.abspath('../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/avona_test_vnr_priv_output_dequantise.xe'))
+    op = test_utils.run_dut(input_data, "test_vnr_priv_output_dequantise", xe)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)
