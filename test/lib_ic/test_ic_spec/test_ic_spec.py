@@ -274,7 +274,8 @@ def check_delay(record_property, test_case, input_audio, output_audio):
         output_audio = np.asarray(output_audio, dtype=float) / np.iinfo(np.int32).max
 
     frame_in = input_audio[0][:frame_advance*2]
-    frame_out = output_audio[0][:frame_advance*2]
+    print(output_audio.shape)
+    frame_out = output_audio[0, :frame_advance*2]
 
     corr = scipy.signal.correlate(frame_in, frame_out, mode='same')
     delay = 240 - np.argmax(corr)
