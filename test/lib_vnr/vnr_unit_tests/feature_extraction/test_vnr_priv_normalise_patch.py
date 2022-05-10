@@ -39,7 +39,10 @@ def test_vnr_priv_add_new_slice(target, tflite_model):
         normalised_patch = vnr_obj.normalise_patch(vnr_obj.feature_buffers[0])
         ref_output_float = np.append(ref_output_float, normalised_patch)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_normalise_patch", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_priv_normalise_patch", exe_name)
 
     exp_indices = np.arange(0, len(op), output_words_per_frame) # Every (257*2 + 1)th value starting from index 0 is the exponent
     exp_indices = exp_indices.astype(np.int32)
