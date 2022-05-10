@@ -264,7 +264,7 @@ pipeline {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
               viewEnv() {
                 withVenv {
-                    sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
                 }
               }
             }
