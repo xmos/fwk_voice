@@ -88,7 +88,7 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
 
 def process_py(input_file, output_file, audio_dir="."):
-    config_file = 'char_test.json'
+    config_file = 'test_test.json'
 
     twic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
