@@ -217,11 +217,15 @@ def get_suppression_arr(input_audio, output_audio):
         out_rms = rms(output_audio[i:i+frame_advance])
         if in_rms == 0 or out_rms == 0:
             suppression_db = 0.0
+            print('case 1 ', in_rms, ' ', out_rms)
         elif i - frame_advance < ICSpec.expected_delay:
             suppression_db = 0.0
+            print('case 2 ', in_rms, ' ', out_rms, ' ', i)
         else:
             suppression_db = 20 * np.log10(in_rms / out_rms)
+            print('case 3 ', in_rms, ' ', out_rms, ' ', suppression_db)
         suppression_arr[int(i//frame_advance)] = suppression_db
+    print('supression_arr = ', suppression_arr, '\n')
     return suppression_arr
 
 
@@ -274,7 +278,7 @@ def check_delay(record_property, test_case, input_audio, output_audio):
         output_audio = np.asarray(output_audio, dtype=float) / np.iinfo(np.int32).max
 
     frame_in = input_audio[0][:frame_advance*2]
-    print(output_audio.shape)
+    #print(output_audio.shape)
     if len(output_audio.shape) > 1:
         frame_out = output_audio[0, :frame_advance*2]
     else:
@@ -298,6 +302,7 @@ def check_delay(record_property, test_case, input_audio, output_audio):
 @pytest.mark.parametrize('model', xe_files)
 def test_all(test_input, model, record_property):
     test_case, input_audio = test_input
+    print("\n{}: {}\n".format(test_case.name, model))
     output_audio = process_audio(model, input_audio, test_case.get_test_name())
     suppression_arr = get_suppression_arr(input_audio, output_audio)
 
@@ -310,7 +315,6 @@ def test_all(test_input, model, record_property):
     stable = check_stability(record_property, test_case, suppression_arr)
     delayed = check_delay(record_property, test_case, input_audio, output_audio)
 
-    print("{}: {}".format(test_case.name, model))
     # Assert checks
     criteria = [converged, stable, delayed]
     #assert np.all(criteria), " and ".join([str(c) for c in criteria])
