@@ -120,8 +120,8 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     out_wav_data, out_channel_count, out_file_length = awu.parse_audio(out_wav_file)
 
     # Calculate EWM of audio power in 1s window
-    print(input_file, ' has ', in_channel_count, ' channels and ', in_wav_data.shape, 'shape')
-    print(output_file, ' has ', out_channel_count, 'channels and ', out_wav_data.shape, 'shape')
+    #print(input_file, ' has ', in_channel_count, ' channels and ', in_wav_data.shape, 'shape')
+    #print(output_file, ' has ', out_channel_count, 'channels and ', out_wav_data.shape, 'shape')
     in_power = np.power(in_wav_data[0, :], 2)
     if len(out_wav_data.shape) > 1:
         out_power = np.power(out_wav_data[0, :], 2)

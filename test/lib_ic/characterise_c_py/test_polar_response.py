@@ -39,4 +39,4 @@ def test_compare_polar_reponse():
                                          run_c=True)
     for (i, atten_py, atten_c) in zip(angles, results[0], results[1]):
         print(f"Angle: {i}, PY {atten_py}, C {atten_c}")
-        #assert abs(atten_py - atten_c) < 1, "Angle: {}, PY {}, C {}".format(i, atten_py, atten_c)
+        assert abs(atten_py - atten_c) < 1, "Angle: {}, PY {}, C {}".format(i, atten_py, atten_c)

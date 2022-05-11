@@ -221,15 +221,15 @@ def get_suppression_arr(input_audio, output_audio):
         #out_rms = rms(output_audio[i:i+frame_advance])
         if in_rms == 0 or out_rms == 0:
             suppression_db = 0.0
-            print('case 1 ', in_rms, ' ', out_rms)
+            #print('case 1 ', in_rms, ' ', out_rms)
         elif i - frame_advance < ICSpec.expected_delay:
             suppression_db = 0.0
-            print('case 2 ', in_rms, ' ', out_rms, ' ', i)
+            #print('case 2 ', in_rms, ' ', out_rms, ' ', i)
         else:
             suppression_db = 20 * np.log10(in_rms / out_rms)
-            print('case 3 ', in_rms, ' ', out_rms, ' ', suppression_db)
+            #print('case 3 ', in_rms, ' ', out_rms, ' ', suppression_db)
         suppression_arr[int(i//frame_advance)] = suppression_db
-    print('supression_arr = ', suppression_arr, '\n')
+    #print('supression_arr = ', suppression_arr, '\n')
     return suppression_arr
 
 
@@ -321,5 +321,5 @@ def test_all(test_input, model, record_property):
 
     # Assert checks
     criteria = [converged, stable, delayed]
-    #assert np.all(criteria), " and ".join([str(c) for c in criteria])
+    assert np.all(criteria), " and ".join([str(c) for c in criteria])
 
