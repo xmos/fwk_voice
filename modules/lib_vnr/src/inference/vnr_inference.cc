@@ -27,11 +27,7 @@ int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     ie_ptr->output_size = ie_ptr->ie.output_sizes[0];   
     
     // Initialise input quant and output dequant parameters
-    ie_ptr->ie_config.input_scale_inv = double_to_float_s32(1/0.10857683420181274); //from interpreter_tflite.get_input_details()[0] call in python 
-    ie_ptr->ie_config.input_zero_point = double_to_float_s32(127);
-
-    ie_ptr->ie_config.output_scale = double_to_float_s32(0.00390625); //from interpreter_tflite.get_output_details()[0] call in python 
-    ie_ptr->ie_config.output_zero_point = double_to_float_s32(-128);
+    vnr_priv_init_ie_config(&ie_ptr->ie_config);
     return ret;
 }
 
