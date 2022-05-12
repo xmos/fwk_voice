@@ -68,11 +68,20 @@ pipeline {
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                }
+              }
+            }
             dir("${REPO}") {
               stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
               //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
             // Now do xcore files
@@ -316,6 +325,19 @@ pipeline {
               viewEnv() {
                 withVenv {
                     //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR Python C feature extraction equivalence') {
+          steps {
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
