@@ -9,8 +9,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
 
     target_include_directories(avona_module_lib_vnr_inference PUBLIC api/inference src/inference src/inference/model)
 
-    set(XCORE_TARGET "XCORE-AI-EXPLORER")
-    message(STATUS "XCORE_TARGET= ${XCORE_TARGET}")
 #build/avona_deps/lib_tflite_micro/lib_tflite_micro/src/tflite-xcore-kernels/micro_time.cc needs target to be defined to compile
 #/Users/shuchitak/sandboxes/sw_avona_modern_cmake/sw_avona/build/avona_deps/lib_tflite_micro/lib_tflite_micro/src/tflite-xcore-kernels/micro_time.cc:16:37: error: 
 #      use of undeclared identifier 'PLATFORM_REFERENCE_HZ'
