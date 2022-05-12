@@ -104,11 +104,11 @@ def test_frame_compare(pre_test_stuff):
 
         if frame_start < 240:
             state = ic_test_lib.test_get_state()
-            c_error_int32 = np.asarray(state.Error, dtype=np.int32)
+            #c_error_int32 = np.asarray(state.Error, dtype=np.int32)
             #c_error_exp = state.error_bfp.exp
             #c_error = np.power(c_error_int32, c_error_exp)
-            c_error = pvc.int32_to_float(c_error_int32[0, :])
-            print(c_error[:10])
+            c_error = pvc.int32_to_float(state.Error[0, 5])
+            print(c_error)
             print(icc.error_ap[:10])
 
         
