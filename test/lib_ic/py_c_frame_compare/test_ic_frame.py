@@ -59,7 +59,7 @@ class ic_comparison:
         frame_int = pvc.float_to_int32(frame)
 
         output_py, Error_ap = self.ic.process_frame(frame)
-        mu, input_vnr_pred, output_vnr_pred, control_flag = self.ic.mu_control_system(Error_ap)
+        mu, control_flag = self.ic.mu_control_system()
         #print('mu = ', mu, ', in_vnr = ', input_vnr_pred, ', out_vnr = ', output_vnr_pred, 'flag = ', control_flag)
         self.ic.adapt(Error_ap)
 
