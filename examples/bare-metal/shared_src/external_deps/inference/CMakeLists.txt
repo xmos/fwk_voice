@@ -178,6 +178,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
 
     target_include_directories(xcore_sdk_inferencing_lib_tflite_micro
         INTERFACE
+        ${LIB_TFLITE_MICRO_PATH}/..
         ${LIB_TFLITE_MICRO_PATH}/api
         ${LIB_TFLITE_MICRO_PATH}/src
         ${LIB_TFLITE_MICRO_PATH}/src/tflite-xcore-kernels
