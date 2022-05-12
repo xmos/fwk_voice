@@ -14,6 +14,7 @@ void test_init(void){
 }
 
 ic_state_t test_get_state(void){
+    bfp_s32_use_exponent(&ic_state.error_bfp, -31);
     return ic_state;
 }
 
