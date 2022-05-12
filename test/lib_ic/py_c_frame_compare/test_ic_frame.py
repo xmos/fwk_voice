@@ -49,7 +49,7 @@ class ic_comparison:
         vnr_model = '../../../../py_vnr/model_output_0_0_2/trained_model.h5',
         adaption_config = 'IC_ADAPTION_FORCE_ON'
         )
-
+        self.error_ap = None
         ic_test_lib.test_init()
 
 
@@ -59,6 +59,7 @@ class ic_comparison:
         frame_int = pvc.float_to_int32(frame)
 
         output_py, Error_ap = self.ic.process_frame(frame)
+        self.error_ap = np.fft.irfft(Error_ap)
         mu, control_flag = self.ic.mu_control_system()
         #print('mu = ', mu, ', in_vnr = ', input_vnr_pred, ', out_vnr = ', output_vnr_pred, 'flag = ', control_flag)
         self.ic.adapt(Error_ap)
@@ -74,7 +75,7 @@ class ic_comparison:
         vad = int(0)
         ic_test_lib.test_adapt(vad, output_c_ptr)
 
-        state = ic_test_lib.test_get_state()
+        #state = ic_test_lib.test_get_state()
         #print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)
         #print('leakage_c = ', pvc.float_s32_to_float(state.ic_adaption_controller_state.adaption_controller_config.leakage_alpha), ', leakage_py = ', self.ic.leakage)
         # print(pvc.float_s32_to_float(state.config_params.delta))
@@ -100,6 +101,15 @@ def test_frame_compare(pre_test_stuff):
 
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py
         output_wav_data[1, frame_start: frame_start + frame_advance] = output_c
+
+        if frame_start < 240:
+            state = ic_test_lib.test_get_state()
+            c_error_int32 = np.asarray(state.Error, dtype = np.int32)
+            c_error_exp = state.error_bfp.exp
+            c_error = np.power(c_error_int32, c_error_exp)
+            print(c_error[:10])
+            print(icc.error_ap[:10])
+
         
     #Write a copy of the output for post analysis if needed
     scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
