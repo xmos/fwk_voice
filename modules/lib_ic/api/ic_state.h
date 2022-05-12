@@ -168,7 +168,7 @@ typedef struct {
     bfp_s32_t error_bfp[IC_Y_CHANNELS];
     /** Storage for Error and error mantissas. Note IFFT is done in-place 
      * so the Error storage is reused for error. */
-    complex_s32_t DWORD_ALIGNED Error[IC_Y_CHANNELS][IC_FD_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED Error[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
 
     /** BFP array pointing to the frequency domain estimate of transfer function. */
     bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES];

@@ -69,8 +69,8 @@ void ic_init(ic_state_t *state){
     }
     //initialise Error
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
-        bfp_complex_s32_init(&state->Error_bfp[ch], state->Error[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
-        bfp_s32_init(&state->error_bfp[ch], (int32_t *)state->Error[ch], zero_exp, IC_FRAME_LENGTH, 0);
+        bfp_complex_s32_init(&state->Error_bfp[ch], (complex_s32_t * )state->Error[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
+        bfp_s32_init(&state->error_bfp[ch], state->Error[ch], zero_exp, IC_FRAME_LENGTH, 0);
     }
     //Initiaise Y_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
