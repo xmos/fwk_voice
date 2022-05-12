@@ -137,7 +137,7 @@ def write_output(test_name, output, c_or_py):
 def process_py(input_data, test_name):
 
     file_length = input_data.shape[1]
-    config_file = '../characterise_c_py/test_test.json'
+    config_file = '../characterise_c_py/test_config.json'
     ic_parameters = json_to_dict(config_file)
 
     output, Mu, Input_vnr_pred, Output_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
