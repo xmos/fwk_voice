@@ -122,6 +122,10 @@ def test_frame_compare(pre_test_stuff):
             for i in range(0, 10, 1):
                 c_sigma_xx = pvc.int32_to_float(state.sigma_XX[0][i])
                 print('C: ', c_sigma_xx, ', PY: ', icc.ic.sigma_xx[i])
+            print('X_energy:')
+            for i in range(0, 10, 1):
+                c_X_energy = pvc.int32_to_float(state.X_energy[0][i])
+                print('C: ', c_X_energy, ', PY: ', icc.ic.X_energy[i])
 
 
 
