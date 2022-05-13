@@ -104,9 +104,7 @@ def test_frame_compare(pre_test_stuff):
 
         if frame_start < 240:
             state = ic_test_lib.test_get_state()
-            #c_error_int32 = np.asarray(state.Error, dtype=np.int32)
-            #c_error_exp = state.error_bfp.exp
-            #c_error = np.power(c_error_int32, c_error_exp)
+
             print('error_ap:')
             for i in range(0, 10, 1):
                 c_error = pvc.int32_to_float(state.Error[0][i])
@@ -114,11 +112,18 @@ def test_frame_compare(pre_test_stuff):
             print('H_hat:')
             for i in range(0, 10, 1):
                 c_H_hat = pvc.int32_to_float(state.H_hat[0][0][i])
-                py_H_hat = icc.ic.H[0][int(i/2)].real
-                if (i / 2) == (int(i / 2)):
+                py_H_hat = 0
+                if (i % 2) == 0:
+                    py_H_hat = icc.ic.H[0][int(i/2)].real
+                else:
                     py_H_hat = icc.ic.H[0][int(i/2)].imag
                 print('C: ', c_H_hat, ', PY: ', py_H_hat)
-            #print(icc.error_ap[0][:10])
+            print('sigma_xx:')
+            for i in range(0, 10, 1):
+                c_sigma_xx = pvc.int32_to_float(state.sigma_xx[0][i])
+                print('C: ', c_sigma_xx, ', PY: ', icc.ic.sigma_xx[i])
+
+
 
         
     #Write a copy of the output for post analysis if needed

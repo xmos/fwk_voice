@@ -14,10 +14,11 @@ void test_init(void){
 }
 
 ic_state_t test_get_state(void){
-    bfp_s32_use_exponent(&ic_state.error_bfp, -31);
+    bfp_s32_use_exponent(&ic_state.error_bfp[0], -31);
     for(int v = 0; v < IC_FILTER_PHASES; v++){
         bfp_complex_s32_use_exponent(&ic_state.H_hat_bfp[0][v], -31);
     }
+    bfp_s32_use_exponent(&ic_state.sigma_XX_bfp[0], -31);
     return ic_state;
 }
 
