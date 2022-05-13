@@ -120,7 +120,7 @@ def test_frame_compare(pre_test_stuff):
                 print('C: ', c_H_hat, ', PY: ', py_H_hat)
             print('sigma_xx:')
             for i in range(0, 10, 1):
-                c_sigma_xx = pvc.int32_to_float(state.sigma_xx[0][i])
+                c_sigma_xx = pvc.int32_to_float(state.sigma_XX[0][i])
                 print('C: ', c_sigma_xx, ', PY: ', icc.ic.sigma_xx[i])
 
 
