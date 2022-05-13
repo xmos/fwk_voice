@@ -109,7 +109,7 @@ def test_frame_compare(pre_test_stuff):
             #c_error = np.power(c_error_int32, c_error_exp)
             c_error = pvc.int32_to_float(state.Error[0][5])
             print(c_error)
-            print(icc.error_ap[:10])
+            print(icc.error_ap[0][:10])
 
         
     #Write a copy of the output for post analysis if needed
