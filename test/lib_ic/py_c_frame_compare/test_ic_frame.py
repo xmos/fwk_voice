@@ -107,9 +107,10 @@ def test_frame_compare(pre_test_stuff):
             #c_error_int32 = np.asarray(state.Error, dtype=np.int32)
             #c_error_exp = state.error_bfp.exp
             #c_error = np.power(c_error_int32, c_error_exp)
-            c_error = pvc.int32_to_float(state.Error[0][0:10])
-            print(c_error)
-            print(icc.error_ap[0][:10])
+            for i in range(0, 10, 1):
+                c_error = pvc.int32_to_float(state.Error[0][i])
+                print('C: ', c_error, ', PY: ', icc.error_ap[0][i])
+            #print(icc.error_ap[0][:10])
 
         
     #Write a copy of the output for post analysis if needed
