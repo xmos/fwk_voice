@@ -107,9 +107,17 @@ def test_frame_compare(pre_test_stuff):
             #c_error_int32 = np.asarray(state.Error, dtype=np.int32)
             #c_error_exp = state.error_bfp.exp
             #c_error = np.power(c_error_int32, c_error_exp)
+            print('error_ap:')
             for i in range(0, 10, 1):
                 c_error = pvc.int32_to_float(state.Error[0][i])
                 print('C: ', c_error, ', PY: ', icc.error_ap[0][i])
+            print('H_hat:')
+            for i in range(0, 10, 1):
+                c_H_hat = pvc.int32_to_float(state.H_hat[0][0][i])
+                py_H_hat = icc.ic.H[0][int(i/2)].real
+                if (i / 2) == (int(i / 2)):
+                    py_H_hat = icc.ic.H[0][int(i/2)].imag
+                print('C: ', c_H_hat, ', PY: ', py_H_hat)
             #print(icc.error_ap[0][:10])
 
         

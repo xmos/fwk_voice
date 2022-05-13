@@ -57,7 +57,7 @@ void ic_init(ic_state_t *state){
     //H_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         for(unsigned ph=0; ph<(IC_X_CHANNELS * IC_FILTER_PHASES); ph++) {
-            bfp_complex_s32_init(&state->H_hat_bfp[ch][ph], state->H_hat[ch][ph], zero_exp, IC_FD_FRAME_LENGTH, 0);
+            bfp_complex_s32_init(&state->H_hat_bfp[ch][ph], (complex_s32_t *)state->H_hat[ch][ph], zero_exp, IC_FD_FRAME_LENGTH, 0);
         }
     }
     //X_fifo

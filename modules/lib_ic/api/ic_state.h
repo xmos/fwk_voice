@@ -173,7 +173,7 @@ typedef struct {
     /** BFP array pointing to the frequency domain estimate of transfer function. */
     bfp_complex_s32_t H_hat_bfp[IC_Y_CHANNELS][IC_X_CHANNELS*IC_FILTER_PHASES];
     /** Storage for H_hat mantissas. */
-    complex_s32_t DWORD_ALIGNED H_hat[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FD_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED H_hat[IC_Y_CHANNELS][IC_FILTER_PHASES*IC_X_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
 
     /** BFP array pointing to the frequency domain X input history used for calculating normalisation. */
     bfp_complex_s32_t X_fifo_bfp[IC_X_CHANNELS][IC_FILTER_PHASES];
