@@ -284,7 +284,8 @@ if __name__ == "__main__":
     if args.run_with_xscope_fileio:
         vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin, args.run_x86, parse_profile=True)
     else:
-        vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin, args.run_x86, parse_profile=True)
+        assert(args.run_x86), "x86 build not supported when using python xscope host"
+        vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin, parse_profile=True)
 
     plot_result(vnr_out, args.input_wav, show_plot=bool(args.show_plot))
 

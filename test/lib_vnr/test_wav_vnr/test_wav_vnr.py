@@ -48,7 +48,8 @@ def print_model_details(interpreter_tflite):
     print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
 
 
-def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
+def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
+    print(f"Running on target {target}, input_file {input_file}, tflite_model {tflite_model}")
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
@@ -70,7 +71,11 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
 
     #################################################################################
     # Run DUT
-    run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+    if target == 'xcore':
+        run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+    elif target == 'x86':
+        subprocess.run(["../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr", input_file])
+
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
         dut_new_slice = np.fromfile(fdut, dtype=np.int32)
@@ -182,6 +187,8 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
     print("Max normalised_patch diff across all frames = ",np.max(max_norm_patch_diff_per_frame)) 
     print("Max ref-dut tflite inference output diff = ",np.max(np.abs(ref_tflite_output - dut_tflite_output))) 
+
+    os.system("rm -f *.bin")
     
     #################################################################################
     # Plot
@@ -207,12 +214,14 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     fig.savefig(plot_file)
 
 @pytest.mark.parametrize('input_wav', streams)
-def test_wav_vnr(input_wav):
+@pytest.mark.parametrize('target', ['x86', 'xcore'])
+def test_wav_vnr(input_wav, target):
     #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
     # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
+    run_test_wav_vnr(input_wav, target, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
-    run_test_wav_vnr(args.input_wav, args.tflite_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, 'x86', args.tflite_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, 'xcore', args.tflite_model, plot_results=False)

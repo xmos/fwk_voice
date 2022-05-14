@@ -80,12 +80,12 @@ else()
     set(CMAKE_CXX_FLAGS "-std=c++11" CACHE STRING "C++ Compiler Base Flags" FORCE)
 
     set(BUILD_FLAGS
-      "-O3"
+      "-Os"
       "-D__xtflm_conf_h_exists__"
       "-DNN_USE_REF"
     )
     target_compile_options(avona_example_bare_metal_vnr_fileio
-        PRIVATE ${APP_COMPILER_FLAGS} ${BUILD_FLAGS})
+        PRIVATE ${BUILD_FLAGS})
 
     target_link_options(avona_example_bare_metal_vnr_fileio
         PRIVATE

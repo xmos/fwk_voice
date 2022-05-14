@@ -100,6 +100,8 @@ void vnr_task(const char* input_filename, const char *output_filename){
         framenum++;
         print_prof(0, 8, framenum);        
     }
+    file_close(&input_file);
+    file_close(&output_file);
     shutdown_session();
 }
 

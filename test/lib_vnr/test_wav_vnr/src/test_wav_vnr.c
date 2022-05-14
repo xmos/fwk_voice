@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <xcore/hwtimer.h>
+#if !X86_BUILD
+    #include <xcore/hwtimer.h>
+#else
+    int get_reference_time(void) {return 0;}
+#endif
 
 #include "vnr_features_api.h"
 #include "vnr_inference_api.h"
@@ -134,5 +138,19 @@ void test_wav_vnr(const char *in_filename)
     }
     printf("Profile: max_feature_extraction_cycles = %ld, max_inference_cycles = %ld, vnr_init_cycles = %ld\n",max_feature_cycles, max_inference_cycles, vnr_init_cycles);
     printf("Profile: max_vnr_cycles (init + 2 feature+inference calls) = %ld\n", vnr_init_cycles + 2*(max_feature_cycles+max_inference_cycles));
+    file_close(&input_file);
+    file_close(&new_slice_file);
+    file_close(&norm_patch_file);
+    file_close(&inference_output_file);
     shutdown_session(); 
 }
+
+#if X86_BUILD
+int main(int argc, char **argv) {
+    if(argc != 2) {
+        printf("Incorrect number of input arguments. Provide input file\n");
+        assert(0);
+    }
+    test_wav_vnr(argv[1]);
+}
+#endif
