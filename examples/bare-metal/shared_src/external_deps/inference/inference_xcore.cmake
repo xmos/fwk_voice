@@ -3,12 +3,11 @@ set(TOP_DIR ${CMAKE_BINARY_DIR}/avona_deps)
 
 set(NNLIB_DIR "${TOP_DIR}/lib_nn/lib_nn")
 
-set(TFLITE_SRC_DIR
-  "${TOP_DIR}/lib_tflite_micro/lib_tflite_micro/submodules/tflite-micro/tensorflow/lite")
-
 set(TFLIB_DIR
   "${TOP_DIR}/lib_tflite_micro/lib_tflite_micro")
 
+set(TFLITE_SRC_DIR
+  "${TOP_DIR}/lib_tflite_micro/lib_tflite_micro/submodules/tflite-micro/tensorflow/lite")
 
 set(TFLIB_SRC_DIR
   "${TFLIB_DIR}/src/tflite-xcore-kernels")

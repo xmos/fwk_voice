@@ -1,26 +1,41 @@
+
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <xcore/channel.h>
-#include <xcore/chanend.h>
-#include <xcore/select.h>
-#include <xcore/hwtimer.h>
-#include <xscope.h>
-#include <stdlib.h>
-#include <string.h>
-#include "xs3_math.h"
+#include "vnr_features_api.h"
+#include "vnr_inference_api.h"
+#if PROFILE_PROCESSING
+#include "profile.h"
+#else
+static void prof(int n, const char* str) {}
+static void print_prof(int a, int b, int framenum){}
+#endif
 #include "fileio.h"
 #include "wav_utils.h"
-#include "vnr_features_api.h"
 
+void vnr_task(const char* input_filename, const char *output_filename){
+    vnr_input_state_t vnr_input_state;
+    vnr_feature_state_t vnr_feature_state;
+    vnr_ie_state_t vnr_ie_state;
+    
+    prof(0, "start_vnr_init");
+    vnr_input_state_init(&vnr_input_state);
+    vnr_feature_state_init(&vnr_feature_state);
+    int32_t err = vnr_inference_init(&vnr_ie_state);
+    prof(1, "end_vnr_init");
+    if(err) {
+        printf("ERROR: vnr_inference_init() returned error %ld\n",err);
+        assert(0);
+    }
 
-
-void get_frame(chanend_t c_get_frame, const char* in_filename)
-{
-    hwtimer_t timer = hwtimer_alloc();
     file_t input_file;
-    int ret = file_open(&input_file, in_filename, "rb");
+    int ret = file_open(&input_file, input_filename, "rb");
     assert((!ret) && "Failed to open file");
 
+    file_t output_file;
+    ret = file_open(&output_file, output_filename, "wb");
+
+
+    int framenum = 0;
     wav_header input_header_struct;
     unsigned input_header_size;
     if(get_wav_header_details(&input_file, &input_header_struct, &input_header_size) != 0){
@@ -49,8 +64,6 @@ void get_frame(chanend_t c_get_frame, const char* in_filename)
     int16_t input_read_buffer[VNR_FRAME_ADVANCE] = {0}; // Array for storing interleaved input read from wav file
     int32_t new_frame[VNR_FRAME_ADVANCE] = {0};
 
-    // Send frame count over to receive thread
-    
     for(unsigned b=0; b<block_count; b++) {
         long input_location =  wav_get_frame_start(&input_header_struct, b * VNR_FRAME_ADVANCE, input_header_size);
         file_seek (&input_file, input_location, SEEK_SET);
@@ -65,24 +78,37 @@ void get_frame(chanend_t c_get_frame, const char* in_filename)
         else {
             file_read (&input_file, (uint8_t*)&new_frame[0], bytes_per_frame* VNR_FRAME_ADVANCE);
         }
-        // Transmit input frame over channel
-        chan_out_buf_word(c_get_frame, (uint32_t*)&new_frame[0], VNR_FRAME_ADVANCE);                
+        prof(2, "start_vnr_form_input_frame");
+        int32_t DWORD_ALIGNED input_frame[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
+        bfp_complex_s32_t X;
+        vnr_form_input_frame(&vnr_input_state, &X, input_frame, new_frame);
+        prof(3, "end_vnr_form_input_frame");
+
+        prof(4, "start_vnr_extract_features");
+        bfp_s32_t feature_patch;
+        int32_t feature_patch_data[VNR_PATCH_WIDTH*VNR_MEL_FILTERS];
+        vnr_extract_features(&vnr_feature_state, &feature_patch, feature_patch_data, &X);
+        prof(5, "end_vnr_extract_features");
+
+        prof(6, "start_vnr_inference");
+        float_s32_t inference_output;
+        //printf("inference_output: 0x%x, %d\n", inference_output.mant, inference_output.exp);
+        vnr_inference(&vnr_ie_state, &inference_output, &feature_patch);
+        prof(7, "end_vnr_inference");
+        file_write(&output_file, (uint8_t*)&inference_output, sizeof(float_s32_t));
+
+        framenum++;
+        print_prof(0, 8, framenum);        
     }
-    // Sleep to allow last frame processing
-    hwtimer_delay(timer, 10000000); //100 ms delay to allow last frame to get written out from send_frame()
     shutdown_session();
 }
 
-void send_frame(chanend_t c_send_frame, const char* out_filename)
-{
-    file_t output_file;
-    int ret = file_open(&output_file, out_filename, "wb");
-    assert((!ret) && "Failed to open file");
-
-    while(1) {
-        float_s32_t vnr_out;
-        chan_in_buf_byte(c_send_frame, (uint8_t*)&vnr_out, sizeof(float_s32_t));
-        file_write(&output_file, (uint8_t*)&vnr_out, sizeof(float_s32_t));
+#if X86_BUILD
+int main(int argc, char** argv) {
+    if(argc < 3) {
+        printf("Incorrect no. of arguments. Expected input and output file names\n");
+        assert(0);
     }
-    
+    vnr_task(argv[1], argv[2]);
 }
+#endif

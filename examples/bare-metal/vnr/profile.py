@@ -9,12 +9,12 @@ output: worst_case_file contains profiling info for worst case frame
 output: mapping_file contains the profiling index to tag string mapping. This is useful when adding a new prof() call to look-up indexes that are already used
         in order to avoid duplicating indexes
 '''
-def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_file="worst_case.log"):
-    src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+def parse_profile_log(prof_stdo, src_folder, profile_file="parsed_profile.log", worst_case_file="worst_case.log"):
     profile_strings = {}
     profile_regex = re.compile(r'\s*prof\s*\(\s*(\d+)\s*,\s*"(.*)"\s*\)\s*;')
     #find all source files that might have a prof() function call
-    src_files = glob.glob(f'{src_folder}/**/*.c', recursive=True)
+    src_files = glob.glob(f'{src_folder}/*.c', recursive=False)
+    print(f"src_folder = {src_folder}, src_files = {src_files}")
     for file in src_files:
         with open(file, 'r') as fd:
             lines = fd.readlines()
@@ -99,7 +99,7 @@ def parse_profile_log(prof_stdo, profile_file="parsed_profile.log", worst_case_f
                 mcps = (processor_cycles_120MHz/0.015)/1000000 
                 fp.write(f'{key:<24}: {worst_case_frame:<26} {round(worst_case_cycles_100MHz_timer,2):<24} {round(mcps,3):<24} {round(percentage_total, 3)}%\n')
 
-def parse_profiling_info(stdo):
+def parse_profiling_info(stdo, src_folder):
     xcore_stdo = []
     #ignore lines that don't contain [DEVICE]. Remove everything till and including [DEVICE] if [DEVICE] is present
     for line in stdo:
@@ -108,4 +108,4 @@ def parse_profiling_info(stdo):
             xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
 
     #print(xcore_stdo)
-    parse_profile_log(xcore_stdo, worst_case_file=f"vnr_prof.log")
+    parse_profile_log(xcore_stdo, src_folder, worst_case_file=f"vnr_prof.log")
