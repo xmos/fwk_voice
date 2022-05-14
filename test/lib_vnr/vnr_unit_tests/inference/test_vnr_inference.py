@@ -9,11 +9,13 @@ import test_utils
 import tensorflow as tf
 import math
 import matplotlib.pyplot as plt
+import pytest
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_inference.xe')
 
-def test_vnr_inference(tflite_model):
+@pytest.mark.parametrize("target", ["x86", "xcore"])
+def test_vnr_inference(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -47,7 +49,10 @@ def test_vnr_inference(tflite_model):
         this_patch = this_patch.reshape(1, 1, fp.PATCH_WIDTH, fp.MEL_FILTERS)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
-    op = test_utils.run_dut(input_data, "test_vnr_inference", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_inference", exe_name)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)

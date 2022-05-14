@@ -44,6 +44,8 @@ void test_vnr_unit(const char *input_file_name, const char *output_file_name)
         test(biggest_possible_output_frame, biggest_possible_input_frame);
         file_write(&output_file, biggest_possible_output_frame, output_framesize*sizeof(int32_t)); //No. of int32 values per frame
     }
+    file_close(&input_file);
+    file_close(&output_file);
     shutdown_session();
 }
 

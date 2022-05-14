@@ -92,6 +92,7 @@ else()
             ${BUILD_FLAGS})
 
     target_link_libraries(avona_example_bare_metal_vnr_fileio PRIVATE "-lpthread")
+    target_link_libraries(avona_example_bare_metal_vnr_fileio PRIVATE m)
 
 endif()
 
