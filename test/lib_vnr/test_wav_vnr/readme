@@ -5,7 +5,7 @@ To convert from tflite to xcore optimised tflite model (already generated and co
 xcore-opt --xcore-thread-count 1 -o model/model_output_0_0_2/model_qaware_xcore.tflite model/model_output_0_0_2/model_qaware.tflite
 
 To get the .c and .h file (already generated and committed)
-/../../../tools/tflite_micro/convert_tflite_to_c_source.py --input model/model_output_0_0_2/model_qaware_xcore.tflite --header model/model_output_0_0_2/vnr_model_data.h --source model/model_output_0_0_2/vnr_model_data.c --variable-name vnr
+python ../../../tools/tflite_micro/convert_tflite_to_c_source.py --input model/model_output_0_0_2/model_qaware_xcore.tflite --header model/model_output_0_0_2/vnr_model_data.h --source model/model_output_0_0_2/vnr_model_data.c --variable-name vnr
 
 To run the test
 python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite
