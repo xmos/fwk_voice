@@ -268,7 +268,7 @@ def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
 
 def run_with_xscope_fileio(input_file, output_file, run_x86, parse_profile=False):
     if run_x86:
-        subprocess.run(["../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio", input_file, output_file])
+        subprocess.run(["../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio", input_file, output_file], check=True)
     else:
         stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
         if parse_profile:

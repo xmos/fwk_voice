@@ -27,6 +27,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
+    parser.add_argument("--run-x86", type=int, default=0, help="Test x86 build as well")
     args = parser.parse_args()
     return args
 
@@ -74,7 +75,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     if target == 'xcore':
         run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
     elif target == 'x86':
-        subprocess.run(["../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr", input_file])
+        subprocess.run(["../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr", input_file], check=True)
 
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
@@ -223,5 +224,6 @@ def test_wav_vnr(input_wav, target):
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
-    run_test_wav_vnr(args.input_wav, 'x86', args.tflite_model, plot_results=False)
+    if args.run_x86:
+        run_test_wav_vnr(args.input_wav, 'x86', args.tflite_model, plot_results=False)
     run_test_wav_vnr(args.input_wav, 'xcore', args.tflite_model, plot_results=False)

@@ -3,14 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "vnr_inference_priv.h"
+#include "vnr_quant_spec_defines.h"
 
 void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config)
 {
-    ie_config->input_scale_inv = double_to_float_s32(1/0.10857683420181274); //from interpreter_tflite.get_input_details()[0] call in python 
-    ie_config->input_zero_point = double_to_float_s32(127);
+    ie_config->input_scale_inv = double_to_float_s32(VNR_INPUT_SCALE_INV); //from interpreter_tflite.get_input_details()[0] call in python 
+    ie_config->input_zero_point = double_to_float_s32(VNR_INPUT_ZERO_POINT);
 
-    ie_config->output_scale = double_to_float_s32(0.00390625); //from interpreter_tflite.get_output_details()[0] call in python 
-    ie_config->output_zero_point = double_to_float_s32(-128);
+    ie_config->output_scale = double_to_float_s32(VNR_OUTPUT_SCALE); //from interpreter_tflite.get_output_details()[0] call in python 
+    ie_config->output_zero_point = double_to_float_s32(VNR_OUTPUT_ZERO_POINT);
 }
 
 void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config) {
