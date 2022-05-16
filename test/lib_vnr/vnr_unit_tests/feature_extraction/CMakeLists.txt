@@ -68,6 +68,10 @@ foreach(testfile ${TEST_SOURCES})
             PRIVATE
                 ${BUILD_FLAGS})
 
+        target_link_libraries(${APP_NAME} 
+            PUBLIC
+                sdk::lib_xs3_math)
+
         target_link_libraries(${APP_NAME} PRIVATE "-lpthread")
         target_link_libraries(${APP_NAME}
             PRIVATE m)
