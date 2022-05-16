@@ -8,4 +8,8 @@ To get the .c and .h file (already generated and committed)
 python ../../../tools/tflite_micro/convert_tflite_to_c_source.py --input model/model_output_0_0_2/model_qaware_xcore.tflite --header model/model_output_0_0_2/vnr_model_data.h --source model/model_output_0_0_2/vnr_model_data.c --variable-name vnr
 
 To run the test
+By default it runs only xcore target
 python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite
+
+To run on x86 and xcore target
+python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output_0_0_2/model_qaware.tflite --run-x86=1

@@ -2,13 +2,11 @@ import numpy as np
 import data_processing.frame_preprocessor as fp
 import os
 import test_utils
-import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_form_input_frame.xe')
 
-@pytest.mark.parametrize("target", ["xcore", "x86"])
 def test_vnr_form_input_frame(target):
     np.random.seed(1243)
     input_data = np.empty(0, dtype=np.int32)

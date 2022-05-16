@@ -8,12 +8,10 @@ sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
 import tensorflow as tf
 import math
-import pytest
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_priv_output_dequantise.xe')
 
-@pytest.mark.parametrize("target", ["xcore", "x86"])
 def test_vnr_priv_output_dequantise(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 

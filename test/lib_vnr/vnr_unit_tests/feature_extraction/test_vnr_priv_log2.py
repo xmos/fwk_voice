@@ -4,13 +4,11 @@ import data_processing.frame_preprocessor as fp
 import os
 import test_utils
 import matplotlib.pyplot as plt
-import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_priv_log2.xe')
 
-@pytest.mark.parametrize("target", ["xcore", "x86"])
 def test_vnr_priv_log2(target):
     np.random.seed(1243)
 

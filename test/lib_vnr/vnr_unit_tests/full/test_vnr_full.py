@@ -10,12 +10,10 @@ import test_utils
 import tensorflow as tf
 import math
 import matplotlib.pyplot as plt
-import pytest
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_full.xe')
 
-@pytest.mark.parametrize("target", ["x86", "xcore"])
 def test_vnr_full(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
