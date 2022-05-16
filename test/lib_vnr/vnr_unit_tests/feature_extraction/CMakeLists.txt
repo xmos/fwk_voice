@@ -31,7 +31,7 @@ foreach(testfile ${TEST_SOURCES})
     # For X86 build, link to math library before linking the modules since linking order seems to matter on some gcc versions.
     # If math is not linked before lib_xs3_math, xs3_scalar_float_s32.c:(.text+0xe4): undefined reference to `roundf' error is occasionally seen
     # When compiling for x86 on the Jenkins xcore.ai agent.
-    if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         target_link_libraries(${APP_NAME} PRIVATE m)
     endif()
 
