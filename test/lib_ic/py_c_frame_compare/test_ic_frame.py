@@ -24,6 +24,7 @@ import py_vs_c_utils as pvc
 
 
 proc_frame_length = 512
+fd_length = proc_frame_length // 2 + 1
 frame_advance = 240
 num_phases = 10
 y_channel_delay = 180
@@ -104,31 +105,39 @@ def test_frame_compare(pre_test_stuff):
 
         if frame_start < 240:
             state = ic_test_lib.test_get_state()
-
-            print('error_ap:')
-            for i in range(0, 10, 1):
-                c_error = pvc.int32_to_float(state.Error[0][i])
-                print('C: ', c_error, ', PY: ', icc.error_ap[0][i])
+            
             print('H_hat:')
-            for i in range(0, 10, 1):
-                c_H_hat = pvc.int32_to_float(state.H_hat[0][0][i])
-                py_H_hat = 0
-                if (i % 2) == 0:
-                    py_H_hat = icc.ic.H[0][int(i/2)].real
-                else:
-                    py_H_hat = icc.ic.H[0][int(i/2)].imag
-                print('C: ', c_H_hat, ', PY: ', py_H_hat)
+            for ph in range(num_phases):
+                for i in range(proc_frame_length + 2):
+                    c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i])
+                    py_H_hat = 0
+                    if (i % 2) == 0:
+                        py_H_hat = icc.ic.H[ph][int(i/2)].real
+                    else:
+                        py_H_hat = icc.ic.H[ph][int(i/2)].imag
+                    rtol = np.ldexp(1, -15)
+                    if not np.isclose(c_H_hat, py_H_hat, rtol = rtol):
+                        print('C: ', c_H_hat, ', PY: ', py_H_hat)
+                        print('TEST FAILED at i = ', i)
+            
             print('sigma_xx:')
-            for i in range(0, 10, 1):
+            for i in range(10):
                 c_sigma_xx = pvc.int32_to_float(state.sigma_XX[0][i])
                 print('C: ', c_sigma_xx, ', PY: ', icc.ic.sigma_xx[i])
+            
             print('X_energy:')
-            for i in range(0, (proc_frame_length / 2) + 1, 1):
+            for i in range(fd_length):
                 c_X_energy = pvc.int32_to_float(state.X_energy[0][i])
+                py_X_energy = icc.ic.X_energy[i]
                 rtol = np.ldexp(1, -15)
-                if not np.isclose(c_X_energy, icc.ic.X_energy[i], rtol = rtol):
-                    print('C: ', c_X_energy, ', PY: ', icc.ic.X_energy[i])
+                if not np.isclose(c_X_energy, py_X_energy, rtol = rtol):
+                    print('C: ', c_X_energy, ', PY: ', py_X_energy)
                     print('TEST FAILED at i = ', i)
+
+            print('error_ap:')
+            for i in range(10):
+                c_error = pvc.int32_to_float(state.Error[0][i])
+                print('C: ', c_error, ', PY: ', icc.error_ap[0][i])
 
 
 
