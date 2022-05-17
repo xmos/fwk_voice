@@ -126,16 +126,13 @@ def test_frame_compare(pre_test_stuff):
                     else:
                         c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i // 2].im)
                         py_H_hat = icc.ic.H[ph][i // 2].imag
-                    rtol = np.ldexp(1, -13)
+                    rtol = np.ldexp(1, -12)
                     if not np.isclose(c_H_hat, py_H_hat, rtol = rtol):
                         print('C: ', c_H_hat, ', PY: ', py_H_hat)
                         print('TEST FAILED at ph = ', ph, ', i = ', i)
-            
-            print('X_fifo test:')
-            print('re = ', pvc.int32_to_float(state.X_fifo[0][0][56].re), ', im = ', pvc.int32_to_float(state.X_fifo[0][0][56].im))
 
             print('Y_hat:')
-            for i in range(10):
+            for i in range(proc_frame_length + 2):
                 c_Y_hat = 0
                 py_Y_hat = 0
                 if (i % 2) == 0:

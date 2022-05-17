@@ -56,7 +56,8 @@ pipeline {
                 withVenv {
                   sh "cmake --version"
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make -j8"
+                  //sh "make -j8"
+                  sh "make -C test/lib_ic/"
                 }
               }
             }
@@ -77,11 +78,11 @@ pipeline {
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
+              //stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
               //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
-              stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
-              archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
-              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
+              //stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
+              //archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              //stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
             // Now do xcore files
@@ -97,7 +98,8 @@ pipeline {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
                       }
                   }
-                  sh "make -j8"
+                  //sh "make -j8"
+                  sh "make -C test/lib_ic/"
                 }
               }
             }
@@ -147,7 +149,8 @@ pipeline {
                   sh "cmake --version"
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
                   // sh "make -j8"
-                  sh "make VERBOSE=1"
+                  //sh "make VERBOSE=1"
+                  sh "make -C test/lib_ic/"
 
                   //We need to put this here because it is not fetched until we build
                   sh "pip install -e avona_deps/xscope_fileio"

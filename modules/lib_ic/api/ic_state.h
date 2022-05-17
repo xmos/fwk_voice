@@ -160,7 +160,7 @@ typedef struct {
     /** BFP array pointing to the estimated frequency domain Y signal. */
     bfp_complex_s32_t Y_hat_bfp[IC_Y_CHANNELS];
     /** Storage for Y_hat mantissas. */
-    complex_s32_t DWORD_ALIGNED Y_hat[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
+    complex_s32_t DWORD_ALIGNED Y_hat[IC_Y_CHANNELS][IC_FD_FRAME_LENGTH];
 
     /** BFP array pointing to the frequency domain Error output. */
     bfp_complex_s32_t Error_bfp[IC_Y_CHANNELS];
