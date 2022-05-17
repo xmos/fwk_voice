@@ -3,12 +3,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(APP_COMPILER_FLAGS
     -Os
-    -g
-    -report
+    -mcmodel=large
     -Wno-xcore-fptrgroup    
     -target=${XCORE_TARGET}
-    #-mcmodel=large
-    -DTF_LITE_STRIP_ERROR_STRINGS=1
+    -DTF_LITE_STATIC_MEMORY=1
+    -DTF_LITE_STRIP_ERROR_STRINGS=1            
+    -D__xtflm_conf_h_exists__=1
     )
 
 set(APP_NAME avona_vnr_test_features_memory)
