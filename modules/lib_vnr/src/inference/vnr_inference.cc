@@ -32,6 +32,7 @@ int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
 }
 
 
+
 #pragma stackfunction 4000
 void vnr_inference(vnr_ie_state_t *ie_state, float_s32_t *vnr_output, bfp_s32_t *features) {
     // Quantise features to 8bit

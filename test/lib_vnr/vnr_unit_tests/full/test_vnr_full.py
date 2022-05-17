@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_full.xe')
 
-def test_vnr_full(tflite_model):
+def test_vnr_full(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -45,7 +45,10 @@ def test_vnr_full(tflite_model):
         this_patch = rwv.extract_features(x_data, vnr_obj)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
-    op = test_utils.run_dut(input_data, "test_vnr_full", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_full", exe_name)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)

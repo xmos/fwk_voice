@@ -12,7 +12,7 @@ import math
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_priv_output_dequantise.xe')
 
-def test_vnr_priv_output_dequantise(tflite_model):
+def test_vnr_priv_output_dequantise(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -35,7 +35,10 @@ def test_vnr_priv_output_dequantise(tflite_model):
         dequant_output = test_utils.dequantise_output(tflite_model, data)
         ref_output_double = np.append(ref_output_double, dequant_output)
 
-    op = test_utils.run_dut(input_data, "test_vnr_priv_output_dequantise", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_priv_output_dequantise", exe_name)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)

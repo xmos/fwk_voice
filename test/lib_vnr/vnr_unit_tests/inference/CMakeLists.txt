@@ -47,7 +47,25 @@ foreach(testfile ${TEST_SOURCES})
                 "-report"
                 "${CONFIG_XSCOPE_PATH}/config.xscope")
     else()
-        target_link_libraries(
-            PRIVATE m)
+        set(CMAKE_CXX_FLAGS "-std=c++11" CACHE STRING "C++ Compiler Base Flags" FORCE)
+
+        set(BUILD_FLAGS
+          "-Os"
+          "-D__xtflm_conf_h_exists__"
+          "-DNN_USE_REF"
+        )
+        target_compile_options(${APP_NAME}
+            PRIVATE ${BUILD_FLAGS})
+
+        target_link_options(${APP_NAME}
+            PRIVATE
+                ${BUILD_FLAGS})
+
+        target_link_libraries(${APP_NAME} 
+            PUBLIC
+                sdk::lib_xs3_math)
+
+        target_link_libraries(${APP_NAME} PRIVATE "-lpthread")
+        target_link_libraries(${APP_NAME} PRIVATE m)
     endif()
 endforeach()

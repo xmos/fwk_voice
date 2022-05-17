@@ -6,13 +6,11 @@ import os
 import test_utils
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_extract_features.xe')
 
-@pytest.mark.parametrize("target", ["xcore", "x86"])
 def test_vnr_extract_features(target, tflite_model, verbose=False):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 

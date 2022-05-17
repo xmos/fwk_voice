@@ -5,13 +5,11 @@ import os
 import test_utils
 import py_vnr.vnr as vnr
 import matplotlib.pyplot as plt
-import pytest
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_priv_mel_compute.xe')
 
-@pytest.mark.parametrize("target", ["xcore", "x86"])
 def test_vnr_priv_mel_compute(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 

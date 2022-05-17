@@ -7,16 +7,6 @@ target_sources(avona_test_wav_vnr PRIVATE src/test_wav_vnr.c)
 
 target_include_directories(avona_test_wav_vnr PRIVATE src)
 
-set(APP_COMPILER_FLAGS
-    -Os
-    -g
-    -report
-    -fxscope
-    -mcmodel=large
-    -Wno-xcore-fptrgroup
-    ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope
-    -target=${XCORE_TARGET}
-)
 target_link_libraries(avona_test_wav_vnr 
     PUBLIC
         avona::vnr::features
@@ -25,6 +15,17 @@ target_link_libraries(avona_test_wav_vnr
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_sources(avona_test_wav_vnr PRIVATE src/main.xc)
+
+    set(APP_COMPILER_FLAGS
+        -Os
+        -g
+        -report
+        -fxscope
+        -mcmodel=large
+        -Wno-xcore-fptrgroup
+        ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope
+        -target=${XCORE_TARGET}
+    )
 
     target_compile_options(avona_test_wav_vnr
         PRIVATE ${APP_COMPILER_FLAGS})
@@ -37,6 +38,20 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             "-report"
             "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
 else()
-    target_link_libraries(
-        PRIVATE m)
+    set(CMAKE_CXX_FLAGS "-std=c++11" CACHE STRING "C++ Compiler Base Flags" FORCE)
+
+    set(BUILD_FLAGS
+      "-Os"
+      "-D__xtflm_conf_h_exists__"
+      "-DNN_USE_REF"
+    )
+    target_compile_options(avona_test_wav_vnr
+        PRIVATE ${BUILD_FLAGS})
+
+    target_link_options(avona_test_wav_vnr
+        PRIVATE
+            ${BUILD_FLAGS})
+
+    target_link_libraries(avona_test_wav_vnr PRIVATE "-lpthread")
+    target_link_libraries(avona_test_wav_vnr PRIVATE m)
 endif()

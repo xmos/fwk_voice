@@ -8,3 +8,4 @@ python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1
 ### To see the plot
 python host_app.py test_stream_1.wav vnr_out1.bin --show-plot=1
 python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1 --show-plot=1
+python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1 --show-plot=1 --run-x86=1

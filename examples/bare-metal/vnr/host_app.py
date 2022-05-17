@@ -33,6 +33,7 @@ def parse_arguments():
     parser.add_argument("output_bin", nargs='?', help="vnr output bin file")
     parser.add_argument("--run_with_xscope_fileio", type=int, default=0, help="run with lib xscope_fileio instead of python xscope host")
     parser.add_argument("--show-plot", type=int, default=0, help="show the VNR output plot")
+    parser.add_argument("--run-x86", type=int, default=0, help="Run x86 exe. Only use if --run_with_xscope_fileio is 1")
     args = parser.parse_args()
     return args
 
@@ -260,15 +261,20 @@ def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
     
     # Parse and log profiling info
     if parse_profile:
-        parse_profiling_info(ep.stdo)
+        src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+        parse_profiling_info(ep.stdo, src_folder)
     return ep.output_data_array
 
 
-def run_with_xscope_fileio(input_file, output_file, parse_profile=False):
-    stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
-    if parse_profile:
-        parse_profiling_info(stdo)
-    shutil.copyfile("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
+def run_with_xscope_fileio(input_file, output_file, run_x86, parse_profile=False):
+    if run_x86:
+        subprocess.run(["../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio", input_file, output_file], check=True)
+    else:
+        stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
+        if parse_profile:
+            src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src/with_fileio')
+            parse_profiling_info(stdo, src_folder)
+        shutil.copyfile("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
     return np.fromfile(output_file, dtype=np.int32)
 
     
@@ -276,8 +282,9 @@ if __name__ == "__main__":
     args = parse_arguments()
     print(f"input_file: {args.input_wav}, output_file: {args.output_bin}, with_xscope_fileio={args.run_with_xscope_fileio}, show_plot={args.show_plot}")
     if args.run_with_xscope_fileio:
-        vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin, parse_profile=True)
+        vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin, args.run_x86, parse_profile=True)
     else:
+        assert(args.run_x86 == 0), "x86 build not supported when using python xscope host"
         vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin, parse_profile=True)
 
     plot_result(vnr_out, args.input_wav, show_plot=bool(args.show_plot))

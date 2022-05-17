@@ -22,7 +22,7 @@ FetchContent_Populate(xscope_fileio)
 FetchContent_Declare(
     lib_nn
     GIT_REPOSITORY https://github.com/xmos/lib_nn.git
-    GIT_TAG        988b0227f8cd5e4024a1b04a2f2868cb7172987d
+    GIT_TAG        1a0fce0f20b4bbb95dcc72c381d4e88c7b08c9e5
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/lib_nn
 )
@@ -31,7 +31,7 @@ FetchContent_Populate(lib_nn)
 FetchContent_Declare(
     tflite_micro
     GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
-    GIT_TAG        a90c314f4ae1b51ab9ef1a5ba81ad388d7f829df
+    GIT_TAG        99ca2d7f39382145c6b6e244d9ffa9b43cae1f50
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/lib_tflite_micro
 )
