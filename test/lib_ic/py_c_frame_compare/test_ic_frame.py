@@ -118,13 +118,15 @@ def test_frame_compare(pre_test_stuff):
             print('H_hat:')
             for ph in range(num_phases):
                 for i in range(proc_frame_length + 2):
-                    c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i])
+                    c_H_hat = 0
                     py_H_hat = 0
                     if (i % 2) == 0:
+                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i].re)
                         py_H_hat = icc.ic.H[ph][i // 2].real
                     else:
+                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i].im)
                         py_H_hat = icc.ic.H[ph][i // 2].imag
-                    rtol = np.ldexp(1, -14)
+                    rtol = np.ldexp(1, -13)
                     if not np.isclose(c_H_hat, py_H_hat, rtol = rtol):
                         print('C: ', c_H_hat, ', PY: ', py_H_hat)
                         print('TEST FAILED at ph = ', ph, ', i = ', i)
@@ -134,11 +136,13 @@ def test_frame_compare(pre_test_stuff):
 
             print('Y_hat:')
             for i in range(10):
-                c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i])
+                c_Y_hat = 0
                 py_Y_hat = 0
                 if (i % 2) == 0:
+                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i].re)
                     py_Y_hat = icc.ic.Y_hat[0][i // 2].real
                 else:
+                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i].im)
                     py_Y_hat = icc.ic.Y_hat[0][i // 2].imag
                 print('C: ', c_Y_hat, ', PY: ', py_Y_hat)
 
