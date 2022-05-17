@@ -129,6 +129,9 @@ def test_frame_compare(pre_test_stuff):
                         print('C: ', c_H_hat, ', PY: ', py_H_hat)
                         print('TEST FAILED at ph = ', ph, ', i = ', i)
             
+            print('X_fifo test:')
+            print('re = ', pvc.int32_to_float(state.X_fifo[0][0][56].re), ', im = ', pvc.int32_to_float(state.X_fifo[0][0][56].im))
+
             print('Y_hat:')
             for i in range(10):
                 c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i])
