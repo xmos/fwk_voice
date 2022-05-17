@@ -121,10 +121,10 @@ def test_frame_compare(pre_test_stuff):
                     c_H_hat = 0
                     py_H_hat = 0
                     if (i % 2) == 0:
-                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i].re)
+                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i // 2].re)
                         py_H_hat = icc.ic.H[ph][i // 2].real
                     else:
-                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i].im)
+                        c_H_hat = pvc.int32_to_float(state.H_hat[0][ph][i // 2].im)
                         py_H_hat = icc.ic.H[ph][i // 2].imag
                     rtol = np.ldexp(1, -13)
                     if not np.isclose(c_H_hat, py_H_hat, rtol = rtol):
@@ -139,10 +139,10 @@ def test_frame_compare(pre_test_stuff):
                 c_Y_hat = 0
                 py_Y_hat = 0
                 if (i % 2) == 0:
-                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i].re)
+                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i // 2].re)
                     py_Y_hat = icc.ic.Y_hat[0][i // 2].real
                 else:
-                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i].im)
+                    c_Y_hat = pvc.int32_to_float(state.Y_hat[0][i // 2].im)
                     py_Y_hat = icc.ic.Y_hat[0][i // 2].imag
                 print('C: ', c_Y_hat, ', PY: ', py_Y_hat)
 
