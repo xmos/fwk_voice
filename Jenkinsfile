@@ -73,7 +73,7 @@ pipeline {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
               viewEnv() {
                 withVenv {
-                  runPython("python build_vnr_feature_extraction.py")
+                  //runPython("python build_vnr_feature_extraction.py")
                 }
               }
             }
