@@ -18,7 +18,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     )
 
     target_compile_definitions(avona_module_lib_vnr_inference
-        PUBLIC
+        PRIVATE
             TF_LITE_STATIC_MEMORY=1
             TF_LITE_STRIP_ERROR_STRINGS=1            
             __xtflm_conf_h_exists__=1
@@ -27,6 +27,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
             sdk::lib_xs3_math
+            )
+    target_link_libraries(avona_module_lib_vnr_inference
+        PRIVATE
             sdk::inferencing::lib_tflite_micro
             )
 

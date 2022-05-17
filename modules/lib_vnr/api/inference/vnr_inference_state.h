@@ -3,7 +3,6 @@
 
 #include "vnr_model_data.h"
 #include "xtflm_conf.h"
-#include "inference_engine.h"
 #include "vnr_tensor_arena_size.h"
 
 #include "xs3_math.h"
@@ -16,7 +15,6 @@ typedef struct {
 }vnr_ie_config_t;
 
 typedef struct {
-    inference_engine_t ie; 
     uint64_t tensor_arena[TENSOR_ARENA_SIZE_BYTES/sizeof(uint64_t)];
     int8_t *input_buffer;
     size_t input_size;
