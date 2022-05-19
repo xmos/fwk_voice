@@ -12,7 +12,7 @@ build_path = os.path.join(this_filepath, "../../../build/")
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("xcore_opt_tflite_model", nargs='?',
+    parser.add_argument("tflite_model", nargs='?',
                         help=".xe file to run")
     parser.add_argument("--copy-files", type=int, default=0, help="Copy generated files to vnr module")
     parser.add_argument("--module-path", type=str, default=None, help="Path to vnr module to copy the new files to. Used when --copy-files=1")
@@ -34,7 +34,7 @@ def get_quant_spec(model):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    model = args.xcore_opt_tflite_model
+    model = args.tflite_model
     model = os.path.abspath(model)
     ai_tools_version = pkg_resources.get_distribution('xmos_ai_tools').version
     print(f"model file = {model}. Using xmos-ai-tools version {ai_tools_version}")
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     xcore_opt_model = os.path.join(test_dir, os.path.basename(model).split('.')[0] + "_xcore.tflite")
     convert_cmd = f"xcore-opt --xcore-thread-count 1 -o {xcore_opt_model} {model}".split()
     subprocess.run(convert_cmd, check=True)
+    xcore_opt_model_size = os.path.getsize(xcore_opt_model)
     
     # Convert tflite to .c and .h files
     model_c_file = os.path.join(test_dir, "vnr_model_data.c")
@@ -56,7 +57,15 @@ if __name__ == "__main__":
     cmd = f"{tflite_to_c_script} --input {xcore_opt_model} --header {model_h_file} --source {model_c_file} --variable-name vnr".split()
     subprocess.run(cmd, check=True)
     
-    # Tensor arena size
+    # Double check model size against vnr_model_data_len printed in the vnr_model_data.c
+    with open(model_c_file, "r") as fp:
+        lines = fp.read().splitlines()
+        for l in lines:
+            if "vnr_model_data_len" in l:
+                model_data_len = (l.split()[-1])[:-1] #TODO use re
+                assert(xcore_opt_model_size == int(model_data_len)), "model_data_len doesn't match xcore_opt tflite file size"
+
+    # Tensor arena size define file
     ie = xtflm.XTFLMInterpreter(model_path=xcore_opt_model)
     ie.allocate_tensors()
     print(f"Tensor arena size = {ie.tensor_arena_size} bytes")
@@ -65,9 +74,10 @@ if __name__ == "__main__":
         fp.write(f"// Generated using xmos-ai-tools version {ai_tools_version}\n")
         fp.write("#ifndef VNR_TENSOR_ARENA_SIZE_H\n")
         fp.write("#define VNR_TENSOR_ARENA_SIZE_H\n\n")
-        fp.write(f"#define TENSOR_ARENA_SIZE_BYTES    ({ie.tensor_arena_size})\n")
+        fp.write(f"#define TENSOR_ARENA_SIZE_BYTES    ({ie.tensor_arena_size} - {xcore_opt_model_size}) // Remove model size from the tensor_arena_size returned by the python xtflm host interpreter \n")
         fp.write("\n#endif")
-
+    
+    # Quant dequant spec defines file
     input_scale, input_zero_point, output_scale, output_zero_point = get_quant_spec(model)
     print(f"input_scale {input_scale}, input_zero_point {input_zero_point}, output_scale {output_scale}, output_zero_point {output_zero_point}")
     with open(os.path.join(test_dir, "vnr_quant_spec_defines.h"), "w") as fp:
@@ -80,7 +90,8 @@ if __name__ == "__main__":
         fp.write(f"#define VNR_OUTPUT_SCALE       ({output_scale})\n")
         fp.write(f"#define VNR_OUTPUT_ZERO_POINT   ({output_zero_point})\n")
         fp.write("\n#endif")
-
+    
+    # Copy generated files into the VNR module
     if args.copy_files:
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files=1"
         vnr_module_path = os.path.abspath(args.module_path)
