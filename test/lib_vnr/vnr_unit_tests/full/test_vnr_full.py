@@ -64,7 +64,7 @@ def test_vnr_full(target, tflite_model):
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
     assert(geo_closeness > 0.99), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.99), "inference output arith_closeness below pass threshold"
+    assert(arith_closeness > 0.97), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
@@ -72,4 +72,4 @@ def test_vnr_full(target, tflite_model):
     #plt.show()
 
 if __name__ == "__main__":
-    test_vnr_full(os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"))
+    test_vnr_full("xcore", os.path.abspath("../../test_wav_vnr/model/model_output/model_qaware.tflite"))

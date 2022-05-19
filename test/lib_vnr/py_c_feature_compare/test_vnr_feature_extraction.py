@@ -22,7 +22,7 @@ sys.path.append(pvc_path)
 import py_vs_c_utils as pvc 
 
 input_file = "../../../examples/bare-metal/vnr/test_stream_1.wav"
-tflite_model = "../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"
+tflite_model = "../test_wav_vnr/model/model_output/model_qaware.tflite"
 
 def bfp_s32_to_float(bfp_struct, data):
     
