@@ -20,7 +20,7 @@ target_compile_options(avona_module_lib_vad
 
 target_link_libraries(avona_module_lib_vad
     PUBLIC
-        sdk::lib_xs3_math
+        core::xs3_math
 )
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
@@ -31,4 +31,3 @@ endif()
 
 ## Create an alias
 add_library(avona::vad ALIAS avona_module_lib_vad)
-
