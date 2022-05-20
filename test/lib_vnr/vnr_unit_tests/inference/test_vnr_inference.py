@@ -74,4 +74,4 @@ def test_vnr_inference(target, tflite_model):
     #plt.show()
 
 if __name__ == "__main__":
-    test_vnr_inference(os.path.abspath("../../test_wav_vnr/model/model_output/model_qaware.tflite"))
+    test_vnr_inference("xcore", test_utils.get_model())

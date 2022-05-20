@@ -53,4 +53,4 @@ def test_vnr_priv_output_dequantise(target, tflite_model):
 
 
 if __name__ == "__main__":
-    test_vnr_priv_output_dequantise(os.path.abspath("../../test_wav_vnr/model/model_output/model_qaware.tflite"))
+    test_vnr_priv_output_dequantise("xcore", test_utils.get_model())

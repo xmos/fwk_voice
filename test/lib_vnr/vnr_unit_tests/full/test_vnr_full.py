@@ -72,4 +72,4 @@ def test_vnr_full(target, tflite_model):
     #plt.show()
 
 if __name__ == "__main__":
-    test_vnr_full("xcore", os.path.abspath("../../test_wav_vnr/model/model_output/model_qaware.tflite"))
+    test_vnr_full("xcore", test_utils.get_model())
