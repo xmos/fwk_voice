@@ -140,6 +140,7 @@ void aec_forward_fft(
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
     
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
+    output->hr = bfp_complex_s32_headroom(output);
     bfp_fft_unpack_mono(output);
     input->length = len;
 }

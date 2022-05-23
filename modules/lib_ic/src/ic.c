@@ -18,6 +18,7 @@ static void ic_init_config(ic_config_params_t *config){
     config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
     config->delta = double_to_float_s32(IC_INIT_DELTA);
+    //config->delta = {1073741823, -57};
 
 }
 
