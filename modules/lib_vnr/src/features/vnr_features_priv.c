@@ -139,7 +139,7 @@ static const int lookup[33] = {
 
 // Lookup table entries k=0,1,...,32:
 //lookup[k] = 256log2(1 + k/32)
-int lookup_small_log2_linear_new(uint32_t x) {
+static int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
     int y = (x >> mask_bits) - 32;

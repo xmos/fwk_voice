@@ -25,7 +25,7 @@ void vnr_feature_state_init(vnr_feature_state_t *feature_state) {
     memset(feature_state, 0, sizeof(vnr_feature_state_t));
 }
 
-void vnr_extract_features(vnr_feature_state_t *vnr_feature_state, bfp_s32_t *feature_patch, int32_t *feature_patch_data, bfp_complex_s32_t *X) {
+void vnr_extract_features(vnr_feature_state_t *vnr_feature_state, bfp_s32_t *feature_patch, int32_t *feature_patch_data, const bfp_complex_s32_t *X) {
     fixed_s32_t new_slice[VNR_MEL_FILTERS];
     vnr_priv_make_slice(new_slice, X);
     vnr_priv_add_new_slice(vnr_feature_state->feature_buffers, new_slice);
