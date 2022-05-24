@@ -60,6 +60,10 @@ else()
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
             sdk::lib_xs3_math
+            )
+
+    target_link_libraries(avona_module_lib_vnr_inference
+        PRIVATE
             sdk::inferencing::lib_tflite_micro
             )
 

@@ -424,20 +424,37 @@ pipeline {
             }
           }
         }
-        stage('IC characterisation') {
+        stage('IC test_calc_vnr_pred') {
           steps {
-            dir("${REPO}/test/lib_ic/characterise_c_py") {
+            dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
               viewEnv() {
                 withVenv {
-                  //This test compares the suppression performance across angles between model and C implementation
-                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
-                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
-                  junit "pytest_result.xml"
-                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
-                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
-                  // sh "python sweep_ic_delay.py"
+                  //This is a unit test for ic_calc_vnr_pred function.
+                  //It compares the avona output with py_ic model output
+                  sh "pytest -n1 --junitxml=pytest_result.xml"
                 }
               }
+            }
+          }
+        }
+        stage('IC test specification') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_ic_spec") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the model and C implementation over a range of scenarious for:
+                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
+                  //and expected group delay. It will fail if these are not met.
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                  sh "python print_stats.py > ic_spec_summary.txt"
+                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
+                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
+                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
+                  // sh "python plot_ic.py"
+                }
+              }
+              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
