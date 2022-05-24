@@ -45,7 +45,7 @@ float_s32_t add(
 
 void test_init(void){
     ic_init(&ic_state);
-    float_s32_t test1 = {277038593, -25};
+    /*float_s32_t test1 = {277038593, -25};
     float_s32_t test2 = {233768088, -24};
     float_s32_t delta = {2147483646, -58};
     test1 = add(test1, delta);bfp_s32_add_scalar()
@@ -54,7 +54,7 @@ void test_init(void){
     printf("test2 %d %d\n", test2.mant, test2.exp);
 
     int32_t a = 0x7fffffff;
-    printf("%d, %d\n", a, a>>32);
+    printf("%d, %d\n", a, a>>32);*/
     //Custom setup for testing
     // ic_state.mu[0][0] = double_to_float_s32(0.0);
     ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;

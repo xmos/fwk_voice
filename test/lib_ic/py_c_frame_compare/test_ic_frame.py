@@ -104,9 +104,9 @@ def check_filter_components(icc, frame_start):
             c_X_energy = np.array(state.X_energy[0][i]).astype(np.float64) * (2 ** exp)
             py_X_energy = icc.ic.X_energy[i]
             rtol = np.ldexp(1, -20)
-            #if not np.isclose(c_X_energy, py_X_energy, rtol = rtol):
-                #print('C: ', c_X_energy, ', PY: ', py_X_energy)
-                #print('TEST FAILED at i = ', i)
+            if not np.isclose(c_X_energy, py_X_energy, rtol = rtol):
+                print('C: ', c_X_energy, ', PY: ', py_X_energy)
+                print('TEST FAILED at i = ', i)
             
         print('Inverse X energy:')
         exp = state.inv_X_energy_bfp[0].exp
@@ -115,9 +115,9 @@ def check_filter_components(icc, frame_start):
             c_inv_X_energy = np.array(state.inv_X_energy[0][i]).astype(np.float64) * (2 ** exp)
             py_inv_X_energy = icc.ic.inv_X_energy[0][i]
             rtol = np.ldexp(1, -10)
-            #if not np.isclose(c_inv_X_energy, py_inv_X_energy, rtol = rtol):
-                #print('C: ', c_inv_X_energy, ', PY: ', py_inv_X_energy)
-                #print('TEST FAILED at i = ', i)
+            if not np.isclose(c_inv_X_energy, py_inv_X_energy, rtol = rtol):
+                print('C: ', c_inv_X_energy, ', PY: ', py_inv_X_energy)
+                print('TEST FAILED at i = ', i)
 
         print('sigma_xx:')
         exp = state.sigma_XX_bfp[0].exp
@@ -175,7 +175,7 @@ def check_filter_components(icc, frame_start):
                 rtol = np.ldexp(1, -23)
                 if not np.isclose(c_error, py_error, rtol = rtol):
                     print('C: ', c_error, ', PY: ', py_error)
-                    #print('TEST FAILED at i = ', i)
+                    print('TEST FAILED at i = ', i)
 
 def test_frame_compare(pre_test_stuff):
     icc = ic_comparison()

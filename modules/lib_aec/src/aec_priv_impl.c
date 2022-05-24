@@ -843,6 +843,30 @@ void aec_priv_calc_inverse(
 #endif
 }
 
+
+void bfp_new_add_scalar(
+    bfp_s32_t* a, 
+    const bfp_s32_t* b, 
+    const float_s32_t c)
+{
+#if (XS3_BFP_DEBUG_CHECK_LENGTHS) // See xs3_math_conf.h
+    assert(b->length == a->length);
+    assert(b->length != 0);
+#endif
+
+    right_shift_t b_shr, c_shr;
+
+    xs3_vect_s32_add_scalar_prepare(&a->exp, &b_shr, &c_shr, b->exp, c.exp, 
+                                    b->hr, HR_S32(c.mant));
+
+    int32_t cc = 0;
+    if (c_shr < 32)
+        cc = (c_shr >= 0)? (c.mant >> c_shr) : (c.mant << -c_shr);
+
+    a->hr = xs3_vect_s32_add_scalar(a->data, b->data, cc, b->length, 
+                                    b_shr);
+}
+
 void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t *inv_X_energy_denom,
         const bfp_s32_t *X_energy,
@@ -876,13 +900,15 @@ void aec_priv_calc_inv_X_energy_denom(
         }
 
         bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, &taps_q30[0], 5, PAD_MODE_REFLECT);
-        float_s32_t min = bfp_s32_min(inv_X_energy_denom);
-        float_s32_t max = bfp_s32_max(inv_X_energy_denom);
-        headroom_t hd = inv_X_energy_denom->hr;
-        headroom_t act = bfp_s32_headroom(inv_X_energy_denom);
+        //float_s32_t min = bfp_s32_min(inv_X_energy_denom);
+        //float_s32_t max = bfp_s32_max(inv_X_energy_denom);
+        //headroom_t hd = inv_X_energy_denom->hr;
+        //headroom_t act = bfp_s32_headroom(inv_X_energy_denom);
         //inv_X_energy_denom->hr = (hd == act)? hd : act;
         //printf(" %d %d ||",max.mant, max.exp);
-        bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+        //bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+        bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+
     }
     else
     {
