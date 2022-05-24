@@ -28,8 +28,8 @@ fd_length = proc_frame_length // 2 + 1
 frame_advance = 240
 num_phases = 10
 y_channel_delay = 180
-input_file = 'pytest_audio_0.wav'
-#input_file = "../../../examples/bare-metal/ic/input.wav"
+#input_file = 'pytest_audio_360.wav'
+input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 
 @pytest.fixture(params=[34])
@@ -186,8 +186,7 @@ def test_frame_compare(pre_test_stuff):
 
     output_wav_data = np.zeros((2, file_length))
 
-    #for frame_start in range(0, file_length-proc_frame_length*2, frame_advance):
-    for frame_start in range(0, 2400, frame_advance):
+    for frame_start in range(0, file_length-proc_frame_length*2, frame_advance):
         input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance, delays)[0:2,:]
 
         if False:
@@ -204,6 +203,6 @@ def test_frame_compare(pre_test_stuff):
     scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
 
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file)
-    #assert arith_closeness > 0.98
-    #assert geo_closeness > 0.99
+    assert arith_closeness > 0.98
+    assert geo_closeness > 0.99
     assert c_delay == 0

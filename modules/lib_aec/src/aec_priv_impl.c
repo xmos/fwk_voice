@@ -808,24 +808,6 @@ void aec_priv_calc_inverse(
 #if 1
     //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
-    /*bfp_s32_t chunk[4]; //257
-    bfp_s32_init(&chunk[0], input->data, input->exp, 64, 1);
-    bfp_s32_init(&chunk[1], &input->data[64], input->exp, 64, 1);
-    bfp_s32_init(&chunk[2], &input->data[128], input->exp, 64, 1);
-    bfp_s32_init(&chunk[3], &input->data[192], input->exp, 65, 1);
-    bfp_s32_inverse(&chunk[0], &chunk[0]);
-    bfp_s32_inverse(&chunk[1], &chunk[1]);
-    bfp_s32_inverse(&chunk[2], &chunk[2]);
-    bfp_s32_inverse(&chunk[3], &chunk[3]);
-    exponent_t exp = (chunk[0].exp > chunk[1].exp) ? chunk[0].exp: chunk[1].exp;
-    exp = (exp > chunk[2].exp) ? exp: chunk[2].exp;
-    exp = (exp > chunk[3].exp) ? exp: chunk[3].exp;
-    bfp_s32_use_exponent(&chunk[0], exp);
-    bfp_s32_use_exponent(&chunk[1], exp);
-    bfp_s32_use_exponent(&chunk[2], exp);
-    bfp_s32_use_exponent(&chunk[3], exp);
-    input->exp = exp;
-    input->hr = bfp_s32_headroom(input);*/
 
 #else //36323 cycles. 2 x-channels, single thread
     int32_t min_element = xs3_vect_s32_min(
@@ -900,12 +882,7 @@ void aec_priv_calc_inv_X_energy_denom(
         }
 
         bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, &taps_q30[0], 5, PAD_MODE_REFLECT);
-        //float_s32_t min = bfp_s32_min(inv_X_energy_denom);
-        //float_s32_t max = bfp_s32_max(inv_X_energy_denom);
-        //headroom_t hd = inv_X_energy_denom->hr;
-        //headroom_t act = bfp_s32_headroom(inv_X_energy_denom);
-        //inv_X_energy_denom->hr = (hd == act)? hd : act;
-        //printf(" %d %d ||",max.mant, max.exp);
+
         //bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
         bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
 
@@ -939,9 +916,8 @@ void aec_priv_calc_inv_X_energy_denom(
 
      //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
      float_s32_t min = bfp_s32_min(inv_X_energy_denom);
-     //printf(" %d %d |||",min.mant, min.exp);
+
      if(min.mant == 0) {
-         //printf("divide by zero occured!\n");
          /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
           * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
           * of bfp_s32_add_scalar() making t.mant 0*/
