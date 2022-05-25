@@ -21,6 +21,11 @@ INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_ic/src/",
     f"{MODULE_ROOT}/lib_vad/api/",
     f"{MODULE_ROOT}/lib_vad/src/",
+    f"{MODULE_ROOT}/lib_vnr/api/features",
+    f"{MODULE_ROOT}/lib_vnr/src/features",
+    f"{MODULE_ROOT}/lib_vnr/api/inference",
+    f"{MODULE_ROOT}/lib_vnr/src/inference/model",
+    f"{MODULE_ROOT}/lib_vnr/src/inference",
     f"{XS3_MATH}/lib_xs3_math/api/",
 ]
 SRCS = f"../ic_vad_test.c".split()
@@ -44,7 +49,8 @@ replacements = [["bfp_flags_e", "int"],
                 ["512 / 2", "256"],
                 ["2 * 240", "480"],
                 ["1*10", "10"],
-                ["10*1", "10"]]
+                ["10*1", "10"],
+                ["sizeof(uint64_t)", "8"]]
 
 for replacement in replacements:
     predefs = predefs.replace(*replacement)
@@ -73,9 +79,10 @@ ffibuilder.set_source("ic_vad_test_py",  # name of the output C extension
                 '../../../build/modules/lib_ic',
                 '../../../build/modules/lib_vad',
                 '../../../build/modules/lib_aec',
+                '../../../build/modules/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['m', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vad', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
+    libraries=['m', 'avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vad', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

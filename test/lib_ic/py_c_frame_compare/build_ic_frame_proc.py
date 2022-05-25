@@ -20,12 +20,18 @@ INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_ic/api/",
     f"{MODULE_ROOT}/lib_ic/src/",
     f"{XS3_MATH}/lib_xs3_math/api/",
+    f"{MODULE_ROOT}/lib_vnr/api/features",
+    f"{MODULE_ROOT}/lib_vnr/src/features",
+    f"{MODULE_ROOT}/lib_vnr/api/inference",
+    f"{MODULE_ROOT}/lib_vnr/src/inference/model",
+    f"{MODULE_ROOT}/lib_vnr/src/inference"    
 ]
 SRCS = f"../ic_test.c".split()
 ffibuilder = FFI()
 
 #Extract all defines and state from lib_ic programatically
 predefs = extract_pre_defs()
+predefs = predefs.replace("sizeof(uint64_t)", "8")
 print(predefs)
 # Contains all the C defs visible from Python
 ffibuilder.cdef(
@@ -51,9 +57,10 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     library_dirs=[
                 '../../../../build/modules/lib_ic',
                 '../../../../build/modules/lib_aec',
+                '../../../../build/modules/lib_vnr',
                 '../../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['m', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
+    libraries=['m', 'avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
