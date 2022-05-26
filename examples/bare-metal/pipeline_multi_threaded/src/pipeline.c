@@ -127,12 +127,14 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // Calculating voice activity probability
         uint8_t vad = vad_probability_voice(frame[0], &vad_state);
-        ic_calc_vnr_pred(&ic_state);        
+        // VNR
+        ic_calc_vnr_pred(&ic_state);
+        float_s32_t agc_vnr_threshold = float_to_float_s32(0.8);
+        md.vnr_pred_flag = float_s32_gt(ic_state.ic_vnr_pred_state.input_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
         md.vad_flag = (vad > AGC_VAD_THRESHOLD);
-        float_s32_t agc_vnr_threshold = float_to_float_s32(0.8);
-        md.vnr_pred_flag = float_s32_gt(ic_state.ic_vnr_pred_state.input_vnr_pred, agc_vnr_threshold);
+
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC

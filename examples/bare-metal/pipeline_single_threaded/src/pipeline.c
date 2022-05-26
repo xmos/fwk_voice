@@ -98,7 +98,7 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
         int32_t (*input_data)[AP_FRAME_ADVANCE],
         int32_t (*output_data)[AP_FRAME_ADVANCE])
 {
-    pipeline_metadata_t md;
+    pipeline_metadata_t md;    
     memcpy(&md, md_input, sizeof(pipeline_metadata_t));
 
     /** IC and VAD*/
@@ -119,6 +119,12 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
     ic_filter(&state->ic_state, input_data[0], input_data[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     md.vad_flag = (vad > AGC_VAD_THRESHOLD);
+    
+    // VNR
+    ic_calc_vnr_pred(&state->ic_state);
+    float_s32_t agc_vnr_threshold = float_to_float_s32(0.8);
+    md.vnr_pred_flag = float_s32_gt(state->ic_state.ic_vnr_pred_state.input_vnr_pred, agc_vnr_threshold);
+
     ic_adapt(&state->ic_state, vad, ic_output[0]);
     // Copy IC output to the other channel
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
@@ -142,7 +148,8 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
 #else
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = md.max_ref_energy;
-    agc_md.vad_flag = md.vad_flag;
+    //agc_md.vad_flag = md.vad_flag;
+    agc_md.vad_flag = md.vnr_pred_flag;
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = md.aec_corr_factor[ch];
