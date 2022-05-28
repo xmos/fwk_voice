@@ -110,8 +110,7 @@ void aec_calc_time_domain_ema_energy(
         return;
     }
     bfp_s32_t input_chunk;
-    bfp_s32_init(&input_chunk, &input->data[start_offset], input->exp, length, 0);
-    input_chunk.hr = input->hr;
+    bfp_s32_init(&input_chunk, &input->data[start_offset], input->exp, length, 1);
     float_s64_t dot64 = bfp_s32_dot(&input_chunk, &input_chunk);
     float_s32_t dot = float_s64_to_float_s32(dot64);
     *ema_energy = float_s32_ema(*ema_energy, dot, conf->aec_core_conf.ema_alpha_q30);
@@ -229,13 +228,11 @@ void aec_calc_coherence(
     coherence_mu_params_t *coh_mu_state_ptr = &state->shared_state->coh_mu_state[ch];
     //We need y_hat[240:480] and y[240:480]
     bfp_s32_t y_hat_subset;
-    bfp_s32_init(&y_hat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE, 0);
-    y_hat_subset.hr = state->y_hat[ch].hr;
+    bfp_s32_init(&y_hat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE, 1);
 
     //y[240:480] is prev_y[0:240]. Create a temporary bfp_s32_t to point to prev_y[0:240]
     bfp_s32_t temp;
-    bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 0);
-    temp.hr = state->shared_state->prev_y[ch].hr;
+    bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 1);
 
     aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
 }
