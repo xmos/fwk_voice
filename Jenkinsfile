@@ -437,27 +437,6 @@ pipeline {
             }
           }
         }
-        stage('IC test specification') {
-          steps {
-            dir("${REPO}/test/lib_ic/test_ic_spec") {
-              viewEnv() {
-                withVenv {
-                  //This test compares the model and C implementation over a range of scenarious for:
-                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
-                  //and expected group delay. It will fail if these are not met.
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                  sh "python print_stats.py > ic_spec_summary.txt"
-                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
-                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
-                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
-                  // sh "python plot_ic.py"
-                }
-              }
-              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
-            }
-          }
-        }
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
