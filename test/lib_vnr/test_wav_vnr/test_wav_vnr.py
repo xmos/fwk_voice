@@ -109,8 +109,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     frame_buffer = np.zeros(3*proc_frame_length)
     rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
     wav_data, channel_count, file_length = awu.parse_audio(wav_file)
+    file_length = (file_length // frame_advance) * frame_advance
     
-    vnr_output = np.zeros(file_length // frame_advance)
     x_data = np.zeros(proc_frame_length)
 
     ref_mel = np.empty(0, dtype=np.float64)
@@ -118,7 +118,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     ref_norm_patch = np.empty(0, dtype=np.float64)
     ref_tflite_output = np.empty(0, dtype=np.float64)
     framecount = 0;
-    for frame_start in range(0, file_length-frame_advance, frame_advance):
+    for frame_start in range(0, file_length, frame_advance):
         # buffer the input data into STFT slices
         new_x_frame = awu.get_frame(wav_data, frame_start, frame_advance)
         x_data = np.roll(x_data, -frame_advance, axis = 0)
@@ -207,7 +207,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 
     ax[1,1].set_title('tflite inference output')
     ax[1,1].plot(ref_tflite_output, label="ref")
-    ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
+    ax[1,1].plot(dut_tflite_output, label="dut")
     ax[1,1].legend(loc="upper right")
     fig_instance = plt.gcf() #get current figure instance so we can save in a file later
     if(plot_results):
