@@ -73,6 +73,8 @@ pipeline {
               viewEnv() {
                 withVenv {
                   runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
