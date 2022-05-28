@@ -16,7 +16,7 @@ target_include_directories(avona_example_bare_metal_aec_1_thread
 target_link_libraries(avona_example_bare_metal_aec_1_thread
     PUBLIC
         avona::example::aec1thread
-        sdk::lib_xs3_math
+        core::xs3_math
         avona::example::fileutils
 )
 

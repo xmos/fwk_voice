@@ -76,4 +76,4 @@ target_compile_options(avona_deps_lib_xs3_math
 #)
 
 ## Create an alias
-add_library(sdk::lib_xs3_math ALIAS avona_deps_lib_xs3_math)
+add_library(core::xs3_math ALIAS avona_deps_lib_xs3_math)

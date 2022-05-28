@@ -102,7 +102,7 @@ target_include_directories(avona_example_shared_src_hpf
 )
 target_link_libraries(avona_example_shared_src_hpf
     INTERFACE
-        sdk::lib_xs3_math
+        core::xs3_math
 )
 
 add_library(avona::example::hpf ALIAS avona_example_shared_src_hpf)
