@@ -535,19 +535,17 @@ void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
     bfp_complex_s32_t temp_in;
 
     for(unsigned i=0; i<num_phases-1; i++) {
-        bfp_complex_s32_init(&temp_in, &X_fifo[i].data[recalc_bin], X_fifo[i].exp, 1, 0);
-        temp_in.hr = X_fifo[i].hr;
+        bfp_complex_s32_init(&temp_in, &X_fifo[i].data[recalc_bin], X_fifo[i].exp, 1, 1);
         bfp_complex_s32_squared_mag(&temp_out, &temp_in);
         bfp_s32_add(&sum_out, &sum_out, &temp_out);
     }
-    bfp_complex_s32_init(&temp_in, &X->data[recalc_bin], X->exp, 1, 0);
-    temp_in.hr = X->hr;
+    bfp_complex_s32_init(&temp_in, &X->data[recalc_bin], X->exp, 1, 1);
     
     bfp_complex_s32_squared_mag(&temp_out, &temp_in);
     bfp_s32_add(&sum_out, &sum_out, &temp_out);
     bfp_s32_use_exponent(&sum_out, X_energy->exp);
 
-    //TODO manage headroom mismatch
+    // manage headroom mismatch
     X_energy->data[recalc_bin] = sum_out.data[0];
     if(sum_out.hr < X_energy->hr) {
         X_energy->hr = sum_out.hr;
@@ -756,10 +754,8 @@ void aec_priv_create_output(
     memset(error->data, 0, AEC_FRAME_ADVANCE*sizeof(int32_t));
 
     bfp_s32_t chunks[2];
-    bfp_s32_init(&chunks[0], &error->data[AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0); //240-272 fwd win
-    chunks[0].hr = error->hr;
-    bfp_s32_init(&chunks[1], &error->data[2*AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0); //480-512 flpd win
-    chunks[1].hr = error->hr;
+    bfp_s32_init(&chunks[0], &error->data[AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 1); //240-272 fwd win
+    bfp_s32_init(&chunks[1], &error->data[2*AEC_FRAME_ADVANCE], error->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 1); //480-512 flpd win
 
     //window error
     bfp_s32_mul(&chunks[0], &chunks[0], &win);
@@ -781,10 +777,8 @@ void aec_priv_create_output(
 
         //overlap add
         //split output into 2 chunks. chunk[0] with first 32 samples of output. chunk[1] has rest of the 240-32 samples of output
-        bfp_s32_init(&chunks[0], &output->data[0], output->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 0);
-        chunks[0].hr = output->hr;
-        bfp_s32_init(&chunks[1], &output->data[AEC_UNUSED_TAPS_PER_PHASE*2], output->exp, AEC_FRAME_ADVANCE-(AEC_UNUSED_TAPS_PER_PHASE*2), 0);
-        chunks[1].hr = output->hr;
+        bfp_s32_init(&chunks[0], &output->data[0], output->exp, AEC_UNUSED_TAPS_PER_PHASE*2, 1);
+        bfp_s32_init(&chunks[1], &output->data[AEC_UNUSED_TAPS_PER_PHASE*2], output->exp, AEC_FRAME_ADVANCE-(AEC_UNUSED_TAPS_PER_PHASE*2), 1);
 
         //Add previous frame's overlap to first 32 samples of output
         bfp_s32_add(&chunks[0], &chunks[0], overlap);

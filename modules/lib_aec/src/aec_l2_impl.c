@@ -37,7 +37,7 @@ void aec_l2_calc_Error_and_Y_hat(
         for(unsigned ph=0; ph<phases; ph++) {
             //create input chunks
             bfp_complex_s32_t X_chunk, H_hat_chunk;
-            bfp_complex_s32_init(&X_chunk, &X_fifo[ph].data[start_offset], X_fifo[ph].exp, length, 0);
+            bfp_complex_s32_init(&X_chunk, &X_fifo[ph].data[start_offset], X_fifo[ph].exp, length, 0); //Not recalculating headroom here to make sure outputs are bitexact irrespective of the length this function is called for.
             X_chunk.hr = X_fifo[ph].hr;
             bfp_complex_s32_init(&H_hat_chunk, &H_hat[ph].data[start_offset], H_hat[ph].exp, length, 0);
             H_hat_chunk.hr = H_hat[ph].hr;
