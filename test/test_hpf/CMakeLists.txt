@@ -1,10 +1,10 @@
 
 if( NOT ${Python3_FOUND} )
-message(FATAL_ERROR "Python3 not found for running . ") 
+message(FATAL_ERROR "Python3 not found for running . ")
 endif()
 
 #copy conftest.py in the build directory since pytest_collect_file only collects tests from the directory tree where conftest.py is present
-configure_file( conftest.py conftest.py COPYONLY ) 
+configure_file( conftest.py conftest.py COPYONLY )
 
 ## executable output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -26,7 +26,7 @@ foreach( testfile ${TEST_SOURCES} )
     # Get test name
     #cmake_path( GET testfile STEM TESTNAME )
     get_filename_component(TESTNAME ${testfile} NAME_WLE)
-    
+
     # Create runner file directory
     file( MAKE_DIRECTORY ${RUNNERS_DIR}/${TESTNAME} )
 
@@ -35,7 +35,7 @@ foreach( testfile ${TEST_SOURCES} )
     set( RUNNER_FILE ${RUNNERS_DIR}/${TESTNAME}/${TESTNAME}_Runner.c )
     set( GEN_RUNNER_SCRIPT_BYPRODUCTS ${RUNNER_FILE} )
 
-    unset(GEN_RUNNER_SCRIPT_ARGS) 
+    unset(GEN_RUNNER_SCRIPT_ARGS)
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --project-root ${UNITY_PATH}/.. )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --source-file ${testfile} )
     list(APPEND GEN_RUNNER_SCRIPT_ARGS --runner-file ${RUNNER_FILE})
@@ -61,10 +61,10 @@ foreach( testfile ${TEST_SOURCES} )
             src
         )
 
-    target_link_libraries(avona_${TESTNAME} 
+    target_link_libraries(avona_${TESTNAME}
         PUBLIC
             avona_test_deps::lib_dsp
-            sdk::lib_xs3_math
+            core::xs3_math
             avona::test::shared::test_utils
             avona::test::shared::unity
             avona::example::hpf
@@ -72,7 +72,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         target_compile_options(avona_${TESTNAME}
-            PRIVATE 
+            PRIVATE
                 "-DUNITY_SUPPORT_64"
                 "-Wno-xcore-fptrgroup"
                 "-report"
@@ -85,4 +85,3 @@ foreach( testfile ${TEST_SOURCES} )
         target_link_libraries(avona_${TESTNAME} m)
     endif()
 endforeach( testfile ${TEST_SOURCES} )
-

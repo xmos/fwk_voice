@@ -44,14 +44,14 @@ target_sources(${APP_NAME}
 target_include_directories(${APP_NAME}
     PRIVATE
         src
-        ${LIB_AI_INCLUDES} 
+        ${LIB_AI_INCLUDES}
         ${LIB_VAD_INCLUDES}
         )
 
 target_link_libraries(${APP_NAME}
     PUBLIC
         avona_test_deps::lib_dsp
-        sdk::lib_xs3_math
+        core::xs3_math
         avona::test::shared::test_utils
         avona::example::fileutils
         )

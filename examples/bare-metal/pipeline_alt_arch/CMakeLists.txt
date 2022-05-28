@@ -5,11 +5,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_executable(avona_example_bare_metal_pipeline_alt_arch_mt)
 
     file( GLOB_RECURSE SOURCES_APP  ../pipeline_multi_threaded/src/*.c )
-    target_sources(avona_example_bare_metal_pipeline_alt_arch_mt 
+    target_sources(avona_example_bare_metal_pipeline_alt_arch_mt
         PRIVATE
             ${SOURCES_APP})
 
-    target_include_directories(avona_example_bare_metal_pipeline_alt_arch_mt 
+    target_include_directories(avona_example_bare_metal_pipeline_alt_arch_mt
         PRIVATE
             ../pipeline_multi_threaded/src)
 
@@ -26,7 +26,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             avona::example::stage_1
             avona::example::fileutils
             avona::example::hpf
-            sdk::lib_xs3_math
+            core::xs3_math
             )
 
     target_compile_definitions(avona_example_bare_metal_pipeline_alt_arch_mt
@@ -52,11 +52,11 @@ endif()
 add_executable(avona_example_bare_metal_pipeline_alt_arch_st)
 
 file( GLOB_RECURSE SOURCES_APP  ../pipeline_single_threaded/src/*.c )
-target_sources(avona_example_bare_metal_pipeline_alt_arch_st 
+target_sources(avona_example_bare_metal_pipeline_alt_arch_st
     PRIVATE
         ${SOURCES_APP})
 
-target_include_directories(avona_example_bare_metal_pipeline_alt_arch_st 
+target_include_directories(avona_example_bare_metal_pipeline_alt_arch_st
     PRIVATE
         ../pipeline_single_threaded/src)
 
@@ -73,7 +73,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_alt_arch_st
         avona::example::stage_1
         avona::example::fileutils
         avona::example::hpf
-        sdk::lib_xs3_math
+        core::xs3_math
         )
 
 target_compile_definitions(avona_example_bare_metal_pipeline_alt_arch_st

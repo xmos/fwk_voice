@@ -26,7 +26,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
 
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
-            sdk::lib_xs3_math
+            core::xs3_math
             )
     target_link_libraries(avona_module_lib_vnr_inference
         PRIVATE
@@ -59,7 +59,7 @@ else()
     
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
-            sdk::lib_xs3_math
+            core::xs3_math
             )
 
     target_link_libraries(avona_module_lib_vnr_inference
@@ -89,7 +89,7 @@ target_compile_options(avona_module_lib_vnr_features
 
 target_link_libraries(avona_module_lib_vnr_features
     PUBLIC
-        sdk::lib_xs3_math
+        core::xs3_math
         )
 
 add_library(avona::vnr::features ALIAS avona_module_lib_vnr_features)
