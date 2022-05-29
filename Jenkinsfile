@@ -27,7 +27,7 @@ pipeline {
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && frightwig'
+        label 'x86_64 && fistrick'
       }
       environment {
         XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
@@ -73,8 +73,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   runPython("python build_vnr_feature_extraction.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
                 }
               }
             }

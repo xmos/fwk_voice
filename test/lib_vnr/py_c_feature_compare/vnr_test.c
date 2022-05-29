@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "vnr_features_api.h"
-#include "vnr_inference_api.h" 
+#include "vnr_inference_api_wrapper.h" 
 
 vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
@@ -10,7 +10,7 @@ int32_t vnr_ie_init_err;
 int test_init(void){
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int err = vnr_inference_init(&vnr_inference_state);
+    int err = wrapper_vnr_inference_init(&vnr_inference_state);
     return err;
 }
 
@@ -36,7 +36,7 @@ double test_vnr_inference(
     )
 {
     float_s32_t ie_output;
-    vnr_inference(&vnr_inference_state, &ie_output, features);
+    wrapper_vnr_inference(&vnr_inference_state, &ie_output, features);
     double result = float_s32_to_double(ie_output);
     return result;
 }
