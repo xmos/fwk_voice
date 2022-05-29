@@ -82,7 +82,7 @@ ffibuilder.set_source("ic_vad_test_py",  # name of the output C extension
                 '../../../build/modules/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['m', 'avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vad', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
+    libraries=['avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vad', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
