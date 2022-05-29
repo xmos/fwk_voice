@@ -12,7 +12,7 @@ MODULE_ROOT = "../../../../modules"
 XS3_MATH = "../../../../build/avona_deps/lib_xs3_math/"
 
 FLAGS = [
-    #'-std=c99',
+    '-std=c99',
     '-fPIC'
     ]
 
@@ -57,7 +57,7 @@ ffibuilder.set_source("vnr_test_py",  # name of the output C extension
                 '../../../../build/modules/lib_vnr',
                 '../../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['m', 'avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'stdc++'],    # on Unix, link with the math library
+    libraries=['avona_module_lib_vnr_inference', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
