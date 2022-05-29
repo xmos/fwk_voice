@@ -12,7 +12,7 @@ MODULE_ROOT = "../../../../modules"
 XS3_MATH = "../../../../build/avona_deps/lib_xs3_math/"
 
 FLAGS = [
-    '-std=c99',
+    #'-std=c99',
     '-fPIC'
     ]
 
