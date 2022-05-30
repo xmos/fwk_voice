@@ -13,7 +13,7 @@
 #include "hpf.h"
 
 #define TEST_WITH_VNR (1)
-#define VNR_AGC_THRESHOLD (0.5)
+#define VNR_AGC_THRESHOLD (0.8)
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
