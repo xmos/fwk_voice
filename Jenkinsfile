@@ -632,9 +632,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
         }
-        cleanup {
-          cleanWs()
-        }
+        //cleanup {
+        //  cleanWs()
+        //}
       }
     }//stage xcore.ai Verification
     stage('Update view files') {
