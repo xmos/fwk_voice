@@ -12,22 +12,24 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     target_compile_options(avona_module_lib_vnr_inference
         PRIVATE
             "-Os"
-            "-g"       
             "-mcmodel=large"
             "-Wno-xcore-fptrgroup"
             "-target=XCORE-AI-EXPLORER"
     )
 
     target_compile_definitions(avona_module_lib_vnr_inference
-        PUBLIC
-            DEBUG_PRINT_ENABLE=1
+        PRIVATE
             TF_LITE_STATIC_MEMORY=1
+            TF_LITE_STRIP_ERROR_STRINGS=1            
             __xtflm_conf_h_exists__=1
             )
 
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
             core::xs3_math
+            )
+    target_link_libraries(avona_module_lib_vnr_inference
+        PRIVATE
             sdk::inferencing::lib_tflite_micro
             )
 

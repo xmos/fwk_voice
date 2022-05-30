@@ -3,12 +3,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(APP_COMPILER_FLAGS
     -Os
-    -g
-    -report
-    -Wno-xcore-fptrgroup    
-    -target=${XCORE_TARGET}
-    #-mcmodel=large
-    -DTF_LITE_STRIP_ERROR_STRINGS=1
     )
 
 set(APP_NAME avona_vnr_test_features_memory)
@@ -63,3 +57,24 @@ target_link_options(${APP_NAME}
         "-target=${XCORE_TARGET}"
         "-report"
         )
+
+
+
+################################################
+set(APP_NAME avona_vnr_test_vad_memory)
+add_executable(${APP_NAME})
+target_sources(${APP_NAME} PRIVATE src/profile_vad.c)
+target_link_libraries(${APP_NAME} 
+    PUBLIC
+        avona::vad
+        )
+target_compile_options(${APP_NAME}
+    PRIVATE ${APP_COMPILER_FLAGS})
+target_link_options(${APP_NAME}
+    PRIVATE
+        -w            
+        "-target=${XCORE_TARGET}"
+        "-report"
+        )
+
+################################################
