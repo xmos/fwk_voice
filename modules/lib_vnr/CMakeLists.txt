@@ -55,7 +55,7 @@ else()
         PRIVATE
             ${BUILD_FLAGS}
     )
-    target_link_options(avona_module_lib_vnr_inference PRIVATE ${BUILD_FLAGS} "-Wl,--no-undefined")
+    target_link_options(avona_module_lib_vnr_inference PRIVATE ${BUILD_FLAGS})
     
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
