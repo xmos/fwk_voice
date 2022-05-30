@@ -157,7 +157,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     output_wav_data[1,:] = dut_norm_patch
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
-    #print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
 
@@ -167,7 +167,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     output_wav_data[1,:] = dut_tflite_output
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
-    #print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "tflite_output arith_closeness below pass threshold"
     
@@ -192,6 +192,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     os.system("rm -f *.bin")
     
     #################################################################################
+
     # Plot
     fig,ax = plt.subplots(2,2)
     fig.set_size_inches(20,10)
@@ -217,13 +218,11 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 @pytest.mark.parametrize('input_wav', streams)
 @pytest.mark.parametrize('target', ['x86', 'xcore'])
 def test_wav_vnr(input_wav, target):
-    #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
-    # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, target, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
+    run_test_wav_vnr(input_wav, target, "model/model_output/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
     if args.run_x86:
         run_test_wav_vnr(args.input_wav, 'x86', args.tflite_model, plot_results=False)
-    run_test_wav_vnr(args.input_wav, 'xcore', args.tflite_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, 'xcore', args.tflite_model, plot_results=True)

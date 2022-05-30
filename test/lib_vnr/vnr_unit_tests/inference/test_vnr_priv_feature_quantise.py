@@ -60,4 +60,4 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
     print("max_diff = ",np.max(np.abs(ref_output-dut_output)))
 
 if __name__ == "__main__":
-    test_vnr_priv_feature_quantise(os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"))
+    test_vnr_priv_feature_quantise("xcore", test_utils.get_model())
