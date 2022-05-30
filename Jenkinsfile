@@ -146,7 +146,7 @@ pipeline {
                 withVenv {
                   sh "cmake --version"
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  sh "make VERBOSE=1"
+                  sh "make -j8"
 
                   //We need to put this here because it is not fetched until we build
                   sh "pip install -e avona_deps/xscope_fileio"
@@ -421,6 +421,23 @@ pipeline {
                 }
               }
               archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
+            }
+          }
+        }
+        stage('IC characterisation') {
+          steps {
+            dir("${REPO}/test/lib_ic/characterise_c_py") {
+              viewEnv() {
+                withVenv {
+                  //This test compares the suppression performance across angles between model and C implementation
+                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
+                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
+                  junit "pytest_result.xml"
+                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+                  // sh "python sweep_ic_delay.py"
+                }
+              }
             }
           }
         }
