@@ -9,8 +9,18 @@
 #include "agc_api.h"
 
 typedef struct {
+    float_s32_t max_ref_energy;
+    float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
+    int32_t vad_flag;
+    int32_t ref_active_flag;
+}pipeline_metadata_t;
+
+typedef struct {
     // Stage1 - AEC, DE, ADEC
     stage_1_state_t DWORD_ALIGNED stage_1_state;
+} pipeline_state_tile0_t;
+
+typedef struct {
     // IC, VAD
     ic_state_t DWORD_ALIGNED ic_state;
     vad_state_t DWORD_ALIGNED vad_state;
@@ -18,6 +28,6 @@ typedef struct {
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     // AGC
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
-} pipeline_state_t;
+} pipeline_state_tile1_t;
 
 #endif
