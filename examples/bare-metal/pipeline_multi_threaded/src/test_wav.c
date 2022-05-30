@@ -114,7 +114,7 @@ void rx(chanend_t c_pcm_out_b, chanend_t c_wavheader_b, const char* output_file_
 }
 
 //**** Multi tile pipeline structure ***//
-// file_read -> stage1 (tile0_to_tile1)-> stage2 -> stage3 -> stage4 (tile1_to_tile0) -> file_write
+// file_read -> stage1 -> (tile0_to_tile1)-> stage2 -> stage3 -> stage4 -> (tile1_to_tile0) -> file_write
 void main_tile0(chanend_t c_t0_t1, chanend_t c_t1_t0, const char *input_file_name, const char* output_file_name)
 {
     channel_t c_pcm_in = chan_alloc();

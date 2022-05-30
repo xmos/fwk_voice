@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../../lib_vnr/vnr_unit_tests/feature_extraction"))
+sys.path.append(os.path.join(this_file_dir, "../../../../py_ic/py_ic")) # TODO Remove when we're able to add py_ic to requirements.txt. Will happen once lib_interference_canceller/python is no longer used in avona.
 
 import test_utils # Use vnr test's test_utils
 import IC

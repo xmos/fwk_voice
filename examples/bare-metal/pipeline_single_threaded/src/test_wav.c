@@ -107,6 +107,7 @@ void pipeline_wrapper_tile0(chanend_t c_pcm_out, chanend_t c_pcm_in, const char 
         pipeline_process_frame_tile0(&pipeline_tile0_state, frame_y, frame_x, tile0_output, &md);
 
 #if X86_BUILD
+        // For x86, just call everything from one function
         pipeline_process_frame_tile1(&pipeline_tile1_state, &md, tile0_output, pipeline_output);
 #else
         // Send data to process to the other tile and receive processed output back

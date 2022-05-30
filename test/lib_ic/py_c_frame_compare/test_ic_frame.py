@@ -18,7 +18,7 @@ py_ic_path = os.path.join(package_dir,'../../../../lib_interference_canceller/py
 pvc_path = os.path.join(package_dir, '../../shared/python')
 
 sys.path.append(att_path)
-#sys.path.append(py_ic_path)
+sys.path.append(py_ic_path)
 sys.path.append(pvc_path)
 import IC
 import py_vs_c_utils as pvc 

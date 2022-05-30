@@ -3,11 +3,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 file( GLOB_RECURSE SOURCES_APP  src/*.c )
 add_executable(avona_example_bare_metal_pipeline_single_thread)
 
-target_sources(avona_example_bare_metal_pipeline_single_thread 
+target_sources(avona_example_bare_metal_pipeline_single_thread
     PRIVATE
         ${SOURCES_APP})
 
-target_include_directories(avona_example_bare_metal_pipeline_single_thread 
+target_include_directories(avona_example_bare_metal_pipeline_single_thread
     PRIVATE
         src)
 
@@ -24,7 +24,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         avona::example::stage_1
         avona::example::fileutils
         avona::example::hpf
-        sdk::lib_xs3_math
+        core::xs3_math
         )
 
 target_compile_definitions(avona_example_bare_metal_pipeline_single_thread
@@ -54,4 +54,3 @@ else()
     target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         PRIVATE m "-static")
 endif()
-

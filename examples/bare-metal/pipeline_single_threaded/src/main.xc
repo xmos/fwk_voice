@@ -8,6 +8,11 @@
 
 #include "xscope_io_device.h"
 
+//**** Multi tile pipeline structure ***//
+// file_read -> stage1 -> (tile0_to_tile1) -> stage2 -> stage3 -> stage4 -> (tile1_to_tile0) -> file_write
+// file_read, stage1 and file_write run on tile0
+// stage2, stage3 and stage4 run on tile1
+
 extern "C" {
     extern void pipeline_wrapper_tile0(chanend c_pcm_out, chanend c_pcm_in, const char *input_file_name, const char* output_file_name);
     extern void pipeline_wrapper_tile1(chanend c_pcm_in, chanend c_pcm_out);
