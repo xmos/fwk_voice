@@ -21,7 +21,7 @@
 
 #define TEST_WITH_VNR (1)
 #define PRINT_VAD_VNR (0)
-#define VNR_AGC_THRESHOLD (0.8)
+#define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
