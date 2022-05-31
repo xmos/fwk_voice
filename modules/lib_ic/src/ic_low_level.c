@@ -365,5 +365,6 @@ void ic_priv_calc_vnr_pred(
     
     vnr_extract_features(&vnr_state->feature_state[1], &feature_patch, feature_patch_data, Error);
     vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
+    vnr_state->output_vnr_no_ema = ie_output;
     vnr_state->output_vnr_pred = float_s32_ema(vnr_state->output_vnr_pred, ie_output, vnr_state->pred_alpha_q30);
 }

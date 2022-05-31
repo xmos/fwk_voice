@@ -21,7 +21,7 @@
 
 #define TEST_WITH_VNR (1)
 #define PRINT_VAD_VNR (0)
-#define VNR_AGC_THRESHOLD (0.8)
+#define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -143,6 +143,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         ic_calc_vnr_pred(&ic_state);
         float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
         md.vnr_pred_flag = float_s32_gt(ic_state.ic_vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
+        //md.vnr_pred_flag = float_s32_gt(ic_state.ic_vnr_pred_state.output_vnr_no_ema, agc_vnr_threshold);
 #if PRINT_VAD_VNR 
         printf("VAD: %d\n",vad);
         printf("VNR OUTPUT PRED: %ld %ld\n", ic_state.ic_vnr_pred_state.output_vnr_pred.mant, ic_state.ic_vnr_pred_state.output_vnr_pred.exp);
@@ -208,10 +209,14 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
     agc_init(&agc_state[1], &agc_conf_asr);
+    // Another AGC instance for testing VAD
+    agc_state_t agc_state_test_vad;
+    agc_init(&agc_state_test_vad, &agc_conf_asr);
 
     agc_meta_data_t agc_md;
 
     int32_t frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
+    int32_t frame_test_vad[AP_FRAME_ADVANCE];
     while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
@@ -228,13 +233,22 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 
         continue;
 #endif
-
+        memcpy(frame_test_vad, &frame[0][0], AP_FRAME_ADVANCE*sizeof(int32_t));
         /** AGC*/
         for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
             agc_md.aec_corr_factor = md.aec_corr_factor[ch];
             // Memory optimisation: Reuse input memory for AGC output
             agc_process_frame(&agc_state[ch], frame[ch], frame[ch], &agc_md);
         }
+        // Run AGC instance for getting gain if VAD was used
+        agc_md.aec_corr_factor = md.aec_corr_factor[0];
+        agc_md.vad_flag = md.vad_flag;
+        agc_process_frame(&agc_state_test_vad, frame_test_vad, frame_test_vad, &agc_md);
+
+#if PRINT_VAD_VNR 
+        printf("VNR GAIN: %.2f\n", float_s32_to_float(agc_state[0].config.gain));
+        printf("VAD GAIN: %.2f\n", float_s32_to_float(agc_state_test_vad.config.gain));
+#endif
 
         // Transmit output frame
         chan_out_buf_word(c_frame_out, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE)); 

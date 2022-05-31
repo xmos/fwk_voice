@@ -50,6 +50,7 @@ def run_file(input_filename, sensory_model):
     shutil.copyfile(spot_model, "kw_model")
 
     output = subprocess.check_output('%s -t %s -s operating-point=5 -v %s' %("./kw_bin", "kw_model", input_filename), shell=True)
+    print(output.decode())
 
     os.chdir(prev_path)
     shutil.rmtree(tmp_folder)
