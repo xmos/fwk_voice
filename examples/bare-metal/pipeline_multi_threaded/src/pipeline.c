@@ -20,7 +20,7 @@
 #include "hpf.h"
 
 #define TEST_WITH_VNR (1)
-#define PRINT_VAD_VNR (0)
+#define PRINT_VAD_VNR (1)
 #define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
@@ -198,7 +198,6 @@ void pipeline_stage_3(chanend_t c_frame_in, chanend_t c_frame_out) {
     }
 }
 
-
 /// pipeline_stage_4
 void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
@@ -209,9 +208,12 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);
     agc_init(&agc_state[1], &agc_conf_asr);
+    agc_state[0].id = ID_VNR_AGC_CH0;
+    agc_state[1].id = ID_VNR_AGC_CH1;
     // Another AGC instance for testing VAD
     agc_state_t agc_state_test_vad;
     agc_init(&agc_state_test_vad, &agc_conf_asr);
+    agc_state_test_vad.id = ID_VAD_AGC;
 
     agc_meta_data_t agc_md;
 

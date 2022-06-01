@@ -59,6 +59,13 @@ static int32_t apply_soft_clipping(int32_t mant, exponent_t exp)
     return use_exp_float(sample_limit, exp);
 }
 
+enum e_debug_state {
+    START = 1,
+    PEAK_RISING = 2,
+    PEAK_FALLING = 3,
+    DECREASE_GAIN = 4,
+    INCREASE_GAIN = 5
+    };
 void agc_process_frame(agc_state_t *agc,
                        int32_t output[AGC_FRAME_ADVANCE],
                        const int32_t input[AGC_FRAME_ADVANCE],
@@ -101,21 +108,29 @@ void agc_process_frame(agc_state_t *agc,
 
         float_s32_t gained_max_abs_value = float_s32_mul(max_abs_value, agc->config.gain);
         unsigned exceed_threshold = float_s32_gte(gained_max_abs_value, agc->config.upper_threshold);
+        agc->debug_state = START;
 
         if (exceed_threshold || vad_flag) {
             unsigned peak_rising = float_s32_gte(agc->x_fast, agc->x_peak);
             if (peak_rising) {
+                agc->debug_state = PEAK_RISING;
                 agc->x_peak = float_s32_ema(agc->x_peak, agc->x_fast, AGC_ALPHA_PEAK_RISE);
             } else {
+                agc->debug_state = PEAK_FALLING;
                 agc->x_peak = float_s32_ema(agc->x_peak, agc->x_fast, AGC_ALPHA_PEAK_FALL);
             }
 
             float_s32_t gained_pk = float_s32_mul(agc->x_peak, agc->config.gain);
             unsigned near_only = (agc->lc_t_near != 0) && (agc->lc_t_far == 0);
-            if (float_s32_gte(gained_pk, agc->config.upper_threshold)) {
+            if (float_s32_gte(gained_pk, agc->config.upper_threshold))
+            {
+                agc->debug_state = DECREASE_GAIN;
                 agc->config.gain = float_s32_mul(agc->config.gain_dec, agc->config.gain);
-            } else if (float_s32_gte(agc->config.lower_threshold, gained_pk) &&
-                       (agc->config.lc_enabled == 0 || near_only != 0)) {
+            }
+            else if (float_s32_gte(agc->config.lower_threshold, gained_pk) &&
+                       (agc->config.lc_enabled == 0 || near_only != 0))
+            {
+                agc->debug_state = INCREASE_GAIN;
                 agc->config.gain = float_s32_mul(agc->config.gain_inc, agc->config.gain);
             }
 
@@ -255,4 +270,10 @@ void agc_process_frame(agc_state_t *agc,
     }
 
     bfp_s32_use_exponent(&output_bfp, FRAME_EXP);
+    if(agc->id == ID_VNR_AGC_CH0) {
+        printf("VNR DEBUG STATE: %d\n", agc->debug_state);
+    }
+    else if(agc->id == ID_VAD_AGC) {
+        printf("VAD DEBUG STATE: %d\n", agc->debug_state);
+    }
 }

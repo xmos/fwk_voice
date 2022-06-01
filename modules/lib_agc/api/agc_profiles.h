@@ -34,7 +34,7 @@
     .upper_threshold = float_to_float_s32(0.9999), \
     .lower_threshold = float_to_float_s32(0.7000), \
     .gain_inc = float_to_float_s32(1.197), \
-    .gain_dec = float_to_float_s32(0.99), \
+    .gain_dec = float_to_float_s32(0.87), \
     .lc_enabled = 0, \
     .lc_n_frame_far = 0, \
     .lc_n_frame_near = 0, \

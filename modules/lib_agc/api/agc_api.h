@@ -25,6 +25,12 @@
  */
 #define AGC_FRAME_ADVANCE 240u
 
+// DEBUG ONLY
+#define ID_VNR_AGC_CH0 (1)
+#define ID_VNR_AGC_CH1 (2)
+#define ID_VAD_AGC (3)
+// DEBUG ONLY
+
 /**
  * @brief AGC configuration structure
  *
@@ -127,6 +133,10 @@ typedef struct {
     float_s32_t lc_far_bg_power_est;
     /** EWMA of the far-end correlation for detecting double-talk. */
     float_s32_t lc_corr_val;
+    
+    // DEBUG ONLY
+    int32_t id;
+    int32_t debug_state;
 } agc_state_t;
 
 /**
