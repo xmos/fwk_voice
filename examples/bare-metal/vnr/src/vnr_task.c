@@ -36,7 +36,7 @@ void vnr(chanend_t c_frame_in, chanend_t c_frame_out)
         chan_in_buf_word(c_frame_in, (uint32_t*)&new_frame[0], 240);
 
         prof(2, "start_vnr_form_input_frame");
-        int32_t DWORD_ALIGNED input_frame[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
+        complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
         bfp_complex_s32_t X;
         vnr_form_input_frame(&vnr_input_state, &X, input_frame, new_frame);
         prof(3, "end_vnr_form_input_frame");

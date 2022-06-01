@@ -79,7 +79,7 @@ void vnr_task(const char* input_filename, const char *output_filename){
             file_read (&input_file, (uint8_t*)&new_frame[0], bytes_per_frame* VNR_FRAME_ADVANCE);
         }
         prof(2, "start_vnr_form_input_frame");
-        int32_t DWORD_ALIGNED input_frame[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
+        complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
         bfp_complex_s32_t X;
         vnr_form_input_frame(&vnr_input_state, &X, input_frame, new_frame);
         prof(3, "end_vnr_form_input_frame");

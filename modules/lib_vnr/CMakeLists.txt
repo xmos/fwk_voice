@@ -42,7 +42,7 @@ else()
     set(BUILD_FLAGS
       "-O3"
       "-D__xtflm_conf_h_exists__"
-      "-DNN_USE_REF"
+      "-DNN_USE_REF" 
     )
     
     file(GLOB_RECURSE VNR_INFERENCE_SOURCES src/inference/*.c src/inference/*.cc)
@@ -60,6 +60,10 @@ else()
     target_link_libraries(avona_module_lib_vnr_inference
         PUBLIC
             core::xs3_math
+            )
+
+    target_link_libraries(avona_module_lib_vnr_inference
+        PRIVATE
             sdk::inferencing::lib_tflite_micro
             )
 
