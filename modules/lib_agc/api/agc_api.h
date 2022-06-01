@@ -137,6 +137,7 @@ typedef struct {
     // DEBUG ONLY
     int32_t id;
     int32_t debug_state;
+    int32_t hold_count;
 } agc_state_t;
 
 /**

@@ -22,6 +22,9 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->lc_gain = float_to_float_s32(1);
     agc->lc_far_bg_power_est = float_to_float_s32(0.01F);
     agc->lc_corr_val = float_to_float_s32(0);
+
+    //DEBUG
+    agc->hold_count = 0;
 }
 
 // Returns the mantissa for the input float shifted to an exponent of parameter exp
@@ -110,7 +113,7 @@ void agc_process_frame(agc_state_t *agc,
         unsigned exceed_threshold = float_s32_gte(gained_max_abs_value, agc->config.upper_threshold);
         agc->debug_state = START;
 
-        if (exceed_threshold || vad_flag) {
+        if (exceed_threshold || vad_flag || (agc->hold_count > 0)) {
             unsigned peak_rising = float_s32_gte(agc->x_fast, agc->x_peak);
             if (peak_rising) {
                 agc->debug_state = PEAK_RISING;
@@ -141,6 +144,14 @@ void agc_process_frame(agc_state_t *agc,
             if (float_s32_gte(agc->config.min_gain, agc->config.gain)) {
                 agc->config.gain = agc->config.min_gain;
             }
+            /*if(agc->id == ID_VNR_AGC_CH0) {
+                if(exceed_threshold || vad_flag) {
+                    agc->hold_count = 20;
+                }
+                else if(agc->hold_count > 0) {
+                    agc->hold_count -= 1;
+                }
+            }*/
         }
     }
 

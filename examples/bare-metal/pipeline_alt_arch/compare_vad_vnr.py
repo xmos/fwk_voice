@@ -86,7 +86,7 @@ def run_compute_plot(stdo, name, show_plot=False):
     
     time = np.arange(0,len(vnr_output_pred))*0.015
     kwd_instances = np.arange(23/0.015, len(vnr_output_pred), 5/0.015)*0.015 #kwd instances starting from first kwd at 3sec and then keywords every 5 seconds 
-    fig,ax = plt.subplots(3, sharex=True)
+    fig,ax = plt.subplots(4, sharex=True)
     fig.set_size_inches(20,10)
     ax[0].plot(time, vad_output, label="vad output")
     ax[0].plot(time, vnr_output_pred, label="vnr output pred")
@@ -106,6 +106,11 @@ def run_compute_plot(stdo, name, show_plot=False):
     ax[2].set_xlabel("time (seconds)")
     ax[2].legend(loc="upper right")
     #ax[2].vlines((kwd_instances), 0, 1, linestyle="dashed", colors="r", label="kwd instances")
+
+    ax[3].plot(time, vad_agc_debug_state, label="vad_agc_debug_state")
+    ax[3].plot(time, vnr_agc_debug_state, label="vnr_agc_debug_state")
+    ax[3].set_xlabel("time (seconds)")
+    ax[3].legend(loc="upper right")
     fig_instance = plt.gcf()
     if show_plot:
         plt.show()
@@ -150,6 +155,6 @@ if __name__ == "__main__":
             run_compute_plot(stdo, "test_plot", show_plot=True)
     elif args.input != None:
         run_test(args.input, "../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe", compute_plot=True, show_plot=True)
-        #run_test(args.input, "../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe", compute_plot=False, show_plot=False)
+        #run_test(args.input, "../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe", compute_plot=True, show_plot=True)
     else:
         assert(False), "Provide either --input or --stdo"
