@@ -9,6 +9,10 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
+#define dsp_complex_t complex_s32_t
+void vtb_reduce_magnitude_asm(dsp_complex_t *Y, uint32_t u, uint32_t d);
+// precision can be up to 24
+uint32_t vtb_hypot_asm(int32_t a, int32_t b, unsigned precision);
 
 ///Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
@@ -48,6 +52,11 @@ void ic_frame_init(
         state->y_bfp[ch].exp = q0_31_exp;
         // Update headroom
         bfp_s32_headroom(&state->y_bfp[ch]);
+
+        // Keep a copy of y in chopped_y
+        memcpy(state->chopped_y_bfp[ch].data, state->y_bfp[ch].data, state->chopped_y_bfp[ch].length*sizeof(int32_t));
+        state->chopped_y_bfp[ch].exp = state->y_bfp[ch].exp;
+        state->chopped_y_bfp[ch].hr = state->y_bfp[ch].hr;
 
         /* Update previous samples */
         // Copy the last 32 samples to the beginning
@@ -366,4 +375,101 @@ void ic_priv_calc_vnr_pred(
     vnr_extract_features(&vnr_state->feature_state[1], &feature_patch, feature_patch_data, Error);
     vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
     vnr_state->output_vnr_pred = float_s32_ema(vnr_state->output_vnr_pred, ie_output, vnr_state->pred_alpha_q30);
+}
+
+
+void choose_min_amplitude(dsp_complex_t *output, int *output_exp,
+        dsp_complex_t *y_in, int y_in_exp,
+        dsp_complex_t *e_out, int e_out_exp, unsigned length){
+
+    const unsigned hypot_precision = 14;
+
+    if(e_out_exp > y_in_exp){
+        unsigned shr = (e_out_exp - y_in_exp);
+        for(unsigned i=0;i<length;i++){
+            uint32_t y_in_mag  = vtb_hypot_asm( y_in[i].re,  y_in[i].im, hypot_precision);
+            uint32_t e_out_mag = vtb_hypot_asm(e_out[i].re, e_out[i].im, hypot_precision);
+
+            y_in_mag >>= shr;
+            *output_exp = e_out_exp;
+            if(y_in_mag < e_out_mag){
+                //make e_out be the exponent of y_in and the mag of y_in
+                output[i].re = e_out[i].re;
+                output[i].im = e_out[i].im;
+                vtb_reduce_magnitude_asm(&output[i], y_in_mag, e_out_mag);
+            } else {
+                //make e_out be the exponent of y_in
+                output[i].re = e_out[i].re;
+                output[i].im = e_out[i].im;
+            }
+        }
+     } else {
+        unsigned shr = (y_in_exp - e_out_exp);
+        *output_exp = e_out_exp;
+        for(unsigned i=0;i<length;i++){
+            uint32_t y_in_mag  = vtb_hypot_asm( y_in[i].re,  y_in[i].im, hypot_precision);
+            uint32_t e_out_mag = vtb_hypot_asm(e_out[i].re, e_out[i].im, hypot_precision);
+            e_out_mag >>= shr;
+            if(y_in_mag < e_out_mag){
+                //make e_out be the exponent of e_out and the mag of y_in
+                output[i].re = e_out[i].re;
+                output[i].im = e_out[i].im;
+                vtb_reduce_magnitude_asm(&output[i], y_in_mag, e_out_mag);
+            } else {
+                //make e_out be the exponent of e_out
+                output[i].re = e_out[i].re;
+                output[i].im = e_out[i].im;
+            }
+        }
+     }
+}
+
+
+void ic_noise_minimisation(ic_state_t *state)
+{
+    for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
+        //copy error
+        memcpy(state->error_copy_bfp[ych].data, state->error_bfp[ych].data, IC_FRAME_LENGTH*sizeof(int32_t));
+        state->error_copy_bfp[ych].exp = state->error_bfp[ych].exp;
+        state->error_copy_bfp[ych].hr = state->error_bfp[ych].hr;
+
+        // Zero part of chopped_y
+        memset(state->chopped_y_bfp[ych].data, 0, IC_FRAME_ADVANCE*sizeof(int32_t));
+        // Zero part of error
+        memset(state->error_copy_bfp[ych].data, 0, IC_FRAME_ADVANCE*sizeof(int32_t));
+
+        //FFT
+        bfp_complex_s32_t Chopped_y_bfp, Error_copy_bfp;
+        ic_fft(&Chopped_y_bfp, &state->chopped_y_bfp[ych]);
+        ic_fft(&Error_copy_bfp, &state->error_copy_bfp[ych]);
+
+        complex_s32_t DWORD_ALIGNED Min_Error[IC_FD_FRAME_LENGTH];
+        bfp_complex_s32_t Min_Error_bfp;
+        bfp_complex_s32_init(&Min_Error_bfp, (complex_s32_t*)Min_Error, 0, IC_FD_FRAME_LENGTH, 0);
+        
+        choose_min_amplitude(Min_Error_bfp.data, &Min_Error_bfp.exp,
+            Chopped_y_bfp.data, Chopped_y_bfp.exp,
+            Error_copy_bfp.data, Error_copy_bfp.exp,
+            IC_FD_FRAME_LENGTH);
+        
+        Min_Error_bfp.hr = bfp_complex_s32_headroom(&Min_Error_bfp);
+        
+        // IFFT
+        bfp_s32_t min_error_bfp;
+        ic_ifft(&min_error_bfp, &Min_Error_bfp);
+
+        // Copy back to error
+        memcpy(state->error_bfp[ych].data, min_error_bfp.data, state->error_bfp[ych].length*sizeof(int32_t));
+        state->error_bfp[ych].exp = min_error_bfp.exp;
+        state->error_bfp[ych].hr = bfp_s32_headroom(&state->error_bfp[ych]);
+
+        /*int32_t DWORD_ALIGNED abs_Error_ap[IC_FRAME_LENGTH];
+        int32_t DWORD_ALIGNED abs_Chopped_y[IC_FRAME_LENGTH];
+        bfp_s32_t abs_Error_ap_bfp, abs_Chopped_y_bfp;
+        bfp_s32_init(&abs_Error_ap_bfp, abs_Error_ap, 0, IC_FRAME_LENGTH, 0);
+        bfp_s32_init(&abs_Chopped_y_bfp, abs_Chopped_y, 0, IC_FRAME_LENGTH, 0);
+
+        bfp_complex_s32_mag(&abs_Error_ap_bfp, &Error_copy_bfp);
+        bfp_complex_s32_mag(&abs_Chopped_y_bfp, &Chopped_y_bfp);*/
+    }
 }

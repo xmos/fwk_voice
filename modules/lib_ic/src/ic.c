@@ -7,6 +7,8 @@
 #include "ic_low_level.h"
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * (f))) //TODO use lib_xs3_math use_exponent instead when implemented
 
+extern void ic_noise_minimisation(ic_state_t *state);
+
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
@@ -143,6 +145,12 @@ void ic_init(ic_state_t *state){
     state->ic_vnr_pred_state.pred_alpha_q30 = Q1_30(0.7);
     state->ic_vnr_pred_state.input_vnr_pred = double_to_float_s32(0.0);
     state->ic_vnr_pred_state.output_vnr_pred = double_to_float_s32(0.0);
+
+    // chopped_y 
+    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
+        bfp_s32_init(&state->chopped_y_bfp[ch], state->chopped_y[ch], zero_exp, IC_FRAME_LENGTH, 0);
+        bfp_s32_init(&state->error_copy_bfp[ch], state->error_copy[ch], zero_exp, IC_FRAME_LENGTH, 0);
+    }
 }
 
 void ic_filter(
@@ -203,6 +211,8 @@ void ic_filter(
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
     }
+
+    ic_noise_minimisation(state);
 
     //Note the model supports noise minimisation but we have not ported this
     //as it has not been found to aid ASR performance

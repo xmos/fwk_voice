@@ -1,11 +1,16 @@
 file( GLOB_RECURSE    LIB_IC_SOURCES       src/*.c )
+file(GLOB_RECURSE LIB_ASM_SOURCES src/asm/*.S )
 
 ## Create library target
 add_library(avona_module_lib_ic STATIC)
 
+## cmake doesn't recognize .S files as assembly by default
+set_source_files_properties(LIB_ASM_SOURCES PROPERTIES LANGUAGE ASM)
+
 target_sources(avona_module_lib_ic
     PRIVATE
         ${LIB_IC_SOURCES}
+        ${LIB_ASM_SOURCES}
 )
 
 target_include_directories(avona_module_lib_ic
