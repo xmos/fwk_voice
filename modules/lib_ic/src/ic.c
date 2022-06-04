@@ -212,7 +212,9 @@ void ic_filter(
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
     }
 
+#if !(IC_X86_BUILD)
     ic_noise_minimisation(state);
+#endif
 
     //Note the model supports noise minimisation but we have not ported this
     //as it has not been found to aid ASR performance

@@ -10,8 +10,19 @@ set_source_files_properties(LIB_ASM_SOURCES PROPERTIES LANGUAGE ASM)
 target_sources(avona_module_lib_ic
     PRIVATE
         ${LIB_IC_SOURCES}
-        ${LIB_ASM_SOURCES}
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    target_sources(avona_module_lib_ic
+        PRIVATE
+            ${LIB_ASM_SOURCES}
+    )
+else()
+    target_compile_definitions(avona_module_lib_ic
+        PRIVATE
+            IC_X86_BUILD=1
+            )
+endif()
 
 target_include_directories(avona_module_lib_ic
     PUBLIC

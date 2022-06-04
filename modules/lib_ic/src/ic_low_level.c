@@ -9,10 +9,12 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
+#if !(IC_X86_BUILD)
 #define dsp_complex_t complex_s32_t
 void vtb_reduce_magnitude_asm(dsp_complex_t *Y, uint32_t u, uint32_t d);
 // precision can be up to 24
 uint32_t vtb_hypot_asm(int32_t a, int32_t b, unsigned precision);
+#endif
 
 ///Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
@@ -378,6 +380,7 @@ void ic_priv_calc_vnr_pred(
 }
 
 
+#if !(IC_X86_BUILD)
 void choose_min_amplitude(dsp_complex_t *output, int *output_exp,
         dsp_complex_t *y_in, int y_in_exp,
         dsp_complex_t *e_out, int e_out_exp, unsigned length){
@@ -462,14 +465,6 @@ void ic_noise_minimisation(ic_state_t *state)
         memcpy(state->error_bfp[ych].data, min_error_bfp.data, state->error_bfp[ych].length*sizeof(int32_t));
         state->error_bfp[ych].exp = min_error_bfp.exp;
         state->error_bfp[ych].hr = bfp_s32_headroom(&state->error_bfp[ych]);
-
-        /*int32_t DWORD_ALIGNED abs_Error_ap[IC_FRAME_LENGTH];
-        int32_t DWORD_ALIGNED abs_Chopped_y[IC_FRAME_LENGTH];
-        bfp_s32_t abs_Error_ap_bfp, abs_Chopped_y_bfp;
-        bfp_s32_init(&abs_Error_ap_bfp, abs_Error_ap, 0, IC_FRAME_LENGTH, 0);
-        bfp_s32_init(&abs_Chopped_y_bfp, abs_Chopped_y, 0, IC_FRAME_LENGTH, 0);
-
-        bfp_complex_s32_mag(&abs_Error_ap_bfp, &Error_copy_bfp);
-        bfp_complex_s32_mag(&abs_Chopped_y_bfp, &Chopped_y_bfp);*/
     }
 }
+#endif
