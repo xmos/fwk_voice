@@ -109,6 +109,24 @@ void aec_priv_calc_inv_X_energy_denom(
         unsigned is_shadow,
         unsigned normdenom_apply_factor_of_2);
 
+void aec_priv_calc_inv_X_energy_denom_ic(
+        bfp_s32_t *inv_X_energy_denom,
+        const bfp_s32_t *X_energy,
+        const bfp_s32_t *sigma_XX,
+        const aec_config_params_t *conf,
+        float_s32_t delta,
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2);
+
+void aec_priv_calc_inv_X_energy_ic(
+        bfp_s32_t *inv_X_energy,
+        const bfp_s32_t *X_energy,
+        const bfp_s32_t *sigma_XX,
+        const aec_config_params_t *conf,
+        float_s32_t delta,
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2);
+
 void aec_priv_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
         const bfp_s32_t *X_energy,

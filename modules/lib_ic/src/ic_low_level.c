@@ -229,7 +229,7 @@ void ic_calc_inv_X_energy(
     aec_conf.aec_core_conf.gamma_log2 = state->config_params.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
     const unsigned normdenom_apply_factor_of_2 = 0;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
+    aec_priv_calc_inv_X_energy_ic(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
 }
 
 /// Calculate T (mu * inv_X_energy * Error)

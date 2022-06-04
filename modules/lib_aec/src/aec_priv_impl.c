@@ -819,6 +819,78 @@ void aec_priv_calc_inverse(
 #endif
 }
 
+void aec_priv_calc_inv_X_energy_denom_ic(
+        bfp_s32_t *inv_X_energy_denom,
+        const bfp_s32_t *X_energy,
+        const bfp_s32_t *sigma_XX,
+        const aec_config_params_t *conf,
+        float_s32_t delta,
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2) {
+    
+    int gamma_log2 = conf->aec_core_conf.gamma_log2;
+    if(!is_shadow) { //frequency smoothing
+        int32_t norm_denom_buf[AEC_PROC_FRAME_LENGTH/2 + 1];
+        bfp_s32_t norm_denom;
+        bfp_s32_init(&norm_denom, &norm_denom_buf[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        bfp_s32_t sigma_times_gamma;
+        bfp_s32_init(&sigma_times_gamma, sigma_XX->data, sigma_XX->exp+gamma_log2, sigma_XX->length, 0);
+        sigma_times_gamma.hr = sigma_XX->hr;
+        bfp_s32_add(inv_X_energy_denom, &sigma_times_gamma, X_energy);
+        bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+    }
+    else
+    {
+        //TODO maybe fix this for AEC?
+        // int32_t temp[AEC_PROC_FRAME_LENGTH/2 + 1];
+        // bfp_s32_t temp_bfp;
+        // bfp_s32_init(&temp_bfp, &temp[0], 0, AEC_PROC_FRAME_LENGTH/2+1, 0);
+
+        // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
+
+        bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta);
+    }
+
+    /**Fix for divide by 0 scenario 2 discussed in a comment in aec_priv_update_total_X_energy()
+     * We have 2 options.
+     * Option 1: Clamp the denom values between max:(denom_max mant, denom->exp exp) and min (1 mant, denom->exp exp).
+     * This will change all the (0, exp) bins to (1, exp) while leaving other bins unchanged. This could be done without
+     * checking if (bfp_s32_min(denom))->mant is 0, since if there are no zero bins, the bfp_s32_clamp() would change
+     * nothing in the denom vector.
+     * Option 2: Add a (1 mant, denom->exp) scalar to the denom vector. I'd do this after checking if
+     * (bfp_s32_min(denom))->mant is 0 to avoid adding an offset to the denom vector unnecessarily.
+     * Since this is not a recreatable scenario I'm not sure which option is better. Going with option 2 since it
+     * consumes fewer cycles.
+     */
+     //Option 1 (3220 cycles)
+     /*float_s32_t max = bfp_s32_max(inv_X_energy_denom);
+     bfp_s32_clip(inv_X_energy_denom, inv_X_energy_denom, 1, max.mant, inv_X_energy_denom->exp);*/
+
+     //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
+     float_s32_t min = bfp_s32_min(inv_X_energy_denom);
+     if(min.mant == 0) {
+         /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
+          * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
+          * of bfp_s32_add_scalar() making t.mant 0*/
+         float_s32_t t = {1, inv_X_energy_denom->exp};
+         bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, t);
+     }
+}
+void aec_priv_calc_inv_X_energy_ic(
+        bfp_s32_t *inv_X_energy,
+        const bfp_s32_t *X_energy,
+        const bfp_s32_t *sigma_XX,
+        const aec_config_params_t *conf,
+        float_s32_t delta,
+        unsigned is_shadow,
+        unsigned normdenom_apply_factor_of_2)
+{
+    // Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
+    aec_priv_calc_inv_X_energy_denom_ic(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow, normdenom_apply_factor_of_2);
+    aec_priv_calc_inverse(inv_X_energy);
+}
+
 void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t *inv_X_energy_denom,
         const bfp_s32_t *X_energy,
