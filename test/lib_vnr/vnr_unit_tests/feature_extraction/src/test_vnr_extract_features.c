@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 #include "vnr_features_api.h"
-#include "vnr_inference_state.h" // TODO Hack. Local copy of vnr_inference_state.h included in the test instead of the the one in avona::vnr::inference to be able to compile this test for x86
+#include "vnr_inference_state.h"
 
 extern void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config);
 extern void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config);
@@ -25,7 +25,7 @@ void test_init()
 
 void test(int32_t *output, int32_t *input)
 {
-    int32_t DWORD_ALIGNED input_frame[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
+    complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
     bfp_complex_s32_t X;
     vnr_form_input_frame(&vnr_input_state, &X, input_frame, input);
 

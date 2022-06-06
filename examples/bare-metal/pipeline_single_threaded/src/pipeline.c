@@ -20,9 +20,8 @@ extern void aec_process_frame_1thread(
         const int32_t (*y_data)[AEC_FRAME_ADVANCE],
         const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
-
-void pipeline_init(pipeline_state_t *state) {
-    memset(state, 0, sizeof(pipeline_state_t)); 
+void pipeline_tile0_init(pipeline_state_tile0_t *state) {
+    memset(state, 0, sizeof(pipeline_state_tile0_t)); 
     
     // Initialise AEC, DE, ADEC stage
     aec_conf_t aec_de_mode_conf, aec_non_de_mode_conf;
@@ -48,7 +47,11 @@ void pipeline_init(pipeline_state_t *state) {
     adec_conf.bypass = 1; // Bypass automatic DE correction
     adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
     stage_1_init(&state->stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
+}
 
+void pipeline_tile1_init(pipeline_state_tile1_t *state) {
+    memset(state, 0, sizeof(pipeline_state_tile1_t)); 
+    
     ic_init(&state->ic_state);
     vad_init(&state->vad_state);
 
@@ -64,17 +67,11 @@ void pipeline_init(pipeline_state_t *state) {
     agc_init(&state->agc_state[1], &agc_conf_asr);
 }
 
-typedef struct {
-    float_s32_t max_ref_energy;
-    float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
-    int32_t vad_flag;
-    int32_t ref_active_flag;
-}pipeline_metadata_t;
-
-void pipeline_process_frame(pipeline_state_t *state,
+void pipeline_process_frame_tile0(pipeline_state_tile0_t *state,
         int32_t (*input_y_data)[AP_FRAME_ADVANCE],
         int32_t (*input_x_data)[AP_FRAME_ADVANCE],
-        int32_t (*output_data)[AP_FRAME_ADVANCE])
+        int32_t (*output_data)[AP_FRAME_ADVANCE],
+        pipeline_metadata_t *md_output)
 {
     pipeline_metadata_t md;
     memset(&md, 0, sizeof(pipeline_metadata_t));
@@ -93,11 +90,21 @@ void pipeline_process_frame(pipeline_state_t *state,
         }
     }
 #endif
+    memcpy(&output_data[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+    memcpy(md_output, &md, sizeof(pipeline_metadata_t));
+}
+
+void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metadata_t *md_input,
+        int32_t (*input_data)[AP_FRAME_ADVANCE],
+        int32_t (*output_data)[AP_FRAME_ADVANCE])
+{
+    pipeline_metadata_t md;
+    memcpy(&md, md_input, sizeof(pipeline_metadata_t));
 
     /** IC and VAD*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 #if DISABLE_STAGE_2
-    memcpy(&ic_output[0][0], &stage_1_out[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
+    memcpy(&ic_output[0][0], &input_data[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
 #else
 
 #if ALT_ARCH_MODE
@@ -109,7 +116,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
 #endif
     // The ASR channel will be produced by IC filtering
-    ic_filter(&state->ic_state, stage_1_out[0], stage_1_out[1], ic_output[0]);
+    ic_filter(&state->ic_state, input_data[0], input_data[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     md.vad_flag = (vad > AGC_VAD_THRESHOLD);
     ic_adapt(&state->ic_state, vad, ic_output[0]);
@@ -143,3 +150,4 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
 #endif
 }
+

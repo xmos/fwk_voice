@@ -19,7 +19,7 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     }
 #endif
     //printf("post fft hr = reported %d, actual %d\n",temp->hr, bfp_complex_s32_headroom(temp));
-    temp->hr = bfp_complex_s32_headroom(temp); // bfp_fft_forward_mono() reported headroom is sometimes incorrect
+    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
     bfp_fft_unpack_mono(temp);
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
@@ -139,7 +139,7 @@ static const int lookup[33] = {
 
 // Lookup table entries k=0,1,...,32:
 //lookup[k] = 256log2(1 + k/32)
-int lookup_small_log2_linear_new(uint32_t x) {
+static int lookup_small_log2_linear_new(uint32_t x) {
     int mask_bits = 26;
     int mask = (1 << mask_bits) - 1;
     int y = (x >> mask_bits) - 32;

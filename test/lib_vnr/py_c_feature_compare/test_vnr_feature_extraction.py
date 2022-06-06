@@ -22,7 +22,7 @@ sys.path.append(pvc_path)
 import py_vs_c_utils as pvc 
 
 input_file = "../../../examples/bare-metal/vnr/test_stream_1.wav"
-tflite_model = "../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"
+tflite_model = "../test_wav_vnr/model/model_output/model_qaware.tflite"
 
 def bfp_s32_to_float(bfp_struct, data):
     
@@ -50,7 +50,7 @@ class vnr_feature_comparison:
     def __init__(self):
         self.vnr_obj = vnr.Vnr(model_file=tflite_model) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
-        vnr_test_lib.test_init()
+        err = vnr_test_lib.test_init()
 
     def process_frame(self, new_x_frame):
         frame_int = pvc.float_to_int32(new_x_frame)
@@ -58,7 +58,10 @@ class vnr_feature_comparison:
         # Ref
         self.x_data = np.roll(self.x_data, -fp.FRAME_ADVANCE, axis = 0)
         self.x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
+        # Features
         ref_features = rwv.extract_features(self.x_data, self.vnr_obj)
+        # Inference
+        ref_ie_output = self.vnr_obj.run(ref_features)
         ref_features = ref_features.flatten()
         
         # DUT
@@ -66,11 +69,14 @@ class vnr_feature_comparison:
         dut_features_bfp = np.zeros((20), dtype=np.int32)
         dut_features_bfp_ptr = ffi.cast("bfp_s32_t *", ffi.from_buffer(dut_features_bfp.data))
         dut_features_data = np.zeros((fp.PATCH_WIDTH * fp.MEL_FILTERS), dtype=np.int32)
-        dut_features_data_ptr = ffi.cast("int32_t *", ffi.from_buffer(dut_features_data.data))
-
+        dut_features_data_ptr = ffi.cast("int32_t *", ffi.from_buffer(dut_features_data.data))        
+        # Features       
         vnr_test_lib.test_vnr_features(dut_features_bfp_ptr, dut_features_data_ptr, dut_x_data)
         dut_features = bfp_s32_to_float(dut_features_bfp, dut_features_data)
-        return ref_features, dut_features
+        # Inference
+        dut_ie_output = vnr_test_lib.test_vnr_inference(dut_features_bfp_ptr)
+        
+        return ref_features, dut_features, ref_ie_output[0], dut_ie_output
         
 
 def test_frame_features():
@@ -78,23 +84,38 @@ def test_frame_features():
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
     input_wav_data, input_channel_count, file_length = awu.parse_audio(input_wav_file)
     
-    ref_output = np.empty(0, dtype=np.float64)
-    dut_output = np.empty(0, dtype=np.float64)
+    ref_features_output = np.empty(0, dtype=np.float64)
+    dut_features_output = np.empty(0, dtype=np.float64)
+    ref_ie_output = np.empty(0, dtype=np.float64)
+    dut_ie_output = np.empty(0, dtype=np.float64)
     for frame_start in range(0, file_length - fp.FRAME_ADVANCE, fp.FRAME_ADVANCE):
         # buffer the input data into STFT slices
         new_x_frame = awu.get_frame(input_wav_data, frame_start, fp.FRAME_ADVANCE)
-        ref, dut = vnrc.process_frame(new_x_frame)
-        ref_output = np.append(ref_output, ref)
-        dut_output = np.append(dut_output, dut)
+        ref_features, dut_features, ref_ie, dut_ie = vnrc.process_frame(new_x_frame)
+        ref_features_output = np.append(ref_features_output, ref_features)
+        dut_features_output = np.append(dut_features_output, dut_features)
+        ref_ie_output = np.append(ref_ie_output, ref_ie)
+        dut_ie_output = np.append(dut_ie_output, dut_ie)
+    
+    # Compare features
+    arith_closeness_features, geo_closeness_features = get_closeness_metric(ref_features_output, dut_features_output)
+    print(f"Features: arith_closeness {arith_closeness_features}, geo_closeness {geo_closeness_features}")
+    max_error_features = np.max(np.abs(ref_features_output - dut_features_output))
+    print(f"Features: max_error = {max_error_features}")
 
-    arith_closeness, geo_closeness = get_closeness_metric(ref_output, dut_output)
-    print(arith_closeness, geo_closeness)
+    # Compare infrence output
+    arith_closeness_ie, geo_closeness_ie = get_closeness_metric(ref_ie_output, dut_ie_output)
+    print(f"Inference: arith_closeness {arith_closeness_ie}, geo_closeness {geo_closeness_ie}")
+    max_error_ie = np.max(np.abs(ref_ie_output - dut_ie_output))
+    print(f"Inference: max_error = {max_error_ie}")
 
-    max_error = np.max(np.abs(ref_output - dut_output))
-    print("max_error = ", max_error) 
-    assert(max_error < 0.006), f"max ref-dut features error {max_error} exceeds threshold"
-    assert(arith_closeness > 0.999), f"arith_closeness {arith_closeness} less than pass threshold"
-    assert(geo_closeness > 0.999), f"arith_closeness {arith_closeness} less than pass threshold"
+    assert(max_error_features < 0.006), f"features, max ref-dut error {max_error} exceeds threshold"
+    assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
+    assert(geo_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
+
+    assert(max_error_ie < 0.04), f"Inference, max ref-dut error {max_error} exceeds threshold"
+    assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
+    assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
         
 
 

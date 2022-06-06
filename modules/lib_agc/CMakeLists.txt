@@ -19,7 +19,7 @@ target_compile_options(avona_module_lib_agc
 
 target_link_libraries(avona_module_lib_agc
     PUBLIC
-        sdk::lib_xs3_math
+        core::xs3_math
 )
 
 

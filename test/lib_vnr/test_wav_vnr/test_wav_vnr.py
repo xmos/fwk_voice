@@ -27,6 +27,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
+    parser.add_argument("--run-x86", type=int, default=0, help="Test x86 build as well")
     args = parser.parse_args()
     return args
 
@@ -48,7 +49,8 @@ def print_model_details(interpreter_tflite):
     print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
 
 
-def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
+def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
+    print(f"Running on target {target}, input_file {input_file}, tflite_model {tflite_model}")
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
@@ -70,7 +72,11 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
 
     #################################################################################
     # Run DUT
-    run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+    if target == 'xcore':
+        run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+    elif target == 'x86':
+        subprocess.run(["../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr", input_file], check=True)
+
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
         dut_new_slice = np.fromfile(fdut, dtype=np.int32)
@@ -103,8 +109,8 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     frame_buffer = np.zeros(3*proc_frame_length)
     rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
     wav_data, channel_count, file_length = awu.parse_audio(wav_file)
+    file_length = (file_length // frame_advance) * frame_advance
     
-    vnr_output = np.zeros(file_length // frame_advance)
     x_data = np.zeros(proc_frame_length)
 
     ref_mel = np.empty(0, dtype=np.float64)
@@ -112,7 +118,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     ref_norm_patch = np.empty(0, dtype=np.float64)
     ref_tflite_output = np.empty(0, dtype=np.float64)
     framecount = 0;
-    for frame_start in range(0, file_length-frame_advance, frame_advance):
+    for frame_start in range(0, file_length, frame_advance):
         # buffer the input data into STFT slices
         new_x_frame = awu.get_frame(wav_data, frame_start, frame_advance)
         x_data = np.roll(x_data, -frame_advance, axis = 0)
@@ -151,7 +157,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     output_wav_data[1,:] = dut_norm_patch
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
-    #print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
 
@@ -161,7 +167,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     output_wav_data[1,:] = dut_tflite_output
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
-    #print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
+    print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
     assert(arith_closeness > 0.98), "tflite_output arith_closeness below pass threshold"
     
@@ -182,8 +188,11 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
     print("Max normalised_patch diff across all frames = ",np.max(max_norm_patch_diff_per_frame)) 
     print("Max ref-dut tflite inference output diff = ",np.max(np.abs(ref_tflite_output - dut_tflite_output))) 
+
+    os.system("rm -f *.bin")
     
     #################################################################################
+
     # Plot
     fig,ax = plt.subplots(2,2)
     fig.set_size_inches(20,10)
@@ -198,7 +207,7 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
 
     ax[1,1].set_title('tflite inference output')
     ax[1,1].plot(ref_tflite_output, label="ref")
-    ax[1,1].plot(dut_tflite_output, label="dut", linestyle='--')
+    ax[1,1].plot(dut_tflite_output, label="dut")
     ax[1,1].legend(loc="upper right")
     fig_instance = plt.gcf() #get current figure instance so we can save in a file later
     if(plot_results):
@@ -207,12 +216,13 @@ def run_test_wav_vnr(input_file, tflite_model, plot_results=False):
     fig.savefig(plot_file)
 
 @pytest.mark.parametrize('input_wav', streams)
-def test_wav_vnr(input_wav):
-    #run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", "model/model_output_0_0_2/model_qaware.h5", plot_results=False)
-    # TODO Not using model/model_output_0_0_2/model_qaware.h5 since tfmot import is giving an error on the jenkins agent. tf model is not used in this test so should be okay
-    run_test_wav_vnr(input_wav, "model/model_output_0_0_2/model_qaware.tflite", plot_results=False)
+@pytest.mark.parametrize('target', ['x86', 'xcore'])
+def test_wav_vnr(input_wav, target):
+    run_test_wav_vnr(input_wav, target, "model/model_output/model_qaware.tflite", plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
     print("tflite_model = ",args.tflite_model)
-    run_test_wav_vnr(args.input_wav, args.tflite_model, plot_results=False)
+    if args.run_x86:
+        run_test_wav_vnr(args.input_wav, 'x86', args.tflite_model, plot_results=False)
+    run_test_wav_vnr(args.input_wav, 'xcore', args.tflite_model, plot_results=True)

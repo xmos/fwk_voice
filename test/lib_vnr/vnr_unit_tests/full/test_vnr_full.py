@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
 xe = os.path.join(exe_dir, 'avona_test_vnr_full.xe')
 
-def test_vnr_full(tflite_model):
+def test_vnr_full(target, tflite_model):
     np.random.seed(1243)
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
@@ -45,7 +45,10 @@ def test_vnr_full(tflite_model):
         this_patch = rwv.extract_features(x_data, vnr_obj)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
-    op = test_utils.run_dut(input_data, "test_vnr_full", xe)
+    exe_name = xe
+    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
+        exe_name = os.path.splitext(xe)[0]
+    op = test_utils.run_dut(input_data, "test_vnr_full", exe_name)
     dut_mant = op[0::2]
     dut_exp = op[1::2]
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)
@@ -61,7 +64,7 @@ def test_vnr_full(tflite_model):
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
     assert(geo_closeness > 0.99), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.99), "inference output arith_closeness below pass threshold"
+    assert(arith_closeness > 0.97), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
@@ -69,4 +72,4 @@ def test_vnr_full(tflite_model):
     #plt.show()
 
 if __name__ == "__main__":
-    test_vnr_full(os.path.abspath("../../test_wav_vnr/model/model_output_0_0_2/model_qaware.tflite"))
+    test_vnr_full("xcore", test_utils.get_model())

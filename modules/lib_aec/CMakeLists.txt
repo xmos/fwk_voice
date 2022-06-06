@@ -24,7 +24,7 @@ target_compile_options(avona_module_lib_aec
 
 target_link_libraries(avona_module_lib_aec
     PUBLIC
-        sdk::lib_xs3_math
+        core::xs3_math
 )
 
 ## Create an alias

@@ -1,6 +1,4 @@
 include(fetch_deps.cmake)
 add_subdirectory(lib_xs3_math)
 add_subdirectory(xscope_fileio)
-if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    add_subdirectory(inference)
-endif()
+add_subdirectory(inference)

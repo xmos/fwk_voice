@@ -1,0 +1,15 @@
+{
+    "frame_advance": 240,
+    "proc_frame_length": 512,
+    "phases": 10,
+    "mu" : 1.0,
+    "delta" : 7.450580593454381e-09,
+    "y_channel_delay": 180,
+    "K" : 1,
+    "lamda" : 0.9995117188, 
+    "gamma" : 2.0,
+    "leakage" : 0.995,
+    "remove_NQ" : true,
+    "vnr_model" : "specified_in_test",
+    "adaption_config": "IC_ADAPTION_AUTO"
+}

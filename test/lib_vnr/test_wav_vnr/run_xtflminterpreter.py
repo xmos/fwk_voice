@@ -11,7 +11,7 @@ def parse_arguments():
 
 # xmos-ai-tools version 0.1.8.dev93 has the fix for tensor_arena_size to indicate the actual scratch memory that is required by the inference engine
 def run_xtflm_interpreter(xcore_opt_model):
-    #xf.convert("model/model_output_0_0_2/model_qaware.tflite", "xcore_opt.tflite", params=None)
+    #xf.convert("model/model_output/model_qaware.tflite", "xcore_opt.tflite", params=None)
     #ie = xtflm.XTFLMInterpreter(model_path="xcore_opt.tflite")
     #print(f"Arena size = {ie.tensor_arena_size} bytes")
     ie = xtflm.XTFLMInterpreter(model_path=xcore_opt_model)

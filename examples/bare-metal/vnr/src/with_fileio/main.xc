@@ -13,24 +13,19 @@
 
 
 extern "C"{
-    void get_frame(chanend_t c_get_frame, const char* in_filename);
-    void vnr(chanend, chanend);
-    void send_frame(chanend_t c_send_frame, const char* out_filename);
+    void vnr_task(const char* input_filename, const char *output_filename);
 }
 
 int main (void){
     chan xscope_chan;
-    chan read_chan;
-    chan write_chan;
-    par {
+    par
+    {
         xscope_host_data(xscope_chan);
         on tile[0]: {
             xscope_io_init(xscope_chan);
-            get_frame(read_chan, "input.wav");
+            vnr_task("input.wav", "vnr_out.bin");
             _Exit(0);        
         }
-        on tile[0]: vnr(read_chan, write_chan);
-        on tile[0]: send_frame(write_chan, "vnr_out.bin");
     }
     return 0;
 }
