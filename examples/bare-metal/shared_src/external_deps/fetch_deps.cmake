@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     xs3_math
     GIT_REPOSITORY https://github.com/xmos/lib_xs3_math.git
-    GIT_TAG        b440211755185d97dac8ea72f83f704f8025220f
+    GIT_TAG        918aa48b1f6cb284c5db31af1f77592f650e4324
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/avona_deps/lib_xs3_math
 )
