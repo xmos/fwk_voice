@@ -230,11 +230,7 @@ void ic_calc_inv_X_energy(
     const unsigned disable_freq_smoothing = 0;
     const unsigned normdenom_apply_factor_of_2 = 0;
     
-#if !(IC_X86_BUILD)
-    aec_priv_calc_inv_X_energy_ic(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
-#else
     aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
-#endif
 }
 
 /// Calculate T (mu * inv_X_energy * Error)
