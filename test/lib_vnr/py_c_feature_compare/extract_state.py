@@ -9,10 +9,18 @@ import subprocess
 
 xs3_math_types_api_dir = "../../../build/avona_deps/lib_xs3_math/lib_xs3_math/api"
 lib_vnr_api_dir = "../../../modules/lib_vnr/api/features/"
+lib_vnr_inference_api_dir = "../../../modules/lib_vnr/api/inference/"
+lib_vnr_inference_model_dir = "../../../modules/lib_vnr/src/inference/model"
+lib_vnr_inference_src_dir = "../../../modules/lib_vnr/src/inference/"
 vnr_state = []
 
 def extract_section_vnr(line, pp):
-    log_state = True if "vnr_features_state.h" in line else False
+    log_state = False
+    if "vnr_features_state.h" in line:
+        log_state = True
+    elif "vnr_inference_state.h" in line:
+        log_state = True
+
     while True:
         line = pp.readline()
         if line.startswith("#") or line == "":
@@ -36,7 +44,7 @@ def extract_pre_defs_vnr():
     extract_xs3_math_vnr()
 
     #Grab just vnr_feature_state related lines from the C pre-processed 
-    subprocess.call(f"gcc -E vnr_test.c -o vnr_test.i -I {lib_vnr_api_dir} -I {xs3_math_types_api_dir}".split())
+    subprocess.call(f"gcc -E vnr_test.c -o vnr_test.i -I {lib_vnr_api_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir} -I {xs3_math_types_api_dir}".split())
 
     with open("vnr_test.i") as pp:
         end_of_file = False

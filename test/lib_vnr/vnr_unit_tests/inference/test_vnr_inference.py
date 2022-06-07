@@ -22,8 +22,6 @@ def test_vnr_inference(target, tflite_model):
     output_words_per_frame = 2
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
 
-    min_mant, min_exp = test_utils.get_feature_patch_min_limit(tflite_model) # Exponent and mantissa of the minimum limit of the normalised patch. Quantisation will not work correctly for anything below this
-    print(f"min_mant = {min_mant}, min_exp = {min_exp}, {hex(min_mant)}, min = {math.ldexp(min_mant, min_exp)}")
     min_int = -2**31
     max_int = 0 # Normalised features are all negative with a max of 0
     test_frames = 4096
@@ -32,14 +30,7 @@ def test_vnr_inference(target, tflite_model):
     for itt in range(0,test_frames):
         # By setting high=1 we enure no value is greater than 0 since max normalised output is 0
         data = np.random.randint(min_int, high=max_int+1, size=fp.PATCH_WIDTH * fp.MEL_FILTERS)
-        exp = np.random.randint(-31, high=min_exp+8) # exp
-        # Make sure no value is less than ldexp(min_mant, min_exp)
-        if exp >= min_exp:
-            #print(f"fr {itt}, exp = ",exp)
-            for i in range(len(data)):
-                rsh = exp-min_exp
-                if(data[i] <= (min_mant >> rsh)):                    
-                    data[i] = min_mant >> rsh
+        exp = np.random.randint(-31, high=0) # exp
         input_data = np.append(input_data, exp)
         input_data = np.append(input_data, data)
         # Ref implementation
@@ -60,7 +51,7 @@ def test_vnr_inference(target, tflite_model):
         dut = dut_output_double[fr]
         ref = ref_output_double[fr]
         diff = np.abs(ref-dut)
-        assert(diff < 0.05), "ERROR: test_vnr_inference frame {fr}. diff exceeds threshold"
+        assert(diff < 0.05), f"ERROR: test_vnr_inference frame {fr}. diff {diff} exceeds threshold"
     
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)

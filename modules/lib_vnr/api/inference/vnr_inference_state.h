@@ -15,7 +15,7 @@ typedef struct {
 }vnr_ie_config_t;
 
 typedef struct {
-    uint64_t tensor_arena[TENSOR_ARENA_SIZE_BYTES/sizeof(uint64_t)];
+    uint64_t tensor_arena[(TENSOR_ARENA_SIZE_BYTES + sizeof(uint64_t) - 1)/sizeof(uint64_t)];
     int8_t *input_buffer;
     size_t input_size;
     int8_t *output_buffer;

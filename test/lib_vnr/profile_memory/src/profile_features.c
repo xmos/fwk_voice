@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     vnr_feature_state_init(&vnr_feature_state);
 
     int32_t new_frame[VNR_FRAME_ADVANCE];
-    int32_t DWORD_ALIGNED input_frame[VNR_PROC_FRAME_LENGTH + VNR_FFT_PADDING];
+    complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
     bfp_complex_s32_t X;
     vnr_form_input_frame(&vnr_input_state, &X, input_frame, new_frame);
 
