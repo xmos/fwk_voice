@@ -142,7 +142,7 @@ void ic_init(ic_state_t *state){
     vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[0]);
     vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[1]);
     vnr_inference_init(&state->ic_vnr_pred_state.inference_state);
-    state->ic_vnr_pred_state.pred_alpha_q30 = Q1_30(0.7);
+    state->ic_vnr_pred_state.pred_alpha_q30 = Q1_30(0.97);
     state->ic_vnr_pred_state.input_vnr_pred = double_to_float_s32(0.0);
     state->ic_vnr_pred_state.output_vnr_pred = double_to_float_s32(0.0);
 
