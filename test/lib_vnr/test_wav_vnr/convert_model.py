@@ -14,7 +14,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("tflite_model", nargs='?',
                         help=".xe file to run")
-    parser.add_argument("--copy-files", type=int, default=0, help="Copy generated files to vnr module")
+    parser.add_argument("--copy-files", action='store_true', help="Copy generated files to vnr module")
     parser.add_argument("--module-path", type=str, default=None, help="Path to vnr module to copy the new files to. Used when --copy-files=1")
     args = parser.parse_args()
     return args
@@ -34,6 +34,7 @@ def get_quant_spec(model):
 
 if __name__ == "__main__":
     args = parse_arguments()
+    print("copy_files = ",args.copy_files)
     model = args.tflite_model
     model = os.path.abspath(model)
     ai_tools_version = pkg_resources.get_distribution('xmos_ai_tools').version
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     
     # Copy generated files into the VNR module
     if args.copy_files:
-        assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files=1"
+        assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
         print(f"WARNING: Copying files to {vnr_module_path} and {parent_dir}. Verify before committing!")
         # Copy converted model .c and .h files
