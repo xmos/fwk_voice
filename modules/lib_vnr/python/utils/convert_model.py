@@ -6,16 +6,16 @@ import numpy as np
 import shutil
 from xmos_ai_tools import xcore_tflm_host_interpreter as xtflm
 import pkg_resources
+import tempfile
 
 this_filepath = os.path.dirname(os.path.abspath(__file__))
-build_path = os.path.join(this_filepath, "../../../build/")
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("tflite_model", nargs='?',
-                        help=".xe file to run")
+                        help="tflite model to convert and integrate into the Avona VNR module")
     parser.add_argument("--copy-files", action='store_true', help="Copy generated files to vnr module")
-    parser.add_argument("--module-path", type=str, default=None, help="Path to vnr module to copy the new files to. Used when --copy-files=1")
+    parser.add_argument("--module-path", type=str, default=None, help="Path to vnr module to copy the new files to. Used when --copy-files")
     args = parser.parse_args()
     return args
 
@@ -40,10 +40,10 @@ if __name__ == "__main__":
     ai_tools_version = pkg_resources.get_distribution('xmos_ai_tools').version
     print(f"model file = {model}. Using xmos-ai-tools version {ai_tools_version}")
 
-    parent_dir = os.path.dirname(os.path.abspath(model))
+    tfilte_model_dir = os.path.dirname(os.path.abspath(model))
 
-    test_dir = os.path.join(parent_dir, "new")
-    os.makedirs(test_dir, exist_ok=True)
+    test_dir = tempfile.mkdtemp(prefix=f"convert_{os.path.basename(model).split('.')[0]}_", dir=".")
+    print(f"Generating output files to {test_dir} directory")
 
     # Tflite to xcore optimised tflite
     xcore_opt_model = os.path.join(test_dir, os.path.basename(model).split('.')[0] + "_xcore.tflite")
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # Convert tflite to .c and .h files
     model_c_file = os.path.join(test_dir, "vnr_model_data.c")
     model_h_file = os.path.join(test_dir, "vnr_model_data.h")
-    tflite_to_c_script = os.path.join(this_filepath, "../../../tools/tflite_micro/convert_tflite_to_c_source.py")
+    tflite_to_c_script = os.path.join(this_filepath, "convert_tflite_to_c_source.py")
     cmd = f"{tflite_to_c_script} --input {xcore_opt_model} --header {model_h_file} --source {model_c_file} --variable-name vnr".split()
     subprocess.run(cmd, check=True)
     
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     if args.copy_files:
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
-        print(f"WARNING: Copying files to {vnr_module_path} and {parent_dir}. Verify before committing!")
+        print(f"WARNING: Copying files to {vnr_module_path} and {tflite_model_dir}. Verify before committing!")
         # Copy converted model .c and .h files
         shutil.copy2(model_c_file, os.path.join(vnr_module_path, "src/inference/model/"))
         shutil.copy2(model_h_file, os.path.join(vnr_module_path, "src/inference/model/"))
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         # Copy quant dequant spec defines file
         shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), os.path.join(vnr_module_path, "api/inference/"))
         # Copy xcore opt model tflite file to the model's directory
-        shutil.copy2(xcore_opt_model, parent_dir)
+        shutil.copy2(xcore_opt_model, tflite_model_dir)
         
 
 
