@@ -19,20 +19,20 @@
 matplotlib
 
 # Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
-numpy==1.21.6
-pytest==7.1.2
-pytest-xdist==2.5.0
-keras==2.8.0
-matplotlib==3.5.1
+numpy
+pytest
+pytest-xdist
+keras
+matplotlib
 
 # Pin scipy to 1.4.1 due to tensorflow v2.1.1 hard pinning it to that version.
-scipy==1.7.3
-soundfile==0.10.3.post1
-webrtcvad==2.0.10
-tensorflow==2.8.0
+scipy
+soundfile
+webrtcvad
+tensorflow_macos
 protobuf==3.20.1  # https://github.com/protocolbuffers/protobuf/issues/10051
-h5py==3.6.0
-tensorflow_model_optimization==0.7.2
+h5py
+tensorflow_model_optimization
 xmos-ai-tools==0.1.8.dev99
 jinja2
 

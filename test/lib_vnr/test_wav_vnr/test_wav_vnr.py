@@ -11,8 +11,12 @@ import os
 import sys
 import audio_wav_utils as awu
 import subprocess
-sys.path.append(os.path.join(os.getcwd(), "../../../examples/bare-metal/shared_src/python"))
-sys.path.append(os.path.join(os.getcwd(), "../../shared/python"))
+import fcntl
+
+this_file_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_file_path, "../../../examples/bare-metal/shared_src/python")) # For run_xcoreai
+sys.path.append(os.path.join(this_file_path, "../../shared/python")) # For py_vs_c_utils
+
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
 import glob
@@ -22,12 +26,16 @@ import py_vs_c_utils as pvc
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 print(hydra_audio_path)
 streams = glob.glob(f'{hydra_audio_path}/test_wav_vnr_streams/*.wav')
+results_log_file = "results_test_wav_vnr.csv"
 
+with open(results_log_file, "w") as log:
+    log.write(f"input_file,target,mel_log2_diff,norm_patch_diff,tflite_inference_diff,tflite_inference_arith_closeness,tflite_inference_geo_closeness\n")
+    
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("tflite_model", nargs='?', help=".tflite model file")
-    parser.add_argument("--run-x86", type=int, default=0, help="Test x86 build as well")
+    parser.add_argument("--run-x86", action='store_true', help="Test x86 build as well")
     args = parser.parse_args()
     return args
 
@@ -73,9 +81,9 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     #################################################################################
     # Run DUT
     if target == 'xcore':
-        run_xcoreai.run("../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe", input_file)
+        run_xcoreai.run(os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe"), input_file)
     elif target == 'x86':
-        subprocess.run(["../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr", input_file], check=True)
+        subprocess.run([os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr"), input_file], check=True)
 
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
@@ -184,11 +192,19 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
         dut = dut_norm_patch[i:i+feature_patch_len]
         ref = ref_norm_patch[i:i+feature_patch_len]
         max_norm_patch_diff_per_frame = np.append(max_norm_patch_diff_per_frame, np.max(np.abs(ref-dut))) 
+    
+    mel_log2_diff = np.max(max_mel_log2_diff_per_frame)
+    norm_patch_diff = np.max(max_norm_patch_diff_per_frame)
+    tflite_inference_diff = np.max(np.abs(ref_tflite_output - dut_tflite_output))
+    print("Max mel log2 diff across all frames = ", mel_log2_diff) 
+    print("Max normalised_patch diff across all frames = ", norm_patch_diff) 
+    print("Max ref-dut tflite inference output diff = ", tflite_inference_diff) 
 
-    print("Max mel log2 diff across all frames = ",np.max(max_mel_log2_diff_per_frame)) 
-    print("Max normalised_patch diff across all frames = ",np.max(max_norm_patch_diff_per_frame)) 
-    print("Max ref-dut tflite inference output diff = ",np.max(np.abs(ref_tflite_output - dut_tflite_output))) 
-
+    with open(results_log_file, "a") as log:
+        fcntl.flock(log, fcntl.LOCK_EX)
+        log.write(f"{os.path.basename(input_file)},{target},{mel_log2_diff},{norm_patch_diff},{tflite_inference_diff},{arith_closeness},{geo_closeness}\n") 
+        fcntl.flock(log, fcntl.LOCK_UN)
+        
     os.system("rm -f *.bin")
     
     #################################################################################
@@ -218,7 +234,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 @pytest.mark.parametrize('input_wav', streams)
 @pytest.mark.parametrize('target', ['x86', 'xcore'])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, "model/model_output/model_qaware.tflite", plot_results=False)
+    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"), plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()

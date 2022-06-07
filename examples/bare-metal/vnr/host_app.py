@@ -31,9 +31,9 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
     parser.add_argument("output_bin", nargs='?', help="vnr output bin file")
-    parser.add_argument("--run_with_xscope_fileio", type=int, default=0, help="run with lib xscope_fileio instead of python xscope host")
-    parser.add_argument("--show-plot", type=int, default=0, help="show the VNR output plot")
-    parser.add_argument("--run-x86", type=int, default=0, help="Run x86 exe. Only use if --run_with_xscope_fileio is 1")
+    parser.add_argument("--run-with-xscope-fileio", action='store_true', help="run with lib xscope_fileio instead of python xscope host")
+    parser.add_argument("--show-plot", action='store_true', help="show the VNR output plot")
+    parser.add_argument("--run-x86", action='store_true', help="Run x86 exe. Only use with --run-with-xscope-fileio")
     args = parser.parse_args()
     return args
 
@@ -280,12 +280,12 @@ def run_with_xscope_fileio(input_file, output_file, run_x86, parse_profile=False
     
 if __name__ == "__main__":
     args = parse_arguments()
-    print(f"input_file: {args.input_wav}, output_file: {args.output_bin}, with_xscope_fileio={args.run_with_xscope_fileio}, show_plot={args.show_plot}")
+    print(f"input_file: {args.input_wav}, output_file: {args.output_bin}, with_xscope_fileio={args.run_with_xscope_fileio}, show_plot={args.show_plot}, run_x86={args.run_x86}")
     if args.run_with_xscope_fileio:
         vnr_out = run_with_xscope_fileio(args.input_wav, args.output_bin, args.run_x86, parse_profile=True)
     else:
-        assert(args.run_x86 == 0), "x86 build not supported when using python xscope host"
+        assert(args.run_x86 == False), "x86 build not supported when using python xscope host"
         vnr_out = run_with_python_xscope_host(args.input_wav, args.output_bin, parse_profile=True)
 
-    plot_result(vnr_out, args.input_wav, show_plot=bool(args.show_plot))
+    plot_result(vnr_out, args.input_wav, show_plot=args.show_plot)
 
