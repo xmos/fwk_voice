@@ -1,0 +1,5 @@
+xmos-ai-tools==0.1.8.dev99
+jinja2
+tensorflow_macos
+protobuf==3.20.1  # https://github.com/protocolbuffers/protobuf/issues/10051
+
