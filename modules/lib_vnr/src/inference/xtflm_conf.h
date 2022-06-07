@@ -4,6 +4,7 @@
 #ifndef XTFLM_CONF_h_
 #define XTFLM_CONF_h_
 
+// When adding a new model, open the tflite file in netron.app, check the number of operators and change XTFLM_OPERATORS if needed 
 #define XTFLM_OPERATORS        (6)
 
 #define NETWORK_NUM_THREADS    (1)

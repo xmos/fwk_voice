@@ -13,6 +13,7 @@ static inference_engine_t ie;
 #pragma stackfunction 1000
 int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     auto *resolver = inference_engine_initialize(&ie, (uint32_t *)&ie_ptr->tensor_arena, TENSOR_ARENA_SIZE_BYTES, (uint32_t *) vnr_model_data, vnr_model_data_len, &tflmo);
+    // When adding a new operator, refer to lib_tflite_micro/lib_tflite_micro/submodules/tflite-micro/tensorflow/lite/micro/all_ops_resolver.cc for all available add operator functions
     resolver->AddConv2D();
     resolver->AddReshape();
     resolver->AddLogistic();
