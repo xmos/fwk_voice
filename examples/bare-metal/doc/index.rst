@@ -32,6 +32,7 @@ build step has been completed prior to this.
    aec_1_thread
    aec_2_threads
    vad
+   vnr
    ic
    agc
    pipeline_single_threaded
