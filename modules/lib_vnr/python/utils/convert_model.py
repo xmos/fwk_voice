@@ -91,7 +91,7 @@ if __name__ == "__main__":
         fp.write(f"#define VNR_OUTPUT_ZERO_POINT   ({output_zero_point})\n")
         fp.write("\n#endif")
     
-    # Copy generated files into the VNR module
+    # Optionally, copy generated files into the VNR module
     if args.copy_files:
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
