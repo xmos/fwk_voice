@@ -37,9 +37,9 @@ For step number 5. and 6.,
 
 - Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, vnr_inference_init() to add all the operators.
 
-- Update XTFLM_OPERATORS to indicate the correct number of operators.
+- In `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_, update XTFLM_OPERATORS to indicate the correct number of operators.
 
-- Update NUM_OUTPUT_TENSORS and NUM_INPUT_TENSORS to indicate the correct numbers to input and output operators.
+- In `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_, update NUM_OUTPUT_TENSORS and NUM_INPUT_TENSORS to indicate the correct numbers to input and output operators.
 
 
 
