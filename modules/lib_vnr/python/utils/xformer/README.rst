@@ -44,7 +44,7 @@ For step number 5. and 6.,
 
 The process described above only generates optimised model to run on a single core.
 
-Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module, any new models replacing the existing one should have the same set of input features. The output size and type for the new model should also be the same as the existing model.
+Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module, any new models replacing the existing one should have the same set of input features and output size and data type as the existing model.
 
 
 
