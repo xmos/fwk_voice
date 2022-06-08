@@ -13,7 +13,7 @@ this_filepath = os.path.dirname(os.path.abspath(__file__))
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("tflite_model", nargs='?',
-                        help="tflite model to convert and integrate into the Avona VNR module")
+                        help="Unoptimised TensorFlow Lite model to optimise and integrate into the Avona VNR module")
     parser.add_argument("--copy-files", action='store_true', help="Copy generated files to vnr module")
     parser.add_argument("--module-path", type=str, default=None, help="Path to lib_vnr module to copy the new files to. Used with --copy-files")
     args = parser.parse_args()
@@ -34,11 +34,10 @@ def get_quant_spec(model):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    print("copy_files = ",args.copy_files)
     model = args.tflite_model
     model = os.path.abspath(model)
     ai_tools_version = pkg_resources.get_distribution('xmos_ai_tools').version
-    print(f"model file = {model}. Using xmos-ai-tools version {ai_tools_version}")
+    print(f"Running for input model {model}. Using xmos-ai-tools version {ai_tools_version}")
 
     tflite_model_dir = os.path.dirname(os.path.abspath(model))
 
