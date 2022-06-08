@@ -1,6 +1,18 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+###### help
+#### Running with python xscope host (Doesn't work on M1 Mac)
+# python host_app.py test_stream_1.wav vnr_out1.bin
+
+#### Running with lib xscope_filio implemented xscope host
+# python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio
+
+### To see the plot
+# python host_app.py test_stream_1.wav vnr_out1.bin --show-plot
+# python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio --show-plot
+# python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio --show-plot --run-x86 (x86 only supported in the xscope_fileio version)
+
 import sys
 import os
 import platform
