@@ -11,7 +11,7 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/vnr<https://github.com/xmos/sw_avona/tree/develop/examples/bare-metal/vnr>`_ directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`sw_avona/examples/bare-metal/vnr <https://github.com/xmos/sw_avona/tree/develop/examples/bare-metal/vnr>`_ directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 ::
     
     cd ../../../build
