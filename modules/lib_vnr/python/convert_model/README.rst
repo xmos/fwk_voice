@@ -2,7 +2,7 @@
 Integrating a tflite model into the VNR module
 ==============================================
 
-This document describes the process of integrating a new tflite model into the VNR module. Assuming we start from an unoptimised tflite model, follow the steps below to optimise it for XCORE and compile it as part of the VNR module.
+This document describes the process of integrating a new unoptimised tflite model into the VNR module. When starting from an unoptimised tflite model, follow the steps below to optimise it for XCORE by running it through the xformer and integrate it to VNR module.
 
 1. Use the transformer to convert from tflite to XCORE optimised tflite micro.
 

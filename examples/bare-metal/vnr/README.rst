@@ -1,6 +1,6 @@
 
-VNR Example
-=========================
+VNR
+===
 
 This example demonstrates how the VNR functions are called on a single thread to generate the Voice to Noise Ratio (VNR) estimates for an input audio stream.
 
