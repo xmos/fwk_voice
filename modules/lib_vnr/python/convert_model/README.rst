@@ -2,7 +2,7 @@
 Integrating a tflite model into the VNR module
 ==============================================
 
-Follow the steps below when integrating a new tflite model into the VNR module -
+This document describes the process of integrating a new tflite model into the VNR module. Assuming we start from an unoptimised tflite model, follow the steps below to optimise it for XCORE and compile it as part of the VNR module.
 
 1. Use the transformer to convert from tflite to XCORE optimised tflite micro.
 
@@ -33,7 +33,7 @@ For example, to run it for the existing model that we have, run,
 
 For step number 5. and 6.,
 
-- Open the optimised model tflite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model /modules/lib_vnr/python/model/model_output/model_qaware_xcore.tflite uses 4 operators; Conv2D, Reshape, Logistic and XC_conv2d_v2.
+- Open the optimised model tflite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model /modules/lib_vnr/python/model/model_output/model_qaware_xcore.tflite uses 1 input and output tensor each and 4 operators; Conv2D, Reshape, Logistic and XC_conv2d_v2.
 
 - Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, vnr_inference_init() to add all the operators to the TFLite operator resolver.
 
@@ -42,6 +42,9 @@ For step number 5. and 6.,
 - In `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_, update NUM_OUTPUT_TENSORS and NUM_INPUT_TENSORS to indicate the correct numbers to input and output operators.
 
 
+The process described above only generates optimised model to run on a single core.
+
+Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module, any new models replacing the existing one should have the same set of input features. The output size and type for the new model should also be the same as the existing model.
 
 
 
