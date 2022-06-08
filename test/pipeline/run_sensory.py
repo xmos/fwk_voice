@@ -58,7 +58,7 @@ def run_file(input_filename, sensory_model):
     detections = len(output.decode().split('alexa')) - 1
     return detections
 
-def run_sensory(input_filename, old_model=True):
+def run_sensory(input_filename, old_model=False):
     if old_model:
         detections = run_file(input_filename, SPOT_EVAL_OLD_MODEL)
     else:
