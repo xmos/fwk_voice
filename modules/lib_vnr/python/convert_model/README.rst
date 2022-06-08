@@ -35,7 +35,7 @@ For step number 5. and 6.,
 
 - Open the optimised model TensorFlow Lite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model `/modules/lib_vnr/python/model/model_output/model_qaware_xcore.tflite`_ uses 1 input and output tensor each and 4 operators; ``Conv2D``, ``Reshape``, ``Logistic`` and ``XC_conv2d_v2``.
 
-- Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, vnr_inference_init() to add all the operators to the TFLite operator resolver.
+- Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, ``vnr_inference_init()`` to add all the operators to the TFLite operator resolver.
 
 - In `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_, update XTFLM_OPERATORS to indicate the correct number of operators.
 
