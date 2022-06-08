@@ -5,10 +5,15 @@ Integrating a tflite model into the VNR module
 Follow the steps below when integrating a new tflite model into the VNR module -
 
 1. Use the transformer to convert from tflite to XCORE optimised tflite micro.
+
 2. Generate C source file that contains the TensorFlow Lite model as a char array.
+
 3. Get the tensor arena scratch memory requirement.
+
 4. Get the quantisation and dequantisation spec parameters.
+
 5. Call lib_tflite_micro functions to add all required operators to the resolver.
+
 6. Update defines in xtflm_conf.h
 
 The convert_model.py script automates the first 4 steps. To use the script, in the run
