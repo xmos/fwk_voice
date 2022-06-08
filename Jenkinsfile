@@ -244,7 +244,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/vnr") {
               viewEnv() {
                 withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio" //With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" //With xscope host in lib xscope_fileio
                   sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
                   sh "diff vnr_out1.bin vnr_out2.bin"
                 }
