@@ -221,15 +221,18 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 
 /// Pipeline
-void pipeline(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
-    // 3 stage pipeline. stage 1: AEC, stage 2: IC and VAD, stage 3: NS, stage 4: AGC
-    channel_t c_stage_1_to_2 = chan_alloc();
+// 3 stage pipeline. stage 1: AEC, stage 2: IC and VAD, stage 3: NS, stage 4: AGC
+void pipeline_tile0(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
+    
+    pipeline_stage_1(c_pcm_in_b, c_pcm_out_a);
+}
+
+void pipeline_tile1(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a)
+{
     channel_t c_stage_2_to_3 = chan_alloc();
     channel_t c_stage_3_to_4 = chan_alloc();
-    
     PAR_JOBS(
-        PJOB(pipeline_stage_1, (c_pcm_in_b, c_stage_1_to_2.end_a)),
-        PJOB(pipeline_stage_2, (c_stage_1_to_2.end_b, c_stage_2_to_3.end_a)),
+        PJOB(pipeline_stage_2, (c_pcm_in_b, c_stage_2_to_3.end_a)),
         PJOB(pipeline_stage_3, (c_stage_2_to_3.end_b, c_stage_3_to_4.end_a)),
         PJOB(pipeline_stage_4, (c_stage_3_to_4.end_b, c_pcm_out_a))
     );

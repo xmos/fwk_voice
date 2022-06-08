@@ -68,11 +68,20 @@ pipeline {
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                }
+              }
+            }
             dir("${REPO}") {
               stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
               //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
             // Now do xcore files
@@ -137,8 +146,7 @@ pipeline {
                 withVenv {
                   sh "cmake --version"
                   sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  // sh "make -j8"
-                  sh "make VERBOSE=1"
+                  sh "make -j8"
 
                   //We need to put this here because it is not fetched until we build
                   sh "pip install -e avona_deps/xscope_fileio"
@@ -230,6 +238,54 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
+                  sh "diff vnr_out1.bin vnr_out2.bin"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR test_wav_vnr') {
+          steps {
+            dir("${REPO}/test/lib_vnr/test_wav_vnr") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
+                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('VNR vnr_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
+              viewEnv() {
+                withVenv {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR Python C feature extraction equivalence') {
+          steps {
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
@@ -380,6 +436,19 @@ pipeline {
                   //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
                   //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
                   // sh "python sweep_ic_delay.py"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test_calc_vnr_pred') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
+              viewEnv() {
+                withVenv {
+                  //This is a unit test for ic_calc_vnr_pred function.
+                  //It compares the avona output with py_ic model output
+                  sh "pytest -n1 --junitxml=pytest_result.xml"
                 }
               }
             }
@@ -572,6 +641,10 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
           //NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          //VNR artifacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           //Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true

@@ -10,6 +10,7 @@ add_subdirectory( agc )
 add_subdirectory( pipeline_single_threaded )
 add_subdirectory( pipeline_alt_arch )
 
+add_subdirectory(vnr)
 ## Multi thread example builds only on XCORE
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     #TODO move vad back to all examples when we can build it

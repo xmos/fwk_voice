@@ -20,6 +20,8 @@ if ( ${AVONA_BUILD_TESTS} )
 
     add_subdirectory( lib_vad )
 
+    add_subdirectory(lib_vnr)
+
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         add_subdirectory( test_hpf )
     endif()

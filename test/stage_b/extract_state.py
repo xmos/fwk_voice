@@ -12,6 +12,10 @@ lib_ic_api_dir = "../../modules/lib_ic/api/"
 lib_ic_src_dir = "../../modules/lib_ic/src/"
 lib_vad_api_dir = "../../modules/lib_vad/api/"
 lib_vad_src_dir = "../../modules/lib_vad/src/"
+lib_vnr_api_dir = "../../modules/lib_vnr/api/features/"
+lib_vnr_inference_api_dir = "../../modules/lib_vnr/api/inference/"
+lib_vnr_inference_model_dir = "../../modules/lib_vnr/src/inference/model"
+lib_vnr_inference_src_dir = "../../modules/lib_vnr/src/inference/"
 state = []
 
 def extract_section(line, pp, filenames):
@@ -48,7 +52,7 @@ def extract_pre_defs():
     extract_xs3_math()
 
     #Grab just ic_state related lines from the C pre-processed 
-    subprocess.call(f"gcc -E ic_vad_test.c -o ic_vad_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {lib_vad_api_dir} -I {lib_vad_src_dir} -I {xs3_math_types_api_dir}".split())
+    subprocess.call(f"gcc -E ic_vad_test.c -o ic_vad_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {lib_vad_api_dir} -I {lib_vad_src_dir} -I {xs3_math_types_api_dir} -I {lib_vnr_api_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir}".split())
 
     with open("ic_vad_test.i") as pp:
         end_of_file = False
@@ -59,7 +63,7 @@ def extract_pre_defs():
                 end_of_file = True
                 break 
             if line.startswith("#"):
-                line = extract_section(line, pp, ["ic_state.h"])
+                line = extract_section(line, pp, ["ic_state.h", "vnr_features_state.h", "vnr_inference_state.h"])
                 continue
             line = pp.readline()
 
