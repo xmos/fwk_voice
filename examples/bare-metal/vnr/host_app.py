@@ -274,7 +274,12 @@ def run_with_xscope_fileio(input_file, output_file, run_x86, parse_profile=False
         if parse_profile:
             src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src/with_fileio')
             parse_profiling_info(stdo, src_folder)
-        shutil.copyfile("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
+        try:
+            shutil.copy2("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
+        except shutil.SameFileError as e:
+            pass
+        except IOError as e:
+             print('Error: %s' % e.strerror)
     return np.fromfile(output_file, dtype=np.int32)
 
     
