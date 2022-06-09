@@ -42,12 +42,12 @@ procedure is currently supported on MacOS and Linux only.
 #. Install dependencies
      .. code-block:: console
 
-       cd ../examples/bare-metal/aec_1_thread
-       pip install -e ../shared_src/xscope_fileio
+       pip install -e build/avona_deps/xscope_fileio/
 
 #. Run the single-threaded AEC example
      .. code-block:: console
 
+       cd ../examples/bare-metal/aec_1_thread
        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 See :ref:`examples` for full details about the example applications.

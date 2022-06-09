@@ -21,8 +21,8 @@ pvc_path = os.path.join(package_dir, '../../shared/python')
 sys.path.append(pvc_path)
 import py_vs_c_utils as pvc 
 
-input_file = "../../../examples/bare-metal/vnr/test_stream_1.wav"
-tflite_model = "../test_wav_vnr/model/model_output/model_qaware.tflite"
+input_file = os.path.join(package_dir, "../../../examples/bare-metal/vnr/test_stream_1.wav")
+tflite_model = os.path.join(package_dir, "../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite")
 
 def bfp_s32_to_float(bfp_struct, data):
     
