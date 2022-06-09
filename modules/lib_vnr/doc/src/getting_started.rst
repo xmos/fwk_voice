@@ -7,7 +7,7 @@ Overview
 --------
 
 ``lib_vnr`` is a library which estimates the ratio of speech signal in noise for an input audio stream.
-``lib_vnr`` library functions uses``lib_xs3_math`` to perform DSP using low-level optimised operations, and ``lib_tflite_micro`` and ``lib_nn`` to perform inference using an optimised TensorFlow Lite model.
+``lib_vnr`` library functions uses ``lib_xs3_math`` to perform DSP using low-level optimised operations, and ``lib_tflite_micro`` and ``lib_nn`` to perform inference using an optimised TensorFlow Lite model.
 
 Repository Structure
 --------------------

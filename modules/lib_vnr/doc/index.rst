@@ -24,7 +24,7 @@ On GitHub
 API
 ---
 
-To use the functions in this library in an application, include :ref:`vad_api_h` in the application source file
+To use the functions in this library in an application, include :ref:`vnr_features_api_h` and `vnr_inference_api_h` in the application source file
 
 
 Indices and tables
