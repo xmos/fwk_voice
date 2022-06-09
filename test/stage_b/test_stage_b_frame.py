@@ -107,7 +107,7 @@ class stage_b_comparison:
         self.output_energy0 = self.energy_alpha0*self.output_energy0 + (1.0 - self.energy_alpha0) * self.ic.e_out
 
         py_vad = self.vad.run(output_py)
-        self.adaption_controller(py_vad, index)
+        #self.adaption_controller(py_vad, index)
         #self.py_vad = py_vad
         self.ic.adapt(Error)
 
@@ -123,8 +123,8 @@ class stage_b_comparison:
             print(f"1py_vad: {py_vad:.4f}, c_vad: {c_vad:.4f}")
 
         #note we override c_vad to match py_vad for comparison
-        c_vad = pvc.float_to_uint8(np.array(py_vad))
-        #c_vad = int(0) # dummy
+        #c_vad = pvc.float_to_uint8(np.array(py_vad))
+        c_vad = int(0) # dummy
         if (index < frames_print) and False:
             print(f"2py_vad: {py_vad:.4f}, c_vad: {c_vad:.4f}")
         ic_vad_test_lib.test_adapt(c_vad, output_c_ptr)
@@ -143,6 +143,7 @@ class stage_b_comparison:
         if (index < frames_print) and False:
             print(f"c - ies: {cies} oes: {coes} ief: {cief} oef: {coef}")
             print(f"p - ies: {self.input_energy} oes: {self.output_energy} ief: {self.input_energy0} oef: {self.output_energy0}")
+            print(f"py_mu: {self.ic.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
         if (index < frames_print) and False:
             print('-')
         return output_py, pvc.int32_to_float(output_c)
