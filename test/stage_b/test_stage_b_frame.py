@@ -75,14 +75,15 @@ class stage_b_comparison:
         self.c_vad = None
 
     def adaption_controller(self, vad_result, index):
+        delta = 0.00000000001
 
         self.smoothed_voice_chance = self.voice_chance_alpha*self.smoothed_voice_chance
         self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
 
         noise_mu = 1.0 - self.smoothed_voice_chance
-        noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
+        noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + delta))))
 
-        fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
+        fast_ratio = self.output_energy0 / (self.input_energy0 + delta)
         if (index < frames_print) and False:
             print(f"py_noise_mu: {noise_mu}")
 
@@ -101,13 +102,17 @@ class stage_b_comparison:
         #Run a frame through python  
         output_py, Error = self.ic.process_frame(frame)
 
+        if (index < frames_print) and False:
+            print(f"PY e_in: {self.ic.e_in}")
+            print(f"PY e_err_out: {self.ic.e_err_out}")
+
         self.input_energy = self.energy_alpha*self.input_energy + (1.0 - self.energy_alpha) * self.ic.e_in
         self.input_energy0 = self.energy_alpha0*self.input_energy0 + (1.0 - self.energy_alpha0) * self.ic.e_in
-        self.output_energy = self.energy_alpha*self.output_energy + (1.0 - self.energy_alpha) * self.ic.e_out
-        self.output_energy0 = self.energy_alpha0*self.output_energy0 + (1.0 - self.energy_alpha0) * self.ic.e_out
+        self.output_energy = self.energy_alpha*self.output_energy + (1.0 - self.energy_alpha) * self.ic.e_err_out
+        self.output_energy0 = self.energy_alpha0*self.output_energy0 + (1.0 - self.energy_alpha0) * self.ic.e_err_out
 
         py_vad = self.vad.run(output_py)
-        #self.adaption_controller(py_vad, index)
+        self.adaption_controller(py_vad, index)
         #self.py_vad = py_vad
         self.ic.adapt(Error)
 
@@ -123,8 +128,8 @@ class stage_b_comparison:
             print(f"1py_vad: {py_vad:.4f}, c_vad: {c_vad:.4f}")
 
         #note we override c_vad to match py_vad for comparison
-        #c_vad = pvc.float_to_uint8(np.array(py_vad))
-        c_vad = int(0) # dummy
+        c_vad = pvc.float_to_uint8(np.array(py_vad))
+        #c_vad = int(0) # dummy
         if (index < frames_print) and False:
             print(f"2py_vad: {py_vad:.4f}, c_vad: {c_vad:.4f}")
         ic_vad_test_lib.test_adapt(c_vad, output_c_ptr)
@@ -140,11 +145,11 @@ class stage_b_comparison:
         coes = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.output_energy_slow)
         cief = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.input_energy_fast)
         coef = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.output_energy_fast)
-        if (index < frames_print) and False:
+        if (index < frames_print) and True:
             print(f"c - ies: {cies} oes: {coes} ief: {cief} oef: {coef}")
             print(f"p - ies: {self.input_energy} oes: {self.output_energy} ief: {self.input_energy0} oef: {self.output_energy0}")
             print(f"py_mu: {self.ic.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
-        if (index < frames_print) and False:
+        if (index < frames_print) and True:
             print('-')
         return output_py, pvc.int32_to_float(output_c)
 
@@ -161,7 +166,6 @@ def test_frame_compare(test_config):
     mu_log = np.zeros((file_length//frame_advance, 2))
     vad_log = np.zeros((file_length//frame_advance, 2))
 
-    
     #for frame_start in range(0, frame_advance * 15, frame_advance):
     for frame_start in range(0, file_length-proc_frame_length*2, frame_advance):
         input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance)[0:2,:]

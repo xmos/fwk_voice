@@ -10,7 +10,7 @@ void test_init(void){
     vad_init(&vad_state);
     ic_init(&ic_state);
     //Custom setup for testing
-    ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;
+    ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 1;
     // ic_state.config_params.delta = double_to_float_s32(0.0156);
 
 }

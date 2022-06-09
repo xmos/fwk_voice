@@ -358,8 +358,8 @@ pipeline {
               viewEnv() {
                 withVenv {
                   runPython("python build_vnr_feature_extraction.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
+                  //sh "pytest -s --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
                 }
               }
             }
@@ -444,8 +444,8 @@ pipeline {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
               viewEnv() {
                 withVenv {
-                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  //junit "pytest_result.xml"
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
@@ -471,7 +471,7 @@ pipeline {
                 withVenv {
                   //This is a unit test for ic_calc_vnr_pred function.
                   //It compares the avona output with py_ic model output
-                  sh "pytest -n1 --junitxml=pytest_result.xml"
+                  //sh "pytest -n1 --junitxml=pytest_result.xml"
                 }
               }
             }
