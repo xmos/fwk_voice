@@ -88,8 +88,8 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
 
 def process_py(input_file, output_file, audio_dir="."):
-    #config_file = 'test_config.json'
-    config_file = '../../shared/config/new_ic_conf.json'
+
+    config_file = '../../shared/config/ic_conf_big_delta.json'
 
     twic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
