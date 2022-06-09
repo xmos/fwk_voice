@@ -14,7 +14,7 @@
  * @defgroup vnr_features_state   VNR #define constants and data structure definitions
  */ 
 
-/** Time domain samples block length used internally in VNR DFT computation. 
+/** @brief Time domain samples block length used internally in VNR DFT computation. 
  * NOT USER MODIFIABLE.
  *
  * @ingroup vnr_features_state   
@@ -62,7 +62,7 @@ typedef struct {
  * @ingroup vnr_features_state
  */
 typedef struct {
-    /** Feature buffer containing the current and last VNR_MEL_FILTERS-1 frames' MEL frequency spectrum. */
+    /** Feature buffer containing the most recent VNR_MEL_FILTERS frames' MEL frequency spectrum. */
     fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
 }vnr_feature_state_t;
 #endif
