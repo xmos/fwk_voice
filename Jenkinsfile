@@ -151,6 +151,8 @@ pipeline {
                   // sh "make -j8"
                   //sh "make VERBOSE=1"
                   sh "make -C test/lib_ic/"
+                  sh "make -C modules/lib_vad/"
+                  sh "make -C modules/lib_vnr/"
 
                   //We need to put this here because it is not fetched until we build
                   sh "pip install -e avona_deps/xscope_fileio"

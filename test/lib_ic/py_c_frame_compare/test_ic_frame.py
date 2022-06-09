@@ -31,7 +31,7 @@ num_phases = 10
 #input_file = 'pytest_audio_360.wav'
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
-ap_config_file = "../../shared/config/new_ic_conf.json"
+ap_config_file = "../../shared/config/ic_conf_no_adapt_control.json"
 
 @pytest.fixture(params=[34])
 def pre_test_stuff(request):

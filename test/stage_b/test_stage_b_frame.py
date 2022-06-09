@@ -24,7 +24,7 @@ import IC
 import vad
 import py_vs_c_utils as pvc 
 
-ap_config_file = "../shared/config/new_ic_conf.json"
+ap_config_file = "../shared/config/ic_conf_no_adapt_control.json"
 input_file = "input.wav"
 output_file = "output.wav"
 
