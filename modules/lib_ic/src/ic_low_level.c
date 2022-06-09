@@ -309,7 +309,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     //noise_mu = 1.0 - self.smoothed_voice_chance
     float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
 
-    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
+    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + delta))))
     float_s32_t input_plus_delta = float_s32_add_fix(ad_state->input_energy_slow, delta);
     float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
     ratio = float_s32_sqrt(ratio);
@@ -326,7 +326,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         }
     }
 
-    //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
+    //fast_ratio = self.output_energy0 / (self.input_energy0 + delta)
     input_plus_delta = float_s32_add_fix(ad_state->input_energy_fast, delta);
     float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
 

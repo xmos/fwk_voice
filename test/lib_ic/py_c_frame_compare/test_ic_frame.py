@@ -28,7 +28,6 @@ proc_frame_length = 512
 fd_length = proc_frame_length // 2 + 1
 frame_advance = 240
 num_phases = 10
-#input_file = 'pytest_audio_360.wav'
 input_file = "../../../examples/bare-metal/ic/input.wav"
 output_file = "output.wav"
 ap_config_file = "../../shared/config/ic_conf_no_adapt_control.json"

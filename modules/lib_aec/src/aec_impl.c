@@ -140,7 +140,6 @@ void aec_forward_fft(
     temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
     
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
-    output->hr = bfp_complex_s32_headroom(output);
     bfp_fft_unpack_mono(output);
     input->length = len;
 }
