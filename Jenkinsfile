@@ -244,7 +244,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/vnr") {
               viewEnv() {
                 withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run_with_xscope_fileio=1" //With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" //With xscope host in lib xscope_fileio
                   sh "python host_app.py test_stream_1.wav vnr_out1.bin" //With xscope host in python
                   sh "diff vnr_out1.bin vnr_out2.bin"
                 }
@@ -643,6 +643,7 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           //VNR artifacts
           archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           //Pipelines tests

@@ -1,15 +1,10 @@
 
 Run in test/lib_vnr/test_wav_vnr directory
 
-To convert from tflite to xcore optimised tflite model (already generated and committed)
-xcore-opt --xcore-thread-count 1 -o model/model_output/model_qaware_xcore.tflite model/model_output/model_qaware.tflite
-
-To get the .c and .h file (already generated and committed)
-python ../../../tools/tflite_micro/convert_tflite_to_c_source.py --input model/model_output/model_qaware_xcore.tflite --header model/model_output/vnr_model_data.h --source model/model_output/vnr_model_data.c --variable-name vnr
-
-To run the test
+To run one stream
 By default it runs only xcore target
-python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output/model_qaware.tflite
+python test_wav_vnr.py <test stream> <tflite model>
+eg. python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav ../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite
 
 To run on x86 and xcore target
-python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav model/model_output/model_qaware.tflite --run-x86=1
+python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav ../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite --run-x86

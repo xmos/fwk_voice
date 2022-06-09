@@ -4,7 +4,9 @@
 #ifndef XTFLM_CONF_h_
 #define XTFLM_CONF_h_
 
-#define XTFLM_OPERATORS        (6)
+// The currenly used model lib_vnr/python/model/model_output/model_qaware_xcore.tflite uses 4 operators; AddConv2D, Reshape, Logistic and Conv2D_V2_OpCode
+// When adding a new model, open the tflite file in netron.app, check the number of operators and change XTFLM_OPERATORS if needed
+#define XTFLM_OPERATORS        (4)
 
 #define NETWORK_NUM_THREADS    (1)
 #define AISRV_GPIO_LENGTH      (4)
