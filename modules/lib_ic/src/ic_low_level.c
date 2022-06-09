@@ -245,6 +245,43 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
+static inline int32_t ashr32(int32_t x, right_shift_t shr)
+{
+  if(shr >= 0)
+    return x >> shr;
+  
+  int64_t tmp = ((int64_t)x) << -shr;
+
+  if(tmp > INT32_MAX)       return INT32_MAX;
+  else if(tmp < INT32_MIN)  return INT32_MIN;
+  else                      return tmp;
+}
+
+float_s32_t float_s32_add_fix(
+    const float_s32_t x,
+    const float_s32_t y)
+{
+  float_s32_t res;
+
+  const headroom_t x_hr = HR_S32(x.mant);
+  const headroom_t y_hr = HR_S32(y.mant);
+
+  const exponent_t x_min_exp = x.exp - x_hr;
+  const exponent_t y_min_exp = y.exp - y_hr;
+
+  res.exp = MAX(x_min_exp, y_min_exp) + 1;
+
+  const right_shift_t x_shr = res.exp - x.exp;
+  const right_shift_t y_shr = res.exp - y.exp;
+  
+  int32_t x_mant = (x_shr >= 32) ? 0 : ashr32(x.mant, x_shr);
+  int32_t y_mant = (y_shr >= 32) ? 0 : ashr32(y.mant, y_shr);
+
+  res.mant = x_mant + y_mant;
+
+  return res;
+}
+
 //Python port
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
@@ -271,9 +308,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     //noise_mu = 1.0 - self.smoothed_voice_chance
     float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
 
-
     //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
-    float_s32_t input_plus_delta = float_s32_add(ad_state->input_energy_slow, delta);
+    float_s32_t input_plus_delta = float_s32_add_fix(ad_state->input_energy_slow, delta);
     float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
     ratio = float_s32_sqrt(ratio);
     ratio = float_s32_sqrt(ratio);
@@ -290,7 +326,7 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     }
 
     //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
-    input_plus_delta = float_s32_add(ad_state->input_energy_fast, delta);
+    input_plus_delta = float_s32_add_fix(ad_state->input_energy_fast, delta);
     float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
 
     // if fast_ratio > 1.0:

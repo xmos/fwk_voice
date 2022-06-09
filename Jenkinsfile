@@ -227,6 +227,23 @@ pipeline {
             }
           }
         }
+        stage('Stage B tests') {
+          steps {
+            dir("${REPO}/test/stage_b") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
+                      runPython("python build_c_code.py")
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -453,23 +470,6 @@ pipeline {
                   //This is a unit test for ic_calc_vnr_pred function.
                   //It compares the avona output with py_ic model output
                   sh "pytest -n1 --junitxml=pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('Stage B tests') {
-          steps {
-            dir("${REPO}/test/stage_b") {
-              viewEnv() {
-                withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      //runPython("python build_c_code.py")
-                      //sh "pytest -s --junitxml=pytest_result.xml"
-                      //junit "pytest_result.xml"
-                    }
-                  }
                 }
               }
             }
