@@ -149,15 +149,16 @@ def check_filter_components(icc, frame_start):
                 if not np.isclose(c_Y_hat, py_Y_hat, rtol = rtol):
                     print('C: ', c_Y_hat, ', PY: ', py_Y_hat)
 
-
             #print('error_ap:')
-            exp = state.error_bfp[0].exp
+            exp = state.Error_bfp[0].exp
             for i in range(proc_frame_length + 2):
-                c_error = np.array(state.Error[0][i]).astype(np.float64) * (2 ** exp)
+                c_error = 0
                 py_error = 0
                 if (i % 2) == 0:
+                    c_error = np.array(state.Error[0][i // 2].re).astype(np.float64) * (2 ** exp)
                     py_error = icc.Error_ap[0][i // 2].real
                 else:
+                    c_error = np.array(state.Error[0][i // 2].im).astype(np.float64) * (2 ** exp)
                     py_error = icc.Error_ap[0][i // 2].imag
                 rtol = np.ldexp(1, -23)
                 if not np.isclose(c_error, py_error, rtol = rtol):

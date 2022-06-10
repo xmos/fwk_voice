@@ -294,6 +294,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     const float_s32_t one = {1, 0};
     const float_s32_t zero = {0, 0};
     //const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
+    // in some test cases delta = 1e-9 was not small enough comparing to the denominator
+    // this is also changed in stage_b test python
     const float_s32_t delta = {352, -45}; //352 * 2**-45 ~ 0.00000000001
 
     exponent_t q0_8_exp = -8; 
