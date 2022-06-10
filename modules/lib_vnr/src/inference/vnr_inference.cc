@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "inference_engine.h"
+#include "vnr_model_data.h"
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 
@@ -28,7 +29,7 @@ int32_t vnr_inference_init(vnr_ie_state_t *ie_ptr) {
     ie_ptr->input_buffer = (int8_t *) ie.input_buffers[0];
     ie_ptr->input_size = ie.input_sizes[0];
     ie_ptr->output_buffer = (int8_t *) ie.output_buffers[0];
-    ie_ptr->output_size = ie.output_sizes[0];   
+    ie_ptr->output_size = ie.output_sizes[0];
     
     // Initialise input quant and output dequant parameters
     vnr_priv_init_ie_config(&ie_ptr->ie_config);

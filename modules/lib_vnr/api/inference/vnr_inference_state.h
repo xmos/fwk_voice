@@ -1,8 +1,6 @@
 #ifndef __VNR_INFERENCE_STATE_H__
 #define __VNR_INFERENCE_STATE_H__
 
-#include "vnr_model_data.h"
-#include "xtflm_conf.h"
 #include "vnr_tensor_arena_size.h"
 
 #include "xs3_math.h"
