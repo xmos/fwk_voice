@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../../lib_vnr/vnr_unit_tests/feature_extraction"))
-sys.path.append(os.path.join(this_file_dir, "../../../../py_ic/py_ic")) # TODO Remove when we're able to add py_ic to requirements.txt. Will happen once lib_interference_canceller/python is no longer used in avona.
 
 import test_utils # Use vnr test's test_utils
 import IC
@@ -15,7 +14,8 @@ xe = os.path.join(exe_dir, 'avona_test_calc_vnr_pred.xe')
 
 def test_calc_vnr_pred(target, tflite_model, show_plot=False):
     np.random.seed(12345)
-    ic_parameters = json_to_dict(os.path.join(this_file_dir, "config/two_mic_stereo.json"))
+    ic_parameters = json_to_dict("../../shared/config/ic_conf_no_adapt_control.json")
+    ic_parameters["adaption_config"] = "IC_ADAPTION_AUTO"
     ic_parameters["vnr_model"] = str(tflite_model)
     ifc = IC.adaptive_interference_canceller(**ic_parameters)
 

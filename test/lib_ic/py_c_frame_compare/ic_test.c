@@ -3,7 +3,6 @@
 
 ic_state_t ic_state;
 
-
 void test_init(void){
     ic_init(&ic_state);
     //Custom setup for testing
@@ -14,6 +13,7 @@ void test_init(void){
 }
 
 ic_state_t test_get_state(void){
+
     return ic_state;
 }
 
