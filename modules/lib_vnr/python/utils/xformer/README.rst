@@ -6,7 +6,7 @@ This document describes the process for integrating a TensorFlow Lite model into
 
 1. Use the xformer to optimise the model for XCORE architecture.
 
-2. Generate C source files `vnr_model.c <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model.c>`_ and `vnr_model.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model.h>`_ that contains the optimised model as a char array.
+2. Generate C source files `vnr_model_data.c <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.c>`_ and `vnr_model_data.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.h>`_ that contains the optimised model as a char array.
 
 3. Update the `vnr_tensor_arena_size.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_tensor_arena_size.h>`_ the tensor arena scratch memory requirement for the optimised model.
 
@@ -14,7 +14,7 @@ This document describes the process for integrating a TensorFlow Lite model into
 
 5. Call lib_tflite_micro functions to register all required operators with the lib_tflite_micro MicroOpResolver.
 
-6. Update defines in `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`-
+6. Update defines in `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_
 
 The `xform_model.py <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/xform_model.py>`_ script automates the first 4 steps. It creates the files mentioned in steps 1-4 above and copies them to the VNR module directory. 
 Ensure you have installed Python 3 and the python requirements listed in `requirements.txt <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/requirements.txt>`_ in order to run the script. To use the script, run,
