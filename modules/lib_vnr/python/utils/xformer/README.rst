@@ -16,7 +16,7 @@ This document describes the process for integrating a TensorFlow Lite model into
 
 6. Update defines in xtflm_conf.h
 
-The `xform_model.py<TODO>`_ script automates the first 4 steps. Ensure you have installed Python 3 and the python requirements listed in `requirements.txt<TODO>`_ in order to run the script. To use the script, run,
+The `xform_model.py<https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/xform_model.py>`_ script automates the first 4 steps. Ensure you have installed Python 3 and the python requirements listed in `requirements.txt<TODO>`_ in order to run the script. To use the script, run,
 
 .. code-block:: console
 
