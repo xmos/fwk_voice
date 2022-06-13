@@ -23,6 +23,12 @@ pipeline {
   }
   options {
     skipDefaultCheckout()
+    timestamps()
+    // on develop discard builds after a certain number else keep forever
+    buildDiscarder(logRotator(
+        numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '100' : '',
+        artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '100' : ''
+    ))
   }
   stages {
     stage('xcore.ai executables build') {
