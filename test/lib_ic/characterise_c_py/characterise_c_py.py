@@ -2,22 +2,12 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from __future__ import division
 from __future__ import print_function
-from builtins import str
 from builtins import range
-import sys
 import os
 import shutil
 import tempfile
 
-package_dir = os.path.dirname(os.path.abspath(__file__))
-att_path = os.path.join(package_dir,'../../../audio_test_tools/python/')
-py_ic_path = os.path.join(package_dir,'../../../../lib_interference_canceller/python')
-
-sys.path.append(att_path)
-sys.path.append(py_ic_path)
-
-from audio_generation import get_band_limited_noise, write_data
-import subprocess
+from audio_generation import get_band_limited_noise
 import time
 import numpy as np
 import scipy.io.wavfile as wavfile
@@ -27,18 +17,14 @@ import pyroomacoustics as pra
 import scipy
 
 try:
-    import test_wav_ic
+    import test_wav_ic as twic
 except ModuleNotFoundError:
-    print(f"Please install lib_interference_canceller at root of project to support model testing")
+    print(f"Please install py_ic at root of project to support model testing")
 
 import xtagctl, xscope_fileio
 
 NOISE_FLOOR_dBFS = -63.0
 SIGMA2_AWGN = ((10 ** (float(NOISE_FLOOR_dBFS)/20)) * np.iinfo(np.int32).max) ** 2
-
-PHASES = 10
-FRAME_ADVANCE = 240
-PROC_FRAME_LENGTH = 512
 
 SAMPLE_RATE = 16000
 SAMPLE_COUNT = 160080
@@ -101,10 +87,13 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
     scipy.io.wavfile.write(file_path, SAMPLE_RATE, output)
 
 
-def process_py(input_file, output_file, x_channel_delay, audio_dir="."):
-    test_wav_ic.test_file(os.path.join(audio_dir, input_file),
+def process_py(input_file, output_file, audio_dir="."):
+
+    config_file = '../../shared/config/ic_conf_big_delta.json'
+
+    twic.test_file(os.path.join(audio_dir, input_file),
                           os.path.join(audio_dir, output_file),
-                          PHASES, x_channel_delay, FRAME_ADVANCE, PROC_FRAME_LENGTH, verbose=False)
+                          config_file)
 
 
 def process_c(input_file, output_file, audio_dir="."):
@@ -132,18 +121,22 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     out_wav_data, out_channel_count, out_file_length = awu.parse_audio(out_wav_file)
 
     # Calculate EWM of audio power in 1s window
-    in_power_l = np.power(in_wav_data[0, :], 2)
-    in_power_r = np.power(in_wav_data[1, :], 2)
-    out_power = np.power(out_wav_data[0, :], 2)
+    #print(input_file, ' has ', in_channel_count, ' channels and ', in_wav_data.shape, 'shape')
+    #print(output_file, ' has ', out_channel_count, 'channels and ', out_wav_data.shape, 'shape')
+    in_power = np.power(in_wav_data[0, :], 2)
+    if len(out_wav_data.shape) > 1:
+        out_power = np.power(out_wav_data[0, :], 2)
+    else:
+        out_power = np.power(out_wav_data, 2)
+    #out_power = np.power(out_wav_data[0, :], 2)
 
     attenuation = []
 
-    for i in range(len(in_power_l) // SAMPLE_RATE):
+    for i in range(len(in_power) // SAMPLE_RATE):
         window_start = i*SAMPLE_RATE
         window_end = window_start + SAMPLE_RATE
-        av_in_power_l = np.mean(in_power_l[window_start:window_end])
-        av_in_power_r = np.mean(in_power_r[window_start:window_end])
-        av_in_power = (av_in_power_l + av_in_power_r) / 2
+
+        av_in_power = np.mean(in_power[window_start:window_end])
 
         av_out_power = np.mean(out_power[window_start:window_end])
         new_atten = 10 * np.log10(av_in_power / av_out_power) if av_out_power != 0 else 1000
@@ -151,14 +144,14 @@ def get_attenuation(input_file, output_file, audio_dir="."):
 
     return attenuation
 
-def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60, x_channel_delay):
+def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60):
     input_file = "input_{}.wav".format(test_id) # Required by test_wav_suppression.xe
     output_file_py = "output_{}_py.wav".format(test_id)
     output_file_c = "output_{}_c.wav".format(test_id)
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_theta, rt60)
-    process_py(input_file, output_file_py, x_channel_delay, audio_dir)
+    process_py(input_file, output_file_py, audio_dir)
     process_c(input_file, output_file_c, audio_dir)
 
     attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)
@@ -199,7 +192,7 @@ def main():
     start_time = time.time()
     args = parse_arguments()
     angle_theta = args.angle * np.pi/180
-    get_attenuation_c_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60, args.ic_delay)
+    get_attenuation_c_py("test", args.noise_band, args.noise_level, angle_theta, args.rt60)
     print("--- {0:.2f} seconds ---".format(time.time() - start_time))
 
 
