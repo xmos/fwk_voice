@@ -77,7 +77,7 @@ file(GLOB_RECURSE VNR_FEATURES_SOURCES src/features/*.c)
 
 target_sources(avona_module_lib_vnr_features PRIVATE ${VNR_FEATURES_SOURCES})
 
-target_include_directories(avona_module_lib_vnr_features PUBLIC api/features src/features)
+target_include_directories(avona_module_lib_vnr_features PUBLIC api/features)
 
 target_compile_definitions(avona_module_lib_vnr_features PRIVATE HEADROOM_CHECK=0)
 

@@ -6,17 +6,18 @@ This document describes the process for integrating a TensorFlow Lite model into
 
 1. Use the xformer to optimise the model for XCORE architecture.
 
-2. Generate C source file that contains the optimised model as a char array.
+2. Generate C source files `vnr_model_data.c <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.c>`_ and `vnr_model_data.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.h>`_ that contains the optimised model as a char array.
 
-3. Get the tensor arena scratch memory requirement.
+3. Update the `vnr_tensor_arena_size.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_tensor_arena_size.h>`_ the tensor arena scratch memory requirement for the optimised model.
 
-4. Get the quantisation and dequantisation spec parameters.
+4. Update the `vnr_quant_spec_defines.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_quant_spec_defines.h>`_ quantisation and dequantisation spec parameters for the model.
 
-5. Call lib_tflite_micro functions to add all required operators to the resolver.
+5. Call lib_tflite_micro functions to register all required operators with the lib_tflite_micro MicroOpResolver.
 
-6. Update defines in xtflm_conf.h
+6. Update defines in `xtflm_conf.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/xtflm_conf.h>`_
 
-The `xform_model.py<TODO>`_ script automates the first 4 steps. Ensure you have installed Python 3 and the python requirements listed in `requirements.txt<TODO>`_ in order to run the script. To use the script, run,
+The `xform_model.py <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/xform_model.py>`_ script automates the first 4 steps. It creates the files mentioned in steps 1-4 above and copies them to the VNR module directory. 
+Ensure you have installed Python 3 and the python requirements listed in `requirements.txt <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/requirements.txt>`_ in order to run the script. To use the script, run,
 
 .. code-block:: console
 
@@ -28,12 +29,12 @@ For example, to run it for the existing model that we have, run,
 
 .. code-block:: console
 
-    $ python xform_model.py <sw_avona repo path>/modules/lib_vnr/python/model/model_output/model_qaware.tflite --copy-files --module-path=<sw_avona repo path>/modules/lib_vnr
+    $ python xform_model.py sw_avona/modules/lib_vnr/python/model/model_output/model_qaware.tflite --copy-files --module-path=sw_avona/modules/lib_vnr
 
 
 For step number 5. and 6.,
 
-- Open the optimised model TensorFlow Lite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model `/modules/lib_vnr/python/model/model_output/model_qaware_xcore.tflite<TODO>`_ uses 1 input and output tensor each and 4 operators; ``Conv2D``, ``Reshape``, ``Logistic`` and ``XC_conv2d_v2``.
+- Open the optimised model TensorFlow Lite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model `model_qaware_xcore.tflite <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/model/model_output/model_qaware_xcore.tflite>`_ uses 1 input and output tensor each and 4 operators; ``Conv2D``, ``Reshape``, ``Logistic`` and ``XC_conv2d_v2``.
 
 - Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, ``vnr_inference_init()`` to add all the operators to the TFLite operator resolver.
 
@@ -44,7 +45,7 @@ For step number 5. and 6.,
 
 The process described above only generates optimised model to run on a single core.
 
-Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module, any new models replacing the existing one should have the same set of input features and output size and data type as the existing model.
+Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module, any new models replacing the existing one should have the same set of input features, input and output size and data types as the existing model.
 
 
 
