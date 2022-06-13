@@ -360,10 +360,10 @@ void ic_priv_calc_vnr_pred(
     int32_t feature_patch_data[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
     vnr_extract_features(&vnr_state->feature_state[0], &feature_patch, feature_patch_data, Y);
     float_s32_t ie_output;
-    vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
+    vnr_inference(&ie_output, &feature_patch);
     vnr_state->input_vnr_pred = float_s32_ema(vnr_state->input_vnr_pred, ie_output, vnr_state->pred_alpha_q30); 
     
     vnr_extract_features(&vnr_state->feature_state[1], &feature_patch, feature_patch_data, Error);
-    vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
+    vnr_inference(&ie_output, &feature_patch);
     vnr_state->output_vnr_pred = float_s32_ema(vnr_state->output_vnr_pred, ie_output, vnr_state->pred_alpha_q30);
 }

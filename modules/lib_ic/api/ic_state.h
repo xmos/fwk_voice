@@ -9,7 +9,6 @@
 
 typedef struct {
     vnr_feature_state_t feature_state[2];
-    vnr_ie_state_t inference_state;
     float_s32_t input_vnr_pred;
     float_s32_t output_vnr_pred;
     fixed_s32_t pred_alpha_q30;

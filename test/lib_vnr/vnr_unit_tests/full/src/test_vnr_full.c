@@ -10,13 +10,12 @@
 
 static vnr_input_state_t vnr_input_state;
 static vnr_feature_state_t vnr_feature_state;
-static vnr_ie_state_t vnr_ie_state;
 
 void test_init()
 {
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int32_t ret = vnr_inference_init(&vnr_ie_state);
+    int32_t ret = vnr_inference_init();
     if(ret) {
         printf("vnr_inference_init() returned error %ld\n",ret);
         assert(0);
@@ -33,6 +32,6 @@ void test(int32_t *output, int32_t *input)
     int32_t feature_patch_data[VNR_PATCH_WIDTH*VNR_MEL_FILTERS];
     vnr_extract_features(&vnr_feature_state, &feature_patch, feature_patch_data, &X);
 
-    vnr_inference(&vnr_ie_state, (float_s32_t*)output, &feature_patch);
+    vnr_inference((float_s32_t*)output, &feature_patch);
 }
 

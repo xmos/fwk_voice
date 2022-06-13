@@ -4,13 +4,12 @@
 
 vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
-vnr_ie_state_t vnr_inference_state;
 int32_t vnr_ie_init_err;
 
 int test_init(void){
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int err = vnr_inference_init(&vnr_inference_state);
+    int err = vnr_inference_init();
     return err;
 }
 
@@ -36,7 +35,7 @@ double test_vnr_inference(
     )
 {
     float_s32_t ie_output;
-    vnr_inference(&vnr_inference_state, &ie_output, features);
+    vnr_inference(&ie_output, features);
     double result = float_s32_to_double(ie_output);
     return result;
 }
