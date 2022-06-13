@@ -103,7 +103,7 @@ if __name__ == "__main__":
         # Copy tensor arena size defines file
         shutil.copy2(os.path.join(test_dir, "vnr_tensor_arena_size.h"), os.path.join(vnr_module_path, "api/inference/"))
         # Copy quant dequant spec defines file
-        shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), os.path.join(vnr_module_path, "api/inference/"))
+        shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), os.path.join(vnr_module_path, "src/inference/model"))
         # Copy xcore opt model tflite file to the model's directory
         shutil.copy2(xcore_opt_model, tflite_model_dir)
         

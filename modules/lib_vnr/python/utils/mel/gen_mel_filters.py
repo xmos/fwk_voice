@@ -325,7 +325,7 @@ def test_equivalence_range():
             assert test_equivalence(fft_size, nmels)
     print("PASS")
 
-#python gen_mel_filters.py -fft_size 512 -mel_size=24 -path=. -type=compact
+# python gen_mel_filters.py -fft_size 512 -mel_size=24 -path=. -type=compact
 def main():
     parser = argparse.ArgumentParser(description='Generate MEL tables script')
     parser.add_argument('-fft_size', action="store", type=int)
