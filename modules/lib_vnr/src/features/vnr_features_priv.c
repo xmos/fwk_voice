@@ -39,10 +39,12 @@ void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X) {
 void vnr_priv_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice)
 {
     // Roll the patch buffer to get rid of oldest slice
+    // self.feature_buffers[buffer_number] = np.roll(self.feature_buffers[buffer_number], -1, axis=0)
     for(unsigned index=0; index<VNR_PATCH_WIDTH - 1; index++) {
         memcpy(feature_buffers[index], feature_buffers[index+1], VNR_MEL_FILTERS*sizeof(int32_t));
     }
     // Add new slice to the feature patch buffer
+    // self.feature_buffers[buffer_number][-1] = new_slice
     memcpy(feature_buffers[VNR_PATCH_WIDTH - 1], new_slice, VNR_MEL_FILTERS*sizeof(int32_t));
 }
 
@@ -52,7 +54,7 @@ void vnr_priv_normalise_patch(bfp_s32_t *normalised_patch, int32_t *normalised_p
     #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
 #endif
     bfp_s32_init(normalised_patch, normalised_patch_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
-    //norm_patch = feature_patch - np.max(feature_patch)   
+    // norm_patch = feature_patch - np.max(feature_patch)   
     bfp_s32_t feature_patch_bfp;
     bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_state->feature_buffers[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
     float_s32_t max = bfp_s32_max(&feature_patch_bfp);
