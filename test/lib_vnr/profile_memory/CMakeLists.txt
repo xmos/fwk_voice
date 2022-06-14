@@ -13,7 +13,7 @@ target_link_libraries(${APP_NAME}
         avona::vnr::features
         )
 target_compile_options(${APP_NAME}
-    PRIVATE ${APP_COMPILER_FLAGS})
+    PRIVATE ${APP_COMPILER_FLAGS} "-target=XCORE-AI-EXPLORER")
 target_link_options(${APP_NAME}
     PRIVATE
         -w            
@@ -31,7 +31,7 @@ target_link_libraries(${APP_NAME}
         avona::vnr::inference
         )
 target_compile_options(${APP_NAME}
-    PRIVATE ${APP_COMPILER_FLAGS})
+    PRIVATE ${APP_COMPILER_FLAGS} "-target=XCORE-AI-EXPLORER")
 target_link_options(${APP_NAME}
     PRIVATE
         -w            
@@ -50,7 +50,7 @@ target_link_libraries(${APP_NAME}
         avona::vnr::inference
         )
 target_compile_options(${APP_NAME}
-    PRIVATE ${APP_COMPILER_FLAGS})
+    PRIVATE ${APP_COMPILER_FLAGS} "-target=XCORE-AI-EXPLORER")
 target_link_options(${APP_NAME}
     PRIVATE
         -w            

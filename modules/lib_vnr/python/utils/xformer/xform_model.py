@@ -96,12 +96,12 @@ if __name__ == "__main__":
     if args.copy_files:
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
-        print(f"WARNING: Copying files to lib_vnr module path {vnr_module_path} and tflite model directory {tflite_model_dir}. Verify before committing!")
+        print(f"WARNING: Copying files to lib_vnr module path {vnr_module_path}/src/inference/model and tflite model directory {tflite_model_dir}. Verify before committing!")
         # Copy converted model .c and .h files
         shutil.copy2(model_c_file, os.path.join(vnr_module_path, "src/inference/model/"))
         shutil.copy2(model_h_file, os.path.join(vnr_module_path, "src/inference/model/"))
         # Copy tensor arena size defines file
-        shutil.copy2(os.path.join(test_dir, "vnr_tensor_arena_size.h"), os.path.join(vnr_module_path, "api/inference/"))
+        shutil.copy2(os.path.join(test_dir, "vnr_tensor_arena_size.h"), os.path.join(vnr_module_path, "src/inference/model"))
         # Copy quant dequant spec defines file
         shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), os.path.join(vnr_module_path, "src/inference/model"))
         # Copy xcore opt model tflite file to the model's directory

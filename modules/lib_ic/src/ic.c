@@ -134,15 +134,7 @@ void ic_init(ic_state_t *state){
 
     //Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);
-    ic_init_adaption_controller(&state->ic_adaption_controller_state);
-    
-    // Initialise ic_vnr_pred_state
-    vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[0]);
-    vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[1]);
-    vnr_inference_init();
-    state->ic_vnr_pred_state.pred_alpha_q30 = Q1_30(0.97);
-    state->ic_vnr_pred_state.input_vnr_pred = double_to_float_s32(0.0);
-    state->ic_vnr_pred_state.output_vnr_pred = double_to_float_s32(0.0);
+    ic_init_adaption_controller(&state->ic_adaption_controller_state);    
 }
 
 void ic_filter(
@@ -266,9 +258,4 @@ void ic_adapt(
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         ic_apply_leakage(state, ych);
     }
-}
-
-void ic_calc_vnr_pred(ic_state_t *state)
-{
-    ic_priv_calc_vnr_pred(&state->ic_vnr_pred_state, &state->Y_bfp[0], &state->Error_bfp[0]);
 }

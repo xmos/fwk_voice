@@ -22,8 +22,6 @@ target_link_libraries(avona_module_lib_ic
     PUBLIC
         core::xs3_math
         avona::aec
-        avona::vnr::features
-        avona::vnr::inference
 )
 
 ## Create an alias
