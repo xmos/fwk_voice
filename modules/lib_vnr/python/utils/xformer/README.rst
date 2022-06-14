@@ -21,7 +21,7 @@ Ensure you have installed Python 3 and the python requirements listed in `requir
 
 .. code-block:: console
 
-    $ python xform_model.py <Unoptimised TensorFlow Lite model> --copy-files --module-path <path to lib_vnr module>
+    $ python xform_model.py <Unoptimised TensorFlow Lite model> --copy-files --module-path <path to model related files in lib_vnr module>
 
 The above command will generate the relevant files and copy them into the VNR module.
 
@@ -29,7 +29,7 @@ For example, to run it for the existing model that we have, run,
 
 .. code-block:: console
 
-    $ python xform_model.py sw_avona/modules/lib_vnr/python/model/model_output/model_qaware.tflite --copy-files --module-path=sw_avona/modules/lib_vnr
+    $ python xform_model.py sw_avona/modules/lib_vnr/python/model/model_output/model_qaware.tflite --copy-files --module-path=sw_avona/modules/lib_vnr/src/inference/model/
 
 
 For step number 5. and 6.,
