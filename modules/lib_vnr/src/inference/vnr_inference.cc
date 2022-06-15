@@ -11,6 +11,7 @@ static struct tflite_micro_objects tflmo;
 static inference_engine_t ie; 
 static vnr_ie_state_t vnr_ie_state;
 
+
 // TODO: unsure why the stack can not be computed automatically here
 #pragma stackfunction 1000
 int32_t vnr_inference_init() {

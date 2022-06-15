@@ -7,6 +7,7 @@
 #include "ic_low_level.h"
 #include "q_format.h"
 
+
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
