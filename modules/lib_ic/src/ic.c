@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "ic_low_level.h"
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * (f))) //TODO use lib_xs3_math use_exponent instead when implemented
+#include "q_format.h"
 
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
@@ -15,7 +15,7 @@ void ic_dump_var_3d(ic_state_t *state);
 static void ic_init_config(ic_config_params_t *config){
     config->sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
-    config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
+    config->ema_alpha_q30 = Q30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
     config->delta = double_to_float_s32(IC_INIT_DELTA);
 
@@ -25,8 +25,8 @@ static void ic_init_config(ic_config_params_t *config){
 static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
     config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
     config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
-    config->energy_alpha_slow_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_SLOW);
-    config->energy_alpha_fast_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_FAST);
+    config->energy_alpha_slow_q30 = Q30(IC_INIT_ENERGY_ALPHA_SLOW);
+    config->energy_alpha_fast_q30 = Q30(IC_INIT_ENERGY_ALPHA_FAST);
 
     config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
     config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
