@@ -4,7 +4,8 @@ import subprocess
 import tensorflow as tf
 import numpy as np
 import shutil
-from xmos_ai_tools import xcore_tflm_host_interpreter as xtflm
+from xmos_ai_tools.xinterpreters import xcore_tflm_host_interpreter
+from xmos_ai_tools import xformer as xf
 import pkg_resources
 import tempfile
 
@@ -46,6 +47,8 @@ if __name__ == "__main__":
 
     # Tflite to xcore optimised tflite micro
     xcore_opt_model = os.path.join(test_dir, os.path.basename(model).split('.')[0] + "_xcore.tflite")
+    #xf.print_help()
+    #xf.convert(f"{model}", f"{xcore_opt_model}", {"mlir-disable-threading": None, "xcore-reduce-memory": None})
     convert_cmd = f"xcore-opt --xcore-thread-count 1 -o {xcore_opt_model} {model}".split()
     subprocess.run(convert_cmd, check=True)
     xcore_opt_model_size = os.path.getsize(xcore_opt_model)
@@ -65,9 +68,10 @@ if __name__ == "__main__":
                 assert(xcore_opt_model_size == int(model_data_len)), "model_data_len doesn't match xcore_opt tflite file size"
 
     # Create Tensor arena size define file
-    ie = xtflm.XTFLMInterpreter(model_path=xcore_opt_model)
-    ie.allocate_tensors()
-    print(f"Tensor arena size = {ie.tensor_arena_size} bytes")
+    ie = xcore_tflm_host_interpreter()
+    ie.set_model(model_path=xcore_opt_model, secondary_memory = False, flash = False)
+    print(f"Tensor arena size = {ie.tensor_arena_size()} bytes")
+
     str_index = os.path.realpath(__file__).find('sw_avona/')
     assert(str_index != -1)
     with open(os.path.join(test_dir, "vnr_tensor_arena_size.h"), "w") as fp:
@@ -75,7 +79,7 @@ if __name__ == "__main__":
         fp.write(f"// Generated using xmos-ai-tools version {ai_tools_version}\n")
         fp.write("#ifndef VNR_TENSOR_ARENA_SIZE_H\n")
         fp.write("#define VNR_TENSOR_ARENA_SIZE_H\n\n")
-        fp.write(f"#define TENSOR_ARENA_SIZE_BYTES    ({ie.tensor_arena_size} - {xcore_opt_model_size}) // Remove model size from the tensor_arena_size returned by the python xtflm host interpreter \n")
+        fp.write(f"#define TENSOR_ARENA_SIZE_BYTES    ({ie.tensor_arena_size()} - {xcore_opt_model_size}) // Remove model size from the tensor_arena_size returned by the python xcore_tflm_host_interpreter \n")
         fp.write("\n#endif")
     
     # Create Quant dequant spec defines file
