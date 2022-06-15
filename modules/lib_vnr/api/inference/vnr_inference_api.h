@@ -1,8 +1,6 @@
 #ifndef __VNR_INFERENCE_API_H__
 #define __VNR_INFERENCE_API_H__
 
-#include "vnr_inference_state.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

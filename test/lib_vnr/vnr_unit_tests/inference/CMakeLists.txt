@@ -26,7 +26,7 @@ foreach(testfile ${TEST_SOURCES})
     add_executable(${APP_NAME})
 
     target_sources(${APP_NAME} PRIVATE ${COMMON_SOURCES_C} ${testfile})
-    target_include_directories(${APP_NAME} PRIVATE src ${CMAKE_SOURCE_DIR}/modules/lib_vnr/api/features)
+    target_include_directories(${APP_NAME} PRIVATE src ${CMAKE_SOURCE_DIR}/modules/lib_vnr/api/features ${CMAKE_SOURCE_DIR}/modules/lib_vnr/src/inference)
 
     target_link_libraries(${APP_NAME} 
         PUBLIC
