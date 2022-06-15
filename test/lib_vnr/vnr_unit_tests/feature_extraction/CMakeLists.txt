@@ -37,7 +37,7 @@ foreach(testfile ${TEST_SOURCES})
     if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_vnr_extract_features.c )
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                avona::vnr::inference # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
+                avona_module_lib_vnr_inference_only_for_testing # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
                 )
     endif()
 

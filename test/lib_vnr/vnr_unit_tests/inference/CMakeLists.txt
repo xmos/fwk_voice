@@ -30,7 +30,7 @@ foreach(testfile ${TEST_SOURCES})
 
     target_link_libraries(${APP_NAME} 
         PUBLIC
-            avona::vnr::inference
+            avona_module_lib_vnr_inference_only_for_testing
             avona::example::fileutils)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
