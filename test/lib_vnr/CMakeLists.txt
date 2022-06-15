@@ -2,9 +2,13 @@
 # Compile VNR inference as a static library only for speeding up tests compilation. Note that it's compiled with target=XCORE-AI-EXPLORER, so will
 # only link against applications targeting XCORE-AI-EXPLORER which is fine for testing. lib_tflite_micro compilation is dependant on the HW
 # target which is why we don't build avona::vnr::inference as a static library
+if(NOT CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
+    #This is needed for the CFFI tests
+endif()
+
 add_library(avona_module_lib_vnr_inference_only_for_testing STATIC)
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_compile_options(avona_module_lib_vnr_inference_only_for_testing PRIVATE "-target=XCORE-AI-EXPLORER")
+    target_compile_options(avona_module_lib_vnr_inference_only_for_testing PRIVATE "-target=XCORE-AI-EXPLORER" "-fPIC")
 endif()
 set(VNR_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules/lib_vnr")
 message(STATUS "VNR_MODULE_PATH = ${VNR_MODULE_PATH}") 
