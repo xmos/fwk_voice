@@ -28,7 +28,7 @@ add_executable(${APP_NAME})
 target_sources(${APP_NAME} PRIVATE src/profile_inference.c)
 target_link_libraries(${APP_NAME} 
     PUBLIC
-        avona::vnr::inference
+        avona_module_lib_vnr_inference_only_for_testing
         )
 target_compile_options(${APP_NAME}
     PRIVATE ${APP_COMPILER_FLAGS} "-target=XCORE-AI-EXPLORER")
@@ -47,7 +47,7 @@ target_sources(${APP_NAME} PRIVATE src/profile_full.c)
 target_link_libraries(${APP_NAME} 
     PUBLIC
         avona::vnr::features
-        avona::vnr::inference
+        avona_module_lib_vnr_inference_only_for_testing
         )
 target_compile_options(${APP_NAME}
     PRIVATE ${APP_COMPILER_FLAGS} "-target=XCORE-AI-EXPLORER")
