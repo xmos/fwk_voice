@@ -44,18 +44,6 @@ endif()
 
 add_library(avona::vnr::inference ALIAS avona_module_lib_vnr_inference)
 
-# Compile as a static library only for speeding up tests compilation. Note that it's compiled with target=XCORE-AI-EXPLORER, so will
-# only link against applications targeting XCORE-AI-EXPLORER which is fine for testing. lib_tflite_micro compilation dependant on the HW
-# target which is why we don't build avona::vnr::inference as a static library
-add_library(avona_module_lib_vnr_inference_only_for_testing STATIC)
-if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_compile_options(avona_module_lib_vnr_inference_only_for_testing PRIVATE "-target=XCORE-AI-EXPLORER")
-endif()
-target_include_directories(avona_module_lib_vnr_inference_only_for_testing PUBLIC api/inference src/inference/model)
-target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PRIVATE avona::vnr::inference)  
-target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PUBLIC core::xs3_math) 
-
-
 ## VNR Feature extraction
 add_library(avona_module_lib_vnr_features STATIC)
 
