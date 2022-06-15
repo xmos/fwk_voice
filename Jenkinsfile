@@ -26,8 +26,8 @@ pipeline {
     timestamps()
     // on develop discard builds after a certain number else keep forever
     buildDiscarder(logRotator(
-        numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '100' : '',
-        artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '100' : ''
+        numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '50' : '',
+        artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '50' : ''
     ))
   }
   stages {
