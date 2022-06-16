@@ -7,7 +7,8 @@
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 
-static struct tflite_micro_objects tflmo;
+// Allocate all memory required by the inference engine
+static struct tflite_micro_objects tflmo; // This structure can only be allocated from a C++ file since tflite_micro_objects definition is only visible in C++ files. 
 static inference_engine_t ie; 
 static vnr_ie_state_t vnr_ie_state;
 
@@ -26,16 +27,8 @@ int32_t vnr_inference_init() {
             tflite::ops::micro::xcore::Register_Conv2D_V2());
     int ret = inference_engine_load_model(&ie, vnr_model_data_len, (uint32_t *) vnr_model_data, 0);
 
-    //printf("ret from inference_engine_load_model = %d, memory primary bytes = %d, %d\n",ret, ie.memory_primary_bytes, ie.xtflm->interpreter->arena_used_bytes());
-
-    
-    ie_ptr->input_buffer = (int8_t *) ie.input_buffers[0];
-    ie_ptr->input_size = ie.input_sizes[0];
-    ie_ptr->output_buffer = (int8_t *) ie.output_buffers[0];
-    ie_ptr->output_size = ie.output_sizes[0];
-    
     // Initialise input quant and output dequant parameters
-    vnr_priv_init_ie_config(&ie_ptr->ie_config);
+    vnr_priv_init_quant_spec(&ie_ptr->quant_spec);
     return ret;
 }
 
@@ -45,12 +38,12 @@ int32_t vnr_inference_init() {
 void vnr_inference(float_s32_t *vnr_output, bfp_s32_t *features) {
     vnr_ie_state_t *ie_state = &vnr_ie_state;
     // Quantise features to 8bit
-    vnr_priv_feature_quantise(ie_state->input_buffer, features, &ie_state->ie_config);
+    vnr_priv_feature_quantise((int8_t *) ie.input_buffers[0], features, &ie_state->quant_spec);
     
     // Inference
     interp_invoke(&ie);
 
     // Dequantise inference output
-    vnr_priv_output_dequantise(vnr_output, ie_state->output_buffer, &ie_state->ie_config);
+    vnr_priv_output_dequantise(vnr_output, (int8_t*)ie.output_buffers[0], &ie_state->quant_spec);
 }
 

@@ -8,18 +8,18 @@
 #include "vnr_features_api.h"
 #include "vnr_inference_priv.h"
 
-extern void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config);
-extern void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config);
+extern void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_model_quant_spec_t *quant_spec);
+extern void vnr_priv_init_quant_spec(vnr_model_quant_spec_t *quant_spec);
 
 static vnr_input_state_t vnr_input_state;
 static vnr_feature_state_t vnr_feature_state;
-static vnr_ie_config_t vnr_ie_config;
+static vnr_model_quant_spec_t vnr_quant_spec;
 void test_init()
 {
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
 
-    vnr_priv_init_ie_config(&vnr_ie_config);
+    vnr_priv_init_quant_spec(&vnr_quant_spec);
 }
 
 void test(int32_t *output, int32_t *input)
@@ -37,7 +37,7 @@ void test(int32_t *output, int32_t *input)
     
     // Testing normalised feature as well as quantised feature generation in this test
     int8_t quantised_patch[VNR_PATCH_WIDTH*VNR_MEL_FILTERS];
-    vnr_priv_feature_quantise(quantised_patch, &feature_patch, &vnr_ie_config);
+    vnr_priv_feature_quantise(quantised_patch, &feature_patch, &vnr_quant_spec);
 
     memcpy(&output[1+feature_patch.length], quantised_patch, VNR_PATCH_WIDTH*VNR_MEL_FILTERS*sizeof(int8_t));
 }

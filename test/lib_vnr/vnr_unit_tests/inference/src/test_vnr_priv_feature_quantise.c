@@ -9,11 +9,11 @@
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 
-static vnr_ie_state_t ie_state;
+static vnr_model_quant_spec_t vnr_quant_spec;
 
 void test_init()
 {
-    vnr_priv_init_ie_config(&ie_state.ie_config);
+    vnr_priv_init_quant_spec(&vnr_quant_spec);
 }
 
 void test(int32_t *output, int32_t *input)
@@ -21,5 +21,5 @@ void test(int32_t *output, int32_t *input)
     bfp_s32_t this_patch;
     // input has exponent followed by 96 data values
     bfp_s32_init(&this_patch, &input[1], input[0], VNR_PATCH_WIDTH*VNR_MEL_FILTERS, 1);
-    vnr_priv_feature_quantise((int8_t*)output, &this_patch, &ie_state.ie_config);
+    vnr_priv_feature_quantise((int8_t*)output, &this_patch, &vnr_quant_spec);
 }
