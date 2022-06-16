@@ -75,9 +75,6 @@ void ic_adapt(ic_state_t *state,
                       uint8_t vad,
                       int32_t output[IC_FRAME_ADVANCE]);
 
-
-void ic_calc_vnr_pred(ic_state_t *state);
-
 #ifdef __XC__
 #error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES
 #endif

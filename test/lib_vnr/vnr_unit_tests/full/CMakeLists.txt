@@ -30,7 +30,7 @@ foreach(testfile ${TEST_SOURCES})
 
     target_link_libraries(${APP_NAME} 
         PUBLIC
-            avona::vnr::inference
+            avona_module_lib_vnr_inference_only_for_testing
             avona::vnr::features
             avona::example::fileutils)
 

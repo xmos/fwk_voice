@@ -6,6 +6,7 @@
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
+#include "q_format.h"
 
 void aec_priv_main_init(
         aec_state_t *state,
@@ -971,7 +972,6 @@ void aec_priv_compute_T(
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
 }
 
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)
 {
@@ -979,7 +979,7 @@ void aec_priv_init_config_params(
     //aec_core_config_params_t
     aec_core_config_params_t *core_conf = &config_params->aec_core_conf;
     core_conf->sigma_xx_shift = 11;
-    core_conf->ema_alpha_q30 = Q1_30(0.98);
+    core_conf->ema_alpha_q30 = Q30(0.98);
     core_conf->gamma_log2 = 6;
     core_conf->delta_adaption_force_on.mant = (unsigned)UINT_MAX >> 1;
     core_conf->delta_adaption_force_on.exp = -32 - 6 + 1; //extra +1 to account for shr of 1 to the mant in order to store it as a signed number
@@ -1013,7 +1013,7 @@ void aec_priv_init_config_params(
     coh_cfg->mu_shad_time = 5;
 
     coh_cfg->adaption_config = AEC_ADAPTION_AUTO;
-    coh_cfg->force_adaption_mu_q30 = Q1_30(1.0);
+    coh_cfg->force_adaption_mu_q30 = Q30(1.0);
 }
 
 void aec_priv_calc_delta(

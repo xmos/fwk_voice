@@ -15,12 +15,11 @@ static void print_prof(int a, int b, int framenum){}
 void vnr_task(const char* input_filename, const char *output_filename){
     vnr_input_state_t vnr_input_state;
     vnr_feature_state_t vnr_feature_state;
-    vnr_ie_state_t vnr_ie_state;
     
     prof(0, "start_vnr_init");
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int32_t err = vnr_inference_init(&vnr_ie_state);
+    int32_t err = vnr_inference_init();
     prof(1, "end_vnr_init");
     if(err) {
         printf("ERROR: vnr_inference_init() returned error %ld\n",err);
@@ -93,7 +92,7 @@ void vnr_task(const char* input_filename, const char *output_filename){
         prof(6, "start_vnr_inference");
         float_s32_t inference_output;
         //printf("inference_output: 0x%x, %d\n", inference_output.mant, inference_output.exp);
-        vnr_inference(&vnr_ie_state, &inference_output, &feature_patch);
+        vnr_inference(&inference_output, &feature_patch);
         prof(7, "end_vnr_inference");
         file_write(&output_file, (uint8_t*)&inference_output, sizeof(float_s32_t));
 

@@ -10,7 +10,7 @@ target_include_directories(avona_test_wav_vnr PRIVATE src)
 target_link_libraries(avona_test_wav_vnr 
     PUBLIC
         avona::vnr::features
-        avona::vnr::inference
+        avona_module_lib_vnr_inference_only_for_testing
         avona::example::fileutils)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)

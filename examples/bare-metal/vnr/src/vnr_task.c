@@ -18,12 +18,11 @@ void vnr(chanend_t c_frame_in, chanend_t c_frame_out)
 {
     vnr_input_state_t vnr_input_state;
     vnr_feature_state_t vnr_feature_state;
-    vnr_ie_state_t vnr_ie_state;
     
     prof(0, "start_vnr_init");
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int32_t err = vnr_inference_init(&vnr_ie_state);
+    int32_t err = vnr_inference_init();
     prof(1, "end_vnr_init");
     if(err) {
         printf("ERROR: vnr_inference_init() returned error %ld\n",err);
@@ -50,7 +49,7 @@ void vnr(chanend_t c_frame_in, chanend_t c_frame_out)
         prof(6, "start_vnr_inference");
         float_s32_t inference_output;
         //printf("inference_output: 0x%x, %d\n", inference_output.mant, inference_output.exp);
-        vnr_inference(&vnr_ie_state, &inference_output, &feature_patch);
+        vnr_inference(&inference_output, &feature_patch);
         prof(7, "end_vnr_inference");
         chan_out_buf_byte(c_frame_out, (uint8_t*)&inference_output, sizeof(float_s32_t));
         

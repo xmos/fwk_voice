@@ -135,10 +135,4 @@ void ic_reset_filter(ic_state_t *state);
 void ic_apply_leakage(
         ic_state_t *state,
         unsigned y_ch);
-
-void ic_priv_calc_vnr_pred(
-    ic_vnr_pred_state_t *vnr_state,
-    const bfp_complex_s32_t *Y,
-    const bfp_complex_s32_t *Error
-    );
 #endif

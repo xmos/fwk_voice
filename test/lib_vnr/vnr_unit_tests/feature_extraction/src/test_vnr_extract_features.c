@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 #include "vnr_features_api.h"
-#include "vnr_inference_state.h"
+#include "vnr_inference_priv.h"
 
 extern void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_ie_config_t *ie_config);
 extern void vnr_priv_init_ie_config(vnr_ie_config_t *ie_config);
@@ -19,7 +19,6 @@ void test_init()
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
 
-    //TODO Initializing vnr_ie_config locally here and not calling vnr_inference_init() to avoid linking with avona::vnr::inference which doesn't compile for x86
     vnr_priv_init_ie_config(&vnr_ie_config);
 }
 
