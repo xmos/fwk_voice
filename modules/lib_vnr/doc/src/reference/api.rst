@@ -1,4 +1,4 @@
-.. _vnr_features_api:
+.. _vnr_api:
 
 `lib_vnr` feature extraction API Functions
 ==========================================

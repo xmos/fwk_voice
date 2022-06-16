@@ -3,7 +3,7 @@
 `lib_vnr` Header Files
 ======================
 
-.. _vnr_features_api_h:
+.. _vnr_api_h:
 
 `vnr_features_api.h`
 --------------------
