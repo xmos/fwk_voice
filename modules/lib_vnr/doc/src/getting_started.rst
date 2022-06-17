@@ -23,7 +23,7 @@ Repository Structure
 Requirements
 ------------
 
-``lib_vnr`` is included as part of the ``sw_avona`` github repository and all requirements for cloning and building ``sw_avona`` apply. ``lib_vnr`` is compiled as a static library as part of overall ``sw_avona`` build. It depends on ``lib_xs3_math``, ``lib_tflite_micro`` and ``lib_nn``. 
+``lib_vnr`` is included as part of the ``sw_avona`` github repository and all requirements for cloning and building ``sw_avona`` apply. It depends on ``lib_xs3_math``, ``lib_tflite_micro`` and ``lib_nn``. 
 
 API Structure
 -------------
@@ -35,6 +35,7 @@ The performance requirement is relative low, around 5 MIPS for initialisation an
 Getting and Building
 --------------------
 
-This repo is obtained as part of the parent ``sw_avona`` repo clone. It is compiled as a static library as part of ``sw_avona`` compilation process.
+the VNR module is obtained as part of the parent ``sw_avona`` repo clone. It's present in ``sw_avona/modules/lib_vnr``
 
-To include ``lib_vnr`` in an application as a static library, ``libavona_module_lib_vnr_features.a`` and ``libavona_module_lib_vnr_inference.a`` can be linked into the application. Be sure to also add ``lib_vnr/api/features`` and ``lib_vnr/api/inference`` as an include directory for the application.
+The feature extraction part of lib_vnr can be compiled as a static library, and the application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``api/common`` as include directories.
+VNR inference engine compilation however, requires the runtime HW target to be specified, the information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. ``sw_avona/modules/lib_vnr/CMakeLists.txt`` has the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
