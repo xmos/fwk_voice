@@ -37,8 +37,8 @@ Getting and Building
 
 The VNR estimator module is obtained as part of the parent ``sw_avona`` repo clone. It is present in ``sw_avona/modules/lib_vnr``
 
-The feature extraction part of lib_vnr can be compiled as a static library, and the application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``lib_vnr/api/common`` as include directories.
-VNR inference engine compilation however, requires the runtime HW target to be specified, the information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. `lib_vnr module CMake file <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/CMakeLists.txt>`_ demonstrates the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
+The feature extraction part of lib_vnr can be compiled as a static library. The application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``lib_vnr/api/common`` as include directories.
+VNR inference engine compilation however, requires the runtime HW target to be specified, information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. `lib_vnr module CMake file <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/CMakeLists.txt>`_ demonstrates the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR using CMake, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
 
 VNR Inference Model
 -------------------
