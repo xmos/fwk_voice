@@ -17,6 +17,7 @@ AUDIO FEATURES
    ../../../modules/lib_adec/doc/index
    ../../../modules/lib_ic/doc/index
    ../../../modules/lib_vad/doc/index
+   ../../../modules/lib_vnr/doc/index
 
 EXAMPLES
 

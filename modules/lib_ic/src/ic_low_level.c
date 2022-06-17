@@ -9,7 +9,6 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
-
 ///Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE]){
@@ -246,6 +245,43 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
+static inline int32_t ashr32(int32_t x, right_shift_t shr)
+{
+  if(shr >= 0)
+    return x >> shr;
+  
+  int64_t tmp = ((int64_t)x) << -shr;
+
+  if(tmp > INT32_MAX)       return INT32_MAX;
+  else if(tmp < INT32_MIN)  return INT32_MIN;
+  else                      return tmp;
+}
+
+float_s32_t float_s32_add_fix(
+    const float_s32_t x,
+    const float_s32_t y)
+{
+  float_s32_t res;
+
+  const headroom_t x_hr = HR_S32(x.mant);
+  const headroom_t y_hr = HR_S32(y.mant);
+
+  const exponent_t x_min_exp = x.exp - x_hr;
+  const exponent_t y_min_exp = y.exp - y_hr;
+
+  res.exp = MAX(x_min_exp, y_min_exp) + 1;
+
+  const right_shift_t x_shr = res.exp - x.exp;
+  const right_shift_t y_shr = res.exp - y.exp;
+  
+  int32_t x_mant = (x_shr >= 32) ? 0 : ashr32(x.mant, x_shr);
+  int32_t y_mant = (y_shr >= 32) ? 0 : ashr32(y.mant, y_shr);
+
+  res.mant = x_mant + y_mant;
+
+  return res;
+}
+
 //Python port
 void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
@@ -257,7 +293,10 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
 
     const float_s32_t one = {1, 0};
     const float_s32_t zero = {0, 0};
-    const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
+    //const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
+    // in some test cases delta = 1e-9 was not small enough comparing to the denominator
+    // this is also changed in stage_b test python
+    const float_s32_t delta = {352, -45}; //352 * 2**-45 ~ 0.00000000001
 
     exponent_t q0_8_exp = -8; 
     float_s32_t vad_float = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
@@ -272,9 +311,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
     //noise_mu = 1.0 - self.smoothed_voice_chance
     float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
 
-
-    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
-    float_s32_t input_plus_delta = float_s32_add(ad_state->input_energy_slow, delta);
+    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + delta))))
+    float_s32_t input_plus_delta = float_s32_add_fix(ad_state->input_energy_slow, delta);
     float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
     ratio = float_s32_sqrt(ratio);
     ratio = float_s32_sqrt(ratio);
@@ -290,8 +328,8 @@ void ic_adaption_controller(ic_state_t *state, uint8_t vad){
         }
     }
 
-    //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
-    input_plus_delta = float_s32_add(ad_state->input_energy_fast, delta);
+    //fast_ratio = self.output_energy0 / (self.input_energy0 + delta)
+    input_plus_delta = float_s32_add_fix(ad_state->input_energy_fast, delta);
     float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
 
     // if fast_ratio > 1.0:
@@ -348,22 +386,4 @@ void ic_apply_leakage(
         bfp_complex_s32_t *H_hat_ptr = &state->H_hat_bfp[y_ch][ph];
         bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, leakage); 
     }
-}
-
-void ic_priv_calc_vnr_pred(
-    ic_vnr_pred_state_t *vnr_state,
-    const bfp_complex_s32_t *Y,
-    const bfp_complex_s32_t *Error
-    )
-{
-    bfp_s32_t feature_patch;
-    int32_t feature_patch_data[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
-    vnr_extract_features(&vnr_state->feature_state[0], &feature_patch, feature_patch_data, Y);
-    float_s32_t ie_output;
-    vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
-    vnr_state->input_vnr_pred = float_s32_ema(vnr_state->input_vnr_pred, ie_output, vnr_state->pred_alpha_q30); 
-    
-    vnr_extract_features(&vnr_state->feature_state[1], &feature_patch, feature_patch_data, Error);
-    vnr_inference(&vnr_state->inference_state, &ie_output, &feature_patch);
-    vnr_state->output_vnr_pred = float_s32_ema(vnr_state->output_vnr_pred, ie_output, vnr_state->pred_alpha_q30);
 }

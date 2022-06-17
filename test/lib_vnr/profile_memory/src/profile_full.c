@@ -6,13 +6,11 @@
 vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
 
-vnr_ie_state_t vnr_ie_state;
-
 int main(int argc, char** argv) {    
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
 
-    int32_t err = vnr_inference_init(&vnr_ie_state);
+    int32_t err = vnr_inference_init();
     
     int32_t new_frame[VNR_FRAME_ADVANCE];
     complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
@@ -26,6 +24,6 @@ int main(int argc, char** argv) {
 
     float_s32_t inference_output;
     //printf("inference_output: 0x%x, %d\n", inference_output.mant, inference_output.exp);
-    vnr_inference(&vnr_ie_state, &inference_output, &feature_patch);
+    vnr_inference(&inference_output, &feature_patch);
     return inference_output.mant;
 }

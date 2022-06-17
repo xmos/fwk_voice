@@ -27,17 +27,24 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
 void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X) {
     // MEL
     float_s32_t mel_output[VNR_MEL_FILTERS];
-    
+    // out_spect = np.abs(X_spect)**2
+    // out_spect = np.dot(out_spect, self.mel_fbank) 
     vnr_priv_mel_compute(mel_output, X);
 
+    // log2
+    //out_spect = np.log2(out_spect)
     vnr_priv_log2(new_slice, mel_output, VNR_MEL_FILTERS); //Calculate new_slice in state->scratch_data
 }
 
 void vnr_priv_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice)
 {
+    // Roll the patch buffer to get rid of oldest slice
+    // self.feature_buffers[buffer_number] = np.roll(self.feature_buffers[buffer_number], -1, axis=0)
     for(unsigned index=0; index<VNR_PATCH_WIDTH - 1; index++) {
         memcpy(feature_buffers[index], feature_buffers[index+1], VNR_MEL_FILTERS*sizeof(int32_t));
     }
+    // Add new slice to the feature patch buffer
+    // self.feature_buffers[buffer_number][-1] = new_slice
     memcpy(feature_buffers[VNR_PATCH_WIDTH - 1], new_slice, VNR_MEL_FILTERS*sizeof(int32_t));
 }
 
@@ -47,19 +54,21 @@ void vnr_priv_normalise_patch(bfp_s32_t *normalised_patch, int32_t *normalised_p
     #error ERROR squared_mag_data memory not enough for reuse as normalised_patch
 #endif
     bfp_s32_init(normalised_patch, normalised_patch_data, 0, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
-    //norm_patch = feature_patch - np.max(feature_patch)   
+    // norm_patch = feature_patch - np.max(feature_patch)   
     bfp_s32_t feature_patch_bfp;
     bfp_s32_init(&feature_patch_bfp, (int32_t*)&feature_state->feature_buffers[0][0], VNR_LOG2_OUTPUT_EXP, VNR_MEL_FILTERS*VNR_PATCH_WIDTH, 1);
     float_s32_t max = bfp_s32_max(&feature_patch_bfp);
     float_s32_t zero = {0, 0};
     float_s32_t neg_max = float_s32_sub(zero, max);
-    bfp_s32_add_scalar(normalised_patch, &feature_patch_bfp, neg_max);
+    bfp_s32_add_scalar(normalised_patch, &feature_patch_bfp, neg_max); // Subtract the max from every value in the patch
 }
+
 void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X) {
 #if VNR_MEL_FILTERS != AUDIO_FEATURES_NUM_MELS
     #error VNR_MEL_FILTERS not the same as AUDIO_FEATURES_NUM_MELS
 #endif
     // Calculate squared magnitude spectrum
+    // out_spect = np.abs(X_spect)**2
     int32_t DWORD_ALIGNED squared_mag_data[VNR_FD_FRAME_LENGTH];
     bfp_s32_t squared_mag;
     bfp_s32_init(&squared_mag, squared_mag_data, 0, X->length, 0);
@@ -79,39 +88,46 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
     unsigned num_odd_filters = AUDIO_FEATURES_NUM_MELS - num_even_filters;
     int filter_exp = -(31-AUDIO_FEATURES_MEL_HEADROOM_BITS);
     int filter_hr = AUDIO_FEATURES_MEL_HEADROOM_BITS;
+    // out_spect = np.dot(out_spect, self.mel_fbank)
+
+    // Filter through even filters
     for(unsigned i=0; i<num_even_filters; i++) {
+        // Get start and end bins for the filter
         unsigned filter_start = mel_filter_512_24_compact_start_bins[2*i];
         unsigned filter_length = mel_filter_512_24_compact_start_bins[2*(i+1)] - filter_start;
-        //Create the bfp for spectrum subset
+        // Create input spectrum subset BFP structure
         bfp_s32_t spect_subset;
         bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
 
-        //Create BFP for the filter
+        // Create MEL filter BFP structure
         bfp_s32_t filter_subset;
         bfp_s32_init(&filter_subset, &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
         filter_subset.hr = filter_hr;
         
+        // Dot product
         filter_output[2*i] = float_s64_to_float_s32(bfp_s32_dot(&spect_subset, &filter_subset));
     }
 
     bfp_s32_t filter;
     bfp_s32_init(&filter, &mel_filter_512_24_compact_q31[0], filter_exp, AUDIO_FEATURES_NUM_BINS, 0);
-
-    int32_t odd_band_filters_data[AUDIO_FEATURES_NUM_BINS];
+    
+    // Generate odd band filters
+    int32_t odd_band_filters_data[AUDIO_FEATURES_NUM_BINS]; // Memory for storing odd filters
     bfp_s32_t odd_band_filters;
     bfp_s32_init(&odd_band_filters, odd_band_filters_data, 0, AUDIO_FEATURES_NUM_BINS, 0);
     bfp_s32_set(&odd_band_filters, AUDIO_FEATURES_MEL_MAX, filter_exp);
     odd_band_filters.hr = HR_S32(AUDIO_FEATURES_MEL_MAX);
     bfp_s32_sub(&odd_band_filters, &odd_band_filters, &filter);
 
+    // Filter through odd filters
     for(unsigned i=0; i<num_odd_filters; i++) {
         unsigned filter_start = mel_filter_512_24_compact_start_bins[(2*i) + 1];
         unsigned filter_length = mel_filter_512_24_compact_start_bins[(2*(i+1)) + 1] - filter_start;
-        //Create the bfp for spectrum subset
+        // Create input spectrum subset BFP structure
         bfp_s32_t spect_subset;
         bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
 
-        //Create BFP for the filter
+        // Create MEL filter BFP structure
         bfp_s32_t filter_subset;
         bfp_s32_init(&filter_subset, &odd_band_filters.data[filter_start], odd_band_filters.exp, filter_length, 0);
         filter_subset.hr = odd_band_filters.hr;

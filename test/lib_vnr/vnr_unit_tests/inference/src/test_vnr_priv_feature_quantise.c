@@ -13,11 +13,7 @@ static vnr_ie_state_t ie_state;
 
 void test_init()
 {
-    int32_t ret = vnr_inference_init(&ie_state);
-    if(ret) {
-        printf("vnr_inference_init() returned error %ld\n",ret);
-        assert(0);
-    }
+    vnr_priv_init_ie_config(&ie_state.ie_config);
 }
 
 void test(int32_t *output, int32_t *input)

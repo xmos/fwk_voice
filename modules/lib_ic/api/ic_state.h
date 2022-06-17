@@ -4,17 +4,6 @@
 #define IC_STATE_H
 
 #include "ic_defines.h"
-#include "vnr_features_api.h"
-#include "vnr_inference_api.h"
-
-typedef struct {
-    vnr_feature_state_t feature_state[2];
-    vnr_ie_state_t inference_state;
-    float_s32_t input_vnr_pred;
-    float_s32_t output_vnr_pred;
-    fixed_s32_t pred_alpha_q30;
-}ic_vnr_pred_state_t;
-
 /**
  * @page page_ic_state_h ic_state.h
  * 
@@ -235,8 +224,6 @@ typedef struct {
     ic_config_params_t config_params;
     /** State and configuration parameters for the IC adaption controller. */
     ic_adaption_controller_state_t ic_adaption_controller_state;
-
-    ic_vnr_pred_state_t ic_vnr_pred_state;
 } ic_state_t;
 
 #endif

@@ -26,19 +26,6 @@ void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_pa
     for(int i=0; i<VNR_MEL_FILTERS*VNR_PATCH_WIDTH; i++) {
         printf("patch[%d] = %.6f\n",i, ldexp(normalised_patch->data[i], normalised_patch->exp));
     }*/
-    //Test a few values
-    /*normalised_patch->data[0] = (int)((2.3278371)*(1<<24));
-    normalised_patch->data[1] = (int)((-2.3278371)*(1<<24));
-    normalised_patch->data[2] = (int)((2.5809)*(1<<24));
-    normalised_patch->data[3] = (int)((-2.5809)*(1<<24));
-    normalised_patch->data[4] = (int)((2.50000)*(1<<24));
-    normalised_patch->data[5] = (int)((-2.50000)*(1<<24));
-    normalised_patch->data[6] = (int)((4.5)*(1<<24));
-    normalised_patch->data[7] = (int)((-4.5)*(1<<24));
-    normalised_patch->data[8] = (int)((5.5)*(1<<24));
-    normalised_patch->data[9] = (int)((-5.5)*(1<<24));
-    normalised_patch->data[10] = (int)((5.51)*(1<<24));
-    normalised_patch->data[11] = (int)((-5.51)*(1<<24));*/
     float_s32_t round_lsb = {(1<<23), -24};
     bfp_s32_add_scalar(normalised_patch, normalised_patch, round_lsb);
     bfp_s32_use_exponent(normalised_patch, -24);
