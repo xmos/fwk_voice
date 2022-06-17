@@ -6,6 +6,7 @@ import pytest
 from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
 from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds
 from run_sensory import run_sensory
+from run_amazon_wwe import run_amazon_wwe
 import time, fcntl
 
 
@@ -28,17 +29,19 @@ def test_pipelines(test, record_property):
 
     keyword_file = convert_keyword_wav(output_file, arch, target)
     detections =run_sensory(keyword_file)
-    print(f"{wav_name} : {detections}", file=sys.stderr)
+    amazon_wwe_detections = run_amazon_wwe(keyword_file)
+    print(f"{wav_name} : sensory detections {detections}, Amazon wwe detections {amazon_wwe_detections}", file=sys.stderr)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)
-        log.write(f"{wav_name},{arch},{target},{detections},\n") 
+        log.write(f"{wav_name},{arch},{target},{detections},{amazon_wwe_detections}\n") 
         fcntl.flock(log, fcntl.LOCK_UN)
 
 
     record_property("Target", target)
     record_property("Pipeline architecturer", arch)
-    record_property("Wakewords", detections)
+    record_property("Sensory Wakewords", detections)
+    record_property("Amazon Wakewords", amazon_wwe_detections)
 
     #Fail only if in quicktest mode
     if full_pipeline_run == 0:
