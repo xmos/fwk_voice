@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include "vnr_features_state.h" // For VNR_PATCH_WIDTH and VNR_MEL_FILTERS defines
+#include "vnr_defines.h"
 #include "vnr_inference_priv.h"
 
 static vnr_model_quant_spec_t vnr_quant_spec;

@@ -14,7 +14,7 @@ else()
 endif()
 set(VNR_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules/lib_vnr")
 message(STATUS "VNR_MODULE_PATH = ${VNR_MODULE_PATH}") 
-target_include_directories(avona_module_lib_vnr_inference_only_for_testing PUBLIC ${VNR_MODULE_PATH}/api/inference ${VNR_MODULE_PATH}/src/inference/model)
+target_include_directories(avona_module_lib_vnr_inference_only_for_testing PUBLIC ${VNR_MODULE_PATH}/api/common ${VNR_MODULE_PATH}/api/inference ${VNR_MODULE_PATH}/src/inference/model)
 target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PRIVATE avona::vnr::inference)  
 target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PUBLIC core::xs3_math) 
 
