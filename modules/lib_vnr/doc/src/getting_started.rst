@@ -35,7 +35,12 @@ The performance requirement is relative low, around 5 MIPS for initialisation an
 Getting and Building
 --------------------
 
-the VNR module is obtained as part of the parent ``sw_avona`` repo clone. It's present in ``sw_avona/modules/lib_vnr``
+The VNR estimator module is obtained as part of the parent ``sw_avona`` repo clone. It is present in ``sw_avona/modules/lib_vnr``
 
-The feature extraction part of lib_vnr can be compiled as a static library, and the application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``api/common`` as include directories.
-VNR inference engine compilation however, requires the runtime HW target to be specified, the information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. ``sw_avona/modules/lib_vnr/CMakeLists.txt`` has the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
+The feature extraction part of lib_vnr can be compiled as a static library, and the application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``lib_vnr/api/common`` as include directories.
+VNR inference engine compilation however, requires the runtime HW target to be specified, the information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. `lib_vnr module CMake file <https://github.com/xmos/sw_avona/modules/lib_vnr/CMakeLists.txt>`_ demonstrates the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
+
+VNR Inference Model
+-------------------
+
+The VNR estimator module uses a neural network model to predict the SNR of speech in noise of incoming data. The model used is a pre trained TensorFlow Lite model that has been optimised for the XCORE architecture. The model is compiled as part of the VNR Inference Engine. Changing the model at runtime is not supported. If changing to a different model, the application needs to copy the model related files to the appropriate directory within the VNR module and recompile. The steps required to integrate a new model into the VNR module are detailed `here <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/README.rst>`_.

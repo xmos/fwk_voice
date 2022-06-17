@@ -2,15 +2,15 @@
 Integrating a TensorFlow Lite model into the VNR module
 =======================================================
 
-This document describes the process for integrating a TensorFlow Lite model into the VNR module. Starting with an unoptimised model, follow the steps below to optimise it for XCORE by running it through the xformer and integrate it to the VNR module.
+This document describes the process for integrating a TensorFlow Lite model into the VNR module. Starting with an unoptimised model, follow the steps below to optimise it for XCORE by running it through the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ xformer and integrate it into the VNR module.
 
 1. Use the xformer to optimise the model for XCORE architecture.
 
 2. Generate C source files `vnr_model_data.c <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.c>`_ and `vnr_model_data.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/src/inference/model/vnr_model_data.h>`_ that contains the optimised model as a char array.
 
-3. Update the `vnr_tensor_arena_size.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_tensor_arena_size.h>`_ the tensor arena scratch memory requirement for the optimised model.
+3. Update the tensor arena scratch memory requirement for the new model in `vnr_tensor_arena_size.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_tensor_arena_size.h>`_.
 
-4. Update the `vnr_quant_spec_defines.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_quant_spec_defines.h>`_ quantisation and dequantisation spec parameters for the model.
+4. Update the TensorFlow Lite 8-bit quantization spec for the new model in `vnr_quant_spec_defines.h <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/api/inference/vnr_quant_spec_defines.h>`_.
 
 5. Call lib_tflite_micro functions to register all required operators with the lib_tflite_micro MicroOpResolver.
 
