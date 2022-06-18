@@ -18,7 +18,8 @@ void vnr_form_input_frame(vnr_input_state_t *input_state, bfp_complex_s32_t *X, 
 
     // Update previous samples
     memcpy(input_state->prev_input_samples, &x_data[VNR_FRAME_ADVANCE], (VNR_PROC_FRAME_LENGTH - VNR_FRAME_ADVANCE)*sizeof(int32_t));
-
+    
+    // Calculate forward FFT
     vnr_priv_forward_fft(X, x_data);
 }
 

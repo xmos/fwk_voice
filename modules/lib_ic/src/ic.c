@@ -5,7 +5,8 @@
 #include <string.h>
 
 #include "ic_low_level.h"
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * (f))) //TODO use lib_xs3_math use_exponent instead when implemented
+#include "q_format.h"
+
 
 extern void ic_noise_minimisation(ic_state_t *state);
 
@@ -17,7 +18,7 @@ void ic_dump_var_3d(ic_state_t *state);
 static void ic_init_config(ic_config_params_t *config){
     config->sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
-    config->ema_alpha_q30 = Q1_30(IC_INIT_EMA_ALPHA);
+    config->ema_alpha_q30 = Q30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
     config->delta = double_to_float_s32(IC_INIT_DELTA);
 
@@ -27,8 +28,8 @@ static void ic_init_config(ic_config_params_t *config){
 static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
     config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
     config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
-    config->energy_alpha_slow_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_SLOW);
-    config->energy_alpha_fast_q30 = Q1_30(IC_INIT_ENERGY_ALPHA_FAST);
+    config->energy_alpha_slow_q30 = Q30(IC_INIT_ENERGY_ALPHA_SLOW);
+    config->energy_alpha_fast_q30 = Q30(IC_INIT_ENERGY_ALPHA_FAST);
 
     config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
     config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
@@ -138,14 +139,6 @@ void ic_init(ic_state_t *state){
     ic_init_config(&state->config_params);
     ic_init_adaption_controller(&state->ic_adaption_controller_state);
     
-    // Initialise ic_vnr_pred_state
-    vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[0]);
-    vnr_feature_state_init(&state->ic_vnr_pred_state.feature_state[1]);
-    vnr_inference_init(&state->ic_vnr_pred_state.inference_state);
-    state->ic_vnr_pred_state.pred_alpha_q30 = Q1_30(0.97);
-    state->ic_vnr_pred_state.input_vnr_pred = double_to_float_s32(0.0);
-    state->ic_vnr_pred_state.output_vnr_pred = double_to_float_s32(0.0);
-
     // chopped_y 
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->chopped_y_bfp[ch], state->chopped_y[ch], zero_exp, IC_FRAME_LENGTH, 0);
@@ -278,9 +271,4 @@ void ic_adapt(
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         ic_apply_leakage(state, ych);
     }
-}
-
-void ic_calc_vnr_pred(ic_state_t *state)
-{
-    ic_priv_calc_vnr_pred(&state->ic_vnr_pred_state, &state->Y_bfp[0], &state->Error_bfp[0]);
 }

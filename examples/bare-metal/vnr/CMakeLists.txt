@@ -36,7 +36,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     
     target_link_options(avona_example_bare_metal_vnr
         PRIVATE
-            -lquadspi
             -w            
             "-target=${XCORE_TARGET}"
             "-report"
@@ -71,7 +70,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
 
     target_link_options(avona_example_bare_metal_vnr_fileio
         PRIVATE
-            -lquadspi
             -w            
             "-target=${XCORE_TARGET}"
             "-report"

@@ -10,15 +10,15 @@ import sys
 import os
 import warnings
 
-py_env = os.environ.copy()
-sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
-                            "audio_test_tools/python",
-                            "lib_interference_canceller/python",
-                            "lib_vad/python",
-                            "lib_audio_pipelines/python",
-                            ]
-                         ]
-py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
+#py_env = os.environ.copy()
+#sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
+#                            "audio_test_tools/python",
+#                            "lib_interference_canceller/python",
+#                            "lib_vad/python",
+#                            "lib_audio_pipelines/python",
+#                            ]
+#                         ]
+#py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
 
 from scipy.signal import convolve
 import scipy.io.wavfile
@@ -28,6 +28,7 @@ import pytest
 import subprocess
 import numpy as np
 import filters
+from common_utils import json_to_dict
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
@@ -134,12 +135,13 @@ def write_output(test_name, output, c_or_py):
 
 
 def process_py(input_data, test_name):
-    phases = 10
-    x_channel_delay = 180
+
     file_length = input_data.shape[1]
-    output = test_wav_ic.test_data(input_data, 16000, file_length, phases,
-                                   x_channel_delay, frame_advance=frame_advance,
-                                   proc_frame_length=proc_frame_length, verbose=False)
+
+    config_file = '../../shared/config/ic_conf_big_delta.json'
+    ic_parameters = json_to_dict(config_file)
+
+    output, Mu, Input_vnr_pred, Output_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
@@ -213,14 +215,22 @@ def get_suppression_arr(input_audio, output_audio):
     for i in np.arange(0, num_frames*frame_advance, frame_advance):
         i = int(i)
         in_rms = rms(input_audio[0][i:i+frame_advance])
-        out_rms = rms(output_audio[0][i:i+frame_advance])
+        if len(output_audio.shape) > 1:
+            out_rms = rms(output_audio[0, i:i+frame_advance])
+        else:
+            out_rms = rms(output_audio[i:i+frame_advance])
+        #out_rms = rms(output_audio[i:i+frame_advance])
         if in_rms == 0 or out_rms == 0:
             suppression_db = 0.0
+            #print('case 1 ', in_rms, ' ', out_rms)
         elif i - frame_advance < ICSpec.expected_delay:
             suppression_db = 0.0
+            #print('case 2 ', in_rms, ' ', out_rms, ' ', i)
         else:
             suppression_db = 20 * np.log10(in_rms / out_rms)
+            #print('case 3 ', in_rms, ' ', out_rms, ' ', suppression_db)
         suppression_arr[int(i//frame_advance)] = suppression_db
+    #print('supression_arr = ', suppression_arr, '\n')
     return suppression_arr
 
 
@@ -273,7 +283,11 @@ def check_delay(record_property, test_case, input_audio, output_audio):
         output_audio = np.asarray(output_audio, dtype=float) / np.iinfo(np.int32).max
 
     frame_in = input_audio[0][:frame_advance*2]
-    frame_out = output_audio[0][:frame_advance*2]
+    #print(output_audio.shape)
+    if len(output_audio.shape) > 1:
+        frame_out = output_audio[0, :frame_advance*2]
+    else:
+        frame_out = output_audio[:frame_advance*2]
 
     corr = scipy.signal.correlate(frame_in, frame_out, mode='same')
     delay = 240 - np.argmax(corr)
@@ -293,6 +307,7 @@ def check_delay(record_property, test_case, input_audio, output_audio):
 @pytest.mark.parametrize('model', xe_files)
 def test_all(test_input, model, record_property):
     test_case, input_audio = test_input
+    print("\n{}: {}\n".format(test_case.name, model))
     output_audio = process_audio(model, input_audio, test_case.get_test_name())
     suppression_arr = get_suppression_arr(input_audio, output_audio)
 
@@ -305,7 +320,6 @@ def test_all(test_input, model, record_property):
     stable = check_stability(record_property, test_case, suppression_arr)
     delayed = check_delay(record_property, test_case, input_audio, output_audio)
 
-    print("{}: {}".format(test_case.name, model))
     # Assert checks
     criteria = [converged, stable, delayed]
     assert np.all(criteria), " and ".join([str(c) for c in criteria])

@@ -64,8 +64,7 @@ void test_wav_vnr(const char *in_filename)
     vnr_feature_state_t vnr_feature_state;
     vnr_feature_state_init(&vnr_feature_state);
 
-    vnr_ie_state_t vnr_ie_state;
-    int32_t err = vnr_inference_init(&vnr_ie_state);
+    int32_t err = vnr_inference_init();
     if(err) {
         printf("vnr_inference_init() returned error %ld. Exiting.\n", err);
         assert(0);
@@ -74,10 +73,10 @@ void test_wav_vnr(const char *in_filename)
     uint64_t end_init_cycles = (uint64_t)get_reference_time();
     uint32_t vnr_init_cycles = (uint32_t)(end_init_cycles - start_init_cycles);
 
-    if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
+    /*if(vnr_ie_state.input_size != (VNR_PATCH_WIDTH * VNR_MEL_FILTERS)) {
         printf("Error: Feature size mismatch\n");
         assert(0);
-    }
+    }*/
     
     uint64_t start_feature_cycles, end_feature_cycles, start_inference_cycles, end_inference_cycles;
     unsigned bytes_per_frame = wav_get_num_bytes_per_frame(&input_header_struct);
@@ -119,7 +118,7 @@ void test_wav_vnr(const char *in_filename)
         // VNR inference
         start_inference_cycles = (uint64_t)get_reference_time();
         float_s32_t inference_output;
-        vnr_inference(&vnr_ie_state, &inference_output, &feature_patch);
+        vnr_inference(&inference_output, &feature_patch);
         end_inference_cycles = (uint64_t)get_reference_time();
         
 

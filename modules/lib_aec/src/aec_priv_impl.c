@@ -6,6 +6,7 @@
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
+#include "q_format.h"
 
 void aec_priv_main_init(
         aec_state_t *state,
@@ -891,6 +892,29 @@ void aec_priv_calc_inv_X_energy_ic(
     aec_priv_calc_inverse(inv_X_energy);
 }
 
+void bfp_new_add_scalar(
+    bfp_s32_t* a, 
+    const bfp_s32_t* b, 
+    const float_s32_t c)
+{
+#if (XS3_BFP_DEBUG_CHECK_LENGTHS) // See xs3_math_conf.h
+    assert(b->length == a->length);
+    assert(b->length != 0);
+#endif
+
+    right_shift_t b_shr, c_shr;
+
+    xs3_vect_s32_add_scalar_prepare(&a->exp, &b_shr, &c_shr, b->exp, c.exp, 
+                                    b->hr, HR_S32(c.mant));
+
+    int32_t cc = 0;
+    if (c_shr < 32)
+        cc = (c_shr >= 0)? (c.mant >> c_shr) : (c.mant << -c_shr);
+
+    a->hr = xs3_vect_s32_add_scalar(a->data, b->data, cc, b->length, 
+                                    b_shr);
+}
+
 void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t *inv_X_energy_denom,
         const bfp_s32_t *X_energy,
@@ -925,7 +949,9 @@ void aec_priv_calc_inv_X_energy_denom(
 
         bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, &taps_q30[0], 5, PAD_MODE_REFLECT);
 
-        bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+        //bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+        bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+
     }
     else
     {
@@ -956,6 +982,7 @@ void aec_priv_calc_inv_X_energy_denom(
 
      //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
      float_s32_t min = bfp_s32_min(inv_X_energy_denom);
+
      if(min.mant == 0) {
          /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
           * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
@@ -1016,7 +1043,6 @@ void aec_priv_compute_T(
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
 }
 
-#define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f)) //TODO use lib_xs3_math use_exponent instead
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)
 {
@@ -1024,7 +1050,7 @@ void aec_priv_init_config_params(
     //aec_core_config_params_t
     aec_core_config_params_t *core_conf = &config_params->aec_core_conf;
     core_conf->sigma_xx_shift = 11;
-    core_conf->ema_alpha_q30 = Q1_30(0.98);
+    core_conf->ema_alpha_q30 = Q30(0.98);
     core_conf->gamma_log2 = 6;
     core_conf->delta_adaption_force_on.mant = (unsigned)UINT_MAX >> 1;
     core_conf->delta_adaption_force_on.exp = -32 - 6 + 1; //extra +1 to account for shr of 1 to the mant in order to store it as a signed number
@@ -1058,7 +1084,7 @@ void aec_priv_init_config_params(
     coh_cfg->mu_shad_time = 5;
 
     coh_cfg->adaption_config = AEC_ADAPTION_AUTO;
-    coh_cfg->force_adaption_mu_q30 = Q1_30(1.0);
+    coh_cfg->force_adaption_mu_q30 = Q30(1.0);
 }
 
 void aec_priv_calc_delta(
