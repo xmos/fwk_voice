@@ -1,11 +1,12 @@
 #ifndef __VNR_FEATURES_STATE_H__
 #define __VNR_FEATURES_STATE_H__
 
+#include "vnr_defines.h"
 #include "bfp_math.h"
 /**
  * @page page_vnr_features_state_h vnr_features_state.h
  * 
- * This header contains lib_vnr public #defines and data structure definitions 
+ * This header contains lib_vnr feature extraction related public #defines and data structure definitions 
  *
  * @ingroup vnr_header_file
  */
@@ -35,16 +36,6 @@
  * @ingroup vnr_features_state
  */   
 #define VNR_FD_FRAME_LENGTH ((VNR_PROC_FRAME_LENGTH/2)+1)
-
-/** Number of filters in the MEL filterbank used in the VNR feature extraction.
- * @ingroup vnr_features_state
- */
-#define VNR_MEL_FILTERS (24)
-
-/** Number of frames that make up a full set of features for the inference to run on.
- * @ingroup vnr_features_state
- */
-#define VNR_PATCH_WIDTH (4)
 
 /**
  * @brief VNR form_input state structure

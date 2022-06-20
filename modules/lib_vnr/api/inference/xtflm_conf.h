@@ -8,12 +8,11 @@
 // When adding a new model, open the tflite file in netron.app, check the number of operators and change XTFLM_OPERATORS if needed
 #define XTFLM_OPERATORS        (4)
 
-#define NETWORK_NUM_THREADS    (1)
-#define AISRV_GPIO_LENGTH      (4)
-
 #define NUM_OUTPUT_TENSORS     (1)
 #define NUM_INPUT_TENSORS      (1)
 
+#define NETWORK_NUM_THREADS    (1)
+#define AISRV_GPIO_LENGTH      (4)
 #define MAX_DEBUG_LOG_LENGTH   (256)
 
 #endif // XTFLM_CONF_h_
