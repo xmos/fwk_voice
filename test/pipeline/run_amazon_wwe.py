@@ -12,7 +12,7 @@ import stat
 from pathlib import Path
 
 
-if False: #sys.platform == "darwin":
+if sys.platform == "darwin":
     assert(False), "amazon_wwe filesim executable runs only on x86 Linux"
 else:
     WW_FILESIM_EXE = "amazon_ww_filesim"
