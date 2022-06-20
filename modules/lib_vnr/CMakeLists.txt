@@ -3,7 +3,7 @@
 add_library(avona_module_lib_vnr_inference INTERFACE)
 file(GLOB_RECURSE VNR_INFERENCE_SOURCES src/inference/*.c src/inference/*.cc)
 target_sources(avona_module_lib_vnr_inference INTERFACE ${VNR_INFERENCE_SOURCES})
-target_include_directories(avona_module_lib_vnr_inference INTERFACE api/common api/inference src/inference/model)
+target_include_directories(avona_module_lib_vnr_inference INTERFACE api/common api/inference)
 target_link_libraries(avona_module_lib_vnr_inference
     INTERFACE
         core::xs3_math

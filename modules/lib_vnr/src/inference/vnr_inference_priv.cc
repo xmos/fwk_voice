@@ -4,7 +4,7 @@
 #include <string.h>
 #include "vnr_defines.h"
 #include "vnr_inference_priv.h"
-#include "vnr_quant_spec_defines.h"
+#include "model/vnr_quant_spec_defines.h"
 
 void vnr_priv_init_quant_spec(vnr_model_quant_spec_t *quant_spec)
 {
