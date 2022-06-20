@@ -43,7 +43,7 @@ VNR inference engine compilation however, requires the runtime HW target to be s
 VNR Inference Model
 -------------------
 
-The VNR estimator module uses a neural network model to predict the SNR of speech in noise for incoming data. The model used is a pre trained TensorFlow Lite model that has been optimised for the XCORE architecture using the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ xformer. The optimised model is compiled as part of the VNR Inference Engine. Changing the model at runtime is not supported. If changing to a different model, the application needs to generate the model related files, copy them to the appropriate directory within the VNR module and recompile. Part of this process is automated through a python script, and is documented `here <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/python/utils/xformer/README.rst>`_.
+The VNR estimator module uses a neural network model to predict the SNR of speech in noise for incoming data. The model used is a pre trained TensorFlow Lite model that has been optimised for the XCORE architecture using the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ xformer. The optimised model is compiled as part of the VNR Inference Engine. Changing the model at runtime is not supported. If changing to a different model, the application needs to generate the model related files, copy them to the appropriate directory within the VNR module and recompile. Part of this process is automated through a python script, as described below.
 
 .. toctree::
    :maxdepth: 1
