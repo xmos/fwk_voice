@@ -22,6 +22,7 @@ INPUT += ../modules/lib_ic/api
 INPUT += ../modules/lib_vad/api
 
 # VNR module
+INPUT += ../modules/lib_vnr/api/common
 INPUT += ../modules/lib_vnr/api/features
 INPUT += ../modules/lib_vnr/api/inference
 
