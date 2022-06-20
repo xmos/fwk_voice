@@ -95,7 +95,7 @@ def pytest_sessionfinish(session):
                 target_log = sorted(target_log)
                 target_specific_log_file = results_log_file.replace(".csv", "_"+arch+"_"+target+".csv")
                 with open(target_specific_log_file, "w") as tlf:
-                    tlf.write("Input,Sensory keywords,Amazon keywords\n")
+                    tlf.write("Input,Sensory_rpi-31000,Sensory_v6_1mb,Amazon keywords\n")
                     tlf.writelines(target_log)
 
 
