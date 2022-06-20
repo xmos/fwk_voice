@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "inference_engine.h"
-#include "vnr_model_data.h"
+#include "model/vnr_model_data.h"
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 
