@@ -624,7 +624,7 @@ pipeline {
           steps {
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN

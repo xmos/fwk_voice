@@ -20,7 +20,7 @@ SPOT_EVAL_NEW_MODEL = "thfft_alexa_enus_v6_1mb.snsr"
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, nargs='?', help="input wav file", default='')
+    parser.add_argument("input", type=str, nargs='?', help="input wav file")
     args = parser.parse_args()
     return args
 
@@ -68,5 +68,6 @@ def run_sensory(input_filename, old_model=True):
 if __name__ == "__main__":
 
     args = parse_arguments()
-    detections = run_sensory(args.input)
+    assert(args.input != None), "Specify Input wav file"
+    detections = run_sensory(os.path.abspath(args.input))
     print("detections = %d"%(detections))

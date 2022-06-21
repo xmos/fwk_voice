@@ -18,13 +18,12 @@ def process_xcore(xe_file, input_file, output_file):
 
     #Make sure we can wait for 2 processing occurances to finish
     with xtagctl.acquire("XCORE-AI-EXPLORER", timeout=xtag_aquire_timeout_s) as adapter_id:
-        with open("vad.txt", "w+") as ff:
+        with open("stdout.txt", "w+") as ff:
             try:
-                xscope_fileio.run_on_target(adapter_id, xe_file)
+                xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
             except Exception as e:
                 print(e, file=sys.stderr)
                 assert 0, f"FAILURE RUNNING: xscope_fileio.run_on_target({adapter_id} , {xe_file})"
-            xscope_fileio.run_on_target(adapter_id, xe_file, stdout=ff)
             ff.seek(0)
             stdout = ff.readlines()
 
@@ -43,12 +42,11 @@ def process_file(input_file, arch, target="xcore"):
     wav_name = os.path.basename(input_file)
     output_file = os.path.join(pipeline_output_base_dir + "_" + arch + "_" + target, wav_name)
 
-    if not os.path.isfile(output_file): #optimisation for local testing
-        pipeline_bin = pipeline_bins[arch][target]
-        if target == "xcore":
-            process_xcore(pipeline_bin, input_file, output_file)
-        else:
-            process_x86(pipeline_bin, input_file, output_file)
+    pipeline_bin = pipeline_bins[arch][target]
+    if target == "xcore":
+        process_xcore(pipeline_bin, input_file, output_file)
+    else:
+        process_x86(pipeline_bin, input_file, output_file)
 
     return output_file
 
