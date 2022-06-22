@@ -28,20 +28,21 @@ def test_pipelines(test, record_property):
     print(f"Processing took {tot:.2f}s")
 
     keyword_file = convert_keyword_wav(output_file, arch, target)
-    detections =run_sensory(keyword_file)
-    amazon_wwe_detections = run_amazon_wwe(keyword_file)
-    print(f"{wav_name} : sensory detections {detections}, Amazon wwe detections {amazon_wwe_detections}", file=sys.stderr)
+    sensory_old_detections =run_sensory(keyword_file)
+    sensory_new_detections =run_sensory(keyword_file, old_model=False)
+    amazon_detections = run_amazon_wwe(keyword_file)
+    print(f"{wav_name} : kwd sensory detections {sensory_old_detections}, Amazon wwe detections {amazon_detections}", file=sys.stderr)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)
-        log.write(f"{wav_name},{arch},{target},{detections},{amazon_wwe_detections}\n") 
+        log.write(f"{wav_name},{arch},{target},{sensory_old_detections},{sensory_new_detections},{amazon_detections}\n") 
         fcntl.flock(log, fcntl.LOCK_UN)
 
 
     record_property("Target", target)
     record_property("Pipeline architecturer", arch)
-    record_property("Sensory Wakewords", detections)
-    record_property("Amazon Wakewords", amazon_wwe_detections)
+    record_property("Sensory Wakewords", sensory_old_detections)
+    record_property("Amazon Wakewords", amazon_detections)
 
     #Fail only if in quicktest mode
     if full_pipeline_run == 0:
@@ -49,8 +50,8 @@ def test_pipelines(test, record_property):
         for key in quick_test_pass_thresholds:
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
-                if detections < pass_mark:
-                    print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {detections}", file=sys.stderr)
+                if sensory_old_detections < pass_mark:
+                    print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {sensory_old_detections}", file=sys.stderr)
                     passed = False
         assert passed
     return True
