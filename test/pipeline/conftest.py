@@ -93,9 +93,9 @@ def pytest_sessionfinish(session):
                         target_stripped_line = line.replace(target+",", "").replace(arch+",", "")
                         target_log.append(target_stripped_line) 
                 target_log = sorted(target_log)
-                target_specific_log_file = results_log_file.replace(".csv", "_"+arch+"_"+target+".csv")
+                target_specific_log_file = results_log_file.replace(".csv", "_Avona"+"_"+arch+"_"+target+".csv")
                 with open(target_specific_log_file, "w") as tlf:
-                    tlf.write("Input,Sensory_rpi-31000,Sensory_v6_1mb,WR_250k.en-US\n")
+                    tlf.write("Input,Sensory_rpi-31000,Sensory_v6_1mb,Amazon_WR_250k.en-US\n")
                     tlf.writelines(target_log)
 
 
