@@ -65,27 +65,27 @@ typedef struct {
 typedef struct {
     /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. */
     float_s32_t leakage_alpha;
-    /** Alpha used for low pass filtering the voice chance estimate based on VAD input. */
-    float_s32_t voice_chance_alpha;
 
-    /** Slow alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_slow_q30;
-    /** Fast alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_fast_q30;
+    /** TODO: document */
+    fixed_s32_t energy_alpha_q30;
 
-    /** Ratio of the output to input at which the filter will reset.
-     * Setting it to 2.0 is a good rule of thumb. */
-    float_s32_t out_to_in_ratio_limit;
+    /** TODO: document */
+    float_s32_t fast_ratio_threshold;
     /** Setting of H_hat leakage which gets set if fast ratio exceeds a threshold. */
     float_s32_t instability_recovery_leakage_alpha;
+
+    /** TODO: document*/
+    float_s32_t input_vnr_threshold;
+
+    /** TODO: document*/
+    uint8_t adapt_counter;
+    /** TODO: document*/
+    uint8_t adapt_counter_limit;
 
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
     /** Boolean which controls whether Mu is automatically adjusted from the VAD input. */
     uint8_t enable_adaption_controller;
-    /** Boolean which controls whether to enable detection and recovery from instability
-     * in the case when the adaption controller is enabled. */
-    uint8_t enable_filter_instability_recovery;
 
 }ic_adaption_controller_config_t;
 
@@ -100,18 +100,15 @@ typedef struct {
  * @ingroup ic_state
  */
 typedef struct {
-    /** Post processed VAD value. */
-    float_s32_t smoothed_voice_chance;
 
-    /** Slow filtered value of IC input energy. */
-    float_s32_t input_energy_slow;
-    /** Slow filtered value of IC output energy. */
-    float_s32_t output_energy_slow;
+    /** TODO: document */
+    float_s32_t input_energy;
 
-    /** Fast filtered value of IC input energy. */
-    float_s32_t input_energy_fast;
-    /** Fast filtered value of IC output energy. */
-    float_s32_t output_energy_fast;
+    /** TODO: document */
+    float_s32_t output_energy;
+
+    /** TODO: document */
+    float_s32_t fast_ratio;
 
     /** Configuration parameters for the adaption controller. */
     ic_adaption_controller_config_t adaption_controller_config;
