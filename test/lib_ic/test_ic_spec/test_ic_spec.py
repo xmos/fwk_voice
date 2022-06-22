@@ -34,6 +34,7 @@ input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
 xe_path = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_ic_spec/bin/avona_test_ic_spec.xe')
+print('\nXE_PATH = ', xe_path)
 try:
     import test_wav_ic
     xe_files = ['py', xe_path]
@@ -282,16 +283,17 @@ def check_delay(record_property, test_case, input_audio, output_audio):
     if output_audio.dtype == np.int32:
         output_audio = np.asarray(output_audio, dtype=float) / np.iinfo(np.int32).max
 
-    frame_in = input_audio[0][:frame_advance*2]
+    frame_in = input_audio[0][:frame_advance*4]
     #print(output_audio.shape)
     if len(output_audio.shape) > 1:
-        frame_out = output_audio[0, :frame_advance*2]
+        frame_out = output_audio[0, :frame_advance*4]
     else:
-        frame_out = output_audio[:frame_advance*2]
+        frame_out = output_audio[:frame_advance*4]
 
     corr = scipy.signal.correlate(frame_in, frame_out, mode='same')
-    delay = 240 - np.argmax(corr)
-
+    delay = 960 - np.argmax(corr)
+    print('Max index ', np.argmax(corr))
+    print('Delay ', delay, 'Expected ', ICSpec.expected_delay)
     record_property("Delay", str(delay))
     record_property("Expected Delay", str(ICSpec.expected_delay))
 
