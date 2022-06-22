@@ -93,7 +93,7 @@ class ICSpec(object):
     #
     # Unsure exactly why, but the output has an extra (proc_frame_len % frame_advance)
     # sample delay.
-    expected_delay = 180 + (proc_frame_length % frame_advance)
+    expected_delay = 600 + (proc_frame_length % frame_advance)
 
 #test_vectors = [
 #    TestCase('Diffuse noise', filters.Diffuse(0), filters.Diffuse(1), 
