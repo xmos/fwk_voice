@@ -107,6 +107,7 @@ test_vectors = [
 #             invert_check=['convergence']),
     TestCase('Short Echo', filters.Identity(), filters.ShortEcho()),
 #    TestCase('Zero at 5', filters.Identity(), filters.ZeroAt(5)),
+# This test case has been disabled, for details see issue 320 in sw_avona
 #    TestCase('Moving source', filters.Identity(), filters.MovingSource(move_frequency=1.5),
 #             dont_check=['stability']),
 ]
@@ -266,7 +267,7 @@ import matplotlib.pyplot as plt
 def check_delay(record_property, test_case, input_audio, output_audio):
     """ Verify that the IC is correctly delaying the input
 
-    If increasing delay, make sure to increase convolution window as well
+    If increasing delay, make sure to increase correlation window as well
     """
 
     if input_audio.dtype == np.int32:
