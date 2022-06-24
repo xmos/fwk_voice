@@ -417,7 +417,7 @@ pipeline {
                   //This test compares the model and C implementation over a range of scenarious for:
                   //convergence_time, db_suppression, maximum noise added to input (to test for stability)
                   //and expected group delay. It will fail if these are not met.
-                  sh "pytest -s --junitxml=pytest_result.xml"
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                   sh "python print_stats.py > ic_spec_summary.txt"
                   //This script generates a number of polar plots of attenuation vs null point angle vs freq
