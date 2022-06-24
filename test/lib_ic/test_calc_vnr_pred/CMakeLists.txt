@@ -12,16 +12,16 @@ foreach(testfile ${TEST_SOURCES})
     get_filename_component(TESTNAME ${testfile} NAME_WLE)
     #########
     ## Add a build target
-    set(APP_NAME avona_${TESTNAME})
+    set(APP_NAME fwk_voice_${TESTNAME})
     add_executable(${APP_NAME})
 
     target_sources(${APP_NAME} PRIVATE ${COMMON_SOURCES_C} ${testfile})
 
     target_link_libraries(${APP_NAME} 
         PUBLIC
-            avona::ic
-            avona::shared::calc_vnr_pred
-            avona::example::fileutils)
+            fwk_voice::ic
+            fwk_voice::shared::calc_vnr_pred
+            fwk_voice::example::fileutils)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         set(APP_COMPILER_FLAGS

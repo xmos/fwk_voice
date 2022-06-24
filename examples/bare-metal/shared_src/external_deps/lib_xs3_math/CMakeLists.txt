@@ -1,5 +1,5 @@
 
-set(XS3_MATH_PATH ${CMAKE_BINARY_DIR}/avona_deps)
+set(XS3_MATH_PATH ${CMAKE_BINARY_DIR}/fwk_voice_deps)
 ## Source files
 file(GLOB_RECURSE LIB_C_SOURCES
     ${XS3_MATH_PATH}/lib_xs3_math/lib_xs3_math/src/bfp/*.c
@@ -53,27 +53,27 @@ else()
 endif()
 
 ## Create library target
-add_library(avona_deps_lib_xs3_math STATIC)
-target_sources(avona_deps_lib_xs3_math
+add_library(fwk_voice_deps_lib_xs3_math STATIC)
+target_sources(fwk_voice_deps_lib_xs3_math
     PUBLIC
         ${LIB_PUBLIC_SOURCES}
     PRIVATE
         ${LIB_PRIVATE_SOURCES}
 )
-target_include_directories(avona_deps_lib_xs3_math
+target_include_directories(fwk_voice_deps_lib_xs3_math
     PUBLIC
         ${LIB_PUBLIC_INCLUDES}
     PRIVATE
         ${LIB_PRIVATE_INCLUDES}
 )
-target_compile_options(avona_deps_lib_xs3_math
+target_compile_options(fwk_voice_deps_lib_xs3_math
     PRIVATE
         ${LIB_COMPILE_FLAGS}
 )
-#target_link_libraries(avona_deps_lib_xs3_math
+#target_link_libraries(fwk_voice_deps_lib_xs3_math
 #    PUBLIC
 #        sdk::legacy_compat
 #)
 
 ## Create an alias
-add_library(core::xs3_math ALIAS avona_deps_lib_xs3_math)
+add_library(core::xs3_math ALIAS fwk_voice_deps_lib_xs3_math)

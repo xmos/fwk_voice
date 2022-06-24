@@ -72,9 +72,9 @@ foreach( testfile ${TEST_SOURCES} )
 
     ######################################
     ## Add a build target
-   add_executable(avona_${TESTNAME})
+   add_executable(fwk_voice_${TESTNAME})
 
-    target_sources(avona_${TESTNAME}
+    target_sources(fwk_voice_${TESTNAME}
         PRIVATE
             ${testfile}
             ${RUNNER_FILE}
@@ -83,36 +83,36 @@ foreach( testfile ${TEST_SOURCES} )
             ${LIB_OLD_VAD_SOURCES})
 
 
-    target_include_directories(avona_${TESTNAME}
+    target_include_directories(fwk_voice_${TESTNAME}
         PRIVATE
             src
-            ${LIB_DSP_PATH}/lib_dsp/api #Can't figure out why this is needed when avona_test_deps::lib_dsp is already being linked.
+            ${LIB_DSP_PATH}/lib_dsp/api #Can't figure out why this is needed when fwk_voice_test_deps::lib_dsp is already being linked.
             ${AUDIO_TEST_TOOLS_PATH}/api
             ${LIB_AI_INCLUDES}
             ${EXTRA_INCLUDES}
         )
 
-    target_link_libraries(avona_${TESTNAME} 
+    target_link_libraries(fwk_voice_${TESTNAME} 
         PUBLIC
-            avona_test_deps::lib_dsp
-            avona::vad
-            avona::test::shared::test_utils
-            avona::test::shared::unity
+            fwk_voice_test_deps::lib_dsp
+            fwk_voice::vad
+            fwk_voice::test::shared::test_utils
+            fwk_voice::test::shared::unity
             )
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-        target_compile_options(avona_${TESTNAME}
+        target_compile_options(fwk_voice_${TESTNAME}
             PRIVATE 
                 "-DUNITY_SUPPORT_64"
                 "-Wno-xcore-fptrgroup"
                 "-report"
                 "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
 
-        target_link_options(avona_${TESTNAME}
+        target_link_options(fwk_voice_${TESTNAME}
             PRIVATE
                 "-target=${XCORE_TARGET}")
     else()
-        target_link_libraries(avona_${TESTNAME} m)
+        target_link_libraries(fwk_voice_${TESTNAME} m)
     endif()
 endforeach()
 

@@ -10,7 +10,7 @@ import test_utils # Use vnr test's test_utils
 import IC
 from common_utils import json_to_dict
 exe_dir = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_calc_vnr_pred/bin/')
-xe = os.path.join(exe_dir, 'avona_test_calc_vnr_pred.xe')
+xe = os.path.join(exe_dir, 'fwk_voice_test_calc_vnr_pred.xe')
 
 def test_calc_vnr_pred(target, tflite_model, show_plot=False):
     np.random.seed(12345)

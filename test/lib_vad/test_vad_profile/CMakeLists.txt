@@ -1,5 +1,5 @@
 ## App name
-set( ROOT_APP_NAME  avona_test_vad_profile )
+set( ROOT_APP_NAME  fwk_voice_test_vad_profile )
 
 if( NOT ${Python3_FOUND} )
   message(FATAL_ERROR "Python3 not found for running . ") 
@@ -26,9 +26,9 @@ foreach( PROF_CONFIG VAD_ENABLED VAD_DISABLED )
 
     target_link_libraries(${APP_NAME}
         PUBLIC
-            avona::vad
-            avona::example::fileutils
-            avona::example::profile_xcore
+            fwk_voice::vad
+            fwk_voice::example::fileutils
+            fwk_voice::example::profile_xcore
             )
 
     target_compile_definitions(${APP_NAME}

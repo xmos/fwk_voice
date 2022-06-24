@@ -1,6 +1,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set(APP_NAME  avona_example_bare_metal_pipeline_multi_thread)
+set(APP_NAME  fwk_voice_example_bare_metal_pipeline_multi_thread)
 
 file( GLOB_RECURSE SOURCES_APP  src/*.c )
 add_executable(${APP_NAME})
@@ -15,17 +15,17 @@ target_include_directories(${APP_NAME}
 
 target_link_libraries(${APP_NAME}
     PUBLIC
-        avona::aec
-        avona::adec
-        avona::ns
-        avona::agc
-        avona::ic
-        avona::vad
-        avona::example::aec2thread
-        avona::example::delay_buffer
-        avona::example::stage_1
-        avona::example::fileutils
-        avona::example::hpf
+        fwk_voice::aec
+        fwk_voice::adec
+        fwk_voice::ns
+        fwk_voice::agc
+        fwk_voice::ic
+        fwk_voice::vad
+        fwk_voice::example::aec2thread
+        fwk_voice::example::delay_buffer
+        fwk_voice::example::stage_1
+        fwk_voice::example::fileutils
+        fwk_voice::example::hpf
         core::xs3_math
         )
 

@@ -246,7 +246,7 @@ def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
     assert(input_data_array.dtype == np.int32), "[ERROR] Only 16bit or 32bit wav files supported"
     
     # Start device
-    firmware_xe = "../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr.xe"
+    firmware_xe = "../../../build/examples/bare-metal/vnr/bin/fwk_voice_example_bare_metal_vnr.xe"
     xrun_proc, port = start_xrun(firmware_xe)
     
     # Start host app
@@ -280,14 +280,14 @@ def run_with_python_xscope_host(input_file, output_file, parse_profile=False):
 
 def run_with_xscope_fileio(input_file, output_file, run_x86, parse_profile=False):
     if run_x86:
-        subprocess.run(["../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio", input_file, output_file], check=True)
+        subprocess.run(["../../../build/examples/bare-metal/vnr/bin/fwk_voice_example_bare_metal_vnr_fileio", input_file, output_file], check=True)
     else:
-        stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/avona_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
+        stdo = run_xcoreai.run("../../../build/examples/bare-metal/vnr/bin/fwk_voice_example_bare_metal_vnr_fileio.xe", input_file, return_stdout=True)
         if parse_profile:
             src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src/with_fileio')
             parse_profiling_info(stdo, src_folder)
         try:
-            shutil.copy2("vnr_out.bin", output_file) # avona_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
+            shutil.copy2("vnr_out.bin", output_file) # fwk_voice_example_bare_metal_vnr_fileio.xe writes vnr output in vnr_out.bin file
         except shutil.SameFileError as e:
             pass
         except IOError as e:

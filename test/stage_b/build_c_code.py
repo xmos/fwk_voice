@@ -9,7 +9,7 @@ import sys
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../modules"
-XS3_MATH = "../../../build/avona_deps/lib_xs3_math/"
+XS3_MATH = "../../../build/fwk_voice_deps/lib_xs3_math/"
 
 FLAGS = [
     '-std=c99',
@@ -82,7 +82,7 @@ ffibuilder.set_source("ic_vad_test_py",  # name of the output C extension
                 '../../../build/modules/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vad', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_module_lib_vad', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

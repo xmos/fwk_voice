@@ -7,7 +7,7 @@
 
 import subprocess
 
-xs3_math_types_api_dir = "../../build/avona_deps/lib_xs3_math/lib_xs3_math/api"
+xs3_math_types_api_dir = "../../build/fwk_voice_deps/lib_xs3_math/lib_xs3_math/api"
 lib_ic_api_dir = "../../modules/lib_ic/api/"
 lib_ic_src_dir = "../../modules/lib_ic/src/"
 lib_vad_api_dir = "../../modules/lib_vad/api/"
