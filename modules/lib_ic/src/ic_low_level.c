@@ -336,9 +336,20 @@ void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){
         bfp_s32_set(&state->sigma_XX_bfp[ch], 0, -1024);
     }
-    bfp_s32_t y_out;
-    bfp_s32_init(&y_out, state[IC_FRAME_LENGTH - IC_FRAME_ADVANCE], )
-    aec_priv_create_output()
+    int32_t indx = state->y_delay_idx[0];
+    int32_t DWORD_ALIGNED buff[IC_FRAME_LENGTH];
+    indx = ((indx - IC_FRAME_LENGTH) >= 0) ? indx - IC_FRAME_LENGTH : IC_Y_CHANNEL_DELAY_SAMPS + indx - IC_FRAME_LENGTH;
+    for(unsigned i = 0; i < IC_FRAME_LENGTH; i++){
+        buff[i] = state->y_input_delay[0][indx];
+        indx ++;
+        if(indx == IC_Y_CHANNEL_DELAY_SAMPS){
+            indx = 0;
+        }
+    }
+    bfp_s32_t y, out;
+    bfp_s32_init(&y, buff, -31, IC_FRAME_LENGTH, 1);
+    bfp_s32_init(&out, output, -31, IC_FRAME_ADVANCE, 0);
+    aec_priv_create_output(&out, state->overlap_bfp, &y);
 }
 
 //This allows the filter to forget some of its training
