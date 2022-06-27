@@ -18,6 +18,10 @@
 #include "ns_api.h"
 #include "agc_api.h"
 #include "hpf.h"
+#include "calc_vnr_pred.h"
+
+#define TEST_WITH_VNR (1)
+#define VNR_AGC_THRESHOLD (0.8)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -99,8 +103,10 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Initialise IC and VAD
     ic_state_t DWORD_ALIGNED ic_state;
     vad_state_t DWORD_ALIGNED vad_state;
+    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
     ic_init(&ic_state);
     vad_init(&vad_state);
+    init_vnr_pred_state(&vnr_pred_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
@@ -134,6 +140,11 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         // Adapting the IC
         ic_adapt(&ic_state, vad, frame[0]);
+
+        calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
+        float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
+        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
+
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             frame[1][v] = frame[0][v];
@@ -198,7 +209,11 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
+#if TEST_WITH_VNR 
+        agc_md.vad_flag = md.vnr_pred_flag;
+#else
         agc_md.vad_flag = md.vad_flag;
+#endif
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));

@@ -26,6 +26,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             avona::example::stage_1
             avona::example::fileutils
             avona::example::hpf
+            avona::shared::calc_vnr_pred
             core::xs3_math
             )
 
