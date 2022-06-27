@@ -48,7 +48,7 @@
  * but may improve cancellation.
  * The group delay through the IC filter is 32 + this number of samples
  * @ingroup ic_defines */
-#define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model
+#define IC_Y_CHANNEL_DELAY_SAMPS                    600 //From Python model
 
 /** Down scaling factor for X energy calculation used for normalisation.
  * @ingroup ic_defines */
