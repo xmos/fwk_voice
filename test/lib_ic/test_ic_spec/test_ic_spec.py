@@ -39,7 +39,7 @@ try:
     xe_files = ['py', xe_path]
 except ModuleNotFoundError:
     print("No python IC found, using C version only")
-    print(f"Please install lib_interference_canceller at path {os.environ['XMOS_ROOT']} to support model testing")
+    print(f"Please install py_ic at path {os.environ['XMOS_ROOT']} to support model testing")
     xe_files = [xe_path]
 
 
@@ -93,13 +93,7 @@ class ICSpec(object):
     #
     # Unsure exactly why, but the output has an extra (proc_frame_len % frame_advance)
     # sample delay.
-    expected_delay = 180 + (proc_frame_length % frame_advance)
-
-#test_vectors = [
-#    TestCase('Diffuse noise', filters.Diffuse(0), filters.Diffuse(1), 
-#             invert_check=['convergence']),
-#    TestCase('Zero at 5', filters.Identity(), filters.ZeroAt(5)),
-#]
+    expected_delay = 600 + (proc_frame_length % frame_advance)
 
 test_vectors = [
 #    TestCase('Identical Mics', filters.Identity(), filters.Identity()),
@@ -113,8 +107,9 @@ test_vectors = [
 #             invert_check=['convergence']),
     TestCase('Short Echo', filters.Identity(), filters.ShortEcho()),
 #    TestCase('Zero at 5', filters.Identity(), filters.ZeroAt(5)),
-    TestCase('Moving source', filters.Identity(), filters.MovingSource(move_frequency=1.5),
-             dont_check=['stability']),
+# This test case has been disabled, for details see issue 320 in sw_avona
+#    TestCase('Moving source', filters.Identity(), filters.MovingSource(move_frequency=1.5),
+#             dont_check=['stability']),
 ]
 
 
@@ -157,7 +152,6 @@ def process_c(input_data, test_name, xe_name):
     err = 0
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
-        # print(f"Running on {adapter_id}")
         xscope_fileio.run_on_target(adapter_id, xe_name)
 
     try:
@@ -212,25 +206,24 @@ def get_suppression_arr(input_audio, output_audio):
 
     num_frames = int(input_audio.shape[1] // frame_advance)
     suppression_arr = np.zeros(num_frames)
+
     for i in np.arange(0, num_frames*frame_advance, frame_advance):
         i = int(i)
         in_rms = rms(input_audio[0][i:i+frame_advance])
+
         if len(output_audio.shape) > 1:
             out_rms = rms(output_audio[0, i:i+frame_advance])
         else:
             out_rms = rms(output_audio[i:i+frame_advance])
-        #out_rms = rms(output_audio[i:i+frame_advance])
+
         if in_rms == 0 or out_rms == 0:
             suppression_db = 0.0
-            #print('case 1 ', in_rms, ' ', out_rms)
         elif i - frame_advance < ICSpec.expected_delay:
             suppression_db = 0.0
-            #print('case 2 ', in_rms, ' ', out_rms, ' ', i)
         else:
             suppression_db = 20 * np.log10(in_rms / out_rms)
-            #print('case 3 ', in_rms, ' ', out_rms, ' ', suppression_db)
+
         suppression_arr[int(i//frame_advance)] = suppression_db
-    #print('supression_arr = ', suppression_arr, '\n')
     return suppression_arr
 
 
@@ -274,7 +267,7 @@ import matplotlib.pyplot as plt
 def check_delay(record_property, test_case, input_audio, output_audio):
     """ Verify that the IC is correctly delaying the input
 
-    Won't work for delay > frame_advance
+    If increasing delay, make sure to increase correlation window as well
     """
 
     if input_audio.dtype == np.int32:
@@ -282,15 +275,15 @@ def check_delay(record_property, test_case, input_audio, output_audio):
     if output_audio.dtype == np.int32:
         output_audio = np.asarray(output_audio, dtype=float) / np.iinfo(np.int32).max
 
-    frame_in = input_audio[0][:frame_advance*2]
-    #print(output_audio.shape)
+    frame_in = input_audio[0][:frame_advance * 8]
+
     if len(output_audio.shape) > 1:
-        frame_out = output_audio[0, :frame_advance*2]
+        frame_out = output_audio[0, :frame_advance * 8]
     else:
-        frame_out = output_audio[:frame_advance*2]
+        frame_out = output_audio[:frame_advance * 8]
 
     corr = scipy.signal.correlate(frame_in, frame_out, mode='same')
-    delay = 240 - np.argmax(corr)
+    delay = frame_advance * 4 - np.argmax(corr)
 
     record_property("Delay", str(delay))
     record_property("Expected Delay", str(ICSpec.expected_delay))
