@@ -25,7 +25,7 @@ void test_filter(
 }
 
 void test_adapt(
-        uint8_t vad,
+        float_s32_t vnr,
         int32_t output[IC_FRAME_ADVANCE]){
-    ic_adapt(&ic_state, vad, output);
+    ic_adapt(&ic_state, vnr, output);
 }
