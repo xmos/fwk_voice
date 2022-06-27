@@ -1,8 +1,8 @@
-=============================
-Avona Audio DSP Library
-=============================
+================================
+XMOS Voice Framework DSP Library
+================================
 
-This is the XMOS Avona DSP library which contains high-performance audio processing algorithms, optimized for xcore.ai.
+This is the XMOS Voice Framework DSP library which contains high-performance audio processing algorithms, optimized for xcore.ai.
 
 ******************
 Supported Hardware

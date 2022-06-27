@@ -1,5 +1,5 @@
-Avona Reference Design Change Log
-=================================
+XMOS Voice Framework Change Log
+===============================
 
 0.4.0
 -----

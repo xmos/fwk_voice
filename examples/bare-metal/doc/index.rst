@@ -23,7 +23,7 @@ build step has been completed prior to this.
 
 ::
 
-    pip install -e build/avona_deps/xscope_fileio/
+    pip install -e build/fwk_voice_deps/xscope_fileio/
 
 
 .. toctree::

@@ -1,6 +1,6 @@
-#################################
-XMOS Avona Voice Reference Design
-#################################
+#####################
+XMOS Voice Framework
+#####################
 
 .. toctree::
    :maxdepth: 2
