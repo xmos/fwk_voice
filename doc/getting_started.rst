@@ -14,10 +14,10 @@ Requirements
 Building
 --------
 
-The following instructions show how to build Avona and run one of the example applications. This
+The following instructions show how to build the XMOS Voice Framework and run one of the example applications. This
 procedure is currently supported on MacOS and Linux only.
 
-#. Enter the clone of Avona and initialise submodules
+#. Enter the clone of the Voice Framework and initialise submodules
      .. code-block:: console
 
        cd sw_avona
@@ -34,7 +34,7 @@ procedure is currently supported on MacOS and Linux only.
 
        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
-#. Running make will then build the Avona libraries and example applications
+#. Running make will then build the Voice Framework libraries and example applications
      .. code-block:: console
 
        make
@@ -42,12 +42,12 @@ procedure is currently supported on MacOS and Linux only.
 #. Install dependencies
      .. code-block:: console
 
-       pip install -e build/avona_deps/xscope_fileio/
+       pip install -e build/fwk_voice_deps/xscope_fileio/
 
 #. Run the single-threaded AEC example
      .. code-block:: console
 
        cd ../examples/bare-metal/aec_1_thread
-       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 See :ref:`examples` for full details about the example applications.

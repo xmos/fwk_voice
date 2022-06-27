@@ -2,7 +2,7 @@
 Documentation Source
 ####################
 
-This folder contains source files for the **Avona Reference Design** documentation.  The sources do not render well in GitHub or an RST viewer.  In addition, some information
+This folder contains source files for the **XMOS Voice Framework** documentation.  The sources do not render well in GitHub or an RST viewer.  In addition, some information
 is not visible at all and some links will not be functional.
 
 **********************
