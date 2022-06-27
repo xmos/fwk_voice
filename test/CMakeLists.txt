@@ -5,7 +5,7 @@ set(LIB_DSP_PATH ${TEST_ONLY_DEPS_ROOT}/lib_dsp)
 
 include(etc/build_options.cmake)
 
-if ( ${AVONA_BUILD_TESTS} )
+if ( ${FWK_VOICE_BUILD_TESTS} )
     add_subdirectory( shared )
 
     add_subdirectory( lib_ns )

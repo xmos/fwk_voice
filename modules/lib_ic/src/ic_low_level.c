@@ -60,6 +60,10 @@ void ic_frame_init(
         state->chopped_y_bfp[ch].exp = state->y_bfp[ch].exp;
         state->chopped_y_bfp[ch].hr = state->y_bfp[ch].hr;
 
+        memcpy(state->chopped_y_bfp_test[ch].data, state->y_bfp[ch].data, state->chopped_y_bfp_test[ch].length*sizeof(int32_t));        
+        state->chopped_y_bfp_test[ch].exp = state->y_bfp[ch].exp;
+        state->chopped_y_bfp_test[ch].hr = state->y_bfp[ch].hr;
+
         /* Update previous samples */
         // Copy the last 32 samples to the beginning
         memcpy(state->prev_y_bfp[ch].data, &state->prev_y_bfp[ch].data[IC_FRAME_ADVANCE], (IC_FRAME_LENGTH-(2*IC_FRAME_ADVANCE))*sizeof(int32_t));
@@ -457,6 +461,10 @@ void ic_noise_minimisation(ic_state_t *state)
             IC_FD_FRAME_LENGTH);
         
         Min_Error_bfp.hr = bfp_complex_s32_headroom(&Min_Error_bfp);
+        /*printf("Reference code\n");
+        for(int i=0; i<10; i++) {
+            printf("Error[%d] = %.5f, %.5f\n",i, ldexp(Min_Error_bfp.data[i].re, Min_Error_bfp.exp), ldexp(Min_Error_bfp.data[i].im, Min_Error_bfp.exp));
+        }*/
         
         // IFFT
         bfp_s32_t min_error_bfp;
@@ -466,6 +474,83 @@ void ic_noise_minimisation(ic_state_t *state)
         memcpy(state->error_bfp[ych].data, min_error_bfp.data, state->error_bfp[ych].length*sizeof(int32_t));
         state->error_bfp[ych].exp = min_error_bfp.exp;
         state->error_bfp[ych].hr = bfp_s32_headroom(&state->error_bfp[ych]);
+    }
+}
+
+// Min_Error[f] = (Error_ap[0][f] * (min(abs(Error_ap[0][f]), abs(Chopped_y[f])) / abs(Error_ap[0][f])))
+static int framenum = 0;
+void ic_noise_minimisation_bfp(ic_state_t *state)
+{
+    for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
+        //copy error
+        memcpy(state->error_copy_bfp[ych].data, state->error_bfp[ych].data, IC_FRAME_LENGTH*sizeof(int32_t));
+        state->error_copy_bfp[ych].exp = state->error_bfp[ych].exp;
+        state->error_copy_bfp[ych].hr = state->error_bfp[ych].hr;
+
+        // Zero part of chopped_y
+        memset(state->chopped_y_bfp_test[ych].data, 0, IC_FRAME_ADVANCE*sizeof(int32_t));
+        // Zero part of error
+        memset(state->error_copy_bfp[ych].data, 0, IC_FRAME_ADVANCE*sizeof(int32_t));
+
+        //FFT
+        bfp_complex_s32_t Chopped_y_bfp, Error_copy_bfp;
+        ic_fft(&Chopped_y_bfp, &state->chopped_y_bfp_test[ych]);
+        ic_fft(&Error_copy_bfp, &state->error_copy_bfp[ych]);
+
+        int32_t DWORD_ALIGNED abs_Error_data[IC_FD_FRAME_LENGTH];
+        int32_t DWORD_ALIGNED abs_Chopped_y_data[IC_FD_FRAME_LENGTH];
+        int32_t DWORD_ALIGNED min_Error_Y_data[IC_FD_FRAME_LENGTH];
+        int32_t DWORD_ALIGNED inv_abs_Error_data[IC_FD_FRAME_LENGTH];
+
+        bfp_s32_t abs_Error, abs_Chopped_y, min_Error_Y, inv_abs_Error;
+
+        bfp_s32_init(&abs_Error, abs_Error_data, 0, IC_FD_FRAME_LENGTH, 0);
+        bfp_s32_init(&abs_Chopped_y, abs_Chopped_y_data, 0, IC_FD_FRAME_LENGTH, 0);
+        bfp_s32_init(&min_Error_Y, min_Error_Y_data, 0, IC_FD_FRAME_LENGTH, 0);
+        bfp_s32_init(&inv_abs_Error, inv_abs_Error_data, 0, IC_FD_FRAME_LENGTH, 0);
+
+        bfp_complex_s32_mag(&abs_Error, &Error_copy_bfp); // abs(Error_ap[0][f])
+        bfp_complex_s32_mag(&abs_Chopped_y, &Chopped_y_bfp); // abs(Chopped_y[f])
+        bfp_s32_min_elementwise(&min_Error_Y, &abs_Chopped_y, &abs_Error); // min(abs(Error_ap[0][f]), abs(Chopped_y[f]))
+
+        float_s32_t min = bfp_s32_min(&abs_Error);
+         if(min.mant == 0) {
+             /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
+              * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
+              * of bfp_s32_add_scalar() making t.mant 0*/
+             float_s32_t t = {1, abs_Error.exp};
+             bfp_s32_add_scalar(&abs_Error, &abs_Error, t);
+         }
+
+        bfp_s32_inverse(&inv_abs_Error, &abs_Error); // 1/abs(Error_ap[0][f])
+        bfp_s32_mul(&min_Error_Y, &min_Error_Y, &inv_abs_Error); // min(abs(Error_ap[0][f]), abs(Chopped_y[f])) * (1/abs(Error_ap[0][f]))
+
+        complex_s32_t DWORD_ALIGNED Min_Error[IC_FD_FRAME_LENGTH];
+        bfp_complex_s32_t Min_Error_bfp;
+        bfp_complex_s32_init(&Min_Error_bfp, (complex_s32_t*)Min_Error, 0, IC_FD_FRAME_LENGTH, 0);
+
+        bfp_complex_s32_real_mul(&Min_Error_bfp, &Error_copy_bfp, &min_Error_Y); // Error_ap[0][f] * 
+        Min_Error_bfp.hr = bfp_complex_s32_headroom(&Min_Error_bfp);
+        
+        /*if(framenum == 0) {
+            printf("Test code\n");
+            for(int i=0; i<20; i++) {
+                printf("Original error[%d] = %.5f, %.5f. Scale = %.5f, (%d, %d)\n",i, ldexp(Error_copy_bfp.data[i].re, Error_copy_bfp.exp), ldexp(Error_copy_bfp.data[i].im, Error_copy_bfp.exp), ldexp(min_Error_Y.data[i], min_Error_Y.exp), min_Error_Y.data[i], min_Error_Y.exp);
+                printf("Log Original error[%d] = (re %d, im %d, exp %d, hr %d), scale = (data %d, exp %d, hr %d)\n", i, Error_copy_bfp.data[i].re, Error_copy_bfp.data[i].im, Error_copy_bfp.exp, Error_copy_bfp.hr, min_Error_Y.data[i], min_Error_Y.exp, min_Error_Y.hr);
+
+                printf("Scaled Error[%d] = %.5f, %.5f\n",i, ldexp(Min_Error_bfp.data[i].re, Min_Error_bfp.exp), ldexp(Min_Error_bfp.data[i].im, Min_Error_bfp.exp));
+            }
+        }*/
+        framenum++; 
+        
+        // IFFT
+        bfp_s32_t min_error_bfp;
+        ic_ifft(&min_error_bfp, &Min_Error_bfp);
+
+        // Copy back to error
+        //memcpy(state->error_bfp[ych].data, min_error_bfp.data, state->error_bfp[ych].length*sizeof(int32_t));
+        //state->error_bfp[ych].exp = min_error_bfp.exp;
+        //state->error_bfp[ych].hr = bfp_s32_headroom(&state->error_bfp[ych]);
     }
 }
 #endif

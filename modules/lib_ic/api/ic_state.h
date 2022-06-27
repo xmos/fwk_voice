@@ -241,6 +241,9 @@ typedef struct {
     bfp_s32_t chopped_y_bfp[IC_Y_CHANNELS];
     int32_t DWORD_ALIGNED chopped_y[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
 
+    bfp_s32_t chopped_y_bfp_test[IC_Y_CHANNELS];
+    int32_t DWORD_ALIGNED chopped_y_test[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
+
     bfp_s32_t error_copy_bfp[IC_Y_CHANNELS];
     int32_t DWORD_ALIGNED error_copy[IC_Y_CHANNELS][IC_FRAME_LENGTH + FFT_PADDING];
 } ic_state_t;

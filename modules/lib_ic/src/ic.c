@@ -8,6 +8,8 @@
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * (f))) //TODO use lib_xs3_math use_exponent instead when implemented
 
 extern void ic_noise_minimisation(ic_state_t *state);
+extern void ic_noise_minimisation_bfp(ic_state_t *state);
+extern void test_bfp();
 
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
@@ -52,10 +54,24 @@ static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption
     ic_init_adaption_controller_config(&adaption_controller_state->adaption_controller_config);
 }
 
+/*
+[DEVICE] Log Original error[0] = (re 53956423, im 0, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[1] = (re 62086712, im -33052879, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[2] = (re 85460880, im -60238506, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[3] = (re 121141046, im -76358395, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[4] = (re 164591974, im -77478642, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[5] = (re 210181752, im -61388184, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[6] = (re 251804911, im -27869327, exp -34, hr 2), scale = (data 8388607, exp -23, hr 7)
+[DEVICE] Log Original error[7] = (re 283560427, im 21248980, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[8] = (re 300411153, im 82261225, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+[DEVICE] Log Original error[9] = (re 298753162, im 149960635, exp -34, hr 2), scale = (data 8388608, exp -23, hr 7)
+*/
 void ic_init(ic_state_t *state){
     memset(state, 0, sizeof(ic_state_t));
     const exponent_t zero_exp = -1024;
     
+    test_bfp();
+
     //H_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         for(unsigned ph=0; ph<(IC_X_CHANNELS * IC_FILTER_PHASES); ph++) {
@@ -149,6 +165,7 @@ void ic_init(ic_state_t *state){
     // chopped_y 
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->chopped_y_bfp[ch], state->chopped_y[ch], zero_exp, IC_FRAME_LENGTH, 0);
+        bfp_s32_init(&state->chopped_y_bfp_test[ch], state->chopped_y_test[ch], zero_exp, IC_FRAME_LENGTH, 0);
         bfp_s32_init(&state->error_copy_bfp[ch], state->error_copy[ch], zero_exp, IC_FRAME_LENGTH, 0);
     }
 }
@@ -212,6 +229,7 @@ void ic_filter(
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
     }
 
+    ic_noise_minimisation_bfp(state);
 #if !(IC_X86_BUILD)
     ic_noise_minimisation(state);
 #endif
