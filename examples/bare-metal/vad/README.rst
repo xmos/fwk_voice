@@ -12,7 +12,7 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/vad` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/vad` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     

@@ -12,7 +12,7 @@ make use of functionality provided in ``lib_xs3_math`` to perform DSP operations
 Repository Structure
 --------------------
 
-* ``modules/lib_aec`` - The actual ``lib_aec`` library directory within ``https://github.com/xmos/sw_avona/``. Within ``lib_aec``
+* ``modules/lib_aec`` - The actual ``lib_aec`` library directory within ``https://github.com/xmos/fwk_voice/``. Within ``lib_aec``
 
   * ``api/`` - Headers containing the public API for ``lib_aec``.
   * ``doc/`` - Library documentation source (for non-embedded documentation) and build directory.
@@ -22,9 +22,9 @@ Repository Structure
 Requirements
 ------------
 
-``lib_aec`` is included as part of the ``sw_avona`` github repository
-and all requirements for cloning and building ``sw_avona`` apply. ``lib_aec`` is compiled as a static library as part of
-overall ``sw_avona`` build. It depends on `lib_xs3_math <https://github.com/xmos/lib_xs3_math/>`_.
+``lib_aec`` is included as part of the ``fwk_voice`` github repository
+and all requirements for cloning and building ``fwk_voice`` apply. ``lib_aec`` is compiled as a static library as part of
+overall ``fwk_voice`` build. It depends on `lib_xs3_math <https://github.com/xmos/lib_xs3_math/>`_.
 
 API Structure
 -------------
@@ -48,7 +48,7 @@ This API is still a work in progess and will be fully supported in the future.
 Getting and Building
 ####################
 
-This repo is got as part of the parent ``sw_avona`` repo clone. It is compiled as a static library as part of sw_avona
+This repo is got as part of the parent ``fwk_voice`` repo clone. It is compiled as a static library as part of fwk_voice
 compilation process.
 
 To include ``lib_aec`` in an application as a static library, the generated ``libfwk_voice_module_lib_aec.a`` can then be linked into the

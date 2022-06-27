@@ -20,7 +20,7 @@ procedure is currently supported on MacOS and Linux only.
 #. Enter the clone of the Voice Framework and initialise submodules
      .. code-block:: console
 
-       cd sw_avona
+       cd fwk_voice
        git submodule update --init --recursive
 
 #. Create a build directory

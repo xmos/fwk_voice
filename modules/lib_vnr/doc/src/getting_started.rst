@@ -12,7 +12,7 @@ Overview
 Repository Structure
 --------------------
 
-* ``modules/lib_vnr`` - The ``lib_vnr`` library directory within ``https://github.com/xmos/sw_avona/``.
+* ``modules/lib_vnr`` - The ``lib_vnr`` library directory within ``https://github.com/xmos/fwk_voice/``.
   Within ``lib_vnr``:
 
   * ``api/`` - Header files containing the public API for ``lib_vnr``.
@@ -23,7 +23,7 @@ Repository Structure
 Requirements
 ------------
 
-``lib_vnr`` is included as part of the ``sw_avona`` github repository and all requirements for cloning and building ``sw_avona`` apply. It depends on ``lib_xs3_math``, ``lib_tflite_micro`` and ``lib_nn``. 
+``lib_vnr`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning and building ``fwk_voice`` apply. It depends on ``lib_xs3_math``, ``lib_tflite_micro`` and ``lib_nn``. 
 
 API Structure
 -------------
@@ -35,10 +35,10 @@ The performance requirement is relative low, around 5 MIPS for initialisation an
 Getting and Building
 --------------------
 
-The VNR estimator module is obtained as part of the parent ``sw_avona`` repo clone. It is present in ``sw_avona/modules/lib_vnr``
+The VNR estimator module is obtained as part of the parent ``fwk_voice`` repo clone. It is present in ``fwk_voice/modules/lib_vnr``
 
 The feature extraction part of lib_vnr can be compiled as a static library. The application can link against ``libavona_module_lib_vnr_features.a`` and add ``lib_vnr/api/features`` and ``lib_vnr/api/common`` as include directories.
-VNR inference engine compilation however, requires the runtime HW target to be specified, information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. `lib_vnr module CMake file <https://github.com/xmos/sw_avona/blob/develop/modules/lib_vnr/CMakeLists.txt>`_ demonstrates the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR using CMake, refer to `VNR example CMake file <https://github.com/xmos/sw_avona/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
+VNR inference engine compilation however, requires the runtime HW target to be specified, information about which is not available at library compile time. To include VNR inference engine in an application, it needs to compile the VNR inference related files from source. `lib_vnr module CMake file <https://github.com/xmos/fwk_voice/blob/develop/modules/lib_vnr/CMakeLists.txt>`_ demonstrates the VNR inference engine compiled as an INTERFACE library and if compiling using CMake, the application can simply `link` against the avona::vnr::inference library. For an example of compiling an application with VNR using CMake, refer to `VNR example CMake file <https://github.com/xmos/fwk_voice/blob/develop/examples/bare-metal/vnr/CMakeLists.txt>`_.
 
 VNR Inference Model
 -------------------

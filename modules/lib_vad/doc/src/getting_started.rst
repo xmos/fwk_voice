@@ -12,7 +12,7 @@ Overview
 Repository Structure
 --------------------
 
-* ``modules/lib_vad`` - The actual ``lib_vad`` library directory within ``https://github.com/xmos/sw_avona/``.
+* ``modules/lib_vad`` - The actual ``lib_vad`` library directory within ``https://github.com/xmos/fwk_voice/``.
   Within ``lib_vad``:
 
   * ``api/`` - Header file containing the public API for ``lib_vad``.
@@ -23,9 +23,9 @@ Repository Structure
 Requirements
 ------------
 
-``lib_vad`` is included as part of the ``sw_avona`` github repository
-and all requirements for cloning and building ``sw_avona`` apply. ``lib_vad`` is compiled as a static library as part of
-overall ``sw_avona`` build. It depends on ``lib_xs3_math``. 
+``lib_vad`` is included as part of the ``fwk_voice`` github repository
+and all requirements for cloning and building ``fwk_voice`` apply. ``lib_vad`` is compiled as a static library as part of
+overall ``fwk_voice`` build. It depends on ``lib_xs3_math``. 
 
 API Structure
 -------------
@@ -38,8 +38,8 @@ and as such is supplied as a single threaded implementation only.
 Getting and Building
 --------------------
 
-This repo is obtained as part of the parent ``sw_avona`` repo clone. It is
-compiled as a static library as part of ``sw_avona`` compilation process.
+This repo is obtained as part of the parent ``fwk_voice`` repo clone. It is
+compiled as a static library as part of ``fwk_voice`` compilation process.
 
 To include ``lib_vad`` in an application as a static library, the generated ``libfwk_voice_module_lib_vad.a`` can then be linked into the
 application. Be sure to also add ``lib_vad/api`` as an include directory for the application.

@@ -15,7 +15,7 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/aec_2_threads` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/aec_2_threads` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     
@@ -27,6 +27,6 @@ After configuring the CMake project, the following commands can be used from the
 Output
 ------
 
-The output file output.wav is generated in the `sw_avona/examples/bare-metal/aec_2_threads` directory. The input file
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/aec_2_threads` directory. The input file
 input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the echo cancelled
 output against the microphone input.

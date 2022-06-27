@@ -13,7 +13,7 @@ The input is a single channel, 32-bit wav file, which is read and processed thro
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the `sw_avona/examples/bare-metal/agc`
+After configuring the CMake project, the following commands can be used from the `fwk_voice/examples/bare-metal/agc`
 directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
@@ -26,6 +26,6 @@ directory to build and run this example application using the XCORE-AI-EXPLORER 
 Output
 ------
 
-The output file output.wav is generated in the `sw_avona/examples/bare-metal/agc` directory. The provided
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/agc` directory. The provided
 input `agc_example_input.wav` is low-volume white-noise and the effect of the AGC can be heard in the output
 by listening to the two wav files.
