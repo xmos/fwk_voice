@@ -23,9 +23,9 @@ After configuring the CMake project, the following commands can be used from the
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_ic
+    make fwk_voice_example_bare_metal_ic
     cd ../examples/bare-metal/ic
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
 
 Output
 ------

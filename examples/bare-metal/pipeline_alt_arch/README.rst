@@ -51,18 +51,18 @@ Running the single thread version.
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_pipeline_alt_arch_st
+    make fwk_voice_example_bare_metal_pipeline_alt_arch_st
     cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Running the multi thread version.
 
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_pipeline_alt_arch_mt
+    make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
     cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Output
 ------

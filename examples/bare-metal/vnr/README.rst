@@ -15,7 +15,7 @@ After configuring the CMake project, the following commands can be used from the
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_vnr_fileio
+    make fwk_voice_example_bare_metal_vnr_fileio
     cd ../examples/bare-metal/vnr
     python host_app.py test_stream_1.wav vnr_out.bin --run-with-xscope-fileio --show-plot
 

@@ -20,9 +20,9 @@ After configuring the CMake project, the following commands can be used from the
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_aec_2_thread
+    make fwk_voice_example_bare_metal_aec_2_thread
     cd ../examples/bare-metal/aec_2_threads
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 Output
 ------
