@@ -4,7 +4,7 @@
     "phases": 10,
     "mu" : 0.3695650300753292,
     "delta" : 0.015624999996362021,
-    "y_channel_delay": 180,
+    "y_channel_delay": 600,
     "K" : 1,
     "lamda" : 0.99951171875, 
     "gamma" : 2.0,
