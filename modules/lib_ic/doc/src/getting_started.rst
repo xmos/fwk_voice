@@ -41,5 +41,5 @@ Getting and Building
 This repo is obtained as part of the parent ``sw_avona`` repo clone. It is
 compiled as a static library as part of ``sw_avona`` compilation process.
 
-To include ``lib_ic`` in an application as a static library, the generated ``lib_ic.a`` can then be linked into the
+To include ``lib_ic`` in an application as a static library, the generated ``libfwk_voice_module_lib_ic.a`` can then be linked into the
 application. Be sure to also add ``lib_ic/api`` as an include directory for the application.

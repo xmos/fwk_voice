@@ -23,8 +23,7 @@ Getting and Building
 
 ``lib_adec`` is included as part of the ``sw_avona`` github repository
 and all requirements for cloning and building ``sw_avona`` apply. ``lib_adec`` is compiled as a static library as part of
-overall ``sw_avona`` build. To include ``lib_adec`` in an application as a static library, the generated ``lib_adec.a`` can then be linked into the
-application. Be sure to also add ``lib_adec/api`` as an include directory for the application.
+overall ``sw_avona`` build. To include ``lib_adec`` in an application as a static library, the generated ``libfwk_voice_module_lib_adec.a`` can then be linked into the application. Be sure to also add ``lib_adec/api`` as an include directory for the application.
 
 
 

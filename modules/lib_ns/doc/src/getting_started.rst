@@ -34,5 +34,5 @@ Getting and Building
 This module is part of the parent ``sw_avona`` repo clone. It is compiled as a static library as part of
 ``sw_avona`` compilation process.
 
-To include ``lib_ns`` in an application as a static library, the generated ``lib_ns.a`` can then be linked
+To include ``lib_ns`` in an application as a static library, the generated ``libfwk_voice_module_lib_ns.a`` can then be linked
 into the application. Add ``lib_ns/api`` to the include directories when building the application.

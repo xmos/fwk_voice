@@ -51,6 +51,6 @@ Getting and Building
 This repo is got as part of the parent ``sw_avona`` repo clone. It is compiled as a static library as part of sw_avona
 compilation process.
 
-To include ``lib_aec`` in an application as a static library, the generated ``lib_aec.a`` can then be linked into the
+To include ``lib_aec`` in an application as a static library, the generated ``libfwk_voice_module_lib_aec.a`` can then be linked into the
 application. Be sure to also add ``lib_aec/api`` as an include directory for the application.
 
