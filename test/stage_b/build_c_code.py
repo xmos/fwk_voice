@@ -19,7 +19,7 @@ FLAGS = [
 INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_ic/api/",
     f"{MODULE_ROOT}/lib_ic/src/",
-    f"{MODULE_ROOT}/lib_vnr/api/common"
+    f"{MODULE_ROOT}/lib_vnr/api/common",
     f"{MODULE_ROOT}/lib_vnr/api/features",
     f"{MODULE_ROOT}/lib_vnr/src/features",
     f"{MODULE_ROOT}/lib_vnr/api/inference",
