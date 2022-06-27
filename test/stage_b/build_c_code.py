@@ -77,7 +77,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
                 '../../../build/modules/lib_ic',
                 '../../../build/modules/lib_aec',
                 '../../../build/modules/lib_vnr',
-                '../../../build/test/lib_vnr'                
+                '../../../build/test/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
     libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vnr_inference_only_for_testing', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux

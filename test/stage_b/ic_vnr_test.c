@@ -14,7 +14,7 @@ int32_t test_init(void){
     int32_t err = vnr_inference_init();
     ic_init(&ic_state);
     //Custom setup for testing
-    ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 1;
+    ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;
     // ic_state.config_params.delta = double_to_float_s32(0.0156);
 
     return err;
@@ -54,8 +54,8 @@ float_s32_t test_vnr(
 }
 
 void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f){
-    ic_state.ic_adaption_controller_state.input_energy_slow = double_to_float_s32(ie_s);
-    ic_state.ic_adaption_controller_state.output_energy_slow = double_to_float_s32(oe_s);
-    ic_state.ic_adaption_controller_state.input_energy_fast = double_to_float_s32(ie_f);
-    ic_state.ic_adaption_controller_state.output_energy_fast = double_to_float_s32(oe_f);
+    //ic_state.ic_adaption_controller_state.input_energy_slow = double_to_float_s32(ie_s);
+    //ic_state.ic_adaption_controller_state.output_energy_slow = double_to_float_s32(oe_s);
+    //ic_state.ic_adaption_controller_state.input_energy_fast = double_to_float_s32(ie_f);
+    //ic_state.ic_adaption_controller_state.output_energy_fast = double_to_float_s32(oe_f);
 }
