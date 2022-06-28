@@ -5,7 +5,6 @@
 
 #include "aec_api.h"
 #include "ic_api.h"
-#include "vad_api.h"
 #include "ns_api.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
@@ -57,7 +56,7 @@ void pipeline_tile1_init(pipeline_state_tile1_t *state) {
     memset(state, 0, sizeof(pipeline_state_tile1_t)); 
     
     ic_init(&state->ic_state);
-    vad_init(&state->vad_state);
+    init_vnr_pred_state(&state->vnr_pred_state);
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
@@ -69,8 +68,6 @@ void pipeline_tile1_init(pipeline_state_tile1_t *state) {
     
     agc_init(&state->agc_state[0], &agc_conf_asr);
     agc_init(&state->agc_state[1], &agc_conf_asr);
-
-    init_vnr_pred_state(&state->vnr_pred_state);
 }
 
 void pipeline_process_frame_tile0(pipeline_state_tile0_t *state,
@@ -107,7 +104,7 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
     pipeline_metadata_t md;
     memcpy(&md, md_input, sizeof(pipeline_metadata_t));
 
-    /** IC and VAD*/
+    /** IC and VNR*/
     int32_t ic_output[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
 #if DISABLE_STAGE_2
     memcpy(&ic_output[0][0], &input_data[0][0], AEC_MAX_Y_CHANNELS*AP_FRAME_ADVANCE*sizeof(int32_t));
@@ -123,14 +120,12 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
 #endif
     // The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, input_data[0], input_data[1], ic_output[0]);
-    uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
-    md.vad_flag = (vad > AGC_VAD_THRESHOLD);    
     // VNR
     calc_vnr_pred(&state->vnr_pred_state, &state->ic_state.Y_bfp[0], &state->ic_state.Error_bfp[0]);
     float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
-    md.vnr_pred_flag = float_s32_gt(state->vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
+    md.vnr_flag = float_s32_gt(state->vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
-    ic_adapt(&state->ic_state, vad, ic_output[0]);
+    ic_adapt(&state->ic_state, state->vnr_pred_state.input_vnr_pred, ic_output[0]);
     
 
     // Copy IC output to the other channel
@@ -155,11 +150,8 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
 #else
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = md.max_ref_energy;
-#if TEST_WITH_VNR 
-    agc_md.vad_flag = md.vnr_pred_flag;
-#else
-    agc_md.vad_flag = md.vad_flag;
-#endif
+    agc_md.vad_flag = md.vnr_flag;
+
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = md.aec_corr_factor[ch];

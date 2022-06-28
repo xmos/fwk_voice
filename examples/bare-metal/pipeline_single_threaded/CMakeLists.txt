@@ -18,7 +18,6 @@ target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         avona::ns
         avona::agc
         avona::ic
-        avona::vad
         avona::example::aec1thread
         avona::example::delay_buffer
         avona::example::stage_1
