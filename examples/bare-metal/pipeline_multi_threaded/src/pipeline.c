@@ -21,7 +21,7 @@
 #include "calc_vnr_pred.h"
 
 #define TEST_WITH_VNR (1)
-#define VNR_AGC_THRESHOLD (0.8)
+#define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -133,6 +133,10 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // Calculating voice activity probability
         uint8_t vad = vad_probability_voice(frame[0], &vad_state);
+        // VNR
+        calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
+        float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
+        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
         md.vad_flag = (vad > AGC_VAD_THRESHOLD);
@@ -140,11 +144,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
 
         // Adapting the IC
         ic_adapt(&ic_state, vad, frame[0]);
-
-        calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
-        float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
-        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
-
+        
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             frame[1][v] = frame[0][v];
