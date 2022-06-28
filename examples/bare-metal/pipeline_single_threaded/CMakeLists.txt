@@ -24,6 +24,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_single_thread
         avona::example::stage_1
         avona::example::fileutils
         avona::example::hpf
+        avona::shared::calc_vnr_pred
         core::xs3_math
         )
 
