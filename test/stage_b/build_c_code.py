@@ -37,7 +37,7 @@ predefs += """
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
-    float_s32_t test_vnr(const int32_t input[VNR_FRAME_ADVANCE]);
+    float_s32_t test_vnr();
     void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
 """
 #Bit of a faff having to do this. The preproc doesn't handle mul/div or enums or even #define so do it here manually
@@ -69,7 +69,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
-    float_s32_t test_vnr(const int32_t input[VNR_FRAME_ADVANCE]);
+    float_s32_t test_vnr();
     void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
 """,
     sources=SRCS,

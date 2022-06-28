@@ -199,8 +199,16 @@ void ic_filter(
     }
 
     ///calculate output td ema energies
-    ic_update_td_ema_energy(&ad_state->output_energy, &state->y_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
+    //bfp_s32_t output_bfp;
+    //bfp_s32_init(&output_bfp, output, -31, IC_FRAME_ADVANCE, 1);
+    //ic_update_td_ema_energy(&ad_state->output_energy, &output_bfp, 0, IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+    ic_update_td_ema_energy(&ad_state->output_energy, &state->error_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
                             IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+
+    //error -> Error FFT
+    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
+        ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
+    }
 
     ic_calc_fast_ratio(ad_state);
 
@@ -228,11 +236,6 @@ void ic_adapt(
         bfp_s32_init(&temp, output, q0_31_exp, IC_FRAME_ADVANCE, 1);
 
         ic_update_td_ema_energy(&state->error_ema_energy[ch], &temp, 0, IC_FRAME_ADVANCE, state->config_params.ema_alpha_q30);
-    }
-   
-    //error -> Error FFT
-    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
     }
    
     //calculate inv_X_energy

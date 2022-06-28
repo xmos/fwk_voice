@@ -19,7 +19,6 @@ hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 
 sys.path.append(pvc_path)
 import IC
-import py_vnr.vnr as vnr
 import py_vs_c_utils as pvc 
 
 ap_config_file = "../shared/config/ic_conf_no_adapt_control.json"
@@ -72,8 +71,8 @@ class stage_b_comparison:
         #Run a frame through python  
         output_py, Error = self.ic.process_frame(frame)
 
-        #py_vnr_in, py_vnr_out = self.ic.calc_vnr_pred(Error)
-        #self.py_vnr = py_vnr_in
+        py_vnr_in, py_vnr_out = self.ic.calc_vnr_pred(Error)
+        py_vnr = py_vnr_in
         mu, control_flag = self.ic.mu_control_system()
         self.ic.adapt(Error, mu)
 
@@ -83,35 +82,34 @@ class stage_b_comparison:
         output_c = np.zeros((240), dtype=np.int32)
         output_c_ptr = ffi.cast("int32_t *", ffi.from_buffer(output_c.data))
         ic_vnr_test_lib.test_filter(y_data, x_data, output_c_ptr)
-        #c_vnr = ic_vnr_test_lib.test_vnr(output_c_ptr)
+        c_vnr = ic_vnr_test_lib.test_vnr()
         if (index < frames_print) and False:
-            print(f"1py_vnr: {py_vnr:.4f}, c_vnr: {c_vnr:.4f}")
+            print(f"py_vnr: {py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
 
         #note we override c_vnr to match py_vnr for comparison
-        #c_vnr = pvc.float_to_float_s32(np.array(py_vnr))
-        c_vnr = [int(0), int(0)] # dummy
+        #c_vnr = [int(0), int(0)] # dummy
         if (index < frames_print) and False:
-            print(f"py_vnr: {self.py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
+            print(f"py_vnr: {py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
         ic_vnr_test_lib.test_adapt(c_vnr, output_c_ptr)
 
         ic_state = ic_vnr_test_lib.test_get_ic_state()
         self.ic_state = ic_state
-        if (index < frames_print) and True:
+        if (index < frames_print) and False:
             print(f"py_input_en {self.ic.input_energy0} c_input_en {pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.input_energy)}")
             print(f"py_output_en {self.ic.output_energy0} c_output_en {pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.output_energy)}")
-        if (index < frames_print) and True:
+        if (index < frames_print) and False:
             print(f"py_fast_ratio {self.ic.fast_ratio} c_fast_ratio {pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.fast_ratio)}")
-        if (index < frames_print) and True:
+        if (index < frames_print) and False:
             print(f"py_mu: {self.ic.mu}, c_mu: {pvc.float_s32_to_float(ic_state.mu[0][0])}")
 
-        if (index < frames_print) and True:
+        if (index < frames_print) and False:
             print('-')
         return output_py, pvc.int32_to_float(output_c)
 
 def test_frame_compare(test_config):
 
-    #test_config["adaption_config"] = 'IC_ADAPTION_AUTO'
-    #test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
+    test_config["adaption_config"] = 'IC_ADAPTION_AUTO'
+    test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
     sbc = stage_b_comparison(test_config)
 
     frame_advance = test_config["frame_advance"]
@@ -149,7 +147,7 @@ def test_frame_compare(test_config):
 
     assert c_delay == 0
     assert geo_closeness > 0.98
-    assert arith_closeness > 0.88 #Still very close over a 30s piece of audio with multiple blocks (adaption controller & IC)
+    assert arith_closeness > 0.87 #Still very close over a 30s piece of audio with multiple blocks (adaption controller & IC)
 
 """ #Check equivalence of adaption controller
 def test_adaption_controller(test_config):

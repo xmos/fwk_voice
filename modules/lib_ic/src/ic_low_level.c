@@ -304,19 +304,21 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
         return;
     }
 
+    float_s32_t one = {1, 0};
+
     if(float_s32_gte(vnr, ad_config->input_vnr_threshold)){
         ic_set_mu(state, (float_s32_t){0, 0});
-        ad_config->leakage_alpha = (float_s32_t){1, 0};
+        ad_config->leakage_alpha = one;
         ad_config->adapt_counter = 0; // HOLD
     }
     else{
         if(ad_config->adapt_counter <= ad_config->adapt_counter_limit){
-            ic_set_mu(state, (float_s32_t){1, 0}); // ADAPT
+            ic_set_mu(state, one); // ADAPT
         }
         else{
             ic_set_mu(state, float_to_float_s32(0.1)); // ADAPT SLOW
         }
-        ad_config->leakage_alpha = (float_s32_t){1, 0};
+        ad_config->leakage_alpha = one;
         ad_config->adapt_counter ++;
     }
 

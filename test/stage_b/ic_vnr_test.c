@@ -5,17 +5,14 @@
 #include "vnr_inference_api.h"
 
 ic_state_t ic_state;
-vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
+float_s32_t input_vnr_pred = {0, 0};
+fixed_s32_t pred_alpha = Q30(0.97);
 
 int32_t test_init(void){
-    vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
     int32_t err = vnr_inference_init();
     ic_init(&ic_state);
-    //Custom setup for testing
-    ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption_controller = 0;
-    // ic_state.config_params.delta = double_to_float_s32(0.0156);
 
     return err;
 }
@@ -37,20 +34,18 @@ void test_adapt(
     ic_adapt(&ic_state, vnr, output);
 }
 
-float_s32_t test_vnr(
-        const int32_t input[VNR_FRAME_ADVANCE]){
-    complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
-    bfp_complex_s32_t X;
-    vnr_form_input_frame(&vnr_input_state, &X, input_frame, input);
+float_s32_t test_vnr(){
 
     bfp_s32_t feature_patch;
     int32_t feature_patch_data[VNR_PATCH_WIDTH*VNR_MEL_FILTERS];
-    vnr_extract_features(&vnr_feature_state, &feature_patch, feature_patch_data, &X);
+    vnr_extract_features(&vnr_feature_state, &feature_patch, feature_patch_data, &ic_state.Y_bfp[0]);
 
     float_s32_t inference_output;
     vnr_inference(&inference_output, &feature_patch);
 
-    return inference_output;
+    input_vnr_pred = float_s32_ema(input_vnr_pred, inference_output, pred_alpha);
+
+    return input_vnr_pred;
 }
 
 void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f){
