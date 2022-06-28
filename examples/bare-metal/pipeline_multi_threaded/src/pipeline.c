@@ -131,7 +131,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         // VNR
         calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
         float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
-        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
+        md.vnr_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));

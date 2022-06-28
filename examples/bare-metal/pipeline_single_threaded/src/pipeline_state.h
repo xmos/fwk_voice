@@ -13,7 +13,6 @@ typedef struct {
     float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
     int32_t vnr_flag;
     int32_t ref_active_flag;
-    int32_t vnr_pred_flag;
 }pipeline_metadata_t;
 
 typedef struct {
