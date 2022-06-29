@@ -22,14 +22,13 @@ typedef struct {
 } pipeline_state_tile0_t;
 
 typedef struct {
-    // IC, VAD
+    // IC, VNR
     ic_state_t DWORD_ALIGNED ic_state;
-    vad_state_t DWORD_ALIGNED vad_state;
+    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
     // NS
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     // AGC
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
-    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
 } pipeline_state_tile1_t;
 
 #endif
