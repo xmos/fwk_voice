@@ -127,7 +127,7 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         prof(5, "end_vad_estimate");
 
         prof(6, "start_ic_adapt");
-        ic_adapt(&state, vnr, output);
+        ic_adapt(&state, vnr);
         prof(7, "end_ic_adapt");
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){

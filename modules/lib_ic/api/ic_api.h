@@ -63,13 +63,11 @@ void ic_filter(ic_state_t *state,
  *
  * @param[inout] state pointer to IC state structure
  * @param[in] vnr VNR Voice-to-Noise ratio estimation
- * @param[in] output array reference to previously filtered output samples
  *
  * @ingroup ic_func
  */
 void ic_adapt(ic_state_t *state,
-                      float_s32_t vnr,
-                      int32_t output[IC_FRAME_ADVANCE]);
+                      float_s32_t vnr);
 
 #ifdef __XC__
 #error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES

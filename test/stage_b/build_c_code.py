@@ -34,10 +34,10 @@ ffibuilder = FFI()
 #Extract all defines and state from lib_ic programatically as CFFI doesn't do that yet
 predefs = extract_pre_defs()
 predefs += """
-    int32_t test_init(void);
+    void test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
     float_s32_t test_vnr();
     void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
 """
@@ -67,10 +67,10 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
     #include "vnr_features_api.h"
     #include "vnr_inference_api.h"
     #include "calc_vnr_pred.h"
-    int32_t test_init(void);
+    void test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
     float_s32_t test_vnr();
     void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
 """,

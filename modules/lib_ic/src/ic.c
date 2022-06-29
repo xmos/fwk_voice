@@ -114,11 +114,6 @@ void ic_init(ic_state_t *state){
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    //Initialise ema energy
-    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
-        state->error_ema_energy[ch].exp = zero_exp;
-    }
-
     //Mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
@@ -219,8 +214,7 @@ void ic_filter(
 
 void ic_adapt(
         ic_state_t *state,
-        float_s32_t vnr,
-        int32_t output[IC_FRAME_ADVANCE]){
+        float_s32_t vnr){
 
     if(state == NULL) {
         return;
@@ -228,15 +222,6 @@ void ic_adapt(
    
     //Calculate leakage and mu for adaption
     ic_mu_control_system(state, vnr);
-   
-    //calculate error_ema_energy for main state
-    const exponent_t q0_31_exp = -31;
-    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        bfp_s32_t temp;
-        bfp_s32_init(&temp, output, q0_31_exp, IC_FRAME_ADVANCE, 1);
-
-        ic_update_td_ema_energy(&state->error_ema_energy[ch], &temp, 0, IC_FRAME_ADVANCE, state->config_params.ema_alpha_q30);
-    }
    
     //calculate inv_X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {

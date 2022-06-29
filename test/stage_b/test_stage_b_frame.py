@@ -90,7 +90,7 @@ class stage_b_comparison:
         #c_vnr = [int(0), int(0)] # dummy
         if (index < frames_print) and False:
             print(f"py_vnr: {py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
-        ic_vnr_test_lib.test_adapt(c_vnr, output_c_ptr)
+        ic_vnr_test_lib.test_adapt(c_vnr)
 
         ic_state = ic_vnr_test_lib.test_get_ic_state()
         self.ic_state = ic_state

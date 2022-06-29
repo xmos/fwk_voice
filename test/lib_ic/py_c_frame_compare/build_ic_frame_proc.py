@@ -35,7 +35,7 @@ predefs +
     void test_init(void);
     ic_state_t test_get_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
 """.replace("IC_FRAME_ADVANCE", "240")
 )
 
@@ -46,7 +46,7 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     void test_init(void);
     ic_state_t test_get_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(float_s32_t vnr, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
 """,
     sources=SRCS,
     library_dirs=[

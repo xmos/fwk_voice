@@ -629,9 +629,9 @@ pipeline {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
                       //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      //sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
-                      junit "pytest_result.xml"
+                      //junit "pytest_result.xml"
                       // Archive below (always section) even if fails
                     }
                   }

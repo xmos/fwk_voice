@@ -119,7 +119,7 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
     ic_filter(&state->ic_state, input_data[0], input_data[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
     md.vad_flag = (vad > AGC_VAD_THRESHOLD);
-    ic_adapt(&state->ic_state, vad, ic_output[0]);
+    ic_adapt(&state->ic_state, vad);
     // Copy IC output to the other channel
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){
         ic_output[1][v] = ic_output[0][v];

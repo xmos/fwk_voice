@@ -63,7 +63,7 @@ class ic_comparison:
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
 
         vnr = [0,0]
-        ic_test_lib.test_adapt(vnr, output_c_ptr)
+        ic_test_lib.test_adapt(vnr)
 
         #state = ic_test_lib.test_get_state()
         #print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)

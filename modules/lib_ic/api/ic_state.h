@@ -204,8 +204,6 @@ typedef struct {
 
     /** Mu value used for controlling adaption rate. */
     float_s32_t mu[IC_Y_CHANNELS][IC_X_CHANNELS];
-    /** Filtered error energy. */
-    float_s32_t error_ema_energy[IC_Y_CHANNELS];
     /** Used to keep track of peak X energy. */
     float_s32_t max_X_energy[IC_X_CHANNELS]; 
 
