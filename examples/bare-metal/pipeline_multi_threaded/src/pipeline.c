@@ -136,7 +136,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
-        ic_adapt(&ic_state, vnr);
+        ic_adapt(&ic_state, vnr_pred_state.input_vnr_pred);
 
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){

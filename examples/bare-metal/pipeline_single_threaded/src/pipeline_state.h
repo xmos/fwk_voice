@@ -4,7 +4,6 @@
 #include "pipeline_config.h"
 #include "stage_1.h"
 #include "ic_state.h"
-#include "vad_api.h"
 #include "ns_state.h"
 #include "agc_api.h"
 #include "calc_vnr_pred.h"
