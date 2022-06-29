@@ -19,7 +19,8 @@ target_include_directories(avona_module_lib_aec
 
 target_compile_options(avona_module_lib_aec
     PRIVATE
-        "-Os"
+        -Os
+        -g
 )
 
 target_link_libraries(avona_module_lib_aec
