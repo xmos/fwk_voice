@@ -7,12 +7,13 @@
 #include "vad_api.h"
 #include "ns_state.h"
 #include "agc_api.h"
+#include "calc_vnr_pred.h"
 
 typedef struct {
     float_s32_t max_ref_energy;
     float_s32_t aec_corr_factor[AP_MAX_Y_CHANNELS];
-    int32_t vad_flag;
     int32_t ref_active_flag;
+    int32_t vnr_pred_flag;
 }pipeline_metadata_t;
 
 typedef struct {
@@ -28,6 +29,7 @@ typedef struct {
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     // AGC
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
+    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
 } pipeline_state_tile1_t;
 
 #endif
