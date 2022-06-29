@@ -3,17 +3,19 @@
 #include "ic_low_level.h"
 #include "vnr_features_api.h"
 #include "vnr_inference_api.h"
+#include "calc_vnr_pred.h"
 
 ic_state_t ic_state;
 vnr_feature_state_t vnr_feature_state;
 float_s32_t input_vnr_pred = {0, 0};
 fixed_s32_t pred_alpha = Q30(0.97);
+vnr_pred_state_t vnr_pred_state;
 
 int32_t test_init(void){
     vnr_feature_state_init(&vnr_feature_state);
     int32_t err = vnr_inference_init();
     ic_init(&ic_state);
-
+    init_vnr_pred_state(&vnr_pred_state);
     return err;
 }
 

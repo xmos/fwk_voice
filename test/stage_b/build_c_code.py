@@ -25,6 +25,7 @@ INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_vnr/api/inference",
     f"{MODULE_ROOT}/lib_vnr/src/inference/model",
     f"{MODULE_ROOT}/lib_vnr/src/inference",
+    f"{MODULE_ROOT}/../examples/bare-metal/shared_src/calc_vnr_pred/src",
     f"{XS3_MATH}/lib_xs3_math/api/",
 ]
 SRCS = f"../ic_vnr_test.c".split()
@@ -65,6 +66,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
     #include "ic_low_level.h"
     #include "vnr_features_api.h"
     #include "vnr_inference_api.h"
+    #include "calc_vnr_pred.h"
     int32_t test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
@@ -80,7 +82,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
                 '../../../build/test/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_module_lib_vnr_inference_only_for_testing', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_calc_vnr_pred_only_for_testing', 'avona_module_lib_vnr_inference_only_for_testing', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
