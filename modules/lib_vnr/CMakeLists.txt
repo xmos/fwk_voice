@@ -17,9 +17,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     #  lib_tflite_micro compilation is dependant on the HW target which is why we don't build avona::vnr::inference as a static library
     target_compile_options(avona_module_lib_vnr_inference
         INTERFACE
-            "-Os"
-            "-mcmodel=large"
-            "-Wno-xcore-fptrgroup"
+            -Os
+            -g
+            -mcmodel=large
+            -Wno-xcore-fptrgroup
     )
 
     target_compile_definitions(avona_module_lib_vnr_inference
@@ -33,6 +34,7 @@ else()
 
     set(BUILD_FLAGS
       "-Os"
+      "-g"
       "-D__xtflm_conf_h_exists__"
       "-DNN_USE_REF" 
     )    
@@ -57,8 +59,8 @@ target_compile_definitions(avona_module_lib_vnr_features PRIVATE HEADROOM_CHECK=
 
 target_compile_options(avona_module_lib_vnr_features
     PRIVATE
-        "-Os"
-        "-g"       
+        -Os
+        -g       
 )
 
 target_link_libraries(avona_module_lib_vnr_features
