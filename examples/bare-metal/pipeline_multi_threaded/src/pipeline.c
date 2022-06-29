@@ -20,7 +20,6 @@
 #include "hpf.h"
 #include "calc_vnr_pred.h"
 
-#define TEST_WITH_VNR (1)
 #define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
@@ -139,7 +138,6 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
-        md.vad_flag = (vad > AGC_VAD_THRESHOLD);
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
@@ -209,11 +207,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
-#if TEST_WITH_VNR 
         agc_md.vad_flag = md.vnr_pred_flag;
-#else
-        agc_md.vad_flag = md.vad_flag;
-#endif
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
