@@ -20,7 +20,7 @@ foreach(testfile ${TEST_SOURCES})
     target_link_libraries(${APP_NAME} 
         PUBLIC
             avona::ic
-            avona::shared::calc_vnr_pred
+            avona_calc_vnr_pred_only_for_testing
             avona::example::fileutils)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)

@@ -123,13 +123,13 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
     // The ASR channel will be produced by IC filtering
     ic_filter(&state->ic_state, input_data[0], input_data[1], ic_output[0]);
     uint8_t vad = vad_probability_voice(ic_output[0], &state->vad_state);
+
     // VNR
     calc_vnr_pred(&state->vnr_pred_state, &state->ic_state.Y_bfp[0], &state->ic_state.Error_bfp[0]);
     float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
     md.vnr_pred_flag = float_s32_gt(state->vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
-
-    ic_adapt(&state->ic_state, vad, ic_output[0]);
-    
+   
+    ic_adapt(&state->ic_state, vad);
 
     // Copy IC output to the other channel
     for(int v = 0; v < AP_FRAME_ADVANCE; v++){

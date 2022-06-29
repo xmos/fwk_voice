@@ -52,7 +52,7 @@ class ic_comparison:
         output_py, self.Error_ap = self.ic.process_frame(frame)
         mu, control_flag = self.ic.mu_control_system()
         #print('mu = ', mu, ', in_vnr = ', input_vnr_pred, ', out_vnr = ', output_vnr_pred, 'flag = ', control_flag)
-        self.ic.adapt(self.Error_ap)
+        self.ic.adapt(self.Error_ap, mu)
 
         #Grab a pointer to the data storage of the numpy arrays
         y_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[0].data))
@@ -62,8 +62,8 @@ class ic_comparison:
 
         ic_test_lib.test_filter(y_data, x_data, output_c_ptr)
 
-        vad = int(0)
-        ic_test_lib.test_adapt(vad, output_c_ptr)
+        vnr = [0,0]
+        ic_test_lib.test_adapt(vnr)
 
         #state = ic_test_lib.test_get_state()
         #print('mu_c = ', pvc.float_s32_to_float(state.mu[0][0]), ', nu_py = ', self.ic.mu)

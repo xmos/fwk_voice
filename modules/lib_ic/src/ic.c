@@ -1,17 +1,12 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include <stdio.h>
-#include <string.h>
-
 #include "ic_low_level.h"
 #include "q_format.h"
-
 
 //For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
-
 
 static void ic_init_config(ic_config_params_t *config){
     config->sigma_xx_shift = IC_INIT_SIGMA_XX_SHIFT;
@@ -22,31 +17,29 @@ static void ic_init_config(ic_config_params_t *config){
 
 }
 
-
 static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
     config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    config->voice_chance_alpha = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA);
-    config->energy_alpha_slow_q30 = Q30(IC_INIT_ENERGY_ALPHA_SLOW);
-    config->energy_alpha_fast_q30 = Q30(IC_INIT_ENERGY_ALPHA_FAST);
+    config->energy_alpha_q30 = Q30(IC_INIT_ENERGY_ALPHA);
 
-    config->out_to_in_ratio_limit = double_to_float_s32(IC_INIT_INSTABILITY_RATIO_LIMIT);
+    config->fast_ratio_threshold = double_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
     config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+
+    config->input_vnr_threshold = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
+
+    config->adapt_counter = 0;
+    config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
 
     config->enable_adaption = 1;
     config->enable_adaption_controller = 1;
-    config->enable_filter_instability_recovery = IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY;
-
 }
 
 static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
-    adaption_controller_state->smoothed_voice_chance = double_to_float_s32(IC_INIT_SMOOTHED_VOICE_CHANCE);
 
+    adaption_controller_state->input_energy = double_to_float_s32(0.0);
 
-    adaption_controller_state->input_energy_slow = double_to_float_s32(0.0);
-    adaption_controller_state->output_energy_slow = double_to_float_s32(0.0);
+    adaption_controller_state->input_energy = double_to_float_s32(0.0);
 
-    adaption_controller_state->input_energy_fast = double_to_float_s32(0.0);
-    adaption_controller_state->output_energy_fast = double_to_float_s32(0.0);
+    adaption_controller_state->fast_ratio = double_to_float_s32(0.0);
 
     ic_init_adaption_controller_config(&adaption_controller_state->adaption_controller_config);
 }
@@ -121,11 +114,6 @@ void ic_init(ic_state_t *state){
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    //Initialise ema energy
-    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
-        state->error_ema_energy[ch].exp = zero_exp;
-    }
-
     //Mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
@@ -147,6 +135,8 @@ void ic_filter(
     if(state == NULL) {
         return;
     }
+    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
     ///Delay y channel, necessary for operation of adaptive filter
     ic_delay_y_input(state, y_data);
@@ -156,10 +146,8 @@ void ic_filter(
 
     ///calculate input td ema energies
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_update_td_ema_energy(&state->ic_adaption_controller_state.input_energy_slow, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE,
-                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow_q30);
-        ic_update_td_ema_energy(&state->ic_adaption_controller_state.input_energy_fast, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, 
-                                state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast_q30);
+        ic_update_td_ema_energy(&ad_state->input_energy, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
+                                IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
     }
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
@@ -206,39 +194,34 @@ void ic_filter(
     }
 
     ///calculate output td ema energies
-    ic_update_td_ema_energy(&state->ic_adaption_controller_state.output_energy_slow, state->error_bfp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE,
-                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_slow_q30);
-    ic_update_td_ema_energy(&state->ic_adaption_controller_state.output_energy_fast, state->error_bfp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, IC_FRAME_ADVANCE, 
-                            state->ic_adaption_controller_state.adaption_controller_config.energy_alpha_fast_q30);
+    //bfp_s32_t output_bfp;
+    //bfp_s32_init(&output_bfp, output, -31, IC_FRAME_ADVANCE, 1);
+    //ic_update_td_ema_energy(&ad_state->output_energy, &output_bfp, 0, IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+    ic_update_td_ema_energy(&ad_state->output_energy, &state->error_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
+                            IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
 
+    //error -> Error FFT
+    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
+        ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
+    }
+
+    ic_calc_fast_ratio(ad_state);
+
+    if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->enable_adaption_controller)){
+        ic_reset_filter(state, output);
+    }
 }
-
 
 void ic_adapt(
         ic_state_t *state,
-        uint8_t vad,
-        int32_t output[IC_FRAME_ADVANCE]){
+        float_s32_t vnr){
 
     if(state == NULL) {
         return;
     }
    
     //Calculate leakage and mu for adaption
-    ic_adaption_controller(state, vad);
-   
-    //calculate error_ema_energy for main state
-    const exponent_t q0_31_exp = -31;
-    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        bfp_s32_t temp;
-        bfp_s32_init(&temp, output, q0_31_exp, IC_FRAME_ADVANCE, 1);
-
-        ic_update_td_ema_energy(&state->error_ema_energy[ch], &temp, 0, IC_FRAME_ADVANCE, state->config_params.ema_alpha_q30);
-    }
-   
-    //error -> Error FFT
-    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
-    }
+    ic_mu_control_system(state, vnr);
    
     //calculate inv_X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
