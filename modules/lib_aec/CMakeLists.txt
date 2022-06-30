@@ -19,7 +19,8 @@ target_include_directories(fwk_voice_module_lib_aec
 
 target_compile_options(fwk_voice_module_lib_aec
     PRIVATE
-        "-Os"
+        -Os
+        -g
 )
 
 target_link_libraries(fwk_voice_module_lib_aec

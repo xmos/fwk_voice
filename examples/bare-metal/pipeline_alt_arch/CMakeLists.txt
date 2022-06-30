@@ -20,12 +20,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             fwk_voice::ns
             fwk_voice::agc
             fwk_voice::ic
-            fwk_voice::vad
             fwk_voice::example::aec2thread
             fwk_voice::example::delay_buffer
             fwk_voice::example::stage_1
             fwk_voice::example::fileutils
-            fwk_voice::example::hpf
+            fwk_voice::shared::calc_vnr_pred
             core::xs3_math
             )
 
@@ -67,12 +66,11 @@ target_link_libraries(fwk_voice_example_bare_metal_pipeline_alt_arch_st
         fwk_voice::ns
         fwk_voice::agc
         fwk_voice::ic
-        fwk_voice::vad
         fwk_voice::example::aec1thread
         fwk_voice::example::delay_buffer
         fwk_voice::example::stage_1
         fwk_voice::example::fileutils
-        fwk_voice::example::hpf
+        fwk_voice::shared::calc_vnr_pred
         core::xs3_math
         )
 

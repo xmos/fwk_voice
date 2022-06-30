@@ -136,7 +136,7 @@ def process_py(input_data, test_name):
     config_file = '../../shared/config/ic_conf_big_delta.json'
     ic_parameters = json_to_dict(config_file)
 
-    output, Mu, Input_vnr_pred, Output_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
+    output, Mu, Input_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 

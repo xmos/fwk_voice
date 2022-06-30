@@ -123,11 +123,11 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
         prof(3, "end_ic_filter");
 
         prof(4, "start_vad_estimate");
-        uint8_t vad = 0; //0 means full cancellation because we have no voice present
+        float_s32_t vnr = {0,0};
         prof(5, "end_vad_estimate");
 
         prof(6, "start_ic_adapt");
-        ic_adapt(&state, vad, output);
+        ic_adapt(&state, vnr);
         prof(7, "end_ic_adapt");
 
         for(unsigned i=0;i<IC_FRAME_ADVANCE;i++){
