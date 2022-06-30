@@ -64,9 +64,6 @@
 #define IC_INIT_FAST_RATIO_THRESHOLD                1.5// from py_ic
 /** TODO: document
  * @ingroup ic_defines */
-#define IC_INIT_PRED_ALPHA                          0.97//from py_ic
-/** TODO: document
- * @ingroup ic_defines */
 #define IC_INIT_ENERGY_ALPHA                        0.5//from py_ic
 /** Leakage alpha used in the case where instability is detected. This allows the filter to stabilise
  * without completely forgetting the adaption.
