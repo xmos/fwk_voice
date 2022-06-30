@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "ic_low_level.h"
-#include <limits.h>
 
 //lib_ic heavily reuses functions from lib_aec currently
 #include "aec_defines.h"
@@ -282,88 +281,77 @@ float_s32_t float_s32_add_fix(
   return res;
 }
 
-//Python port
-void ic_adaption_controller(ic_state_t *state, uint8_t vad){
-    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
+//Calculates fast ratio
+void ic_calc_fast_ratio(ic_adaption_controller_state_t * ad_state){
+    const float_s32_t delta = {7037, -46}; // ~ 0.0000000001 from py_ic
+    float_s32_t denom = float_s32_add_fix(ad_state->input_energy, delta);
+    ad_state->fast_ratio = float_s32_div(ad_state->output_energy, denom);
+}
 
-    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
-        return;
-    }
-
-    const float_s32_t one = {1, 0};
-    const float_s32_t zero = {0, 0};
-    //const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
-    // in some test cases delta = 1e-9 was not small enough comparing to the denominator
-    // this is also changed in stage_b test python
-    const float_s32_t delta = {352, -45}; //352 * 2**-45 ~ 0.00000000001
-
-    exponent_t q0_8_exp = -8; 
-    float_s32_t vad_float = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
-
-    //self.smoothed_voice_chance = self.voice_chance_alpha*self.smoothed_voice_chance
-    //self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
-    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
-    if(float_s32_gt(vad_float, ad_state->smoothed_voice_chance)){
-        ad_state->smoothed_voice_chance = vad_float;
-    }
-
-    //noise_mu = 1.0 - self.smoothed_voice_chance
-    float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
-
-    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + delta))))
-    float_s32_t input_plus_delta = float_s32_add_fix(ad_state->input_energy_slow, delta);
-    float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
-    ratio = float_s32_sqrt(ratio);
-    ratio = float_s32_sqrt(ratio);
-    if(float_s32_gt(one, ratio)){ 
-        ratio = one;
-    }
-    noise_mu = float_s32_mul(noise_mu, ratio);
-
-    // THIS IS NOT IN PYTHON - Included as safety feature
-    if(ad_config->enable_filter_instability_recovery){
-        if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
-            ic_reset_filter(state);
-        }
-    }
-
-    //fast_ratio = self.output_energy0 / (self.input_energy0 + delta)
-    input_plus_delta = float_s32_add_fix(ad_state->input_energy_fast, delta);
-    float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
-
-    // if fast_ratio > 1.0:
-    //     self.ifc.set_leakage(0.995)
-    //     self.ifc.set_mu(0.0)
-    float_s32_t mu = zero;
-    if(float_s32_gt(fast_ratio, one)){
-        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;//in ic_defines.h
-        mu = zero;
-    } 
-    // else:
-        // self.ifc.set_leakage (1.0)
-        // self.ifc.set_mu(noise_mu)
-    else {
-        ad_config->leakage_alpha = one;
-        mu = noise_mu;
-    }
-
-    //Now copy this into the actual state structure
+void ic_set_mu(ic_state_t * state, float_s32_t mu){
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;
         }
-    } 
+    }
 }
 
+void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
+    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
+    
+    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
+        return;
+    }
+
+    float_s32_t one = {1, 0};
+
+    if(float_s32_gte(vnr, ad_config->input_vnr_threshold)){
+        ic_set_mu(state, (float_s32_t){0, 0});
+        ad_config->leakage_alpha = one;
+        ad_config->adapt_counter = 0; // HOLD
+    }
+    else{
+        if(ad_config->adapt_counter <= ad_config->adapt_counter_limit){
+            ic_set_mu(state, one); // ADAPT
+        }
+        else{
+            ic_set_mu(state, float_to_float_s32(0.1)); // ADAPT SLOW
+        }
+        ad_config->leakage_alpha = one;
+        ad_config->adapt_counter ++;
+    }
+
+    if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
+        ic_set_mu(state, float_to_float_s32(0.9));
+        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha; // UNSTABLE
+    }
+}
 
 //Clear down filter to init state
-void ic_reset_filter(ic_state_t *state){
+void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
         aec_priv_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
     }
+    for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){
+        bfp_s32_set(&state->sigma_XX_bfp[ch], 0, -1024);
+    }
+    int32_t indx = state->y_delay_idx[0];
+    int32_t DWORD_ALIGNED buff[IC_FRAME_LENGTH];
+    indx = ((indx - IC_FRAME_LENGTH) >= 0) ? indx - IC_FRAME_LENGTH : IC_Y_CHANNEL_DELAY_SAMPS + indx - IC_FRAME_LENGTH;
+    for(unsigned i = 0; i < IC_FRAME_LENGTH; i++){
+        buff[i] = state->y_input_delay[0][indx];
+        indx ++;
+        if(indx == IC_Y_CHANNEL_DELAY_SAMPS){
+            indx = 0;
+        }
+    }
+    bfp_s32_t y, out;
+    bfp_s32_init(&y, buff, -31, IC_FRAME_LENGTH, 1);
+    bfp_s32_init(&out, output, -31, IC_FRAME_ADVANCE, 0);
+    aec_priv_create_output(&out, state->overlap_bfp, &y);
 }
 
 //This allows the filter to forget some of its training

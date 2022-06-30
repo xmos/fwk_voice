@@ -14,10 +14,11 @@
 #include "pipeline_state.h"
 #include "stage_1.h"
 #include "ic_api.h"
-#include "vad_api.h"
 #include "ns_api.h"
 #include "agc_api.h"
-#include "hpf.h"
+#include "calc_vnr_pred.h"
+
+#define VNR_AGC_THRESHOLD (0.5)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -96,11 +97,12 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
 void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
-    // Initialise IC and VAD
+    // Initialise IC and VNR
     ic_state_t DWORD_ALIGNED ic_state;
-    vad_state_t DWORD_ALIGNED vad_state;
+    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
+    float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
     ic_init(&ic_state);
-    vad_init(&vad_state);
+    init_vnr_pred_state(&vnr_pred_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
@@ -125,15 +127,17 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         /** IC*/
         // Calculating the ASR channel
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
-        // Calculating voice activity probability
-        uint8_t vad = vad_probability_voice(frame[0], &vad_state);
+        // VNR
+        calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
+
+        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
-        md.vad_flag = (vad > AGC_VAD_THRESHOLD);
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
-        ic_adapt(&ic_state, vad, frame[0]);
+        ic_adapt(&ic_state, vnr_pred_state.input_vnr_pred);
+
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
             frame[1][v] = frame[0][v];
@@ -198,7 +202,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
-        agc_md.vad_flag = md.vad_flag;
+        agc_md.vad_flag = md.vnr_pred_flag;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
@@ -221,7 +225,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
 
 
 /// Pipeline
-// 3 stage pipeline. stage 1: AEC, stage 2: IC and VAD, stage 3: NS, stage 4: AGC
+// 3 stage pipeline. stage 1: AEC, stage 2: IC and VNR, stage 3: NS, stage 4: AGC
 void pipeline_tile0(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a) {
     
     pipeline_stage_1(c_pcm_in_b, c_pcm_out_a);

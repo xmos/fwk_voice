@@ -20,12 +20,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             avona::ns
             avona::agc
             avona::ic
-            avona::vad
             avona::example::aec2thread
             avona::example::delay_buffer
             avona::example::stage_1
             avona::example::fileutils
-            avona::example::hpf
+            avona::shared::calc_vnr_pred
             core::xs3_math
             )
 
@@ -73,6 +72,7 @@ target_link_libraries(avona_example_bare_metal_pipeline_alt_arch_st
         avona::example::stage_1
         avona::example::fileutils
         avona::example::hpf
+        avona::shared::calc_vnr_pred
         core::xs3_math
         )
 

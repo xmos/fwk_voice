@@ -20,12 +20,11 @@ target_link_libraries(${APP_NAME}
         avona::ns
         avona::agc
         avona::ic
-        avona::vad
         avona::example::aec2thread
         avona::example::delay_buffer
         avona::example::stage_1
         avona::example::fileutils
-        avona::example::hpf
+        avona::shared::calc_vnr_pred
         core::xs3_math
         )
 

@@ -10,10 +10,21 @@ else()
     target_compile_options(avona_module_lib_vnr_inference_only_for_testing PRIVATE "-fPIC")
 endif()
 set(VNR_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules/lib_vnr")
-message(STATUS "VNR_MODULE_PATH = ${VNR_MODULE_PATH}") 
+#message(STATUS "VNR_MODULE_PATH = ${VNR_MODULE_PATH}") 
 target_include_directories(avona_module_lib_vnr_inference_only_for_testing PUBLIC ${VNR_MODULE_PATH}/api/common ${VNR_MODULE_PATH}/api/inference)
 target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PRIVATE avona::vnr::inference)  
 target_link_libraries(avona_module_lib_vnr_inference_only_for_testing PUBLIC core::xs3_math) 
+
+
+add_library(avona_calc_vnr_pred_only_for_testing STATIC)
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    target_compile_options(avona_calc_vnr_pred_only_for_testing PRIVATE "-target=XCORE-AI-EXPLORER")
+else()
+    target_compile_options(avona_calc_vnr_pred_only_for_testing PRIVATE "-fPIC")
+endif()
+set(CALC_VNR_PRED_PATH "${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/calc_vnr_pred/")
+target_include_directories(avona_calc_vnr_pred_only_for_testing PUBLIC ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/calc_vnr_pred/src)
+target_link_libraries(avona_calc_vnr_pred_only_for_testing PUBLIC avona::shared::calc_vnr_pred)
 
 add_subdirectory(vnr_unit_tests)
 

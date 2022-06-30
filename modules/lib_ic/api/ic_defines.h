@@ -7,8 +7,6 @@
 #include <limits.h>
 #include <string.h>
 #include "bfp_math.h"
-#include "xs3_math.h"
-
 
 /**
  * @page page_ic_defines_h ic_defines.h
@@ -61,32 +59,22 @@
 #define IC_INIT_DELTA                               7.450580593454381e-09 //from two_mic_stereo.json
 
 
-/** Boolean which controls whether to enable detection and recovery from instability. 
- * Normally this should be enabled.
+/** TODO: document
  * @ingroup ic_defines */
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1//from ap_stage_b.py
-/** Ratio of the output to input at which the filter will reset.
- * Setting it to 2.0 or above is a good rule of thumb.
+#define IC_INIT_FAST_RATIO_THRESHOLD                1.5// from py_ic
+/** TODO: document
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0//from ap_stage_b.py
-/** Alpha used for low pass filtering the voice chance estimate based on VAD input.
- * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99//from ap_stage_b.py
-/** Slow alpha used filtering input and output energies of IC used in the adaption controller.
- * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_SLOW                   0.999//from ap_stage_b.py
-/** Fast alpha used filtering input and output energies of IC used in the adaption controller.
- * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_FAST                   0.98//from ap_stage_b.py
+#define IC_INIT_ENERGY_ALPHA                        0.5//from py_ic
 /** Leakage alpha used in the case where instability is detected. This allows the filter to stabilise
  * without completely forgetting the adaption.
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995//from ap_stage_b.py
-/** Initial smoothed voice chance at startup. This value is quickly replaced by the calculated
- * voice change value from the VAD signal.
- * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE               1.0//from ap_stage_b.py
-
+#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.99//from py_ic
+/** TODO: document
+ * @ingroup ic_defines*/
+#define IC_INIT_ADAPT_COUNTER_LIMIT                 5//from py_ic
+/** TODO: document
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD                 0.5//from py_ic
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////

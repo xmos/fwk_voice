@@ -1,6 +1,5 @@
 
 #include "calc_vnr_pred.h"
-#include "ic_state.h"
 #include "q_format.h"
 
 void init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state)
