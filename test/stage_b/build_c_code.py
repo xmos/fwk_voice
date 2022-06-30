@@ -64,8 +64,6 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
 """
     #include "ic_api.h"
     #include "ic_low_level.h"
-    #include "vnr_features_api.h"
-    #include "vnr_inference_api.h"
     #include "calc_vnr_pred.h"
     void test_init(void);
     ic_state_t test_get_ic_state(void);
