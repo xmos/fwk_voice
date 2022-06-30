@@ -46,7 +46,7 @@ MIC_1_X = MIC_X_POINT + MIC_SPACING / 2
 NOISE_DISTANCE = 1.5
 
 
-IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/characterise_c_py/bin/fwk_voice_characterise_c_py.xe')
+IC_XE = os.path.join(os.environ['XMOS_ROOT'], 'fwk_voice/build/test/lib_ic/characterise_c_py/bin/fwk_voice_characterise_c_py.xe')
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces
 def get_absorption(x, y, z, rt60):
