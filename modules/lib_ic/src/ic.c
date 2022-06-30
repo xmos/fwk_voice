@@ -17,31 +17,39 @@ static void ic_init_config(ic_config_params_t *config){
 
 }
 
-static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *config){
-    config->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
-    config->energy_alpha_q30 = Q30(IC_INIT_ENERGY_ALPHA);
+static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *ad_config){
 
-    config->fast_ratio_threshold = double_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
-    config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+    ad_config->energy_alpha_q30 = Q30(IC_INIT_ENERGY_ALPHA);
 
-    config->input_vnr_threshold = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
+    ad_config->fast_ratio_threshold = double_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
+    ad_config->high_input_vnr_hold_leakage_alpha = double_to_float_s32(IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA);
+    ad_config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
 
-    config->adapt_counter = 0;
-    config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
+    ad_config->input_vnr_threshold = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
+    ad_config->input_vnr_threshold_high = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_HIGH);
+    ad_config->input_vnr_threshold_low = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_LOW);
 
-    config->enable_adaption = 1;
-    config->enable_adaption_controller = 1;
+    ad_config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
+
+    ad_config->enable_adaption = 1;
+    ad_config->adaption_config = IC_ADAPTION_AUTO;
 }
 
-static void ic_init_adaption_controller(ic_adaption_controller_state_t *adaption_controller_state){
+static void ic_init_adaption_controller(ic_adaption_controller_state_t *ad_state){
 
-    adaption_controller_state->input_energy = double_to_float_s32(0.0);
+    const float_s32_t zero = {0, 0};
 
-    adaption_controller_state->input_energy = double_to_float_s32(0.0);
+    ad_state->input_energy = zero;
 
-    adaption_controller_state->fast_ratio = double_to_float_s32(0.0);
+    ad_state->input_energy = zero;
 
-    ic_init_adaption_controller_config(&adaption_controller_state->adaption_controller_config);
+    ad_state->fast_ratio = zero;
+
+    ad_state->adapt_counter = 0;
+
+    ad_state->control_flag = ADAPT;
+
+    ic_init_adaption_controller_config(&ad_state->adaption_controller_config);
 }
 
 void ic_init(ic_state_t *state){
@@ -120,6 +128,8 @@ void ic_init(ic_state_t *state){
             state->mu[ych][xch] = double_to_float_s32(IC_INIT_MU);
         }
     }
+
+    state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
 
     //Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);
@@ -207,7 +217,7 @@ void ic_filter(
 
     ic_calc_fast_ratio(ad_state);
 
-    if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->enable_adaption_controller)){
+    if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->adaption_config == IC_ADAPTION_AUTO)){
         ic_reset_filter(state, output);
     }
 }

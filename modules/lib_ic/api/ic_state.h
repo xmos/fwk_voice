@@ -18,6 +18,25 @@
  * @defgroup ic_state   IC Data Structures
  */ 
 
+/**
+ * @ingroup ic_state
+ */
+typedef enum {
+    IC_ADAPTION_AUTO,
+    IC_ADAPTION_FORCE_ON,
+    IC_ADAPTION_FORCE_OFF
+} adaption_config_e;
+
+/**
+ * @ingroup ic_state
+ */
+typedef enum {HOLD = 2, 
+            ADAPT = 1, 
+            ADAPT_SLOW = 0, 
+            UNSTABLE = -1, 
+            FORCE_ADAPT = -2, 
+            FORCE_HOLD = -3
+}control_flag_e;
 
 /**
  * @brief IC configuration structure
@@ -49,13 +68,12 @@ typedef struct {
     float_s32_t delta;
 }ic_config_params_t;
 
-
 /**
  * @brief IC adaption controller configuration structure
  *
  * This structure contains configuration settings that can be changed to alter the
  * behaviour of the adaption controller. This includes processing of the raw
- * VAD probability input and optional stability controller logic.
+ * VNR probability input and optional stability controller logic.
  * It is automatically included as part of the IC state and initialised by ic_init().
  * 
  * The initial values for these configuration parameters are defined in ic_defines.h.
@@ -63,29 +81,31 @@ typedef struct {
  * @ingroup ic_state
  */
 typedef struct {
-    /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. */
-    float_s32_t leakage_alpha;
 
-    /** TODO: document */
+    /** Alpha for EMA input/output energy calculation. */
     fixed_s32_t energy_alpha_q30;
 
-    /** TODO: document */
+    /** Fast ratio threshold to detect instability. */
     float_s32_t fast_ratio_threshold;
+    /** Setting of H_hat leakage which gets set if vnr detects high voice probability. */
+    float_s32_t high_input_vnr_hold_leakage_alpha;
     /** Setting of H_hat leakage which gets set if fast ratio exceeds a threshold. */
     float_s32_t instability_recovery_leakage_alpha;
 
-    /** TODO: document*/
+    /** VNR input threshold which decides whether to hold or adapt the filter. */
     float_s32_t input_vnr_threshold;
+    /** VNR high threshold to leak the filter is the speech level is high. */
+    float_s32_t input_vnr_threshold_high;
+    /** VNR low threshold to adapt faster when the speech level is low. */
+    float_s32_t input_vnr_threshold_low;
 
-    /** TODO: document*/
-    uint8_t adapt_counter;
-    /** TODO: document*/
+    /** Limits number of frames for which mu and leakage_alpha could be adapted. */
     uint8_t adapt_counter_limit;
 
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
-    /** Boolean which controls whether Mu is automatically adjusted from the VAD input. */
-    uint8_t enable_adaption_controller;
+    /** Enum which controls the way mu and leakage_alpha are being adjusted. */
+    adaption_config_e adaption_config;
 
 }ic_adaption_controller_config_t;
 
@@ -101,14 +121,20 @@ typedef struct {
  */
 typedef struct {
 
-    /** TODO: document */
+    /** EMWA of input frame energy. */
     float_s32_t input_energy;
 
-    /** TODO: document */
+    /** EMWA of output frame energy. */
     float_s32_t output_energy;
 
-    /** TODO: document */
+    /** Ratio between output and input EMWA energies. */
     float_s32_t fast_ratio;
+
+    /** Adaption counter which counts number of frames has been adapted. */
+    uint8_t adapt_counter;
+
+    /** Flag that represents the state ao the filter. */
+    control_flag_e control_flag;
 
     /** Configuration parameters for the adaption controller. */
     ic_adaption_controller_config_t adaption_controller_config;
@@ -204,6 +230,8 @@ typedef struct {
 
     /** Mu value used for controlling adaption rate. */
     float_s32_t mu[IC_Y_CHANNELS][IC_X_CHANNELS];
+    /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. */
+    float_s32_t leakage_alpha;
     /** Used to keep track of peak X energy. */
     float_s32_t max_X_energy[IC_X_CHANNELS]; 
 

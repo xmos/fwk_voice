@@ -24,7 +24,7 @@ void test_simple_gain() {
     agc_init(&agc, &AGC_PROFILE_FIXED_GAIN);
 
     agc_meta_data_t md;
-    md.vad_flag = AGC_META_DATA_NO_VAD;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 

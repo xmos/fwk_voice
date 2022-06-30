@@ -64,10 +64,10 @@ void agc_process_frame(agc_state_t *agc,
                        const int32_t input[AGC_FRAME_ADVANCE],
                        agc_meta_data_t *meta_data)
 {
-    int vad_flag = meta_data->vad_flag;
+    int vnr_flag = meta_data->vnr_flag;
 
-    if (agc->config.adapt_on_vad == 0) {
-        vad_flag = 1;
+    if (agc->config.adapt_on_vnr == 0) {
+        vnr_flag = 1;
     }
 
     bfp_s32_t input_bfp;
@@ -102,7 +102,7 @@ void agc_process_frame(agc_state_t *agc,
         float_s32_t gained_max_abs_value = float_s32_mul(max_abs_value, agc->config.gain);
         unsigned exceed_threshold = float_s32_gte(gained_max_abs_value, agc->config.upper_threshold);
 
-        if (exceed_threshold || vad_flag) {
+        if (exceed_threshold || vnr_flag) {
             unsigned peak_rising = float_s32_gte(agc->x_fast, agc->x_peak);
             if (peak_rising) {
                 agc->x_peak = float_s32_ema(agc->x_peak, agc->x_fast, AGC_ALPHA_PEAK_RISE);

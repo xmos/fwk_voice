@@ -202,7 +202,7 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
-        agc_md.vad_flag = md.vnr_pred_flag;
+        agc_md.vnr_flag = md.vnr_pred_flag;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));
