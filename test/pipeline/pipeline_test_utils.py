@@ -7,6 +7,8 @@ import xscope_fileio, xtagctl
 import subprocess
 import re
 from conftest import pipeline_bins, pipeline_output_base_dir, keyword_input_base_dir, xtag_aquire_timeout_s
+import re
+from pathlib import Path
 
 def process_xcore(xe_file, input_file, output_file):
     input_file = os.path.abspath(input_file)
@@ -43,12 +45,13 @@ def process_file(input_file, arch, target="xcore"):
     output_file = os.path.join(pipeline_output_base_dir + "_" + arch + "_" + target, wav_name)
 
     pipeline_bin = pipeline_bins[arch][target]
+    stdout = ""
     if target == "xcore":
-        process_xcore(pipeline_bin, input_file, output_file)
+        stdout = process_xcore(pipeline_bin, input_file, output_file)
     else:
         process_x86(pipeline_bin, input_file, output_file)
 
-    return output_file
+    return output_file, stdout
 
 
 def get_wav_info(input_file):
@@ -84,3 +87,35 @@ def convert_keyword_wav(input_file, arch, target):
     # Strip off comms channel leaving just ASR. Sensory needs a 16b wav file
     subprocess.run(f"sox {input_file} -b 16 {keyword_file} remix 1".split())
     return keyword_file
+
+def log_vnr(stdo, input_file, arch, target):
+    if target == "xcore":
+        xcore_stdo = []
+        for line in stdo:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+
+        vnr_output_pred = np.empty(0, dtype=np.float64)
+        vnr_input_pred = np.empty(0, dtype=np.float64)
+        for line in xcore_stdo:
+            if "VNR INPUT PRED:" in line:
+                vnr_mant = float(line.split(" ")[-2])
+                vnr_exp = float(line.split(" ")[-1])
+                vnr = vnr_mant * (2.0 ** vnr_exp)
+                vnr_input_pred = np.append(vnr_input_pred, vnr)
+            elif "VNR OUTPUT PRED:" in line:
+                vnr_mant = float(line.split(" ")[-2])
+                vnr_exp = float(line.split(" ")[-1])
+                vnr = vnr_mant * (2.0 ** vnr_exp)
+                vnr_output_pred = np.append(vnr_output_pred, vnr)
+
+        if(len(vnr_input_pred) > 0):
+            filename = f"vnr_input_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
+            filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
+            np.save(filename, vnr_input_pred)
+
+        if(len(vnr_output_pred) > 0):
+            filename = f"vnr_output_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
+            filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
+            np.save(filename, vnr_output_pred)

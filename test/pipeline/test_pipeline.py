@@ -3,10 +3,13 @@
 
 import os, sys, shutil
 import pytest
-from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav
+from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav, log_vnr
 from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds
 from run_sensory import run_sensory
-from run_amazon_wwe import run_amazon_wwe
+
+if sys.platform != "darwin":
+    from run_amazon_wwe import run_amazon_wwe
+
 import time, fcntl
 
 
@@ -23,15 +26,22 @@ def test_pipelines(test, record_property):
     chans, rate, samps, bits = get_wav_info(input_file)
     print(f"Processing a {samps//rate}s track")
     t0 = time.time()
-    output_file = process_file(input_file, arch, target)
+    output_file, stdo = process_file(input_file, arch, target)
     tot = time.time() - t0
     print(f"Processing took {tot:.2f}s")
 
     keyword_file = convert_keyword_wav(output_file, arch, target)
     sensory_old_detections =run_sensory(keyword_file)
     sensory_new_detections =run_sensory(keyword_file, old_model=False)
-    amazon_detections = run_amazon_wwe(keyword_file)
+    if sys.platform != "darwin":
+        amazon_detections = run_amazon_wwe(keyword_file)
+    else:
+        amazon_detections = 0
     print(f"{wav_name} : kwd sensory detections {sensory_old_detections}, Amazon wwe detections {amazon_detections}", file=sys.stderr)
+    print(f"outputfile = {output_file}, keyword_file = {keyword_file}")
+
+    # Log vnr input and output predictions. Make sure PRINT_VNR_PREDICTION is defined as 1 in pipeline_multi_threaded/src/pipeline.c
+    log_vnr(stdo, input_file, arch, target)
 
     with open(results_log_file, "a") as log:
         fcntl.flock(log, fcntl.LOCK_EX)
