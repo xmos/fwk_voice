@@ -33,7 +33,8 @@ from common_utils import json_to_dict
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
-xe_path = os.path.join(os.environ['XMOS_ROOT'], 'fwk_voice/build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
 try:
     import test_wav_ic
     xe_files = ['py', xe_path]
