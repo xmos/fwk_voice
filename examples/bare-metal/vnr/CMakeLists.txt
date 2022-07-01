@@ -4,11 +4,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 ############# VNR example that has xscope host running on python. Doesn't work on M1 Mac and does not compile for x86
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
 
-    add_executable(avona_example_bare_metal_vnr)
+    add_executable(fwk_voice_example_bare_metal_vnr)
 
-    target_sources(avona_example_bare_metal_vnr PRIVATE src/main.c src/vnr_task.c)
+    target_sources(fwk_voice_example_bare_metal_vnr PRIVATE src/main.c src/vnr_task.c)
 
-    target_include_directories(avona_example_bare_metal_vnr PRIVATE src)
+    target_include_directories(fwk_voice_example_bare_metal_vnr PRIVATE src)
 
     set(APP_COMPILER_FLAGS
         -Os
@@ -19,22 +19,22 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         -Wno-xcore-fptrgroup    
         -target=${XCORE_TARGET}
     )
-    target_link_libraries(avona_example_bare_metal_vnr 
+    target_link_libraries(fwk_voice_example_bare_metal_vnr 
         PUBLIC
-            avona::vnr::features
-            avona::vnr::inference
-            avona::example::profile_xcore
+            fwk_voice::vnr::features
+            fwk_voice::vnr::inference
+            fwk_voice::example::profile_xcore
             )
 
-    target_sources(avona_example_bare_metal_vnr PRIVATE src/main.xc)
+    target_sources(fwk_voice_example_bare_metal_vnr PRIVATE src/main.xc)
 
-    target_compile_options(avona_example_bare_metal_vnr
+    target_compile_options(fwk_voice_example_bare_metal_vnr
         PRIVATE ${APP_COMPILER_FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/config.xscope)
 
-    target_compile_definitions(avona_example_bare_metal_vnr
+    target_compile_definitions(fwk_voice_example_bare_metal_vnr
         PRIVATE PROFILE_PROCESSING=1)
     
-    target_link_options(avona_example_bare_metal_vnr
+    target_link_options(fwk_voice_example_bare_metal_vnr
         PRIVATE
             -w            
             "-target=${XCORE_TARGET}"
@@ -45,30 +45,30 @@ endif()
 ##########################################################################
 
 ############# VNR example that uses xscope_fileio to run python host. Works on M1 Mac and compiles for both xcore device and x86
-add_executable(avona_example_bare_metal_vnr_fileio)
+add_executable(fwk_voice_example_bare_metal_vnr_fileio)
 
-target_sources(avona_example_bare_metal_vnr_fileio PRIVATE src/with_fileio/vnr_task.c)
+target_sources(fwk_voice_example_bare_metal_vnr_fileio PRIVATE src/with_fileio/vnr_task.c)
 
-target_link_libraries(avona_example_bare_metal_vnr_fileio 
+target_link_libraries(fwk_voice_example_bare_metal_vnr_fileio 
     PUBLIC
-        avona::vnr::features
-        avona::vnr::inference
-        avona::example::fileutils
+        fwk_voice::vnr::features
+        fwk_voice::vnr::inference
+        fwk_voice::example::fileutils
         )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_sources(avona_example_bare_metal_vnr_fileio PRIVATE src/with_fileio/main.xc)
-    target_link_libraries(avona_example_bare_metal_vnr_fileio 
+    target_sources(fwk_voice_example_bare_metal_vnr_fileio PRIVATE src/with_fileio/main.xc)
+    target_link_libraries(fwk_voice_example_bare_metal_vnr_fileio 
         PUBLIC
-            avona::example::profile_xcore
+            fwk_voice::example::profile_xcore
             )
-    target_compile_options(avona_example_bare_metal_vnr_fileio
+    target_compile_options(fwk_voice_example_bare_metal_vnr_fileio
         PRIVATE ${APP_COMPILER_FLAGS} ${CONFIG_XSCOPE_PATH}/config.xscope)
 
-    target_compile_definitions(avona_example_bare_metal_vnr_fileio
+    target_compile_definitions(fwk_voice_example_bare_metal_vnr_fileio
         PRIVATE PROFILE_PROCESSING=1)
 
-    target_link_options(avona_example_bare_metal_vnr_fileio
+    target_link_options(fwk_voice_example_bare_metal_vnr_fileio
         PRIVATE
             -w            
             "-target=${XCORE_TARGET}"
@@ -82,15 +82,15 @@ else()
       "-D__xtflm_conf_h_exists__"
       "-DNN_USE_REF"
     )
-    target_compile_options(avona_example_bare_metal_vnr_fileio
+    target_compile_options(fwk_voice_example_bare_metal_vnr_fileio
         PRIVATE ${BUILD_FLAGS})
 
-    target_link_options(avona_example_bare_metal_vnr_fileio
+    target_link_options(fwk_voice_example_bare_metal_vnr_fileio
         PRIVATE
             ${BUILD_FLAGS})
 
-    target_link_libraries(avona_example_bare_metal_vnr_fileio PRIVATE "-lpthread")
-    target_link_libraries(avona_example_bare_metal_vnr_fileio PRIVATE m)
+    target_link_libraries(fwk_voice_example_bare_metal_vnr_fileio PRIVATE "-lpthread")
+    target_link_libraries(fwk_voice_example_bare_metal_vnr_fileio PRIVATE m)
 
 endif()
 

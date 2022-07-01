@@ -1,5 +1,5 @@
 
-set(APP_NAME avona_shared_src_calc_vnr_pred)
+set(APP_NAME fwk_voice_shared_src_calc_vnr_pred)
 
 add_library(${APP_NAME} INTERFACE)
 target_sources(${APP_NAME}
@@ -12,8 +12,8 @@ target_include_directories(${APP_NAME}
 )
 target_link_libraries(${APP_NAME}
     INTERFACE
-        avona::vnr::features
-        avona::vnr::inference        
+        fwk_voice::vnr::features
+        fwk_voice::vnr::inference        
 )
 
-add_library(avona::shared::calc_vnr_pred ALIAS ${APP_NAME})
+add_library(fwk_voice::shared::calc_vnr_pred ALIAS ${APP_NAME})

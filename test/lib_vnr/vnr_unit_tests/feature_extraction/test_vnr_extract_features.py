@@ -9,7 +9,7 @@ import tensorflow as tf
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
-xe = os.path.join(exe_dir, 'avona_test_vnr_extract_features.xe')
+xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_extract_features.xe')
 
 def test_vnr_extract_features(target, tflite_model, verbose=False):
     np.random.seed(1243)

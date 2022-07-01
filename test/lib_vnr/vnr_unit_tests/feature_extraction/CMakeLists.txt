@@ -22,7 +22,7 @@ foreach(testfile ${TEST_SOURCES})
     get_filename_component(TESTNAME ${testfile} NAME_WLE)
     #########
     ## Add a build target
-    set(APP_NAME avona_${TESTNAME})
+    set(APP_NAME fwk_voice_${TESTNAME})
     add_executable(${APP_NAME})
 
     target_sources(${APP_NAME} PRIVATE ${COMMON_SOURCES_C} ${testfile})
@@ -31,13 +31,13 @@ foreach(testfile ${TEST_SOURCES})
     
     target_link_libraries(${APP_NAME} 
         PUBLIC
-            avona::vnr::features
-            avona::example::fileutils)
+            fwk_voice::vnr::features
+            fwk_voice::example::fileutils)
 
     if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_vnr_extract_features.c )
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                avona_module_lib_vnr_inference_only_for_testing # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
+                fwk_voice_module_lib_vnr_inference_only_for_testing # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
                 )
     endif()
 

@@ -7,7 +7,7 @@
 
 import subprocess
 
-xs3_math_types_api_dir = "../../../build/avona_deps/lib_xs3_math/lib_xs3_math/api"
+xs3_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xs3_math/lib_xs3_math/api"
 lib_vnr_api_dir = "../../../modules/lib_vnr/api/features/"
 lib_vnr_defines_dir = "../../../modules/lib_vnr/api/common/"
 lib_vnr_inference_api_dir = "../../../modules/lib_vnr/api/inference/"

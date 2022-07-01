@@ -33,7 +33,8 @@ from common_utils import json_to_dict
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
-xe_path = os.path.join(os.environ['XMOS_ROOT'], 'sw_avona/build/test/lib_ic/test_ic_spec/bin/avona_test_ic_spec.xe')
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
 try:
     import test_wav_ic
     xe_files = ['py', xe_path]
@@ -107,7 +108,7 @@ test_vectors = [
 #             invert_check=['convergence']),
     TestCase('Short Echo', filters.Identity(), filters.ShortEcho()),
 #    TestCase('Zero at 5', filters.Identity(), filters.ZeroAt(5)),
-# This test case has been disabled, for details see issue 320 in sw_avona
+# This test case has been disabled, for details see issue 320 in fwk_voice
 #    TestCase('Moving source', filters.Identity(), filters.MovingSource(move_frequency=1.5),
 #             dont_check=['stability']),
 ]
