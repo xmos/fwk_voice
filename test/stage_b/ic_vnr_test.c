@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "ic_api.h"
 #include "ic_low_level.h"
-#include "vnr_features_api.h"
-#include "vnr_inference_api.h"
 #include "calc_vnr_pred.h"
 
 ic_state_t ic_state;

@@ -64,8 +64,6 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
 """
     #include "ic_api.h"
     #include "ic_low_level.h"
-    #include "vnr_features_api.h"
-    #include "vnr_inference_api.h"
     #include "calc_vnr_pred.h"
     void test_init(void);
     ic_state_t test_get_ic_state(void);
@@ -82,7 +80,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
                 '../../../build/test/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_calc_vnr_pred_only_for_testing', 'avona_module_lib_vnr_inference_only_for_testing', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['avona_module_lib_ic', 'avona_module_lib_aec', 'avona_calc_vnr_pred_only_for_testing', 'avona_module_lib_vnr_features', 'avona_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
