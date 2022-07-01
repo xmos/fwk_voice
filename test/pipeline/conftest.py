@@ -61,7 +61,7 @@ def pytest_sessionstart(session):
     else:
         architectures = ["alt_arch"]
 
-    input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if filename.endswith(".wav")]
+    input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav") and ('DUT' in filename))]
     for input_wav_file in input_wav_files:
         #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
         if '._InHouse' in input_wav_file:
