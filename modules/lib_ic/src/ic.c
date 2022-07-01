@@ -4,7 +4,7 @@
 #include "ic_low_level.h"
 #include "q_format.h"
 
-//For use when dumping variables for debug
+// For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
 
@@ -56,49 +56,49 @@ void ic_init(ic_state_t *state){
     memset(state, 0, sizeof(ic_state_t));
     const exponent_t zero_exp = -1024;
     
-    //H_hat
+    // H_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         for(unsigned ph=0; ph<(IC_X_CHANNELS * IC_FILTER_PHASES); ph++) {
             bfp_complex_s32_init(&state->H_hat_bfp[ch][ph], state->H_hat[ch][ph], zero_exp, IC_FD_FRAME_LENGTH, 0);
         }
     }
-    //X_fifo
+    // X_fifo
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         for(unsigned ph=0; ph<IC_FILTER_PHASES; ph++) {
             bfp_complex_s32_init(&state->X_fifo_bfp[ch][ph], state->X_fifo[ch][ph], zero_exp, IC_FD_FRAME_LENGTH, 0);
             bfp_complex_s32_init(&state->X_fifo_1d_bfp[ch * IC_FILTER_PHASES + ph], state->X_fifo[ch][ph], zero_exp, IC_FD_FRAME_LENGTH, 0);
         }
     }
-    //initialise Error
+    // Initialise Error
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->Error_bfp[ch], state->Error[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
         bfp_s32_init(&state->error_bfp[ch], (int32_t *)state->Error[ch], zero_exp, IC_FRAME_LENGTH, 0);
     }
-    //Initiaise Y_hat
+    // Initiaise Y_hat
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->Y_hat_bfp[ch], state->Y_hat[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
     }
-    //X_energy 
+    // X_energy 
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_s32_init(&state->X_energy_bfp[ch], state->X_energy[ch], zero_exp, IC_FD_FRAME_LENGTH, 0); 
     }
     state->X_energy_recalc_bin = 0;
 
-    //sigma_XX
+    // sigma_XX
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_s32_init(&state->sigma_XX_bfp[ch], state->sigma_XX[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
     }
-    //inv_X_energy
+    // inv_X_energy
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_s32_init(&state->inv_X_energy_bfp[ch], state->inv_X_energy[ch], zero_exp, IC_FD_FRAME_LENGTH, 0); 
     }
 
-    //overlap
+    // overlap
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->overlap_bfp[ch], state->overlap[ch], zero_exp, IC_FRAME_OVERLAP, 0);
     }
 
-    //Y, note in-place with y
+    // Y, note in-place with y
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_s32_init(&state->y_bfp[ch], state->y[ch], zero_exp, IC_FRAME_LENGTH, 0);
         bfp_complex_s32_init(&state->Y_bfp[ch], (complex_s32_t*)state->y[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
@@ -108,7 +108,7 @@ void ic_init(ic_state_t *state){
         bfp_s32_init(&state->prev_y_bfp[ch], state->y_prev_samples[ch], zero_exp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, 0);
     }
 
-    //X, note in-place with x
+    // X, note in-place with x
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_s32_init(&state->x_bfp[ch], state->x[ch], zero_exp, IC_FRAME_LENGTH, 0);
         bfp_complex_s32_init(&state->X_bfp[ch], (complex_s32_t*)state->x[ch], zero_exp, IC_FD_FRAME_LENGTH, 0);
@@ -117,12 +117,12 @@ void ic_init(ic_state_t *state){
         bfp_s32_init(&state->prev_x_bfp[ch], state->x_prev_samples[ch], zero_exp, IC_FRAME_LENGTH - IC_FRAME_ADVANCE, 0);
     }
 
-    //Reuse X memory for calculating T. Note we re-initialise T_bfp in ic_frame_init()
+    // Reuse X memory for calculating T. Note we re-initialise T_bfp in ic_frame_init()
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    //Mu
+    // mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = double_to_float_s32(IC_INIT_MU);
@@ -131,7 +131,7 @@ void ic_init(ic_state_t *state){
 
     state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
 
-    //Initialise ic core config params and adaption controller
+    // Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);
     ic_init_adaption_controller(&state->ic_adaption_controller_state);    
 }
@@ -148,13 +148,13 @@ void ic_filter(
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
-    ///Delay y channel, necessary for operation of adaptive filter
+    // Delay y channel, necessary for operation of adaptive filter
     ic_delay_y_input(state, y_data);
 
-    ///Build a time domain frame of IC_FRAME_LENGTH from IC_FRAME_ADVANCE new samples
+    // Build a time domain frame of IC_FRAME_LENGTH from IC_FRAME_ADVANCE new samples
     ic_frame_init(state, y_data, x_data);
 
-    ///calculate input td ema energies
+    // Calculate input td ema energies
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_update_td_ema_energy(&ad_state->input_energy, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
                                 IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
@@ -168,7 +168,7 @@ void ic_filter(
         ic_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
     }
 
-    //Update X_energy
+    // Update X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_update_X_energy(state, ch, state->X_energy_recalc_bin);
     }
@@ -178,39 +178,36 @@ void ic_filter(
         state->X_energy_recalc_bin = 0;
     }
 
-    //update X_fifo with the new X and calcualate sigma_XX
+    // Update X_fifo with the new X and calcualate sigma_XX
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_update_X_fifo_and_calc_sigmaXX(state, ch);
     }
 
-    //Update the 1 dimensional bfp structs that are also used to access X_fifo
+    // Update the 1 dimensional bfp structs that are also used to access X_fifo
     ic_update_X_fifo_1d(state);
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_calc_Error_and_Y_hat(state, ch);
     }
 
-    //IFFT Error (output)
+    // IFFT Error (output)
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
     }
 
-    //Note the model supports noise minimisation but we have not ported this
-    //as it has not been found to aid ASR performance
+    // Note the model supports noise minimisation but we have not ported this
+    // as it has not been found to aid ASR performance
 
-    //Window error. Calculate output
+    // Window error. Calculate output
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_create_output(state, output, ch);
     }
 
-    ///calculate output td ema energies
-    //bfp_s32_t output_bfp;
-    //bfp_s32_init(&output_bfp, output, -31, IC_FRAME_ADVANCE, 1);
-    //ic_update_td_ema_energy(&ad_state->output_energy, &output_bfp, 0, IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+    // Calculate output td ema energies
     ic_update_td_ema_energy(&ad_state->output_energy, &state->error_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
                             IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
 
-    //error -> Error FFT
+    // error -> Error FFT
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
     }
@@ -230,17 +227,17 @@ void ic_adapt(
         return;
     }
    
-    //Calculate leakage and mu for adaption
+    // Calculate leakage and mu for adaption
     ic_mu_control_system(state, vnr);
    
-    //calculate inv_X_energy
+    // Calculate inv_X_energy
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
         ic_calc_inv_X_energy(state, ch);
     }
    
-    //Adapt H_hat
+    // Adapt H_hat
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
-        //There's only enough memory to store IC_X_CHANNELS worth of T data and not IC_Y_CHANNELS*IC_X_CHANNELS so the y_channels for loop cannot be run in parallel
+        // There's only enough memory to store IC_X_CHANNELS worth of T data and not IC_Y_CHANNELS*IC_X_CHANNELS so the y_channels for loop cannot be run in parallel
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             ic_compute_T(state, ych, xch);
 
@@ -248,7 +245,7 @@ void ic_adapt(
         ic_filter_adapt(state);
     }
 
-    //Apply H_hat leakage to slowly forget adaption
+    // Apply H_hat leakage to slowly forget adaption
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         ic_apply_leakage(state, ych);
     }
