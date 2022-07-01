@@ -14,7 +14,7 @@ Requirements
 Building
 --------
 
-The following instructions show how to build the XMOS Voice Framework and run one of the example applications. This
+The following instructions show how to build the Voice Framework and run one of the example applications. This
 procedure is currently supported on MacOS and Linux only.
 
 #. Enter the clone of the Voice Framework and initialise submodules
