@@ -19,14 +19,13 @@ set(XCORE_XS3A_SOURCES ${LIB_ASM_SOURCES})
 list(APPEND XCORE_XS3A_SOURCES ${LIB_XC_SOURCES})
 
 ## Set any local library compile options
-set(LIB_COMPILE_FLAGS "-Os")
+set(LIB_COMPILE_FLAGS "-Os" "-g")
 if(PROJECT_IS_TOP_LEVEL)
     if(NOT CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
         ## Needed for CFFI tests
         list(APPEND LIB_COMPILE_FLAGS "-fPIC")
     endif()
 endif()
-
 
 ## Includes files
 set(LIB_PUBLIC_INCLUDES

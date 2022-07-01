@@ -3,10 +3,6 @@
 #ifndef IC_API_H
 #define IC_API_H
 
-#include <stdio.h>
-#include <string.h>
-#include "xs3_math.h"
-#include "bfp_math.h"
 #include "ic_state.h"
 
 /**
@@ -59,21 +55,19 @@ void ic_filter(ic_state_t *state,
                       int32_t output[IC_FRAME_ADVANCE]);
 
 /**
- * @brief Adapts the IC filter according to previous frame's statistics and VAD input
+ * @brief Adapts the IC filter according to previous frame's statistics and VNR input
  *
  * This function should be called after each call to ic_filter.
- * Filter and adapt functions are seprated so that the external VAD function can operate
- * on that frame's filtered samples.
+ * Filter and adapt functions are seprated so that the external VNR can operate
+ * on each frame.
  *
  * @param[inout] state pointer to IC state structure
- * @param[in] vad VAD probability between 0 (0% VAD probability) and 255 (100% VAD probability)
- * @param[in] output array reference to previously filtered output samples
+ * @param[in] vnr VNR Voice-to-Noise ratio estimation
  *
  * @ingroup ic_func
  */
 void ic_adapt(ic_state_t *state,
-                      uint8_t vad,
-                      int32_t output[IC_FRAME_ADVANCE]);
+                      float_s32_t vnr);
 
 #ifdef __XC__
 #error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES

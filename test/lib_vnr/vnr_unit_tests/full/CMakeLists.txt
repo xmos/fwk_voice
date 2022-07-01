@@ -17,7 +17,7 @@ set(APP_COMPILER_FLAGS
 )
 
 file(GLOB TEST_SOURCES src/test_*.c)
-message(STATUS "${TEST_SOURCES}")
+#message(STATUS "${TEST_SOURCES}")
 foreach(testfile ${TEST_SOURCES})
     get_filename_component(TESTNAME ${testfile} NAME_WLE)
     #########

@@ -12,10 +12,13 @@ void ic_priv_init_config_params(ic_config_params_t *config_params);
 
 void ic_adaption_controller_init(ic_adaption_controller_state_t *state);
 
-//Sets IC mu and leakage depending on VAD probability
-void ic_adaption_controller(
+//Sets IC mu and leakage depending on VNR probability
+void ic_mu_control_system(
         ic_state_t *state, 
-        uint8_t vad);
+        float_s32_t vnr);
+
+// calculates fast energy
+void ic_calc_fast_ratio(ic_adaption_controller_state_t * ad_state);
 
 /// Adapt H_hat
 void ic_filter_adapt(ic_state_t *state);
@@ -129,7 +132,7 @@ void ic_l2_bfp_s32_unify_exponent(
         int min_headroom);
 
 // Clear coefficients to zero
-void ic_reset_filter(ic_state_t *state);
+void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]);
 
 // Leak H_hat to forget adaption
 void ic_apply_leakage(
