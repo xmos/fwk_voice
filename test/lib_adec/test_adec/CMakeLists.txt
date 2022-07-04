@@ -9,7 +9,7 @@ set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen )
 set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
 set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_task_distribution.h ${AUTOGEN_DIR}/aec_config.h)
 
-message(STATUS "avona_test_adec build config:  ${TEST_ADEC_BUILD_CONFIG}" )
+message(STATUS "fwk_voice_test_adec build config:  ${TEST_ADEC_BUILD_CONFIG}" )
 set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
 
 unset(GEN_SCHEDULE_SCRIPT_ARGS) 
@@ -21,28 +21,28 @@ file(MAKE_DIRECTORY ${AUTOGEN_DIR})
 add_custom_command(
 OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
 COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-COMMENT "Generating avona_test_adec task distribution and top level config" )
+COMMENT "Generating fwk_voice_test_adec task distribution and top level config" )
 
 #######################
-add_executable(avona_test_adec)
+add_executable(fwk_voice_test_adec)
 
-target_sources(avona_test_adec
+target_sources(fwk_voice_test_adec
     PRIVATE
         ${AUTOGEN_SOURCES})
 
-target_include_directories(avona_test_adec
+target_include_directories(fwk_voice_test_adec
     PRIVATE
         ${AUTOGEN_DIR})
 
-target_link_libraries(avona_test_adec
+target_link_libraries(fwk_voice_test_adec
     PUBLIC
-        avona::test::shared_test_wav_adec)
+        fwk_voice::test::shared_test_wav_adec)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    target_compile_options(avona_test_adec
+    target_compile_options(fwk_voice_test_adec
         PRIVATE "-target=${XCORE_TARGET}")
 
-    target_link_options(avona_test_adec
+    target_link_options(fwk_voice_test_adec
         PRIVATE
             "-target=${XCORE_TARGET}"
             "-report"

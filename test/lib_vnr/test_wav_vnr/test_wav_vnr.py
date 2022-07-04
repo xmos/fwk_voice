@@ -81,9 +81,9 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     #################################################################################
     # Run DUT
     if target == 'xcore':
-        run_xcoreai.run(os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr.xe"), input_file)
+        run_xcoreai.run(os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/fwk_voice_test_wav_vnr.xe"), input_file)
     elif target == 'x86':
-        subprocess.run([os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/avona_test_wav_vnr"), input_file], check=True)
+        subprocess.run([os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/fwk_voice_test_wav_vnr"), input_file], check=True)
 
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:

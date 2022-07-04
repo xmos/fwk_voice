@@ -61,7 +61,7 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
@@ -83,10 +83,10 @@ pipeline {
               }
             }
             dir("${REPO}") {
-              stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
+              stash name: 'cmake_build_x86_examples', includes: 'build/**/fwk_voice_example_bare_metal_*'
               // We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
-              archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              archiveArtifacts artifacts: "build/**/fwk_voice_example_bare_metal_*", fingerprint: true
               stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
@@ -97,10 +97,10 @@ pipeline {
                   sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
                       }
                   }
                   sh "make -j8"
@@ -151,11 +151,11 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
                   sh "make -j8"
 
                   // We need to put this here because it is not fetched until we build
-                  sh "pip install -e avona_deps/xscope_fileio"
+                  sh "pip install -e fwk_voice_deps/xscope_fileio"
 
                 }
               }
@@ -183,14 +183,14 @@ pipeline {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/aec_2_threads") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   // Make sure 1 thread and 2 threads output is bitexact
                   sh "diff output.wav ../aec_1_thread/output.wav"
                 }
@@ -199,7 +199,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/ic") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
                   sh "mv output.wav ic_example_output.wav"
                 }
               }
@@ -208,21 +208,21 @@ pipeline {
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   // Make sure single thread and multi threads pipeline output is bitexact
                   sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
@@ -231,10 +231,10 @@ pipeline {
             dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   sh "mv output.wav output_st.wav"
 
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   sh "mv output.wav output_mt.wav"
                   sh "diff output_st.wav output_mt.wav"
                 }
@@ -243,7 +243,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
                 }
               }
             }

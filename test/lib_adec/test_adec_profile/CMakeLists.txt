@@ -30,37 +30,37 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 
 #######
-    add_executable(avona_test_adec_profile_${CONFIG_STR})
+    add_executable(fwk_voice_test_adec_profile_${CONFIG_STR})
 
-    target_sources(avona_test_adec_profile_${CONFIG_STR}
+    target_sources(fwk_voice_test_adec_profile_${CONFIG_STR}
         PRIVATE
             ${AUTOGEN_SOURCES})
 
-    target_include_directories(avona_test_adec_profile_${CONFIG_STR}
+    target_include_directories(fwk_voice_test_adec_profile_${CONFIG_STR}
         PRIVATE
             ${AUTOGEN_DIR})
 
-    target_link_libraries(avona_test_adec_profile_${CONFIG_STR}
+    target_link_libraries(fwk_voice_test_adec_profile_${CONFIG_STR}
         PUBLIC
-            avona::test::shared_test_wav_adec
-            avona::example::profile_xcore
+            fwk_voice::test::shared_test_wav_adec
+            fwk_voice::example::profile_xcore
             )
 
-    target_compile_definitions(avona_test_adec_profile_${CONFIG_STR}
+    target_compile_definitions(fwk_voice_test_adec_profile_${CONFIG_STR}
         PRIVATE
             PROFILE_PROCESSING=1)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-        target_compile_options(avona_test_adec_profile_${CONFIG_STR}
+        target_compile_options(fwk_voice_test_adec_profile_${CONFIG_STR}
             PRIVATE "-target=${XCORE_TARGET}")
 
-        target_link_options(avona_test_adec_profile_${CONFIG_STR}
+        target_link_options(fwk_voice_test_adec_profile_${CONFIG_STR}
             PRIVATE
                 "-target=${XCORE_TARGET}"
                 "-report"
                 "${CMAKE_CURRENT_SOURCE_DIR}/config.xscope")
     else()
-        target_link_libraries(avona_test_adec_profile_${CONFIG_STR}
+        target_link_libraries(fwk_voice_test_adec_profile_${CONFIG_STR}
             PRIVATE m)
     endif()
 endforeach()
