@@ -49,7 +49,7 @@ def process_file(input_file, arch, target="xcore"):
     if target == "xcore":
         stdout = process_xcore(pipeline_bin, input_file, output_file)
     else:
-        process_x86(pipeline_bin, input_file, output_file)
+        stdout = process_x86(pipeline_bin, input_file, output_file)
 
     return output_file, stdout
 
@@ -89,13 +89,17 @@ def convert_keyword_wav(input_file, arch, target):
     return keyword_file
 
 def log_vnr(stdo, input_file, arch, target):
-    if target == "xcore":
+    if True: #target == "xcore":
         xcore_stdo = []
-        for line in stdo:
-            m = re.search(r'^\s*\[DEVICE\]', line)
-            if m is not None:
-                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
-
+        if target == "xcore":
+            for line in stdo:
+                m = re.search(r'^\s*\[DEVICE\]', line)
+                if m is not None:
+                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+        else:
+            for line in stdo.split('\n'):
+                xcore_stdo.append(line)
+        
         vnr_output_pred = np.empty(0, dtype=np.float64)
         vnr_input_pred = np.empty(0, dtype=np.float64)
         for line in xcore_stdo:
@@ -109,7 +113,7 @@ def log_vnr(stdo, input_file, arch, target):
                 vnr_exp = float(line.split(" ")[-1])
                 vnr = vnr_mant * (2.0 ** vnr_exp)
                 vnr_output_pred = np.append(vnr_output_pred, vnr)
-
+        
         if(len(vnr_input_pred) > 0):
             filename = f"vnr_input_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
             filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
