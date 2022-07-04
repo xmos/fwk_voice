@@ -39,10 +39,10 @@ typedef struct {
     /** Boolean to enable AGC adaption; if enabled, the gain to apply will adapt based on the
      *  peak of the input frame and the upper/lower threshold parameters. */
     int adapt;
-    /** Boolean to enable adaption based on the VAD meta-data; if enabled, adaption will always
+    /** Boolean to enable adaption based on the VNR meta-data; if enabled, adaption will always
      *  be performed when voice activity is detected. This must be disabled if the application
-     *  doesn't have a VAD. */
-    int adapt_on_vad;
+     *  doesn't have a VNR. */
+    int adapt_on_vnr;
     /** Boolean to enable soft-clipping of the output frame. */
     int soft_clipping;
     /** The current gain to be applied, not including loss control. */
@@ -167,7 +167,7 @@ void agc_init(agc_state_t *agc, agc_config_t *config);
  */
 typedef struct {
     /** Boolean to indicate the detection of voice activity in the current frame. */
-    int vad_flag;
+    int vnr_flag;
     /** The power of the most powerful reference channel. */
     float_s32_t aec_ref_power;
     /** Correlation factor between the microphone input and the AEC's estimated microphone
@@ -176,20 +176,20 @@ typedef struct {
 } agc_meta_data_t;
 
 /**
- * If the application has no VAD, `adapt_on_vad` must be disabled in the configuration. This
- * pre-processor definition can be assigned to the `vad_flag` in `agc_meta_data_t` in that
- * situation to make it clear in the code that there is no VAD.
+ * If the application has no VNR, `adapt_on_vnr` must be disabled in the configuration. This
+ * pre-processor definition can be assigned to the `vnr_flag` in `agc_meta_data_t` in that
+ * situation to make it clear in the code that there is no VNR.
  *
  * @ingroup agc_defs
  */
-#define AGC_META_DATA_NO_VAD 0u
+#define AGC_META_DATA_NO_VNR 0u
 
 /**
- * If the application has VAD, `adapt_on_vad` can be enabled in the configuration. This
- * define is used to covert VAD value from uint8_t to boolean.  
+ * If the application has VNR, `adapt_on_vnr` can be enabled in the configuration. This
+ * define is used to covert VNR value from uint8_t to boolean.  
  * 
  */
-#define AGC_VAD_THRESHOLD 205
+#define AGC_VNR_THRESHOLD 205
 
 /**
  * If the application has no AEC, `lc_enabled` must be disabled in the configuration. This
@@ -211,14 +211,14 @@ typedef struct {
  * @param[inout] agc      AGC state structure
  * @param[out] output     Array to return the resulting frame of data
  * @param[in] input       Array of frame data on which to perform the AGC
- * @param[in] meta_data   Meta-data structure with VAD/AEC data
+ * @param[in] meta_data   Meta-data structure with VNR/AEC data
  *
  * @par Example
  * @code{.c}
  *      int32_t input[AGC_FRAME_ADVANCE];
         int32_t output[AGC_FRAME_ADVANCE];
         agc_meta_data md;
-        md.vad_flag = AGC_META_DATA_NO_VAD;
+        md.vnr_flag = AGC_META_DATA_NO_VNR;
         md.aec_ref_power = AGC_META_DATA_NO_AEC;
         md.aec_corr_factor = AGC_META_DATA_NO_AEC;
         agc_process_frame(&agc, output, input, &md);

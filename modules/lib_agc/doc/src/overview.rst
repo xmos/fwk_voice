@@ -9,7 +9,7 @@ levels for voice audio.
 
 The gain control can adapt to maintain the amplitude of the peak of the frame
 within an upper and lower bound configured for the AGC instance. When used in an
-application with a Voice Activity Detector (VAD), the AGC will adapt only when
+application with a Voice to Noise Ratio estimator (VNR), the AGC will adapt only when
 voice activity is detected, so that speech in the input signal is amplified
 above other sounds.
 

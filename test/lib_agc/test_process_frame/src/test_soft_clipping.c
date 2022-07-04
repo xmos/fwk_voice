@@ -17,21 +17,21 @@ void test_soft_clipping() {
 
     agc_state_t agc_clip;
     agc_config_t conf_clip = AGC_PROFILE_ASR;
-    conf_clip.adapt_on_vad = 0;
+    conf_clip.adapt_on_vnr = 0;
     conf_clip.soft_clipping = 1;
     conf_clip.lc_enabled = 0;
     agc_init(&agc_clip, &conf_clip);
 
     agc_state_t agc_no_clip;
     agc_config_t conf_no_clip = AGC_PROFILE_ASR;
-    conf_no_clip.adapt_on_vad = 0;
+    conf_no_clip.adapt_on_vnr = 0;
     conf_no_clip.soft_clipping = 0;
     conf_no_clip.lc_enabled = 0;
     agc_init(&agc_no_clip, &conf_no_clip);
 
     // Meta-data is constant and can be shared by the two AGC instances
     agc_meta_data_t md;
-    md.vad_flag = AGC_META_DATA_NO_VAD;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 

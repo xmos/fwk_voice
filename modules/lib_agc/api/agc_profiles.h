@@ -26,7 +26,7 @@
  */
 #define AGC_PROFILE_ASR (agc_config_t){ \
     .adapt = 1, \
-    .adapt_on_vad = 1, \
+    .adapt_on_vnr = 1, \
     .soft_clipping = 1, \
     .gain = float_to_float_s32(500), \
     .max_gain = float_to_float_s32(1000), \
@@ -58,7 +58,7 @@
  */
 #define AGC_PROFILE_FIXED_GAIN (agc_config_t){ \
     .adapt = 0, \
-    .adapt_on_vad = 0, \
+    .adapt_on_vnr = 0, \
     .soft_clipping = 0, \
     .gain = float_to_float_s32(25), \
     .max_gain = float_to_float_s32(0), \
