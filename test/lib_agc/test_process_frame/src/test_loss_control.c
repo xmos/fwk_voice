@@ -32,34 +32,34 @@ void test_loss_control() {
 
     agc_state_t agc_near;
     agc_config_t conf_near = AGC_PROFILE_COMMS;
-    conf_near.adapt_on_vad = 0;
+    conf_near.adapt_on_vnr = 0;
 
     agc_meta_data_t md_near;
-    md_near.vad_flag = AGC_META_DATA_NO_VAD;
+    md_near.vnr_flag = AGC_META_DATA_NO_VNR;
     md_near.aec_corr_factor = float_to_float_s32(TEST_LC_NEAR_CORR);
 
     agc_state_t agc_far;
     agc_config_t conf_far = AGC_PROFILE_COMMS;
-    conf_far.adapt_on_vad = 0;
+    conf_far.adapt_on_vnr = 0;
 
     agc_meta_data_t md_far;
-    md_far.vad_flag = AGC_META_DATA_NO_VAD;
+    md_far.vnr_flag = AGC_META_DATA_NO_VNR;
     md_far.aec_corr_factor = float_to_float_s32(TEST_LC_FAR_CORR);
 
     agc_state_t agc_double_talk;
     agc_config_t conf_double_talk = AGC_PROFILE_COMMS;
-    conf_double_talk.adapt_on_vad = 0;
+    conf_double_talk.adapt_on_vnr = 0;
 
     agc_meta_data_t md_double_talk;
-    md_double_talk.vad_flag = AGC_META_DATA_NO_VAD;
+    md_double_talk.vnr_flag = AGC_META_DATA_NO_VNR;
     md_double_talk.aec_corr_factor = float_to_float_s32(TEST_LC_DT_CORR);
 
     agc_state_t agc_silence;
     agc_config_t conf_silence = AGC_PROFILE_COMMS;
-    conf_silence.adapt_on_vad = 0;
+    conf_silence.adapt_on_vnr = 0;
 
     agc_meta_data_t md_silence;
-    md_silence.vad_flag = AGC_META_DATA_NO_VAD;
+    md_silence.vnr_flag = AGC_META_DATA_NO_VNR;
     md_silence.aec_corr_factor = float_to_float_s32(TEST_LC_SILENCE_CORR);
 
     // Scale the input by 0.5 to avoid the AGC adaption upper threshold

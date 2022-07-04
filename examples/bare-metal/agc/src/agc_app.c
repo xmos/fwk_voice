@@ -55,17 +55,17 @@ void agc_task(const char *input_file_name, const char *output_file_name) {
 
 
     // Initialise the AGC configuration using one of the pre-defined profiles in api/agc_profiles.h, and then
-    // make any alterations to the defaults. In this application, there is no VAD, so adapt_on_vad must be
+    // make any alterations to the defaults. In this application, there is no VNR, so adapt_on_vnr must be
     // disabled.
     agc_config_t conf = AGC_PROFILE_ASR;
-    conf.adapt_on_vad = 0;
+    conf.adapt_on_vnr = 0;
 
     agc_state_t agc;
     agc_init(&agc, &conf);
 
-    // Initialise the meta-data. Since this application has neither VAD nor AEC, the meta-data will be
-    // constant and can use these pre-defined values to make clear the absence of VAD and AEC.
-    agc_meta_data_t md = {AGC_META_DATA_NO_VAD, AGC_META_DATA_NO_AEC, AGC_META_DATA_NO_AEC};
+    // Initialise the meta-data. Since this application has neither VNR nor AEC, the meta-data will be
+    // constant and can use these pre-defined values to make clear the absence of VNR and AEC.
+    agc_meta_data_t md = {AGC_META_DATA_NO_VNR, AGC_META_DATA_NO_AEC, AGC_META_DATA_NO_AEC};
 
     for (unsigned bl = 0; bl < block_count; ++bl) {
         long input_location =  wav_get_frame_start(&input_header_struct, bl * AGC_FRAME_ADVANCE, input_header_size);
