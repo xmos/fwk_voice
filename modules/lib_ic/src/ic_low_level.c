@@ -330,7 +330,7 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
         ad_state->adapt_counter = 0;
     }
     else{
-        if((ad_state->adapt_counter <= ad_config->adapt_counter_limit)||(float_s32_gte(ad_config->input_vnr_threshold_low, vnr)){
+        if((ad_state->adapt_counter <= ad_config->adapt_counter_limit)||(float_s32_gte(ad_config->input_vnr_threshold_low, vnr))){
             ic_set_mu(state, one);
             ad_state->control_flag = ADAPT;
         }
