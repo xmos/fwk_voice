@@ -1,5 +1,5 @@
 
-set(TOP_DIR ${CMAKE_BINARY_DIR}/avona_deps)
+set(TOP_DIR ${CMAKE_BINARY_DIR}/fwk_voice_deps)
 
 set(NNLIB_DIR "${TOP_DIR}/lib_nn/lib_nn")
 

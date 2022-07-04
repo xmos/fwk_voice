@@ -1,7 +1,7 @@
 ## This cmake file builds the "old vad" testwav example. Note inclusion of lots
 ## of source files from the old repos which do not support cmake libs
 ## App name
-set( APP_NAME  avona_run_old_vad )
+set( APP_NAME  fwk_voice_run_old_vad )
 
 
 ## Sources
@@ -50,10 +50,10 @@ target_include_directories(${APP_NAME}
 
 target_link_libraries(${APP_NAME}
     PUBLIC
-        avona_test_deps::lib_dsp
+        fwk_voice_test_deps::lib_dsp
         core::xs3_math
-        avona::test::shared::test_utils
-        avona::example::fileutils
+        fwk_voice::test::shared::test_utils
+        fwk_voice::example::fileutils
         )
 
 target_compile_options(${APP_NAME}

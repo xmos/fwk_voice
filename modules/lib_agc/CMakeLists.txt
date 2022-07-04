@@ -1,28 +1,28 @@
 
 ## Create library target
-add_library(avona_module_lib_agc STATIC)
+add_library(fwk_voice_module_lib_agc STATIC)
 
-target_sources(avona_module_lib_agc
+target_sources(fwk_voice_module_lib_agc
     PRIVATE
         src/agc_impl.c
 )
 
-target_include_directories(avona_module_lib_agc
+target_include_directories(fwk_voice_module_lib_agc
     PUBLIC
         api
 )
 
-target_compile_options(avona_module_lib_agc
+target_compile_options(fwk_voice_module_lib_agc
     PRIVATE
         -Os
         -g
 )
 
-target_link_libraries(avona_module_lib_agc
+target_link_libraries(fwk_voice_module_lib_agc
     PUBLIC
         core::xs3_math
 )
 
 
 ## Create an alias
-add_library(avona::agc ALIAS avona_module_lib_agc)
+add_library(fwk_voice::agc ALIAS fwk_voice_module_lib_agc)

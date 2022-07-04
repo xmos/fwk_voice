@@ -12,7 +12,7 @@ import math
 import matplotlib.pyplot as plt
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
-xe = os.path.join(exe_dir, 'avona_test_vnr_full.xe')
+xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_full.xe')
 
 def test_vnr_full(target, tflite_model):
     np.random.seed(1243)

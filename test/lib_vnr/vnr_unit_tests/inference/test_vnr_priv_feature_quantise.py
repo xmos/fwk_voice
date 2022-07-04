@@ -10,7 +10,7 @@ import tensorflow as tf
 import math
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
-xe = os.path.join(exe_dir, 'avona_test_vnr_priv_feature_quantise.xe')
+xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_feature_quantise.xe')
 
 def test_vnr_priv_feature_quantise(target, tflite_model):
     np.random.seed(1243)

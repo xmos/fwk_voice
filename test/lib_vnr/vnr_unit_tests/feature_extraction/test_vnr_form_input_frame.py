@@ -5,7 +5,7 @@ import test_utils
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
-xe = os.path.join(exe_dir, 'avona_test_vnr_form_input_frame.xe')
+xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_form_input_frame.xe')
 
 def test_vnr_form_input_frame(target):
     np.random.seed(1243)
