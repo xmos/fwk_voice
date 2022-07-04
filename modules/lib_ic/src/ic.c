@@ -22,12 +22,9 @@ static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *
     ad_config->energy_alpha_q30 = Q30(IC_INIT_ENERGY_ALPHA);
 
     ad_config->fast_ratio_threshold = double_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
-    ad_config->high_input_vnr_hold_leakage_alpha = double_to_float_s32(IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA);
     ad_config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
 
     ad_config->input_vnr_threshold = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
-    ad_config->input_vnr_threshold_high = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_HIGH);
-    ad_config->input_vnr_threshold_low = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_LOW);
 
     ad_config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
 

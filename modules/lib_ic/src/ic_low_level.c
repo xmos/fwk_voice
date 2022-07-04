@@ -320,17 +320,12 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
 
     if(float_s32_gte(vnr, ad_config->input_vnr_threshold)){
         ic_set_mu(state, zero);
-        if(float_s32_gt(vnr, ad_config->input_vnr_threshold_high)){
-            state->leakage_alpha = ad_config->high_input_vnr_hold_leakage_alpha;
-        }
-        else{
-            state->leakage_alpha = one;
-        }
+        state->leakage_alpha = one;
         ad_state->control_flag = HOLD;
         ad_state->adapt_counter = 0;
     }
     else{
-        if((ad_state->adapt_counter <= ad_config->adapt_counter_limit)||(float_s32_gte(ad_config->input_vnr_threshold_low, vnr))){
+        if(ad_state->adapt_counter <= ad_config->adapt_counter_limit){
             ic_set_mu(state, one);
             ad_state->control_flag = ADAPT;
         }
