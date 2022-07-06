@@ -4,8 +4,8 @@ IC Overview
 ===========
 
 The Interference Canceller (IC) suppresses static noise from point sources such as cooker hoods, washing machines,
-or radios for which there is no reference audio signal available. When the Voice Activity Detector (VAD) input
-indicates the absence of voice, the IC adapts to remove noise from point sources in the environment. When the VAD 
+or radios for which there is no reference audio signal available. When the Voice to Noise Ratio estimator (VNR) input
+indicates the absence of voice, the IC adapts to remove noise from point sources in the environment. When the VNR 
 signal indicates the presence of voice, the IC suspends adaptation which allows the voice source to be passed but
 maintains suppression of the interfering noise sources which have been previously adapted to.
 
