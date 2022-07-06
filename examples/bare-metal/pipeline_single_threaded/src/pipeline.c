@@ -150,7 +150,7 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
 #else
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = md.max_ref_energy;
-    agc_md.vad_flag = md.vnr_pred_flag;
+    agc_md.vnr_flag = md.vnr_pred_flag;
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = md.aec_corr_factor[ch];

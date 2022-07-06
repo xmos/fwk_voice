@@ -23,7 +23,7 @@ void test_max_gain() {
 
     agc_state_t agc;
     agc_config_t conf = AGC_PROFILE_ASR;
-    conf.adapt_on_vad = 0;
+    conf.adapt_on_vnr = 0;
     conf.soft_clipping = 0;
     conf.lc_enabled = 0;
     conf.max_gain = float_to_float_s32(TEST_MAX_GAIN);
@@ -33,7 +33,7 @@ void test_max_gain() {
     agc_init(&agc, &conf);
 
     agc_meta_data_t md;
-    md.vad_flag = AGC_META_DATA_NO_VAD;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 

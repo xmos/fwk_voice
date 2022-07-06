@@ -14,7 +14,7 @@
  */
 #define AGC_PROFILE_COMMS (agc_config_t){ \
     .adapt = 1, \
-    .adapt_on_vad = 1, \
+    .adapt_on_vnr = 1, \
     .soft_clipping = 1, \
     .gain = float_to_float_s32(500), \
     .max_gain = float_to_float_s32(1000), \

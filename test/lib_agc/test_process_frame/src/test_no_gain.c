@@ -22,7 +22,7 @@ void test_no_gain() {
     agc_init(&agc, &conf);
 
     agc_meta_data_t md;
-    md.vad_flag = AGC_META_DATA_NO_VAD;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 

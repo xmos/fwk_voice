@@ -7,7 +7,7 @@ This example demonstrates how the audio processing stages are put together in a 
 In it, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline stages frame by frame. The
 example currently demonstrates a pipeline having AEC, IC, NS and AGC stages. It also demonstrates the use of ADEC module to
 do a one time estimation and correction for possible reference and loudspeaker delay offsets at start up in order to
-maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VAD is introduced
+maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VNR is introduced
 to give the IC and the AGC information about the speech presence in a frame.
 
 The AEC is configured for 2 mic input channels, 2 reference input channels, 10 phase main filter and a 5 phase shadow
@@ -21,7 +21,7 @@ IC.
 
 The IC only processes a two channel input. It will use the second channel as the reference to the first to output one channel of interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
-Hence the VAD is called to calculate the probability of the voice activity. The output of the VAD will allow IC to modulate the rate
+Hence the VNR is called to calculate the voice to noise ratio estimation. The output of the VNR will allow IC to modulate the rate
 at which it adapts it's coefficients. The output of the IC is copied to the second channel as well.
 
 The NS is a single channel API, so two instances of NS should be initialised for 2 channel processing. The NS is configured the same way 
@@ -29,7 +29,7 @@ for both the channels. It will try to predict the background noise and cancel it
 
 The AGC is configured for ASR engine suitable gain control on both the channels. The
 output of the AGC stage is the pipeline output which is written into a 2 channel output wav file. The AGC also takes the output
-of the VAD to adapt it's coefficients.
+of the VNR to adapt it's coefficients.
 
 The pipeline is run on a single thread. To run the pipeline on a single xcore-AI thread a minimum thread speed of 140MHz is recommended, for 
 a typical pipeline configuration.
