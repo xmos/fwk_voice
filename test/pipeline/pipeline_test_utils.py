@@ -102,14 +102,14 @@ def log_vnr(stdo, input_file, arch, target): # Read VNR predicitions from stdo a
     vnr_output_pred = np.empty(0, dtype=np.float64)
     vnr_input_pred = np.empty(0, dtype=np.float64)
     for line in xcore_stdo:
-        match = re.search(r'VNR INPUT PRED:\s*([0-9]+)\s*([0-9]+)', line)
+        match = re.search(r'VNR INPUT PRED:\s*([-0-9]+)\s*([-0-9]+)', line)
         if match != None:
             vnr_mant = float(match.group(1))
             vnr_exp = float(match.group(2))
             vnr = vnr_mant * (2.0 ** vnr_exp)
             vnr_input_pred = np.append(vnr_input_pred, vnr)
 
-        match = re.search(r'VNR OUTPUT PRED:\s*([0-9]+)\s*([0-9]+)', line)
+        match = re.search(r'VNR OUTPUT PRED:\s*([-0-9]+)\s*([-0-9]+)', line)
         if match != None:
             vnr_mant = float(match.group(1))
             vnr_exp = float(match.group(2))
