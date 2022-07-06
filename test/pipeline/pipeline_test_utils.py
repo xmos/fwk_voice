@@ -88,38 +88,37 @@ def convert_keyword_wav(input_file, arch, target):
     subprocess.run(f"sox {input_file} -b 16 {keyword_file} remix 1".split())
     return keyword_file
 
-def log_vnr(stdo, input_file, arch, target):
-    if True: #target == "xcore":
-        xcore_stdo = []
-        if target == "xcore":
-            for line in stdo:
-                m = re.search(r'^\s*\[DEVICE\]', line)
-                if m is not None:
-                    xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
-        else:
-            for line in stdo.split('\n'):
-                xcore_stdo.append(line)
-        
-        vnr_output_pred = np.empty(0, dtype=np.float64)
-        vnr_input_pred = np.empty(0, dtype=np.float64)
-        for line in xcore_stdo:
-            if "VNR INPUT PRED:" in line:
-                vnr_mant = float(line.split(" ")[-2])
-                vnr_exp = float(line.split(" ")[-1])
-                vnr = vnr_mant * (2.0 ** vnr_exp)
-                vnr_input_pred = np.append(vnr_input_pred, vnr)
-            elif "VNR OUTPUT PRED:" in line:
-                vnr_mant = float(line.split(" ")[-2])
-                vnr_exp = float(line.split(" ")[-1])
-                vnr = vnr_mant * (2.0 ** vnr_exp)
-                vnr_output_pred = np.append(vnr_output_pred, vnr)
-        
-        if(len(vnr_input_pred) > 0):
-            filename = f"vnr_input_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
-            filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
-            np.save(filename, vnr_input_pred)
+def log_vnr(stdo, input_file, arch, target): # Read VNR predicitions from stdo and store in .npy files of the same name as input files
+    xcore_stdo = []
+    if target == "xcore":
+        for line in stdo:
+            m = re.search(r'^\s*\[DEVICE\]', line)
+            if m is not None:
+                xcore_stdo.append(re.sub(r'\[DEVICE\]\s*', '', line))
+    else:
+        for line in stdo.split('\n'):
+            xcore_stdo.append(line)
+    
+    vnr_output_pred = np.empty(0, dtype=np.float64)
+    vnr_input_pred = np.empty(0, dtype=np.float64)
+    for line in xcore_stdo:
+        if "VNR INPUT PRED:" in line:
+            vnr_mant = float(line.split(" ")[-2])
+            vnr_exp = float(line.split(" ")[-1])
+            vnr = vnr_mant * (2.0 ** vnr_exp)
+            vnr_input_pred = np.append(vnr_input_pred, vnr)
+        elif "VNR OUTPUT PRED:" in line:
+            vnr_mant = float(line.split(" ")[-2])
+            vnr_exp = float(line.split(" ")[-1])
+            vnr = vnr_mant * (2.0 ** vnr_exp)
+            vnr_output_pred = np.append(vnr_output_pred, vnr)
+    
+    if(len(vnr_input_pred) > 0):
+        filename = f"vnr_input_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
+        filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
+        np.save(filename, vnr_input_pred)
 
-        if(len(vnr_output_pred) > 0):
-            filename = f"vnr_output_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
-            filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
-            np.save(filename, vnr_output_pred)
+    if(len(vnr_output_pred) > 0):
+        filename = f"vnr_output_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
+        filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
+        np.save(filename, vnr_output_pred)
