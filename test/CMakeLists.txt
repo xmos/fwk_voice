@@ -2,6 +2,7 @@ set( TEST_ONLY_DEPS_ROOT ${CMAKE_SOURCE_DIR}/.. ) #test only dependencies presen
 set( SHARED_SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/shared )
 set( UNITY_PATH ${TEST_ONLY_DEPS_ROOT}/Unity )
 set(LIB_DSP_PATH ${TEST_ONLY_DEPS_ROOT}/lib_dsp)
+set( CONFIG_XSCOPE_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/etc )
 
 include(etc/build_options.cmake)
 
