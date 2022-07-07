@@ -670,6 +670,7 @@ pipeline {
           // Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
         cleanup {
           cleanWs()
