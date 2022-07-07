@@ -40,7 +40,7 @@ def test_pipelines(test, record_property):
     print(f"{wav_name} : kwd sensory detections {sensory_old_detections}, Amazon wwe detections {amazon_detections}", file=sys.stderr)
     print(f"outputfile = {output_file}, keyword_file = {keyword_file}")
 
-    # Log vnr input and output predictions if present in the stdput. To log vnr prediction, compile the pipeline code with PRINT_VNR_PREDICTION defined as 1
+    # Log vnr input and output predictions if present in the stdout. To log vnr prediction, compile the pipeline code with PRINT_VNR_PREDICTION defined as 1
     log_vnr(stdo, input_file, arch, target)
 
     with open(results_log_file, "a") as log:

@@ -5,7 +5,6 @@ import numpy as np
 import os, shutil, tempfile, sys
 import xscope_fileio, xtagctl
 import subprocess
-import re
 from conftest import pipeline_bins, pipeline_output_base_dir, keyword_input_base_dir, xtag_aquire_timeout_s
 import re
 from pathlib import Path
@@ -45,7 +44,6 @@ def process_file(input_file, arch, target="xcore"):
     output_file = os.path.join(pipeline_output_base_dir + "_" + arch + "_" + target, wav_name)
 
     pipeline_bin = pipeline_bins[arch][target]
-    stdout = ""
     if target == "xcore":
         stdout = process_xcore(pipeline_bin, input_file, output_file)
     else:
