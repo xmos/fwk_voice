@@ -40,6 +40,17 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
   adec_state->shadow_flag_counter = 0;
 }
 
+static void start_de_cycle(adec_state_t *state, adec_output_t *adec_output) {
+    // Request transition to DE mode from stage 1.
+    // Set the delay value so we can see forwards/backwards
+    adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
+    adec_output->delay_estimator_enabled_flag = 1;
+
+    state->mode = ADEC_DELAY_ESTIMATOR_MODE;
+    state->gated_milliseconds_since_mode_change = 0;
+    adec_output->delay_change_request_flag = 1;
+}
+
 void adec_process_frame(
     adec_state_t *state,
     adec_output_t *adec_output, 
@@ -136,7 +147,7 @@ void adec_process_frame(
         if (adec_in->from_aec.shadow_flag_ch0 == COPY) {
           state->sf_copy_flag = 1;
         }
-
+        
         //In normal AEC mode, check to see if we have converged but have left significant tail on the table
         //But only change mode if the delay change is big enough - else reset of AEC not worth it
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
@@ -158,6 +169,19 @@ void adec_process_frame(
           break;
         }
 
+        if (adec_in->far_end_active_flag && state->adec_config.force_de_cycle_trigger) // If configured to force a DE cycle, switch to DE mode without waiting for shadow filter copy
+        {
+            if (state->agm_q24 < 0) {
+                state->agm_q24 = 0;//clip negative
+            }
+#ifdef ENABLE_ADEC_DEBUG_PRINTS
+            printf("force_de_cycle_trigger\n");
+#endif
+            // Trigger a DE cycle
+            start_de_cycle(state, adec_output);
+            break;
+        }
+
         //Only do DEC logic if we have a significant amount of far end energy else AEC stats may not be useful
         if (adec_in->far_end_active_flag && state->sf_copy_flag){
 
@@ -177,27 +201,13 @@ void adec_process_frame(
                          )
                                         );
 
-          if (state->adec_config.force_de_cycle_trigger ||
-              ((state->agm_q24 < 0 || watchdog_triggered) &&
+          if ((state->agm_q24 < 0 || watchdog_triggered) &&
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
-                state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT))) {
+                state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT)) {
 		  
-            if (!state->adec_config.bypass || state->adec_config.force_de_cycle_trigger) {
-              if (state->adec_config.force_de_cycle_trigger) {
-                if (state->agm_q24 < 0) state->agm_q24 = 0;//clip negative
-#ifdef ENABLE_ADEC_DEBUG_PRINTS
-                printf("force_de_cycle_trigger\n");
-#endif
-              }
-
-              //AEC is ruined so switch on control flag for DE, stage_a logic will handle mode transition nicely.
-              //But first we need to set the delay value so we can see forwards/backwards, see configure_delay.py
-              adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
-              adec_output->delay_estimator_enabled_flag = 1;
-
-              state->mode = ADEC_DELAY_ESTIMATOR_MODE;
-              state->gated_milliseconds_since_mode_change = 0;
-              adec_output->delay_change_request_flag = 1;
+            if (!state->adec_config.bypass) {
+                // Trigger a DE cycle
+                start_de_cycle(state, adec_output);
             }
           }
         }
