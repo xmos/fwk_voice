@@ -188,8 +188,8 @@ pipeline {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
 
-                      copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
-                      archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
+                      //copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                      //archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
 
                       // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
@@ -197,8 +197,8 @@ pipeline {
                       junit "pytest_result.xml"
                       // Archive below (always section) even if fails
                       
-                      copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
-                      archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
+                      //copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                      //archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
                     }
                   }
                 }
@@ -218,6 +218,8 @@ pipeline {
                   archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
                   //runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
                   runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_alt_arch")
+
+                    archiveArtifacts artifacts: "**/results_*.csv", fingerprint: true
                 }
               }
             }
