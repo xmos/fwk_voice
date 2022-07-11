@@ -46,6 +46,8 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
+                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                  archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
                 }
               }
             }
@@ -136,6 +138,7 @@ pipeline {
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   // For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
+
                 }
               }
             }
