@@ -685,7 +685,7 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           // Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.csv", fingerprint: true
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
