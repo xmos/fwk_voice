@@ -22,9 +22,9 @@
  * @ingroup ic_state
  */
 typedef enum {
-    IC_ADAPTION_AUTO,
-    IC_ADAPTION_FORCE_ON,
-    IC_ADAPTION_FORCE_OFF
+    IC_ADAPTION_AUTO  = 0,
+    IC_ADAPTION_FORCE_ON = 1,
+    IC_ADAPTION_FORCE_OFF = 2
 } adaption_config_e;
 
 /**
