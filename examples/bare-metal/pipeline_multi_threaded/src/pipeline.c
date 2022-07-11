@@ -19,6 +19,7 @@
 #include "calc_vnr_pred.h"
 
 #define VNR_AGC_THRESHOLD (0.5)
+//#define PRINT_VNR_PREDICTION (1)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -129,7 +130,10 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // VNR
         calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
-
+#if PRINT_VNR_PREDICTION 
+        printf("VNR OUTPUT PRED: %ld %d\n", vnr_pred_state.output_vnr_pred.mant, vnr_pred_state.output_vnr_pred.exp);
+        printf("VNR INPUT PRED: %ld %d\n", vnr_pred_state.input_vnr_pred.mant, vnr_pred_state.input_vnr_pred.exp);
+#endif
         md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata

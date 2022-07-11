@@ -193,7 +193,7 @@ void pipeline_process_frame(pipeline_state_t *state,
             reset_partial_delay_buffer(&state->delay_state, ch);
         }
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
-        printf("!!ADEC STATE CHANGE!!  old: %s new: %s\n", old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
+        printf("!!ADEC STATE CHANGE!! Frame: %d old: %s new: %s\n", framenum, old_mode?"DE":"AEC", state->adec_state.mode?"DE":"AEC");
 
         printf("AP Setting MIC delay to: %ld\n", state->delay_state.delay_samples);
 #endif
