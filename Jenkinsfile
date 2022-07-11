@@ -46,8 +46,6 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
-                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
-                  archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
                 }
               }
             }
@@ -176,6 +174,50 @@ pipeline {
                 withVenv{
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   sh "xtagctl reset_all XCORE-AI-EXPLORER"
+                }
+              }
+            }
+          }
+        }
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
+
+                      copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                      archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
+
+                      // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      //sh "pytest -s --junitxml=pytest_result.xml" // Debug, run single threaded with STDIO captured
+                      junit "pytest_result.xml"
+                      // Archive below (always section) even if fails
+                      
+                      copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                      archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Benchmark Pipeline test results') {
+          when {
+            expression { env.PIPELINE_FULL_RUN == "1" }
+          }
+          steps {
+            dir("${REPO}/test/pipeline") {
+              viewEnv {
+                withVenv {
+                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                  archiveArtifacts artifacts: "lib_audio_pipelines/tests/pipelines/results_*.csv", fingerprint: true
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column="0_2 1_2" --figname=results_benchmark_prev_arch")
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column="0_2 1_2" --figname=results_benchmark_alt_arch")
                 }
               }
             }
@@ -633,26 +675,6 @@ pipeline {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('Pipeline tests') {
-          steps {
-            dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
-                  viewEnv {
-                    withVenv {
-                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-                      // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      //sh "pytest -s --junitxml=pytest_result.xml" // Debug, run single threaded with STDIO captured
-                      junit "pytest_result.xml"
-                      // Archive below (always section) even if fails
-                    }
-                  }
                 }
               }
             }
