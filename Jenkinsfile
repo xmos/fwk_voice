@@ -508,6 +508,21 @@ pipeline {
             }
           }
         }
+        stage('ADEC Initial DE startup time test') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec_startup") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('ADEC test_adec') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec") {
@@ -655,6 +670,7 @@ pipeline {
           // Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
         cleanup {
           cleanWs()

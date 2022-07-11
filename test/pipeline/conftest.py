@@ -22,7 +22,7 @@ xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xta
 #By default we run alt-arch for quicktest
 quick_test_pass_thresholds = {
 "InHouse_XVF3510v080_v1.2_20190423_Loc1_Clean_XMOS_DUT1_80dB_Take1.wav" : 24, #24 max score. AEC test mainly
-"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav" : 21, #25 max score. IC test mainly
+"InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav" : 20, #25 max score. IC test mainly
 "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav" : 22, #24 max score. AEC and IC test
 "InHouse_XVF3510v080_v1.2_20190423_Loc2_Noise1_65dB__Take1.wav" : 24, #25 max score. IC test mainly
 }
@@ -61,7 +61,8 @@ def pytest_sessionstart(session):
     else:
         architectures = ["alt_arch"]
 
-    input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if filename.endswith(".wav")]
+    input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
+
     for input_wav_file in input_wav_files:
         #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
         if '._InHouse' in input_wav_file:
