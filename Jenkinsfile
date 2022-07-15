@@ -449,19 +449,19 @@ pipeline {
             }
           }
         }
-        stage('IC test_calc_vnr_pred') {
-          steps {
-            dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
-              viewEnv() {
-                withVenv {
-                  // This is a unit test for ic_calc_vnr_pred function.
-                  // It compares the avona output with py_ic model output
-                  sh "pytest -n1 --junitxml=pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
+        //stage('IC test_calc_vnr_pred') {
+        //  steps {
+        //    dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
+        //      viewEnv() {
+        //        withVenv {
+        //          // This is a unit test for ic_calc_vnr_pred function.
+        //          // It compares the avona output with py_ic model output
+        //          sh "pytest -n1 --junitxml=pytest_result.xml"
+        //        }
+        //      }
+        //    }
+        //  }
+        //}
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
