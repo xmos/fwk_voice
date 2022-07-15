@@ -63,13 +63,18 @@ def test_vnr_full(target, tflite_model):
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
-    assert(geo_closeness > 0.99), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.97), "inference output arith_closeness below pass threshold"
+    assert(geo_closeness > 0.98), "inference output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.95), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
     plt.legend(loc="upper right")
+    plt.xlabel('Frames')
+    plt.ylabel('VNR prediction')
+    fig = plt.gcf()
     #plt.show()
+    fig.set_size_inches(18.5, 10.5)
+    fig.savefig('vnr_full_test.png', dpi=100)
 
 if __name__ == "__main__":
     test_vnr_full("xcore", test_utils.get_model())
