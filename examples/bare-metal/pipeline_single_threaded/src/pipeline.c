@@ -12,7 +12,7 @@
 #include "calc_vnr_pred.h"
 
 #define VNR_AGC_THRESHOLD (0.5)
-#define PRINT_VNR_PREDICTION (1)
+#define PRINT_VNR_PREDICTION (0)
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
