@@ -17,9 +17,10 @@ void test_init()
 
 void test(int32_t *output, int32_t *input)
 {
+    int32_t enable_highpass = input[VNR_FRAME_ADVANCE]; // Last value in the input is the hpf enable flag
     complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];
     bfp_complex_s32_t X;
     vnr_form_input_frame(&vnr_input_state, &X, input_frame, input);
 
-    vnr_priv_make_slice(output, &X, 0);
+    vnr_priv_make_slice(output, &X, enable_highpass);
 }
