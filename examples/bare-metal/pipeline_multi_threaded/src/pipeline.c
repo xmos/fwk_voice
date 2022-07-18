@@ -104,6 +104,9 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
     ic_init(&ic_state);
     init_vnr_pred_state(&vnr_pred_state);
+    // Set highpass filter enable
+    vnr_pred_state.feature_state[0].config.enable_highpass = 1;
+    vnr_pred_state.feature_state[1].config.enable_highpass = 1;
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
