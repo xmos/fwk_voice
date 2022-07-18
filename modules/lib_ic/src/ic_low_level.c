@@ -17,7 +17,9 @@ void ic_delay_y_input(ic_state_t *state,
         for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
             int32_t tmp = state->y_input_delay[ch][input_delay_idx];
             state->y_input_delay[ch][input_delay_idx] = y_data[i];
-            y_data[i] = tmp;
+            if(!state->config_params.bypass) {
+                y_data[i] = tmp;
+            }
             input_delay_idx++;
             if(input_delay_idx == IC_Y_CHANNEL_DELAY_SAMPS){
                 input_delay_idx = 0;
