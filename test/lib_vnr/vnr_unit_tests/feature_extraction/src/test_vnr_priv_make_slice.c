@@ -21,5 +21,5 @@ void test(int32_t *output, int32_t *input)
     bfp_complex_s32_t X;
     vnr_form_input_frame(&vnr_input_state, &X, input_frame, input);
 
-    vnr_priv_make_slice(output, &X);
+    vnr_priv_make_slice(output, &X, 0);
 }
