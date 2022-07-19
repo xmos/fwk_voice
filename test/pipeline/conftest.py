@@ -53,7 +53,8 @@ def pytest_sessionstart(session):
 
     if full_pipeline_run != 0:
         #hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
-        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_3610_ffrs_test/recordings/xvf3610_v5_0_0_packed_recordings/20210902_xvf3610_v5_0_0_rerun_packed_1/unpacked/")
+        #hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_3610_ffrs_test/recordings/xvf3610_v5_0_0_packed_recordings/20210902_xvf3610_v5_0_0_rerun_packed_1/unpacked/")
+        hydra_audio_path = os.path.join(hydra_audio_base_dir, "expanded_playback_audio/low_bandwidth_speakers/")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
