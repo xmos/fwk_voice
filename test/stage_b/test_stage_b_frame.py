@@ -155,7 +155,7 @@ def test_adaption_controller(test_config):
     #instantiate and init a stage B instance
     #sb = ap_stage_b(stage_b_conf["ic_conf"]["frame_advance"], stage_b_conf["ic_conf"],stage_b_conf["ic_conf"]["passthrough_channel_count"], mic_shift=0, mic_saturate=0)
     sbc = stage_b_comparison(test_config)
-    #Init the avona instance
+    #Init the fwk_voice instance
     ic_vnr_test_lib.test_init()
 
     #A few fixed sceanrios

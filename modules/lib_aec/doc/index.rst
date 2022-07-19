@@ -18,8 +18,8 @@ Introduction
 On GitHub
 ---------
 
-``lib_aec`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
-``https://github.com/xmos/sw_avona``. ``lib_aec`` is present within the `modules/lib_aec` directory in ``sw_avona``
+``lib_aec`` is present as part of ``fwk_voice``. Get the latest version of ``fwk_voice`` from
+``https://github.com/xmos/fwk_voice``. ``lib_aec`` is present within the `modules/lib_aec` directory in ``fwk_voice``
 
 API
 ---
