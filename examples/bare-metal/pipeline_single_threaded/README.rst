@@ -42,11 +42,11 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/pipeline_single_threaded` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/pipeline_single_threaded` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_pipeline_single_thread
+    make fwk_voice_example_bare_metal_pipeline_single_thread
     cd ../examples/bare-metal/pipeline_single_threaded
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav

@@ -43,7 +43,7 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/pipeline_alt_arch` directory to build and run this example application using the
+`fwk_voice/examples/bare-metal/pipeline_alt_arch` directory to build and run this example application using the
 XCORE-AI-EXPLORER board as a target:
 
 Running the single thread version.
@@ -51,22 +51,22 @@ Running the single thread version.
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_pipeline_alt_arch_st
+    make fwk_voice_example_bare_metal_pipeline_alt_arch_st
     cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Running the multi thread version.
 
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_pipeline_alt_arch_mt
+    make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
     cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Output
 ------
 
-The output file output.wav is generated in the `sw_avona/examples/bare-metal/pipeline_alt_arch` directory. The
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/pipeline_alt_arch` directory. The
 input file input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the
 pipeline output against the microphone input.
