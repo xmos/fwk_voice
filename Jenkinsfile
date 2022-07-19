@@ -14,7 +14,8 @@ pipeline {
   }
   environment {
     REPO = 'sw_avona'
-    VIEW = 'sw_avona_new_ic_control.txt'
+    //VIEW = getViewName(REPO)
+    VIEW = 'sw_avona_py_vnr_0.2.1_py_ic_2.2.0'
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'

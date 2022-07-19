@@ -19,7 +19,7 @@ def test_vnr_full(target, tflite_model):
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
-    input_words_per_frame = fp.FRAME_ADVANCE #No. of int32 values sent to dut as input per frame
+    input_words_per_frame = fp.FRAME_ADVANCE + 1#No. of int32 values sent to dut as input per frame
     output_words_per_frame = 2
 
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
@@ -31,18 +31,20 @@ def test_vnr_full(target, tflite_model):
     x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)    
 
     for itt in range(0,test_frames):
+        enable_highpass = np.random.randint(2)
         # Generate input data
         hr = np.random.randint(8)
         data = np.random.randint(min_int, high=max_int, size=fp.FRAME_ADVANCE)
         data = np.array(data, dtype=np.int32)
         data = data >> hr
         input_data = np.append(input_data, data)
+        input_data = np.append(input_data, enable_highpass)
         new_x_frame = test_utils.int32_to_double(data, -31)
 
         # Ref VNR implementation
         x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
         x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
-        this_patch = rwv.extract_features(x_data, vnr_obj)
+        this_patch = rwv.extract_features(x_data, vnr_obj, enable_highpass)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
     exe_name = xe
@@ -63,13 +65,18 @@ def test_vnr_full(target, tflite_model):
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
-    assert(geo_closeness > 0.99), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.97), "inference output arith_closeness below pass threshold"
+    assert(geo_closeness > 0.98), "inference output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.95), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
     plt.legend(loc="upper right")
+    plt.xlabel('Frames')
+    plt.ylabel('VNR prediction')
+    fig = plt.gcf()
     #plt.show()
+    fig.set_size_inches(18.5, 10.5)
+    fig.savefig('vnr_full_test.png', dpi=100)
 
 if __name__ == "__main__":
     test_vnr_full("xcore", test_utils.get_model())

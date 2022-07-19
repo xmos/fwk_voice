@@ -22,7 +22,7 @@ sys.path.append(pvc_path)
 import py_vs_c_utils as pvc 
 
 input_file = os.path.join(package_dir, "../../../examples/bare-metal/vnr/test_stream_1.wav")
-tflite_model = os.path.join(package_dir, "../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite")
+tflite_model = os.path.join(package_dir, "../../../modules/lib_vnr/python/model/model_output/trained_model.tflite")
 
 def bfp_s32_to_float(bfp_struct, data):
     
@@ -113,7 +113,7 @@ def test_frame_features():
     assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
     assert(geo_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
 
-    assert(max_error_ie < 0.04), f"Inference, max ref-dut error {max_error} exceeds threshold"
+    assert(max_error_ie < 0.05), f"Inference, max ref-dut error {max_error} exceeds threshold"
     assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
     assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
         

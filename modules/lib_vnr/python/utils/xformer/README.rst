@@ -29,12 +29,11 @@ For example, to run it for the existing model that we have, run,
 
 .. code-block:: console
 
-    $ python xform_model.py fwk_voice/modules/lib_vnr/python/model/model_output/model_qaware.tflite --copy-files --module-path=fwk_voice/modules/lib_vnr/src/inference/model/
-
+    $ python xform_model.py fwk_voice/modules/lib_vnr/python/model/model_output/trained_model.tflite --copy-files --module-path=fwk_voice/modules/lib_vnr/src/inference/model/
 
 For step number 5. and 6.,
 
-- Open the optimised model TensorFlow Lite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model `model_qaware_xcore.tflite <https://github.com/xmos/fwk_voice/blob/develop/modules/lib_vnr/src/inference/model/model_qaware_xcore.tflite>`_ uses 1 input and output tensor each and 4 operators; ``Conv2D``, ``Reshape``, ``Logistic`` and ``XC_conv2d_v2``.
+- Open the optimised model TensorFlow Lite file in netron.app and check the number and types of operators. Also check the number of input and output tensors. For example, the current optimised model `model_qaware_xcore.tflite <https://github.com/xmos/fwk_voice/blob/develop/modules/lib_vnr/src/inference/model/trained_model_xcore.tflite>`_ uses 1 input and output tensor each and 4 operators; ``Conv2D``, ``Reshape``, ``Logistic`` and ``XC_conv2d_v2``.
 
 - Add resolver->Addxxx functions in `vnr_inference.cc <https://github.com/xmos/fwk_voice/blob/develop/modules/lib_vnr/src/inference/vnr_inference.cc>`_, ``vnr_inference_init()`` to add all the operators to the TFLite operator resolver.
 
