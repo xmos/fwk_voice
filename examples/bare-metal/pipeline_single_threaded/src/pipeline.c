@@ -57,9 +57,6 @@ void pipeline_tile1_init(pipeline_state_tile1_t *state) {
     // Initialise IC, VNR
     ic_init(&state->ic_state);
     init_vnr_pred_state(&state->vnr_pred_state);
-    // Set highpass filter enable
-    state->vnr_pred_state.feature_state[0].config.enable_highpass = 1;
-    state->vnr_pred_state.feature_state[1].config.enable_highpass = 1;
 
     // Initialise NS
     for(int ch = 0; ch < AP_MAX_Y_CHANNELS; ch++){
