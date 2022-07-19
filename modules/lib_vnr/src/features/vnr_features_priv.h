@@ -14,10 +14,14 @@
 #define VNR_FFT_PADDING (2)
 
 /** Exponent of output of the log2 function used in the VNR
- * @ingroup vnr_features_state
  */
 #define VNR_LOG2_OUTPUT_EXP (-24)
-   
+
+/**
+ * @brief Gain applied to the first mel filtered bin when highpass filtering of MEL output is enabled
+ */
+#define VNR_MEL_HP_GAIN (float_to_float_s32((float)0.01))
+
 // Matching with python names
 /**
  * @brief Convert a spectrum to Mel frequency spectrum
@@ -26,10 +30,11 @@
  *
  * @param[out] new_slice array containing VNR_MEL_FILTERS Mel+log2 output values. The output fixed point format is fixed to Q8.24.
  * @param[in] X Pointer to BFP structure containing the DFT output
+ * @param[in] Flag to enable highpass filtering of MEL filtering output. When enabled, the first MEL output bin is scaled by VNR_MEL_HP_GAIN. 
  *
  * This function name matches with the corresponding function in py_vnr python model.
 */
-void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X);
+void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int32_t hp);
 
 /**
  * @brief roll a buffer and add a new slice to the end

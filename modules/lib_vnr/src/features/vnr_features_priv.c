@@ -24,13 +24,16 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
 
-void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X) {
+void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int32_t hp) {    
     // MEL
     float_s32_t mel_output[VNR_MEL_FILTERS];
     // out_spect = np.abs(X_spect)**2
     // out_spect = np.dot(out_spect, self.mel_fbank) 
     vnr_priv_mel_compute(mel_output, X);
-
+    if(hp == 1) {
+        float_s32_t gain = VNR_MEL_HP_GAIN;
+        mel_output[0] = float_s32_mul(mel_output[0], gain);
+    }
     // log2
     //out_spect = np.log2(out_spect)
     vnr_priv_log2(new_slice, mel_output, VNR_MEL_FILTERS); //Calculate new_slice in state->scratch_data
