@@ -62,21 +62,20 @@ def get_wav_info(input_file):
 
 def convert_input_wav(input_file, output_file):
     chans, rate, samps, bits = get_wav_info(input_file)
-    if not os.path.isfile(output_file): #optimisation. Only convert once if running test a lot locally
-        extra_args = "" #"trim 0 5" #to test with short wavs
-        if chans == 6:
-            #for 6 channel wav file, first 4 channels are the mic input and last 2 channels are far-end audio
-            subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 4 5 6 {extra_args}".split()) #read mic in from channel spaced ~ 100mm, hence channel index 1 and 4(assuming 33mm spacing between mics)
-        elif chans == 8:
-            # for 8 channel wav file, first 2 channels are comms and asr outputs, followed by 4 channels of mic input
-            # and last 2 channels are far-end audio
-            subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 3 6 7 8 {extra_args}".split())
-        elif chans == 4:
-            # for 4 channel wav file, first 2 channels are mic, followed by 2 channels of reference input
-            # and last 2 channels are far-end audio
-            subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} {extra_args}".split())
-        else:
-            assert False, f"Error: input wav format not supported - chans:{chans}"
+    extra_args = "" #"trim 0 5" #to test with short wavs
+    if chans == 6:
+        #for 6 channel wav file, first 2 channels are the mic input, followed by 2 channels of far-end audio, followed by 2 channels of pipeline output
+        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 2 3 4 {extra_args}".split())
+    elif chans == 8:
+        # for 8 channel wav file, first 2 channels are comms and asr outputs, followed by 4 channels of mic input
+        # and last 2 channels are far-end audio
+        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 3 6 7 8 {extra_args}".split())
+    elif chans == 4:
+        # for 4 channel wav file, first 2 channels are mic, followed by 2 channels of reference input
+        # and last 2 channels are far-end audio
+        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} {extra_args}".split())
+    else:
+        assert False, f"Error: input wav format not supported - chans:{chans}"
     return output_file
 
 def convert_keyword_wav(input_file, arch, target):
