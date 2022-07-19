@@ -10,8 +10,8 @@ void init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state)
     
     vnr_inference_init();
     vnr_pred_state->pred_alpha_q30 = Q30(0.97);
-    vnr_pred_state->input_vnr_pred = (float_s32_t){0, 0};
-    vnr_pred_state->output_vnr_pred = (float_s32_t){0, 0};    
+    vnr_pred_state->input_vnr_pred = float_to_float_s32(0.5);
+    vnr_pred_state->output_vnr_pred = float_to_float_s32(0.5); 
 }
 
 void calc_vnr_pred(
