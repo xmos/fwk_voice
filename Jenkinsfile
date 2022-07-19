@@ -136,6 +136,7 @@ pipeline {
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   // For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
+
                 }
               }
             }
@@ -643,13 +644,28 @@ pipeline {
                   viewEnv {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
+
                       // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      //sh "pytest -s --junitxml=pytest_result.xml" // Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
-                      // Archive below (always section) even if fails
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+        stage('Benchmark Pipeline test results') {
+          when {
+            expression { env.PIPELINE_FULL_RUN == "1" }
+          }
+          steps {
+            dir("${REPO}/test/pipeline") {
+              viewEnv {
+                withVenv {
+                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_alt_arch")                    
                 }
               }
             }
@@ -668,7 +684,8 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           // Pipelines tests
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
