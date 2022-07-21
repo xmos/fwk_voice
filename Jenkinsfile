@@ -196,6 +196,22 @@ pipeline {
             }
           }
         }
+        stage('ADEC test_adec') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -534,22 +550,6 @@ pipeline {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
                       sh "pytest -n 2 --junitxml=pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        stage('ADEC test_adec') {
-          steps {
-            dir("${REPO}/test/lib_adec/test_adec") {
-              viewEnv() {
-                withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
                     }
                   }
                 }
