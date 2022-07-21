@@ -179,6 +179,23 @@ pipeline {
             }
           }
         }
+        stage('AEC test_aec_enhancements') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
+                      sh "./make_dirs.sh"
+                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -548,23 +565,6 @@ pipeline {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
                       sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        stage('AEC test_aec_enhancements') {
-          steps {
-            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
-              viewEnv() {
-                withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
-                      sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
                   }
