@@ -187,7 +187,7 @@ pipeline {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
                       sh "./make_dirs.sh"
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
                   }

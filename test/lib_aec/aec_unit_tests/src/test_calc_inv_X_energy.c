@@ -178,7 +178,7 @@ void test_aec_calc_normalisation_spectrum() {
 
             double delta_fp = ldexp(state_ptr->delta.mant, state_ptr->delta.exp);
             for(int ch=0; ch<num_x_channels; ch++) {
-                aec_calc_normalisation_spectrum_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 6, delta_fp, is_shadow);
+                aec_calc_normalisation_spectrum_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 5, delta_fp, is_shadow);
             }
             for(int ch=0; ch<num_x_channels; ch++) {
                 aec_calc_normalisation_spectrum(state_ptr, ch, is_shadow);
