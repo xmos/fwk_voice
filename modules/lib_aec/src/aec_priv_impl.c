@@ -1013,7 +1013,7 @@ void aec_priv_init_config_params(
     coh_cfg->mu_shad_time = 5;
 
     coh_cfg->adaption_config = AEC_ADAPTION_AUTO;
-    coh_cfg->force_adaption_mu_q30 = Q30(1.0);
+    coh_cfg->force_adaption_mu_q30 = Q30(0.1);
 }
 
 void aec_priv_calc_delta(
