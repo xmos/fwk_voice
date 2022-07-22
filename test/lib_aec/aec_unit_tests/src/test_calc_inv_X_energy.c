@@ -77,7 +77,7 @@ void aec_calc_normalisation_spectrum_fp(double *inv_X_energy, double *X_energy, 
     double taps[5] = {0.5, 1, 1, 1, 0.5};
     if(!is_shadow) {
         for(int i=0; i<NUM_BINS; i++) {
-            norm_denom[i] = sigma_XX[i]*gamma + (2*X_energy[i]);
+            norm_denom[i] = sigma_XX[i]*gamma + (X_energy[i]);
         }
         vect_smooth(inv_X_energy, scratch, norm_denom, taps, NUM_BINS);
         for(int i=0; i<NUM_BINS; i++) {
