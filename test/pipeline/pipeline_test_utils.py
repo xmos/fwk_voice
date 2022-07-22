@@ -8,6 +8,10 @@ import subprocess
 from conftest import pipeline_bins, pipeline_output_base_dir, keyword_input_base_dir, xtag_aquire_timeout_s
 import re
 from pathlib import Path
+import sys
+thisfile_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(thisfile_path, "py_pipeline"))
+import wav_pipeline
 
 def process_xcore(xe_file, input_file, output_file):
     input_file = os.path.abspath(input_file)
@@ -39,15 +43,26 @@ def process_x86(bin_file, input_file, output_file):
     stdout = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
     return stdout
 
+def process_python(input_file, output_file):
+    config_file = os.path.join(thisfile_path, "py_pipeline/config/two_mic_stereo.json")
+    wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
+    stdo = ""
+    return stdo
+
 def process_file(input_file, arch, target="xcore"):
     wav_name = os.path.basename(input_file)
     output_file = os.path.join(pipeline_output_base_dir + "_" + arch + "_" + target, wav_name)
 
-    pipeline_bin = pipeline_bins[arch][target]
     if target == "xcore":
+        pipeline_bin = pipeline_bins[arch][target]
         stdout = process_xcore(pipeline_bin, input_file, output_file)
-    else:
+    elif target == "x86":
+        pipeline_bin = pipeline_bins[arch][target]
         stdout = process_x86(pipeline_bin, input_file, output_file)
+    elif target == "python":
+        stdout = process_python(input_file, output_file)
+    else:
+        assert False, "Invalid target"
 
     return output_file, stdout
 

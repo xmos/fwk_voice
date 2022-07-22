@@ -32,7 +32,7 @@ all_tests_list = []
 # Select whether we run previous or al pipeline architecture. Default = alt hence first in list
 full_pipeline_run = 1
 # Select whether we run each test on xcore or using the x86 compiled example app
-targets = ["xcore", "x86"]
+targets = ["xcore", "python"]
 architectures = []# These are populated below depending on full_pipeline_run
 
 """ before session.main() is called. """
@@ -57,11 +57,12 @@ def pytest_sessionstart(session):
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
     if full_pipeline_run:
-        architectures = ["alt_arch", "prev_arch"]
+        architectures = ["prev_arch"]
     else:
         architectures = ["alt_arch"]
 
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
+    #input_wav_files = [os.path.join(hydra_audio_base_dir, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav"), os.path.join(hydra_audio_base_dir, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Clean_XMOS_DUT1_80dB_Take1.wav")]
 
     for input_wav_file in input_wav_files:
         #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
