@@ -50,7 +50,7 @@ def test_pipelines(test, record_property):
 
 
     record_property("Target", target)
-    record_property("Pipeline architecturer", arch)
+    record_property("Pipeline architecture", arch)
     record_property("Sensory Wakewords", sensory_old_detections)
     record_property("Amazon Wakewords", amazon_detections)
 
