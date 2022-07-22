@@ -16,7 +16,7 @@ import subprocess
 thisfile_path = os.path.dirname(os.path.realpath(__file__))
 
 def get_model():
-    return os.path.join(thisfile_path, "../../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite")
+    return os.path.join(thisfile_path, "../../../../modules/lib_vnr/python/model/model_output/trained_model.tflite")
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))

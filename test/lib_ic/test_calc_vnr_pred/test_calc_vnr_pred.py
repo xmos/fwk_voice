@@ -88,10 +88,10 @@ def test_calc_vnr_pred(target, tflite_model, show_plot=False):
     output_vnr_arith_closeness, output_vnr_geo_closeness = test_utils.get_closeness_metric(ref_output_vnr_pred, dut_output_vnr_pred)    
     print(f"input_vnr_arith_closeness {input_vnr_arith_closeness}, input_vnr_geo_closeness {input_vnr_geo_closeness}")  
     print(f"output_vnr_arith_closeness {output_vnr_arith_closeness}, output_vnr_geo_closeness {output_vnr_geo_closeness}")  
-    assert(input_vnr_arith_closeness > 0.97)
-    assert(input_vnr_geo_closeness > 0.98)
-    assert(output_vnr_arith_closeness > 0.97)
-    assert(output_vnr_geo_closeness > 0.98)
+    assert(input_vnr_arith_closeness > 0.90)
+    assert(input_vnr_geo_closeness > 0.90)
+    assert(output_vnr_arith_closeness > 0.90)
+    assert(output_vnr_geo_closeness > 0.90)
     
     # Plot
     fig,ax = plt.subplots(2)
