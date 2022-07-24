@@ -52,7 +52,8 @@ def pytest_sessionstart(session):
         print(f"PIPELINE_FULL_RUN: {full_pipeline_run}")
 
     if full_pipeline_run != 0:
-        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
+        #hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
+        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_3610_ffrs_test/recordings/xvf3610_v5_0_0_packed_recordings/20210902_xvf3610_v5_0_0_rerun_packed_1/unpacked/")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
@@ -63,6 +64,7 @@ def pytest_sessionstart(session):
 
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
     #input_wav_files = [os.path.join(hydra_audio_base_dir, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav"), os.path.join(hydra_audio_base_dir, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Clean_XMOS_DUT1_80dB_Take1.wav")]
+    #input_wav_files = [os.path.join(hydra_audio_base_dir, "Barge_69dBA_BargeIn_39dB_unpacked_SC50.wav")]
 
     for input_wav_file in input_wav_files:
         #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
