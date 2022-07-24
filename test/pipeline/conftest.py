@@ -32,7 +32,7 @@ all_tests_list = []
 # Select whether we run previous or al pipeline architecture. Default = alt hence first in list
 full_pipeline_run = 1
 # Select whether we run each test on xcore or using the x86 compiled example app
-targets = ["xcore", "python"]
+targets = ["xcore"]
 architectures = []# These are populated below depending on full_pipeline_run
 
 """ before session.main() is called. """
@@ -58,7 +58,7 @@ def pytest_sessionstart(session):
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
     if full_pipeline_run:
-        architectures = ["prev_arch"]
+        architectures = ["prev_arch", "alt_arch"]
     else:
         architectures = ["alt_arch"]
 
