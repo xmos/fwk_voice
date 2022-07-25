@@ -19,8 +19,8 @@ adapt to maintain a specified output level for the voice content.
 On GitHub
 ---------
 
-``lib_agc`` is present as part of ``sw_avona``. Get the latest version of ``sw_avona`` from
-``https://github.com/xmos/sw_avona``. ``lib_agc`` is present within the `modules/lib_agc` directory in ``sw_avona``.
+``lib_agc`` is present as part of ``fwk_voice``. Get the latest version of ``fwk_voice`` from
+``https://github.com/xmos/fwk_voice``. ``lib_agc`` is present within the `modules/lib_agc` directory in ``fwk_voice``.
 
 API
 ---

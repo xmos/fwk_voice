@@ -60,7 +60,7 @@ def test_pipelines(test, record_property):
         for key in quick_test_pass_thresholds:
             if key in keyword_file:
                 pass_mark = quick_test_pass_thresholds[key]
-                if sensory_old_detections < pass_mark:
+                if amazon_detections < pass_mark:
                     print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {sensory_old_detections}", file=sys.stderr)
                     passed = False
         assert passed
