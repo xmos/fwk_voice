@@ -14,8 +14,7 @@ pipeline {
   }
   environment {
     REPO = 'sw_avona'
-    //VIEW = getViewName(REPO)
-    VIEW = 'sw_avona_PR341'
+    VIEW = getViewName(REPO)
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
