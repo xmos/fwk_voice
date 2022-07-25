@@ -55,7 +55,7 @@ def conv_impulse_array(x, h, fade_len):
     return y_out, y
    
 
-@pytest.mark.parametrize("adapt_config", ['AEC_ADAPTION_AUTO', 'AEC_ADAPTION_FORCE_ON'])
+@pytest.mark.parametrize("adapt_config", ['AEC_ADAPTION_FORCE_ON', 'AEC_ADAPTION_AUTO'])
 def test_impulse_response_change(adapt_config):
 
     fs = 16000

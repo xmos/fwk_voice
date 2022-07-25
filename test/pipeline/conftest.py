@@ -57,7 +57,7 @@ def pytest_sessionstart(session):
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
 
     if full_pipeline_run:
-        architectures = ["prev_arch", "alt_arch"]
+        architectures = ["alt_arch", "prev_arch"]
     else:
         architectures = ["alt_arch"]
 
