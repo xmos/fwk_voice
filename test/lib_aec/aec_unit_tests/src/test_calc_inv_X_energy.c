@@ -77,7 +77,7 @@ void aec_calc_normalisation_spectrum_fp(double *inv_X_energy, double *X_energy, 
     double taps[5] = {0.5, 1, 1, 1, 0.5};
     if(!is_shadow) {
         for(int i=0; i<NUM_BINS; i++) {
-            norm_denom[i] = sigma_XX[i]*gamma + (2*X_energy[i]);
+            norm_denom[i] = sigma_XX[i]*gamma + (X_energy[i]);
         }
         vect_smooth(inv_X_energy, scratch, norm_denom, taps, NUM_BINS);
         for(int i=0; i<NUM_BINS; i++) {
@@ -178,7 +178,7 @@ void test_aec_calc_normalisation_spectrum() {
 
             double delta_fp = ldexp(state_ptr->delta.mant, state_ptr->delta.exp);
             for(int ch=0; ch<num_x_channels; ch++) {
-                aec_calc_normalisation_spectrum_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 6, delta_fp, is_shadow);
+                aec_calc_normalisation_spectrum_fp(inv_X_energy_fp[ch], X_energy_fp[ch], sigma_XX_fp[ch], 5, delta_fp, is_shadow);
             }
             for(int ch=0; ch<num_x_channels; ch++) {
                 aec_calc_normalisation_spectrum(state_ptr, ch, is_shadow);
