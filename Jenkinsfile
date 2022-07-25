@@ -461,6 +461,21 @@ pipeline {
             }
           }
         }
+	stage(IC test_bad_state') {
+	  steps {
+	    dir("${REPO}/test/lib_ic/test_bad_state") {
+	      viewEnv() {
+		withVenv {
+ 	          withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+		    withEnv(["sensory_PATH=sensory_sdk"]) {
+		      sh "pytest -n2 --junitxml=pytest_result.xml"
+		    }
+		  }
+		}
+	      }
+	    }
+	  }
+	}
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
