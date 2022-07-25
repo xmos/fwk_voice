@@ -180,74 +180,6 @@ pipeline {
             }
           }
         }
-        stage('Pipeline tests') {
-          steps {
-            dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
-                  viewEnv {
-                    withVenv {
-                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-
-                      // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
-                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        //stage('Benchmark Pipeline test results') {
-        //  when {
-        //    expression { env.PIPELINE_FULL_RUN == "1" }
-        //  }
-        //  steps {
-        //    dir("${REPO}/test/pipeline") {
-        //      viewEnv {
-        //        withVenv {
-        //          copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
-        //          runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
-        //          // runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_alt_arch")                    
-        //        }
-        //      }
-        //    }
-        //  }
-        //}
-        stage('AEC test_aec_enhancements') {
-          steps {
-            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
-              viewEnv() {
-                withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
-                      sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        stage('ADEC test_adec') {
-          steps {
-            dir("${REPO}/test/lib_adec/test_adec") {
-              viewEnv() {
-                withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
         stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
@@ -294,7 +226,7 @@ pipeline {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   // Make sure single thread and multi threads pipeline output is bitexact
-                  // sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
               }
             }
@@ -593,6 +525,22 @@ pipeline {
             }
           }
         }
+        stage('ADEC test_adec') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('ADEC test_adec_profile') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec_profile") {
@@ -601,6 +549,23 @@ pipeline {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
                       sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('AEC test_aec_enhancements') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
+                      sh "./make_dirs.sh"
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
                   }
@@ -667,6 +632,41 @@ pipeline {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('Pipeline tests') {
+          steps {
+            dir("${REPO}/test/pipeline") {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                  viewEnv {
+                    withVenv {
+                      echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
+
+                      // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+                      sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Benchmark Pipeline test results') {
+          when {
+            expression { env.PIPELINE_FULL_RUN == "1" }
+          }
+          steps {
+            dir("${REPO}/test/pipeline") {
+              viewEnv {
+                withVenv {
+                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
+                  // runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_alt_arch")                    
                 }
               }
             }
