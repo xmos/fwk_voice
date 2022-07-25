@@ -461,7 +461,7 @@ pipeline {
             }
           }
         }
-	stage(IC test_bad_state') {
+	stage('IC test_bad_state') {
 	  steps {
 	    dir("${REPO}/test/lib_ic/test_bad_state") {
 	      viewEnv() {
