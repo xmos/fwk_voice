@@ -63,7 +63,7 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     adec_config_t adec_conf;
     adec_conf.bypass = 1; // Bypass automatic DE correction
 #if DISABLE_INITIAL_DELAY_EST
-    adec_conf.force_de_cycle_trigger = 0; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
+    adec_conf.force_de_cycle_trigger = 0; // Do not force a DE correction cycle ob startup
 #else
     adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
 #endif
