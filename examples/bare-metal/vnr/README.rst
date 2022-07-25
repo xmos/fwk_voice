@@ -11,11 +11,11 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/vnr <https://github.com/xmos/sw_avona/tree/develop/examples/bare-metal/vnr>`_ directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/vnr <https://github.com/xmos/fwk_voice/tree/develop/examples/bare-metal/vnr>`_ directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_vnr_fileio
+    make fwk_voice_example_bare_metal_vnr_fileio
     cd ../examples/bare-metal/vnr
     python host_app.py test_stream_1.wav vnr_out.bin --run-with-xscope-fileio --show-plot
 

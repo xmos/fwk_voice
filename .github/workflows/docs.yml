@@ -31,7 +31,7 @@ jobs:
     name: Build and package documentation
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Avona
+      - name: Checkout Voice Framework
         uses: actions/checkout@v2
       
       - name: Pull doc_builder container
@@ -45,7 +45,7 @@ jobs:
       - name: Save documentation artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: sw_avona_docs
+          name: fwk_voice_docs
           path: ./doc/_build/html
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn` 
           retention-days: 5
