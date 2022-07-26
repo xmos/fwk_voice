@@ -7,13 +7,19 @@ import agc
 sys.path.append(os.path.join(thisfile_path, "../../../../lib_voice_toolbox/python"))
 from vtb_frame import VTBInfo, VTBFrame
 from aec import aec
+import IC
+import numpy as np
 
 class pipeline(object):
 
     def __init__(self, rate, verbose, x_channel_count, y_channel_count, frame_advance,
-                 mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config):
+                 mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config, ic_conf):
+
+        # Fix path to VNR model
         self.aec = aec(**aec_conf)
         self.agc = agc.agc(**agc_init_config)
+        ic_conf['vnr_model'] = os.path.join(thisfile_path, "config", ic_conf['vnr_model'])
+        self.ifc = IC.adaptive_interference_canceller(**ic_conf) 
         
         self.x_channel_count = x_channel_count
         self.y_channel_count = y_channel_count
@@ -37,13 +43,22 @@ class pipeline(object):
         new_x = new_frame[self.y_channel_count:self.y_channel_count + self.x_channel_count]
 
         # AEC
-        error, Error, Error_shad = self.aec.add(new_x, new_y)
+        error_aec, Error, Error_shad = self.aec.add(new_x, new_y)
         #Do the adaption
         self.aec.adapt(Error, True, verbose)
         self.aec.adapt_shadow(Error_shad, True, verbose)
 
+        # IC
+        error_ic, Error = self.ifc.process_frame(error_aec)
+        error_ic_2ch = np.vstack((error_ic, error_ic)) # Duplicate across the 2nd channel
+        if self.ifc.vnr_obj != None:
+            py_vnr_in, py_vnr_out = self.ifc.calc_vnr_pred(Error)
+        mu, control_flag = self.ifc.mu_control_system()
+        self.ifc.adapt(Error, mu)
+
         # AGC
-        output = self.agc.process_frame(error, 0 , 0, 0)
+        output = self.agc.process_frame(error_ic_2ch, 0 , 0, 0)
+
         return output
         
         

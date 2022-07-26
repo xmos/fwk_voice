@@ -28,6 +28,21 @@
         "leakage": 1.0,
         "freq_smooth": true
     },
+    "ic_conf": {
+    "frame_advance": 240,
+    "proc_frame_length": 512,
+    "phases": 10,
+    "mu" : 1.0,
+    "delta" : 7.450580593454381e-09,
+    "y_channel_delay": 600,
+    "K" : 1,
+    "lamda" : 0.9995117188, 
+    "gamma" : 2.0,
+    "leakage" : 0.995,
+    "remove_NQ" : true,
+    "vnr_model" : "./../../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite",
+    "adaption_config": "IC_ADAPTION_FORCE_ON"
+    },
     "agc_init_config": {
         "ch_init_config": [
             {
