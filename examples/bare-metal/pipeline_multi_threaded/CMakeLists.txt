@@ -31,10 +31,9 @@ target_link_libraries(${APP_NAME}
 target_compile_definitions(${APP_NAME}
     PRIVATE
         NUM_AEC_THREADS=2
-        #DISABLE_STAGE_2=1
-        DISABLE_STAGE_3=1
-        DISABLE_INITIAL_DELAY_EST=1
-        DISABLE_AGC_ADAPT_GAIN=1
+        #DISABLE_STAGE_3=1
+        #DISABLE_INITIAL_DELAY_EST=1
+        #DISABLE_AGC_ADAPT_GAIN=1
     )
 
 target_sources(${APP_NAME}

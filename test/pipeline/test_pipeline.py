@@ -18,6 +18,9 @@ def test_pipelines(test, record_property):
     wav_name = os.path.basename(wav_file)
     arch = test[1]
     target = test[2]
+    
+    if target=="python" and arch=="alt_arch": # Python doesn't have alt-arch support yet
+        return
 
     input_file = os.path.join(pipeline_input_dir, wav_name)
     if not os.path.isfile(input_file): 
