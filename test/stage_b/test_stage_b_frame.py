@@ -22,7 +22,7 @@ import IC
 import py_vs_c_utils as pvc 
 
 ap_config_file = "../shared/config/ic_conf_no_adapt_control.json"
-tflite_model = os.path.join(package_dir, "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite")
+tflite_model = os.path.join(package_dir, "../../modules/lib_vnr/python/model/model_output/trained_model.tflite")
 input_file = "input.wav"
 output_file = "output.wav"
 
@@ -107,7 +107,7 @@ class stage_b_comparison:
 def test_frame_compare(test_config):
 
     test_config["adaption_config"] = 'IC_ADAPTION_AUTO'
-    test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
+    test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/trained_model.tflite"
     sbc = stage_b_comparison(test_config)
 
     frame_advance = test_config["frame_advance"]

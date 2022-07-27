@@ -25,6 +25,7 @@ void vnr_form_input_frame(vnr_input_state_t *input_state, bfp_complex_s32_t *X, 
 
 void vnr_feature_state_init(vnr_feature_state_t *feature_state) {
     memset(feature_state, 0, sizeof(vnr_feature_state_t));
+    feature_state->config.enable_highpass = 0;
 }
 
 void vnr_extract_features(vnr_feature_state_t *vnr_feature_state,
@@ -33,7 +34,7 @@ void vnr_extract_features(vnr_feature_state_t *vnr_feature_state,
         const bfp_complex_s32_t *X)
 {
     fixed_s32_t new_slice[VNR_MEL_FILTERS];
-    vnr_priv_make_slice(new_slice, X);
+    vnr_priv_make_slice(new_slice, X, vnr_feature_state->config.enable_highpass);
     vnr_priv_add_new_slice(vnr_feature_state->feature_buffers, new_slice);
     vnr_priv_normalise_patch(feature_patch, feature_patch_data, (const vnr_feature_state_t*)vnr_feature_state);
 }

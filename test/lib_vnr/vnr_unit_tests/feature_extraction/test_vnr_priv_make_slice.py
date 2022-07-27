@@ -14,7 +14,7 @@ def test_vnr_priv_make_slice(target, tflite_model):
     vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
-    input_words_per_frame = fp.FRAME_ADVANCE #No. of int32 values sent to dut as input per frame
+    input_words_per_frame = fp.FRAME_ADVANCE + 1 #No. of int32 values sent to dut as input per frame
     output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -24
 
     fd_frame_len = int(fp.NFFT/2 + 1)
@@ -28,19 +28,21 @@ def test_vnr_priv_make_slice(target, tflite_model):
     ref_output_int = np.empty(0, dtype=np.int32)
     dut_output_float = np.empty(0, dtype=np.float64)
     for itt in range(0,test_frames):
+        enable_highpass = np.random.randint(2)
         # Generate input data
         hr = np.random.randint(8)
         data = np.random.randint(min_int, high=max_int, size=fp.FRAME_ADVANCE)
         data = np.array(data, dtype=np.int32)
         data = data >> hr
         input_data = np.append(input_data, data)
+        input_data = np.append(input_data, enable_highpass);
 
         # Ref form input frame implementation
         new_x_frame = data.astype(np.float64) * (2.0 ** -31) 
         x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
         x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
         X_spect = np.fft.rfft(x_data, fp.NFFT)
-        new_slice = vnr_obj.make_slice(X_spect)
+        new_slice = vnr_obj.make_slice(X_spect, enable_highpass)
 
         ref_output_float = np.append(ref_output_float, new_slice)
         
