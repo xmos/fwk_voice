@@ -304,8 +304,8 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
     
-    const float_s32_t one = {1, 0};
-    const float_s32_t zero = {0, 0};
+    const float_s32_t one = float_to_float_s32(1.0);
+    const float_s32_t zero = float_to_float_s32(0.0);
 
     if(ad_config->adaption_config == IC_ADAPTION_FORCE_ON){
         ad_state->control_flag = FORCE_ADAPT;
@@ -334,14 +334,15 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
             ad_state->control_flag = ADAPT_SLOW;
         }
         state->leakage_alpha = one;
-        ad_state->adapt_counter ++;
+        ad_state->adapt_counter++;
     }
 
-    if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
+    /*if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
         ic_set_mu(state, float_to_float_s32(0.9));
         state->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
         ad_state->control_flag = UNSTABLE;
-    }
+    }*/
+    //printf("MU: %ld %d\n", state->mu[0][0].mant, state->mu[0][0].exp);
 }
 
 // Reset adaptive components and output an unprocessed frame

@@ -29,7 +29,7 @@ static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *
     ad_config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
 
     ad_config->enable_adaption = 1;
-    ad_config->adaption_config = IC_ADAPTION_FORCE_ON;
+    ad_config->adaption_config = IC_ADAPTION_AUTO;
 }
 
 static void ic_init_adaption_controller(ic_adaption_controller_state_t *ad_state){
@@ -218,9 +218,9 @@ void ic_filter(
 
     ic_calc_fast_ratio(ad_state);
 
-    if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->adaption_config == IC_ADAPTION_AUTO)){
+    /*if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->adaption_config == IC_ADAPTION_AUTO)){
         ic_reset_filter(state, output);
-    }
+    }*/
 }
 
 void ic_adapt(

@@ -36,9 +36,11 @@ class pipeline(object):
         self.frame_count = 0
         self.time_elapsed = 0
         self.verbose = verbose
+        self.vnr_pred_log = np.empty(0, dtype=np.float64)
+        self.mu_log = np.empty(0, dtype=np.float64)
         return
 
-    def process_frame(self, new_frame, verbose=False):
+    def process_frame(self, new_frame, verbose=False, vnr_input_override=None, mu_override=None):
         new_y = new_frame[:self.y_channel_count]
         new_x = new_frame[self.y_channel_count:self.y_channel_count + self.x_channel_count]
 
@@ -52,8 +54,18 @@ class pipeline(object):
         error_ic, Error = self.ifc.process_frame(error_aec)
         error_ic_2ch = np.vstack((error_ic, error_ic)) # Duplicate across the 2nd channel
         if self.ifc.vnr_obj != None:
-            py_vnr_in, py_vnr_out = self.ifc.calc_vnr_pred(Error)
+            py_vnr_in, py_vnr_out = self.ifc.calc_vnr_pred(Error)            
+            if vnr_input_override != None:
+                self.ifc.input_vnr_pred = vnr_input_override
+                py_vnr_in = vnr_input_override
+            self.vnr_pred_log = np.append(self.vnr_pred_log, self.ifc.input_vnr_pred)
+
         mu, control_flag = self.ifc.mu_control_system()
+        if mu_override != None:
+            self.ifc.mu = mu_override
+            mu = mu_override
+        self.mu_log = np.append(self.mu_log, mu)
+
         self.ifc.adapt(Error, mu)
 
         # AGC

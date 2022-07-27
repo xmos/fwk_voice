@@ -41,7 +41,7 @@
     "leakage" : 0.995,
     "remove_NQ" : true,
     "vnr_model" : "./../../../../modules/lib_vnr/python/model/model_output/model_qaware.tflite",
-    "adaption_config": "IC_ADAPTION_FORCE_ON"
+    "adaption_config": "IC_ADAPTION_AUTO"
     },
     "agc_init_config": {
         "ch_init_config": [

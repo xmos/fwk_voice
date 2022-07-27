@@ -94,7 +94,7 @@ typedef struct {
     float_s32_t input_vnr_threshold;
 
     /** Limits number of frames for which mu and leakage_alpha could be adapted. */
-    uint8_t adapt_counter_limit;
+    uint32_t adapt_counter_limit;
 
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
@@ -125,7 +125,7 @@ typedef struct {
     float_s32_t fast_ratio;
 
     /** Adaption counter which counts number of frames has been adapted. */
-    uint8_t adapt_counter;
+    uint32_t adapt_counter;
 
     /** Flag that represents the state ao the filter. */
     control_flag_e control_flag;
