@@ -978,9 +978,9 @@ void aec_priv_init_config_params(
     //TODO profile double_to_float_s32() calls
     //aec_core_config_params_t
     aec_core_config_params_t *core_conf = &config_params->aec_core_conf;
-    core_conf->sigma_xx_shift = 11;
+    core_conf->sigma_xx_shift = 6;
     core_conf->ema_alpha_q30 = Q30(0.98);
-    core_conf->gamma_log2 = 6;
+    core_conf->gamma_log2 = 5;
     core_conf->delta_adaption_force_on.mant = (unsigned)UINT_MAX >> 1;
     core_conf->delta_adaption_force_on.exp = -32 - 6 + 1; //extra +1 to account for shr of 1 to the mant in order to store it as a signed number
     core_conf->delta_min = double_to_float_s32((double)1e-20);
@@ -1013,7 +1013,7 @@ void aec_priv_init_config_params(
     coh_cfg->mu_shad_time = 5;
 
     coh_cfg->adaption_config = AEC_ADAPTION_AUTO;
-    coh_cfg->force_adaption_mu_q30 = Q30(1.0);
+    coh_cfg->force_adaption_mu_q30 = Q30(0.1);
 }
 
 void aec_priv_calc_delta(
