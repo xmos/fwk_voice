@@ -166,6 +166,8 @@ typedef struct {
     bfp_s32_t prev_y_bfp[IC_Y_CHANNELS];
     /** Storage for previous y mantissas. */
     int32_t DWORD_ALIGNED y_prev_samples[IC_Y_CHANNELS][IC_FRAME_LENGTH - IC_FRAME_ADVANCE]; //272 samples history
+    // Copy of first 240 y prev samples before they get updated in ic_frame_init(). This, along with the updated y_prev_samples is used to get back the 512 samples of the input processing frame when it's needed again in ic_reset_filter(). All of this is needed since due to in-place DFT processing, y_bfp memory would hold freq domain at the point of ic_reset_filter() call*/  
+    int32_t DWORD_ALIGNED y_prev_samples_copy[IC_Y_CHANNELS][IC_FRAME_ADVANCE];  
     /** BFP array pointing to previous x samples which are used for framing. */
     bfp_s32_t prev_x_bfp[IC_X_CHANNELS];
     /** Storage for previous x mantissas. */

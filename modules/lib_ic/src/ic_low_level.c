@@ -48,6 +48,8 @@ void ic_frame_init(
         bfp_s32_headroom(&state->y_bfp[ch]);
 
         /* Update previous samples */
+        // Save a copy of the first 240 samples of prev_y_bfp that are about to get overwritten, in case it's needed in ic_reset_filter() to recreate the original 512 samples time-domain frame.
+        memcpy(&state->y_prev_samples_copy[ch][0], &state->prev_y_bfp[ch].data[0], IC_FRAME_ADVANCE*sizeof(int32_t));
         // Copy the last 32 samples to the beginning
         memcpy(state->prev_y_bfp[ch].data, &state->prev_y_bfp[ch].data[IC_FRAME_ADVANCE], (IC_FRAME_LENGTH-(2*IC_FRAME_ADVANCE))*sizeof(int32_t));
         // Copy current frame to previous
@@ -337,11 +339,11 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
         ad_state->adapt_counter++;
     }
 
-    /*if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
+    if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
         ic_set_mu(state, float_to_float_s32(0.9));
         state->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
         ad_state->control_flag = UNSTABLE;
-    }*/
+    }
     //printf("MU: %ld %d\n", state->mu[0][0].mant, state->mu[0][0].exp);
 }
 
@@ -356,25 +358,17 @@ void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){
         bfp_s32_set(&state->sigma_XX_bfp[ch], 0, zero_exp);
     }
-#if (IC_Y_CHANNEL_DELAY_SAMPS < IC_FRAME_LENGTH)
-    #error ERROR need to use more memory to keep unprocessed y frame
-#endif
-    // Getting unproccessed y frame from the delay line
-    int32_t indx = state->y_delay_idx[0];
-    int32_t DWORD_ALIGNED buff[IC_FRAME_LENGTH];
-    indx = ((indx - IC_FRAME_LENGTH) >= 0) ? indx - IC_FRAME_LENGTH : IC_Y_CHANNEL_DELAY_SAMPS + indx - IC_FRAME_LENGTH;
-    for(unsigned i = 0; i < IC_FRAME_LENGTH; i++){
-        buff[i] = state->y_input_delay[0][indx];
-        indx ++;
-        if(indx == IC_Y_CHANNEL_DELAY_SAMPS){
-            indx = 0;
-        }
+    // Getting unproccessed y frame from state->y_prev_samples_copy[ch] and state->prev_y_bfp[ch].data 
+    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
+        int32_t DWORD_ALIGNED buff[IC_FRAME_LENGTH];
+        memcpy(&buff[0], &state->y_prev_samples_copy[ch][0], IC_FRAME_ADVANCE*sizeof(int32_t));
+        memcpy(&buff[IC_FRAME_ADVANCE], &state->prev_y_bfp[ch].data[0], (IC_FRAME_LENGTH - IC_FRAME_ADVANCE)*sizeof(int32_t));
+        const exponent_t init_exp = -31;
+        bfp_s32_t y, out;
+        bfp_s32_init(&y, buff, init_exp, IC_FRAME_LENGTH, 1);
+        bfp_s32_init(&out, output, init_exp, IC_FRAME_ADVANCE, 0);
+        aec_priv_create_output(&out, &state->overlap_bfp[ch], &y);
     }
-    const exponent_t init_exp = -31;
-    bfp_s32_t y, out;
-    bfp_s32_init(&y, buff, init_exp, IC_FRAME_LENGTH, 1);
-    bfp_s32_init(&out, output, init_exp, IC_FRAME_ADVANCE, 0);
-    aec_priv_create_output(&out, state->overlap_bfp, &y);
 }
 
 // This allows the filter to forget some of its training

@@ -218,9 +218,9 @@ void ic_filter(
 
     ic_calc_fast_ratio(ad_state);
 
-    /*if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->adaption_config == IC_ADAPTION_AUTO)){
+    if((float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold))&&(ad_config->adaption_config == IC_ADAPTION_AUTO)){
         ic_reset_filter(state, output);
-    }*/
+    }
 }
 
 void ic_adapt(
