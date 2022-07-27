@@ -48,6 +48,16 @@ typedef struct {
 }vnr_input_state_t;
 
 /**
+ * @brief VNR feature extraction config structure
+ *
+ * @ingroup vnr_features_state
+ */
+typedef struct {
+    /** Enable highpass filtering of VNR MEL filter output. Disabled by default*/
+    int32_t enable_highpass;
+}vnr_feature_config_t;
+
+/**
  * @brief State structure used in VNR feature extraction
  *
  * @ingroup vnr_features_state
@@ -55,5 +65,6 @@ typedef struct {
 typedef struct {
     /** Feature buffer containing the most recent VNR_MEL_FILTERS frames' MEL frequency spectrum. */
     fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
+    vnr_feature_config_t config;
 }vnr_feature_state_t;
 #endif
