@@ -12,7 +12,8 @@ pipeline_bins = {
                 "prev_arch" :    {"x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread"),
                                 "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe")},
                 "alt_arch"  :    {"x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st"),
-                                "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe")}
+                                "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe")},
+                "aec_ic_prev_arch" : {"xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_pipeline_aec_ic.xe")}
                 }
 results_log_file = os.path.abspath("results.csv")
 xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
@@ -31,7 +32,7 @@ quick_test_pass_thresholds = {
 all_tests_list = []
 # Select whether we run previous or al pipeline architecture. Default = alt hence first in list
 full_pipeline_run = 1
-# Select whether we run each test on xcore or using the x86 compiled example app
+# Select whether we run each test on xcore or using the x86 compiled example app or using python. Only AEC+IC pipeline exists for python right now.
 targets = ["xcore", "python"]
 architectures = []# These are populated below depending on full_pipeline_run
 
@@ -55,15 +56,19 @@ def pytest_sessionstart(session):
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
     else:
         hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
-
+    
+    # prev-arch: Standard config, full pipeline
+    # alt-arch: Alt-arch config, full pipeline
+    # aec_ic_prev_arch: Standard config, AEC+IC pipeline
     if full_pipeline_run:
-        architectures = ["prev_arch", "alt_arch"]
+        architectures = ["prev_arch", "alt_arch", "aec_ic_prev_arch"]
     else:
-        architectures = ["alt_arch"]
+        architectures = ["alt_arch", "aec_ic_prev_arch"]
 
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_70dB__Take1.wav")]
- 
+    #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise2_70dB__Take1.wav")]
+
     for input_wav_file in input_wav_files:
         #We sometimes get weird files appearing in dir starting with "._InHouse_X..." so ignore
         if '._InHouse' in input_wav_file:
