@@ -4,6 +4,8 @@ import os
 thisfile_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(thisfile_path, "../../../../lib_agc/python"))
 import agc
+sys.path.append(os.path.join(thisfile_path, "../../../../lib_noise_suppression/python"))
+import sup_sequential
 sys.path.append(os.path.join(thisfile_path, "../../../../lib_voice_toolbox/python"))
 from vtb_frame import VTBInfo, VTBFrame
 from aec import aec
@@ -13,13 +15,14 @@ import numpy as np
 class pipeline(object):
 
     def __init__(self, rate, verbose, x_channel_count, y_channel_count, frame_advance,
-                 mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config, ic_conf):
+                 mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config, ic_conf, suppression_conf):
 
         # Fix path to VNR model
         self.aec = aec(**aec_conf)
         self.agc = agc.agc(**agc_init_config)
         ic_conf['vnr_model'] = os.path.join(thisfile_path, "config", ic_conf['vnr_model'])
         self.ifc = IC.adaptive_interference_canceller(**ic_conf) 
+        self.ns = sup_sequential.sup_sequential(**suppression_conf)
         
         self.x_channel_count = x_channel_count
         self.y_channel_count = y_channel_count
@@ -68,8 +71,12 @@ class pipeline(object):
 
         self.ifc.adapt(Error, mu)
 
+        # NS
+        x = np.zeros((0,240))
+        ns_output = self.ns.process_frame(x, error_ic_2ch)
+
         # AGC
-        output = self.agc.process_frame(error_ic_2ch, 0 , 0, 0)
+        output = self.agc.process_frame(ns_output, 0 , 0, 0)
 
         return output
         

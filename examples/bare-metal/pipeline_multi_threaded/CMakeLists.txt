@@ -62,7 +62,7 @@ target_link_libraries(fwk_voice_example_pipeline_aec_ic
 
 target_compile_definitions(fwk_voice_example_pipeline_aec_ic
     PRIVATE
-        DISABLE_STAGE_3=1
+        #DISABLE_STAGE_3=1
         DISABLE_INITIAL_DELAY_EST=1
         DISABLE_AGC_ADAPT_GAIN=1
     )
