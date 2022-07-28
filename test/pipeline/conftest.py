@@ -62,8 +62,7 @@ def pytest_sessionstart(session):
     # alt-arch: Alt-arch config, full pipeline
     # aec_ic_prev_arch: Standard config, AEC+IC pipeline
     if full_pipeline_run:
-        #architectures = ["prev_arch", "alt_arch", "aec_ic_prev_arch"]
-        architectures = ["aec_ic_prev_arch"]
+        architectures = ["prev_arch", "alt_arch", "aec_ic_prev_arch"]
     else:
         architectures = ["alt_arch", "aec_ic_prev_arch"]
 
