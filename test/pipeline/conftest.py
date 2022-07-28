@@ -13,7 +13,8 @@ pipeline_bins = {
                                 "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe")},
                 "alt_arch"  :    {"x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st"),
                                 "xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe")},
-                "aec_ic_prev_arch" : {"xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_pipeline_aec_ic.xe")}
+                "aec_ic_prev_arch" : {"xcore" : os.path.abspath("../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_pipeline_aec_ic.xe"),
+                                      "x86" : os.path.abspath("../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_st_pipeline_aec_ic.xe")}
                 }
 results_log_file = os.path.abspath("results.csv")
 xtag_aquire_timeout_s = int(8.5 * 60 * 1.2 * 2) # Add a generous timeout for xtag acquisition here. Max input wav is 8m21s so double & add 20%
