@@ -64,7 +64,7 @@ target_compile_definitions(fwk_voice_example_pipeline_aec_ic
     PRIVATE
         #DISABLE_STAGE_3=1
         DISABLE_INITIAL_DELAY_EST=1
-        DISABLE_AGC_ADAPT_GAIN=1
+        #DISABLE_AGC_ADAPT_GAIN=1
     )
 
 target_link_options(fwk_voice_example_pipeline_aec_ic

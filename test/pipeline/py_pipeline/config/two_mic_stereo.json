@@ -57,7 +57,7 @@
                 "max_gain": 1000,
                 "min_gain": 0,
                 "gain_inc": 1.197,
-                "adapt": 0,
+                "adapt": 1,
                 "adapt_on_vad": 1,
                 "soft_clipping": 1,
                 "init_gain": 500,
