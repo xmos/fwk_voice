@@ -37,6 +37,12 @@ target_sources(fwk_voice_example_pipeline_multi_thread_interface
 target_compile_options(fwk_voice_example_pipeline_multi_thread_interface
     INTERFACE "-target=${XCORE_TARGET}")
 
+target_link_options(fwk_voice_example_pipeline_multi_thread_interface
+    INTERFACE
+        "-target=${XCORE_TARGET}"
+        "-report"
+        "${CONFIG_XSCOPE_PATH}/config.xscope")
+
 ### Add executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 add_executable(fwk_voice_example_bare_metal_pipeline_multi_thread)
@@ -46,13 +52,8 @@ target_link_libraries(fwk_voice_example_bare_metal_pipeline_multi_thread
         fwk_voice_example_pipeline_multi_thread_interface
         )
 
-target_link_options(fwk_voice_example_bare_metal_pipeline_multi_thread
-    PRIVATE
-        "-target=${XCORE_TARGET}"
-        "-report"
-        "${CONFIG_XSCOPE_PATH}/config.xscope")
 
-### Build AEC + IC pipeline for testing against python AEC+IC pipeline
+### Build AEC + IC pipeline for testing against python
 add_executable(fwk_voice_example_pipeline_aec_ic)
 
 target_link_libraries(fwk_voice_example_pipeline_aec_ic
@@ -67,9 +68,43 @@ target_compile_definitions(fwk_voice_example_pipeline_aec_ic
         DISABLE_AGC_ADAPT_GAIN=1
     )
 
-target_link_options(fwk_voice_example_pipeline_aec_ic
-    PRIVATE
-        "-target=${XCORE_TARGET}"
-        "-report"
-        "${CONFIG_XSCOPE_PATH}/config.xscope")
+## Build AEC + IC +NS pipeline for testing against python
+add_executable(fwk_voice_example_pipeline_aec_ic_ns)
 
+target_link_libraries(fwk_voice_example_pipeline_aec_ic_ns
+    PUBLIC
+        fwk_voice_example_pipeline_multi_thread_interface
+        )
+
+target_compile_definitions(fwk_voice_example_pipeline_aec_ic_ns
+    PRIVATE
+        DISABLE_INITIAL_DELAY_EST=1
+        DISABLE_AGC_ADAPT_GAIN=1
+    )
+
+## Build AEC+IC+NS_AGC pipeline for testing against python. Everything other than initial delay estimation is run which is currently not supported on the python pipeline 
+add_executable(fwk_voice_example_pipeline_aec_ic_ns_agc)
+
+target_link_libraries(fwk_voice_example_pipeline_aec_ic_ns_agc
+    PUBLIC
+        fwk_voice_example_pipeline_multi_thread_interface
+        )
+
+target_compile_definitions(fwk_voice_example_pipeline_aec_ic_ns_agc
+    PRIVATE
+        DISABLE_INITIAL_DELAY_EST=1
+    )
+
+## Build AEC+IC+AGC pipeline for testing against python
+add_executable(fwk_voice_example_pipeline_aec_ic_agc)
+
+target_link_libraries(fwk_voice_example_pipeline_aec_ic_agc
+    PUBLIC
+        fwk_voice_example_pipeline_multi_thread_interface
+        )
+
+target_compile_definitions(fwk_voice_example_pipeline_aec_ic_agc
+    PRIVATE
+        DISABLE_STAGE_3=1
+        DISABLE_INITIAL_DELAY_EST=1
+    )
