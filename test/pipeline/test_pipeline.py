@@ -18,6 +18,9 @@ def test_pipelines(test, record_property):
     wav_name = os.path.basename(wav_file)
     arch = test[1]
     target = test[2]
+    
+    if target=="python" and arch != "aec_ic_prev_arch": # Python only exists for one config at this point.
+        return
 
     input_file = os.path.join(pipeline_input_dir, wav_name)
     if not os.path.isfile(input_file): 
@@ -56,12 +59,13 @@ def test_pipelines(test, record_property):
 
     #Fail only if in quicktest mode
     if full_pipeline_run == 0:
-        passed = True
-        for key in quick_test_pass_thresholds:
-            if key in keyword_file:
-                pass_mark = quick_test_pass_thresholds[key]
-                if amazon_detections < pass_mark:
-                    print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {sensory_old_detections}", file=sys.stderr)
-                    passed = False
-        assert passed
+        if arch == "alt_arch" and target != "python": # Only test keywords on quick run on full pipeline alt_arch. Python pipeline doesn't exist for alt-arch at the moment.
+            passed = True
+            for key in quick_test_pass_thresholds:
+                if key in keyword_file:
+                    pass_mark = quick_test_pass_thresholds[key]
+                    if amazon_detections < pass_mark:
+                        print(f"Quick test failed for file {wav_name}, architecture {arch}, target {target}. Expected {pass_mark} keywords, got {sensory_old_detections}", file=sys.stderr)
+                        passed = False
+            assert passed
     return True

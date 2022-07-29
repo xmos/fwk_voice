@@ -463,22 +463,22 @@ pipeline {
             }
           }
         }
-	      stage('IC test_bad_state') {
-	        steps {
-	          dir("${REPO}/test/lib_ic/test_bad_state") {
-	            viewEnv() {
-		            withVenv {
- 	                withMounts([["projects", "projects/hydra_audio", "hydra_audio_bad_state"]]) {
-		                withEnv(["hydra_audio_PATH=$hydra_audio_bad_state_PATH", "sensory_PATH=sensory_sdk"]) {
-		                  sh "pytest -s --junitxml=pytest_result.xml"
+        stage('IC test_bad_state') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_bad_state") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_bad_state"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_bad_state_PATH", "sensory_PATH=sensory_sdk"]) {
+                      sh "pytest -s --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
-		                }
-		              }
-		            }
-	            }
-	          }
-	        }
-	      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
@@ -666,6 +666,7 @@ pipeline {
                       // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       junit "pytest_result.xml"
+                      sh "python compare_keywords.py results_Avona_aec_ic_prev_arch_xcore.csv results_Avona_aec_ic_prev_arch_python.csv"
                     }
                   }
                 }

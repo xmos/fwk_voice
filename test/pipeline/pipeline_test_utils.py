@@ -45,6 +45,10 @@ def process_x86(bin_file, input_file, output_file):
 
 def process_python(input_file, output_file):
     config_file = os.path.join(thisfile_path, "py_pipeline/config/two_mic_stereo.json")
+    #vnr_input = np.load("feed_vnr_input_pred_InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_70dB__Take1.npy")
+    #wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), vnr_input_override=vnr_input)
+    #mu_override = np.load("feed_mu_InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_70dB__Take1.npy")
+    #wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), mu_override=mu_override)
     wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
     stdo = ""
     return stdo
@@ -113,6 +117,7 @@ def log_vnr(stdo, input_file, arch, target): # Read VNR predicitions from stdo a
     
     vnr_output_pred = np.empty(0, dtype=np.float64)
     vnr_input_pred = np.empty(0, dtype=np.float64)
+    mu_log = np.empty(0, dtype=np.float64)
     for line in xcore_stdo:
         match = re.search(r'VNR INPUT PRED:\s*([-0-9]+)\s*([-0-9]+)', line)
         if match != None:
@@ -127,6 +132,13 @@ def log_vnr(stdo, input_file, arch, target): # Read VNR predicitions from stdo a
             vnr_exp = float(match.group(2))
             vnr = vnr_mant * (2.0 ** vnr_exp)
             vnr_output_pred = np.append(vnr_output_pred, vnr)
+
+        match = re.search(r'MU:\s*([-0-9]+)\s*([-0-9]+)', line)
+        if match != None:
+            mu_mant = float(match.group(1))
+            mu_exp = float(match.group(2))
+            mu = mu_mant * (2.0 ** mu_exp)
+            mu_log = np.append(mu_log, mu)
     
     if(len(vnr_input_pred) > 0):
         filename = f"vnr_input_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
@@ -137,3 +149,8 @@ def log_vnr(stdo, input_file, arch, target): # Read VNR predicitions from stdo a
         filename = f"vnr_output_pred_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
         filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
         np.save(filename, vnr_output_pred)
+
+    if(len(mu_log) > 0):
+        filename = f"mu_{os.path.splitext(Path(os.path.basename(input_file)))[0]}.npy"
+        filename = os.path.join(keyword_input_base_dir + "_" + arch + "_" + target, filename)
+        np.save(filename, mu_log)
