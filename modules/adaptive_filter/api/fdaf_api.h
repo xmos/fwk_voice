@@ -20,23 +20,6 @@ void fdaf_update_X_fifo_and_calc_sigmaXX(
         unsigned num_phases,
         uint32_t sigma_xx_shift);
 
-void fdaf_calc_Error_and_Y_hat(
-        bfp_complex_s32_t *Error,
-        bfp_complex_s32_t *Y_hat,
-        const bfp_complex_s32_t *Y,
-        const bfp_complex_s32_t *X_fifo,
-        const bfp_complex_s32_t *H_hat,
-        unsigned num_x_channels,
-        unsigned num_phases,
-        unsigned start_offset,
-        unsigned length,
-        int32_t bypass_enabled);
-
-void fdaf_adapt_plus_fft_gc(
-        bfp_complex_s32_t *H_hat_ph,
-        const bfp_complex_s32_t *X_fifo_ph,
-        const bfp_complex_s32_t *T_ph);
-
 void fdaf_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
         const bfp_s32_t *X_energy,
@@ -59,5 +42,39 @@ void fdaf_calc_delta(
         uint8_t adapt_conf,
         float_s32_t scale,
         uint32_t channels);
+
+void fdaf_calc_Error_and_Y_hat(
+        bfp_complex_s32_t *Error,
+        bfp_complex_s32_t *Y_hat,
+        const bfp_complex_s32_t *Y,
+        const bfp_complex_s32_t *X_fifo,
+        const bfp_complex_s32_t *H_hat,
+        unsigned num_x_channels,
+        unsigned num_phases,
+        int32_t bypass_enabled);
+
+void fdaf_filter_adapt(
+        bfp_complex_s32_t *H_hat,
+        const bfp_complex_s32_t *X_fifo,
+        const bfp_complex_s32_t *T,
+        unsigned num_x_channels,
+        unsigned num_phases);
+
+void fdaf_l2_calc_Error_and_Y_hat(
+        bfp_complex_s32_t *Error,
+        bfp_complex_s32_t *Y_hat,
+        const bfp_complex_s32_t *Y,
+        const bfp_complex_s32_t *X_fifo,
+        const bfp_complex_s32_t *H_hat,
+        unsigned num_x_channels,
+        unsigned num_phases,
+        unsigned start_offset,
+        unsigned length,
+        int32_t bypass_enabled);
+
+void fdaf_l2_adapt_plus_fft_gc(
+        bfp_complex_s32_t *H_hat_ph,
+        const bfp_complex_s32_t *X_fifo_ph,
+        const bfp_complex_s32_t *T_ph);
 
 #endif

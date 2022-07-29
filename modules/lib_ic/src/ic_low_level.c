@@ -183,7 +183,7 @@ void ic_calc_Error_and_Y_hat(
     bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
 
     int32_t bypass_enabled = state->config_params.bypass;
-    fdaf_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, 0, IC_FD_FRAME_LENGTH, bypass_enabled);
+    fdaf_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
 
 // Window error. Overlap add to create IC output
@@ -239,7 +239,7 @@ void ic_filter_adapt(ic_state_t *state){
     }
     bfp_complex_s32_t *T_ptr = &state->T_bfp[0];
     int y_ch = 0;
-    aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
+    fdaf_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
 // Arithmetic shift for a signed int32_t
