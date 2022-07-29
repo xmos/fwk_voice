@@ -5,9 +5,9 @@
 #include <fdaf_api.h>
 
 void fdaf_bfp_complex_s32_recalc_energy_one_bin(
-        bfp_s32_t *X_energy,
-        const bfp_complex_s32_t *X_fifo,
-        const bfp_complex_s32_t *X,
+        bfp_s32_t * X_energy,
+        const bfp_complex_s32_t * X_fifo,
+        const bfp_complex_s32_t * X,
         unsigned num_phases,
         unsigned recalc_bin)
 {
@@ -40,10 +40,10 @@ void fdaf_bfp_complex_s32_recalc_energy_one_bin(
 }
 
 void fdaf_update_total_X_energy(
-        bfp_s32_t *X_energy,
-        float_s32_t *max_X_energy,
-        const bfp_complex_s32_t *X_fifo,
-        const bfp_complex_s32_t *X,
+        bfp_s32_t * X_energy,
+        float_s32_t * max_X_energy,
+        const bfp_complex_s32_t * X_fifo,
+        const bfp_complex_s32_t * X,
         unsigned num_phases,
         unsigned recalc_bin)
 {
@@ -86,10 +86,10 @@ void fdaf_update_total_X_energy(
 }
 
 void fdaf_update_X_fifo_and_calc_sigmaXX(
-        bfp_complex_s32_t *X_fifo,
-        bfp_s32_t *sigma_XX,
-        float_s32_t *sum_X_energy,
-        const bfp_complex_s32_t *X,
+        bfp_complex_s32_t * X_fifo,
+        bfp_s32_t * sigma_XX,
+        float_s32_t * sum_X_energy,
+        const bfp_complex_s32_t * X,
         unsigned num_phases,
         uint32_t sigma_xx_shift)
 {
@@ -129,11 +129,11 @@ void fdaf_update_X_fifo_and_calc_sigmaXX(
 }
 
 void fdaf_calc_Error_and_Y_hat(
-        bfp_complex_s32_t *Error,
-        bfp_complex_s32_t *Y_hat,
-        const bfp_complex_s32_t *Y,
-        const bfp_complex_s32_t *X_fifo,
-        const bfp_complex_s32_t *H_hat,
+        bfp_complex_s32_t * Error,
+        bfp_complex_s32_t * Y_hat,
+        const bfp_complex_s32_t * Y,
+        const bfp_complex_s32_t * X_fifo,
+        const bfp_complex_s32_t * H_hat,
         unsigned num_x_channels,
         unsigned num_phases,
         int32_t bypass_enabled)
@@ -142,9 +142,9 @@ void fdaf_calc_Error_and_Y_hat(
 }
 
 void fdaf_filter_adapt(
-        bfp_complex_s32_t *H_hat,
-        const bfp_complex_s32_t *X_fifo,
-        const bfp_complex_s32_t *T,
+        bfp_complex_s32_t * H_hat,
+        const bfp_complex_s32_t * X_fifo,
+        const bfp_complex_s32_t * T,
         unsigned num_x_channels,
         unsigned num_phases)
 {
@@ -155,12 +155,13 @@ void fdaf_filter_adapt(
     }
 }
 
-extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+extern void vtb_inv_X_energy_asm(
+        uint32_t * inv_X_energy,
         unsigned shr,
         unsigned count);
 
 void fdaf_calc_inverse(
-        bfp_s32_t *input)
+        bfp_s32_t * input)
 {
 #if 1
     //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
@@ -183,8 +184,8 @@ void fdaf_calc_inverse(
 }
 
 void fdaf_bfp_new_add_scalar(
-    bfp_s32_t* a, 
-    const bfp_s32_t* b, 
+    bfp_s32_t * a, 
+    const bfp_s32_t * b, 
     const float_s32_t c)
 {
 #if (XS3_BFP_DEBUG_CHECK_LENGTHS) // See xs3_math_conf.h
@@ -206,12 +207,13 @@ void fdaf_bfp_new_add_scalar(
 }
 
 void fdaf_calc_inv_X_energy_denom(
-        bfp_s32_t *inv_X_energy_denom,
-        const bfp_s32_t *X_energy,
-        const bfp_s32_t *sigma_XX,
+        bfp_s32_t * inv_X_energy_denom,
+        const bfp_s32_t * X_energy,
+        const bfp_s32_t * sigma_XX,
         const int32_t gamma_log2,
         float_s32_t delta,
-        unsigned is_shadow) {
+        unsigned is_shadow)
+{
     
     if(!is_shadow) { //frequency smoothing
         int32_t norm_denom_buf[FDAF_F_BIN_COUNT];
@@ -282,9 +284,9 @@ void fdaf_calc_inv_X_energy_denom(
 // normDenom = self.X_energy[:,k] + self.sigma_xx*gamma. To work around this, an extra argument normdenom_apply_factor_of_2
 // is added to aec_priv_calc_inv_X_energy. When set to 1, X_energy is multiplied by 2 in the inverse energy calculation.
 void fdaf_calc_inv_X_energy(
-        bfp_s32_t *inv_X_energy,
-        const bfp_s32_t *X_energy,
-        const bfp_s32_t *sigma_XX,
+        bfp_s32_t * inv_X_energy,
+        const bfp_s32_t * X_energy,
+        const bfp_s32_t * sigma_XX,
         const int32_t gamma_log2,
         float_s32_t delta,
         unsigned is_shadow)
@@ -295,9 +297,9 @@ void fdaf_calc_inv_X_energy(
 }
 
 void fdaf_compute_T(
-        bfp_complex_s32_t *T,
-        const bfp_complex_s32_t *Error,
-        const bfp_s32_t *inv_X_energy,
+        bfp_complex_s32_t * T,
+        const bfp_complex_s32_t * Error,
+        const bfp_s32_t * inv_X_energy,
         float_s32_t mu)
 {
     //T[x_ch] = self.mu[y_ch, x_ch] * Inv_x_energy[x_ch] * Error[y_ch] / self.K
@@ -314,13 +316,14 @@ void fdaf_compute_T(
 }
 
 void fdaf_calc_delta(
-        float_s32_t *delta, 
-        const float_s32_t *max_X_energy,
+        float_s32_t * delta, 
+        const float_s32_t * max_X_energy,
         float_s32_t delta_min,
         float_s32_t delta_adaption_force_on,
         uint8_t adapt_conf,
         float_s32_t scale,
-        uint32_t channels) {
+        uint32_t channels)
+{
     if(adapt_conf == 0) {
         float_s32_t max = max_X_energy[0];
         for(int i=1; i<channels; i++) {
@@ -331,5 +334,22 @@ void fdaf_calc_delta(
     }
     else {
         *delta = delta_adaption_force_on;
+    }
+}
+
+void fdaf_bfp_complex_s32_reset(bfp_complex_s32_t * a)
+{
+    memset(a->data, 0, a->length * sizeof(complex_s32_t));
+    a->exp = FDAF_ZEROVAL_EXP;
+    a->hr = FDAF_ZEROVAL_HR;
+}
+
+void fdaf_reset_filter(
+        bfp_complex_s32_t * H_hat,
+        unsigned num_x_channels,
+        unsigned num_phases)
+{
+    for(unsigned ph = 0; ph < num_x_channels * num_phases; ph++) {
+        fdaf_bfp_complex_s32_reset(&H_hat[ph]);
     }
 }

@@ -34,6 +34,11 @@ void fdaf_compute_T(
         const bfp_s32_t *inv_X_energy,
         float_s32_t mu);
 
+void fdaf_reset_filter(
+        bfp_complex_s32_t *H_hat,
+        unsigned num_x_channels,
+        unsigned num_phases);
+
 void fdaf_calc_delta(
         float_s32_t *delta, 
         const float_s32_t *max_X_energy,

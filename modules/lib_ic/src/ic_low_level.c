@@ -4,7 +4,6 @@
 #include "ic_low_level.h"
 
 // lib_ic heavily reuses functions from lib_aec currently
-#include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
 
@@ -89,7 +88,7 @@ void ic_frame_init(
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
+    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in fdaf_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         const exponent_t zero_exp = -1024;
         state->Y_hat_bfp[ch].exp = zero_exp;
@@ -347,7 +346,7 @@ void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
-        aec_priv_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
+        fdaf_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
     }
     const exponent_t zero_exp = -1024;
     for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){
