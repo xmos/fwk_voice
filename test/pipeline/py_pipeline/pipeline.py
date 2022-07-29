@@ -41,6 +41,8 @@ class pipeline(object):
         self.verbose = verbose
         self.vnr_pred_log = np.empty(0, dtype=np.float64)
         self.mu_log = np.empty(0, dtype=np.float64)
+        self.agc_vnr_threshold = 0.5
+
         return
 
     def process_frame(self, new_frame, verbose=False, vnr_input_override=None, mu_override=None):
@@ -72,11 +74,12 @@ class pipeline(object):
         self.ifc.adapt(Error, mu)
 
         # NS
-        x = np.zeros((0,240))
-        ns_output = self.ns.process_frame(x, error_ic_2ch)
+        #x = np.zeros((0,240))
+        #ns_output = self.ns.process_frame(x, error_ic_2ch)
 
         # AGC
-        output = self.agc.process_frame(ns_output, 0 , 0, 0)
+        vnr_flag = (py_vnr_out > self.agc_vnr_threshold)
+        output = self.agc.process_frame(error_ic_2ch, 0 , vnr_flag, 0)
 
         return output
         
