@@ -49,6 +49,10 @@ def process_python(input_file, output_file, arch):
         wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True, disable_agc=True)
     elif arch == 'aec_ic_ns_prev_arch':
         wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_agc=True)
+    elif arch == 'aec_ic_agc_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True)
+    elif arch == 'aec_ic_ns_agc_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
     stdo = ""
     return stdo
 
