@@ -30,6 +30,9 @@ def test_pipelines(test, record_property):
     tot = time.time() - t0
     print(f"Processing took {tot:.2f}s")
 
+    if not os.path.isfile(output_file): 
+        return 
+
     keyword_file = convert_keyword_wav(output_file, arch, target)
     sensory_old_detections =run_sensory(keyword_file)
     sensory_new_detections =run_sensory(keyword_file, old_model=False)
