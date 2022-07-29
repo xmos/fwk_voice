@@ -64,8 +64,6 @@ class stage_b_comparison:
         self.c_vnr = None
 
     def process_frame(self, frame, index):
-        #we need to delay the y for python as not done in model
-        #first copy the input data for C ver before we modfiy it
         frame_int = pvc.float_to_int32(frame)
 
         #Run a frame through python  

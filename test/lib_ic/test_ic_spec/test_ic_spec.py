@@ -134,7 +134,8 @@ def process_py(input_data, test_name):
 
     file_length = input_data.shape[1]
 
-    config_file = '../../shared/config/ic_conf_big_delta.json'
+    config_file = '../../shared/config/ic_conf_no_adapt_control.json'
+
     ic_parameters = json_to_dict(config_file)
 
     output, Mu, Input_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
