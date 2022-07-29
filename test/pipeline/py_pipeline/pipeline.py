@@ -14,7 +14,7 @@ import numpy as np
 
 class pipeline(object):
 
-    def __init__(self, rate, verbose, x_channel_count, y_channel_count, frame_advance,
+    def __init__(self, rate, verbose, disable_aec, disable_ic, disable_ns, disable_agc, x_channel_count, y_channel_count, frame_advance,
                  mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config, ic_conf, suppression_conf):
 
         # Fix path to VNR model
@@ -42,7 +42,10 @@ class pipeline(object):
         self.vnr_pred_log = np.empty(0, dtype=np.float64)
         self.mu_log = np.empty(0, dtype=np.float64)
         self.agc_vnr_threshold = 0.5
-
+        self.disable_aec = disable_aec
+        self.disable_ic = disable_ic 
+        self.disable_ns = disable_ns
+        self.disable_agc = disable_agc 
         return
 
     def process_frame(self, new_frame, verbose=False, vnr_input_override=None, mu_override=None):
@@ -50,38 +53,50 @@ class pipeline(object):
         new_x = new_frame[self.y_channel_count:self.y_channel_count + self.x_channel_count]
 
         # AEC
-        error_aec, Error, Error_shad = self.aec.add(new_x, new_y)
-        #Do the adaption
-        self.aec.adapt(Error, True, verbose)
-        self.aec.adapt_shadow(Error_shad, True, verbose)
+        if self.disable_aec:
+            error_aec = new_y
+        else:
+            error_aec, Error, Error_shad = self.aec.add(new_x, new_y)
+            #Do the adaption
+            self.aec.adapt(Error, True, verbose)
+            self.aec.adapt_shadow(Error_shad, True, verbose)
 
         # IC
-        error_ic, Error = self.ifc.process_frame(error_aec)
-        error_ic_2ch = np.vstack((error_ic, error_ic)) # Duplicate across the 2nd channel
-        if self.ifc.vnr_obj != None:
-            py_vnr_in, py_vnr_out = self.ifc.calc_vnr_pred(Error)            
-            if vnr_input_override != None:
-                self.ifc.input_vnr_pred = vnr_input_override
-                py_vnr_in = vnr_input_override
-            self.vnr_pred_log = np.append(self.vnr_pred_log, self.ifc.input_vnr_pred)
+        if self.disable_ic:
+            error_ic_2ch = error_aec
+            self.agc.ch_state[0].adapt = 0 # Since IC is disabled, run AGC with fixed gain since we'll not be able to provide VNR input
+        else:
+            error_ic, Error = self.ifc.process_frame(error_aec)
+            error_ic_2ch = np.vstack((error_ic, error_ic)) # Duplicate across the 2nd channel
+            if self.ifc.vnr_obj != None:
+                py_vnr_in, py_vnr_out = self.ifc.calc_vnr_pred(Error)            
+                if vnr_input_override != None:
+                    self.ifc.input_vnr_pred = vnr_input_override
+                    py_vnr_in = vnr_input_override
+                self.vnr_pred_log = np.append(self.vnr_pred_log, self.ifc.input_vnr_pred)
 
-        mu, control_flag = self.ifc.mu_control_system()
-        if mu_override != None:
-            self.ifc.mu = mu_override
-            mu = mu_override
-        self.mu_log = np.append(self.mu_log, mu)
+            mu, control_flag = self.ifc.mu_control_system()
+            if mu_override != None:
+                self.ifc.mu = mu_override
+                mu = mu_override
+            self.mu_log = np.append(self.mu_log, mu)
 
-        self.ifc.adapt(Error, mu)
+            self.ifc.adapt(Error, mu)
 
         # NS
-        #x = np.zeros((0,240))
-        #ns_output = self.ns.process_frame(x, error_ic_2ch)
+        if self.disable_ns:
+            ns_output = error_ic_2ch
+        else:
+            x = np.zeros((0,240))
+            ns_output = self.ns.process_frame(x, error_ic_2ch)
 
         # AGC
+        if self.disable_agc:
+            self.agc.ch_state[0].adapt = 0 # When AGC disabled, run it with fixed gain
         vnr_flag = (py_vnr_out > self.agc_vnr_threshold)
-        output = self.agc.process_frame(error_ic_2ch, 0 , vnr_flag, 0)
+        pipeline_output = self.agc.process_frame(ns_output, 0 , vnr_flag, 0)
 
-        return output
+        return pipeline_output
         
         
 
