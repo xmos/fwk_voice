@@ -5,6 +5,7 @@ def parse_args():
     parser = argparse.ArgumentParser("Script to compare keyword results between 2 csv file")
     parser.add_argument("input1", type=str, help="Test input csv file")
     parser.add_argument("input2", type=str, help="Ref input csv file")
+    parser.add_argument("--pass-threshold", type=int, default=1, help="Allowed keywords diff per test case. Default set to 1 keyword")
     return parser.parse_args()
 
 def read_csv(input_file):
@@ -14,7 +15,7 @@ def read_csv(input_file):
     return data
 
 
-def compare_kwd(input1, input2, verbose=True):
+def compare_kwd(input1, input2, pass_threshold, verbose=True):
     data = [read_csv(input1), read_csv(input2)]
     kwd_dict = []
     
@@ -29,7 +30,6 @@ def compare_kwd(input1, input2, verbose=True):
     not_found_in_file1 = []
     diff = {}
     fail = {}
-    pass_threshold = 1
     for k1 in kwd_dict[0]: # Iterate over the first csv
         if k1 in kwd_dict[1]:
             d = kwd_dict[0][k1] - kwd_dict[1][k1]
@@ -66,5 +66,5 @@ def compare_kwd(input1, input2, verbose=True):
  
 if __name__ == "__main__":
     args = parse_args();
-    compare_kwd(args.input1, args.input2)
+    compare_kwd(args.input1, args.input2, args.pass_threshold)
     
