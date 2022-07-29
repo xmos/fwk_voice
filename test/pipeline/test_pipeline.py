@@ -19,9 +19,6 @@ def test_pipelines(test, record_property):
     arch = test[1]
     target = test[2]
     
-    if target=="python" and arch != "aec_ic_prev_arch": # Python only exists for one config at this point.
-        return
-
     input_file = os.path.join(pipeline_input_dir, wav_name)
     if not os.path.isfile(input_file): 
         convert_input_wav(wav_file, input_file)
