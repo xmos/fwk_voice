@@ -210,7 +210,7 @@ void fdaf_calc_inverse(
 #endif
 }
 
-void bfp_new_add_scalar(
+void fdaf_bfp_new_add_scalar(
     bfp_s32_t* a, 
     const bfp_s32_t* b, 
     const float_s32_t c)
@@ -263,7 +263,7 @@ void fdaf_calc_inv_X_energy_denom(
         bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, &taps_q30[0], 5, PAD_MODE_REFLECT);
 
         //bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
-        bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
+        fdaf_bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
 
     }
     else
@@ -275,7 +275,7 @@ void fdaf_calc_inv_X_energy_denom(
 
         // bfp_complex_s32_real_scale(&temp, sigma_XX, gamma)
 
-        bfp_new_add_scalar(inv_X_energy_denom, X_energy, delta);
+        fdaf_bfp_new_add_scalar(inv_X_energy_denom, X_energy, delta);
     }
 
     /**Fix for divide by 0 scenario 2 discussed in a comment in aec_priv_update_total_X_energy()
