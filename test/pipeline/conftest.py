@@ -97,7 +97,8 @@ def pytest_sessionfinish(session):
             for target in targets:
                 target_log = []
                 for line in log:
-                    if target in line and arch in line:
+                    fields = line.split(",")
+                    if target == fields[2] and arch == fields[1]:
                         target_stripped_line = line.replace(target+",", "").replace(arch+",", "")
                         target_log.append(target_stripped_line) 
                 target_log = sorted(target_log)
