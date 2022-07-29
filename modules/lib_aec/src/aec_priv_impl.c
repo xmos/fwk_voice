@@ -8,6 +8,8 @@
 #include "aec_priv.h"
 #include "q_format.h"
 
+#include "fdaf_api.h"
+
 void aec_priv_main_init(
         aec_state_t *state,
         aec_shared_state_t *shared_state,
@@ -293,7 +295,7 @@ void aec_priv_compare_filters(
         if(float_s32_gt(shadow_state->overall_Error[ch], shared_state->overall_Y[ch]) && shadow_params->shadow_reset_count[ch] >= 0)
         {
             shadow_params->shadow_flag[ch] = ERROR;
-            aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+            fdaf_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
             //Y -> shadow Error
             aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
             shadow_state->overall_Error[ch] = shared_state->overall_Y[ch];
@@ -333,7 +335,7 @@ void aec_priv_compare_filters(
             if(shadow_params->shadow_reset_count[ch] > shadow_conf->shadow_zero_thresh) {
                 //# if shadow filter has been reset several times in a row, reset to zeros
                 shadow_params->shadow_flag[ch] = ZERO;
-                aec_priv_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
+                fdaf_reset_filter(shadow_state->H_hat[ch], shadow_state->shared_state->num_x_channels, shadow_state->num_phases);
                 aec_priv_bfp_complex_s32_copy(&shadow_state->Error[ch], &shared_state->Y[ch]);
                 //# give the zeroed filter time to reconverge (or redeconverge)
                 shadow_params->shadow_reset_count[ch] = -(int)shadow_conf->shadow_reset_timer;
@@ -653,7 +655,7 @@ void aec_priv_calc_Error_and_Y_hat(
         unsigned num_phases,
         int32_t bypass_enabled)
 {
-    aec_l2_calc_Error_and_Y_hat(Error, Y_hat, Y, X_fifo, H_hat, num_x_channels, num_phases, 0, AEC_PROC_FRAME_LENGTH/2 + 1, bypass_enabled);
+    fdaf_l2_calc_Error_and_Y_hat(Error, Y_hat, Y, X_fifo, H_hat, num_x_channels, num_phases, 0, AEC_PROC_FRAME_LENGTH/2 + 1, bypass_enabled);
 }
 
 void aec_priv_calc_coherence(
@@ -949,7 +951,7 @@ void aec_priv_filter_adapt(
     unsigned phases = num_x_channels * num_phases;
     for(unsigned ph=0; ph<phases; ph++) {
         //find out which channel this phase belongs to
-        aec_l2_adapt_plus_fft_gc(&H_hat[ph], &X_fifo[ph], &T[ph/num_phases]);
+        fdaf_l2_adapt_plus_fft_gc(&H_hat[ph], &X_fifo[ph], &T[ph/num_phases]);
     }
 }
 

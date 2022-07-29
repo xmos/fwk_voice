@@ -26,6 +26,7 @@ target_compile_options(fwk_voice_module_lib_aec
 target_link_libraries(fwk_voice_module_lib_aec
     PUBLIC
         core::xs3_math
+        fwk_voice::fdaf
 )
 
 ## Create an alias
