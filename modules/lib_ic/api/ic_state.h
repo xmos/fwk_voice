@@ -22,9 +22,9 @@
  * @ingroup ic_state
  */
 typedef enum {
-    IC_ADAPTION_AUTO,
-    IC_ADAPTION_FORCE_ON,
-    IC_ADAPTION_FORCE_OFF
+    IC_ADAPTION_AUTO  = 0,
+    IC_ADAPTION_FORCE_ON = 1,
+    IC_ADAPTION_FORCE_OFF = 2
 } adaption_config_e;
 
 /**
@@ -100,7 +100,7 @@ typedef struct {
     float_s32_t input_vnr_threshold_low;
 
     /** Limits number of frames for which mu and leakage_alpha could be adapted. */
-    uint8_t adapt_counter_limit;
+    uint32_t adapt_counter_limit;
 
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
@@ -131,7 +131,7 @@ typedef struct {
     float_s32_t fast_ratio;
 
     /** Adaption counter which counts number of frames has been adapted. */
-    uint8_t adapt_counter;
+    uint32_t adapt_counter;
 
     /** Flag that represents the state ao the filter. */
     control_flag_e control_flag;
@@ -172,6 +172,8 @@ typedef struct {
     bfp_s32_t prev_y_bfp[IC_Y_CHANNELS];
     /** Storage for previous y mantissas. */
     int32_t DWORD_ALIGNED y_prev_samples[IC_Y_CHANNELS][IC_FRAME_LENGTH - IC_FRAME_ADVANCE]; //272 samples history
+    // Copy of first 240 y prev samples before they get updated in ic_frame_init(). This, along with the updated y_prev_samples is used to get back the 512 samples of the input processing frame when it's needed again in ic_reset_filter(). All of this is needed since due to in-place DFT processing, y_bfp memory would hold freq domain at the point of ic_reset_filter() call*/  
+    int32_t DWORD_ALIGNED y_prev_samples_copy[IC_Y_CHANNELS][IC_FRAME_ADVANCE];  
     /** BFP array pointing to previous x samples which are used for framing. */
     bfp_s32_t prev_x_bfp[IC_X_CHANNELS];
     /** Storage for previous x mantissas. */

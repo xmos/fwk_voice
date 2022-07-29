@@ -285,7 +285,7 @@ void aec_calc_normalisation_spectrum(
     //calc inverse energy
     bfp_s32_t *sigma_XX_ptr = &state->shared_state->sigma_XX[ch];
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
-    unsigned normdenom_apply_factor_of_2 = 1;
+    unsigned normdenom_apply_factor_of_2 = 0;
     aec_priv_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, &state->shared_state->config_params, state->delta, is_shadow, normdenom_apply_factor_of_2);
 }
 

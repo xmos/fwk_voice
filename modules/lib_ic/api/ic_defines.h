@@ -24,7 +24,7 @@
 /** Initial MU value applied on startup. MU controls the adaption rate of the IC and 
  * is normally adjusted by the adaption rate controller during operation.
  * @ingroup ic_defines */
-#define IC_INIT_MU                                  0.369566 // From two_mic_stereo.json
+#define IC_INIT_MU                                  1.0 // From two_mic_stereo.json
 /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy.
  * @ingroup ic_defines */
 #define IC_INIT_EMA_ALPHA                           0.9995117188 // From two_mic_stereo.json

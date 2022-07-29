@@ -151,14 +151,16 @@ void ic_filter(
     // Delay y channel, necessary for operation of adaptive filter
     ic_delay_y_input(state, y_data);
 
+    bfp_s32_t y_bfp_test;
+    bfp_s32_init(&y_bfp_test, y_data, -31, IC_FRAME_ADVANCE, 1); 
+    // Calculate input td ema energies
+    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
+        ic_update_td_ema_energy(&ad_state->input_energy, &y_bfp_test, 0, IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+    }
+
     // Build a time domain frame of IC_FRAME_LENGTH from IC_FRAME_ADVANCE new samples
     ic_frame_init(state, y_data, x_data);
 
-    // Calculate input td ema energies
-    for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_update_td_ema_energy(&ad_state->input_energy, &state->y_bfp[ch], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
-                                IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
-    }
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
         ic_fft(&state->Y_bfp[ch], &state->y_bfp[ch]);
@@ -204,8 +206,13 @@ void ic_filter(
     }
 
     // Calculate output td ema energies
-    ic_update_td_ema_energy(&ad_state->output_energy, &state->error_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
-                            IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
+    /*ic_update_td_ema_energy(&ad_state->output_energy, &state->error_bfp[0], IC_FRAME_LENGTH - IC_FRAME_ADVANCE,
+                            IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);*/
+
+    bfp_s32_t output_bfp_test;
+    bfp_s32_init(&output_bfp_test, output, -31, IC_FRAME_ADVANCE, 1); 
+    // Calculate input td ema energies
+    ic_update_td_ema_energy(&ad_state->output_energy, &output_bfp_test, 0, IC_FRAME_ADVANCE, ad_config->energy_alpha_q30);
 
     // error -> Error FFT
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {

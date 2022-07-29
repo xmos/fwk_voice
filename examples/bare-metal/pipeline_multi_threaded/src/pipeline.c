@@ -19,7 +19,7 @@
 #include "calc_vnr_pred.h"
 
 #define VNR_AGC_THRESHOLD (0.5)
-//#define PRINT_VNR_PREDICTION (1)
+#define PRINT_VNR_PREDICTION (0)
 
 extern void aec_process_frame_2threads(
         aec_state_t *main_state,
@@ -62,7 +62,11 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Disable ADEC's automatic mode. We only want to estimate and correct for the delay at startup
     adec_config_t adec_conf;
     adec_conf.bypass = 1; // Bypass automatic DE correction
+#if DISABLE_INITIAL_DELAY_EST
+    adec_conf.force_de_cycle_trigger = 0; // Do not force a DE correction cycle ob startup
+#else
     adec_conf.force_de_cycle_trigger = 1; // Force a delay correction cycle, so that delay correction happens once after initialisation. Make sure this is set back to 0 after adec has requested a transition into DE mode once, to stop any further delay correction (automatic or forced) by ADEC
+#endif
     stage_1_init(&stage_1_state, &aec_de_mode_conf, &aec_non_de_mode_conf, &adec_conf);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -194,6 +198,9 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
     // Initialise AGC
     agc_config_t agc_conf_asr = AGC_PROFILE_ASR;
+#if DISABLE_AGC_ADAPT_GAIN
+    agc_conf_asr.adapt = 0;
+#endif
 
     agc_state_t agc_state[AP_MAX_Y_CHANNELS];
     agc_init(&agc_state[0], &agc_conf_asr);

@@ -22,7 +22,7 @@ import IC
 import py_vs_c_utils as pvc 
 
 ap_config_file = "../shared/config/ic_conf_no_adapt_control.json"
-tflite_model = os.path.join(package_dir, "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite")
+tflite_model = os.path.join(package_dir, "../../modules/lib_vnr/python/model/model_output/trained_model.tflite")
 input_file = "input.wav"
 output_file = "output.wav"
 
@@ -64,8 +64,6 @@ class stage_b_comparison:
         self.c_vnr = None
 
     def process_frame(self, frame, index):
-        #we need to delay the y for python as not done in model
-        #first copy the input data for C ver before we modfiy it
         frame_int = pvc.float_to_int32(frame)
 
         #Run a frame through python  
@@ -109,7 +107,7 @@ class stage_b_comparison:
 def test_frame_compare(test_config):
 
     test_config["adaption_config"] = 'IC_ADAPTION_AUTO'
-    test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
+    test_config["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/trained_model.tflite"
     sbc = stage_b_comparison(test_config)
 
     frame_advance = test_config["frame_advance"]
@@ -155,7 +153,7 @@ def test_adaption_controller(test_config):
     #instantiate and init a stage B instance
     #sb = ap_stage_b(stage_b_conf["ic_conf"]["frame_advance"], stage_b_conf["ic_conf"],stage_b_conf["ic_conf"]["passthrough_channel_count"], mic_shift=0, mic_saturate=0)
     sbc = stage_b_comparison(test_config)
-    #Init the avona instance
+    #Init the fwk_voice instance
     ic_vnr_test_lib.test_init()
 
     #A few fixed sceanrios
