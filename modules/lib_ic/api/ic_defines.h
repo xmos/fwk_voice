@@ -65,6 +65,9 @@
 /** Alpha for EMA input/output energy calculation.
  * @ingroup ic_defines */
 #define IC_INIT_ENERGY_ALPHA                        0.5 // From python model
+/** Leakage alpha used in case vnr detects high voice probability.
+ * @ingroup ic_defines */
+#define IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA   0.996094 // From python model
 /** Leakage alpha used in the case where instability is detected. This allows the filter to stabilise
  * without completely forgetting the adaption.
  * @ingroup ic_defines */
@@ -75,6 +78,12 @@
 /** VNR input threshold which decides whether to hold or adapt the filter.
  * @ingroup ic_defines*/
 #define IC_INIT_INPUT_VNR_THRESHOLD                 0.5 // From python model
+/** VNR high threshold to leak the filter is the speech level is high.
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD_HIGH            0.75 // From python model
+/** VNR low threshold to adapt faster when the speech level is low.
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0.05 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////
