@@ -7,6 +7,8 @@
 #include "aec_api.h"
 #include "aec_priv.h"
 
+#include "fdaf_api.h"
+
 void aec_init(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
@@ -158,7 +160,7 @@ void aec_calc_X_fifo_energy(
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
-    aec_priv_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->shared_state->X_fifo[ch][0], X_ptr, state->num_phases, recalc_bin);
+    fdaf_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->shared_state->X_fifo[ch][0], X_ptr, state->num_phases, recalc_bin);
 }
 //per x-channel
 void aec_update_X_fifo_and_calc_sigmaXX(
@@ -169,7 +171,7 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     bfp_complex_s32_t *X_ptr = &state->shared_state->X[ch];
     uint32_t sigma_xx_shift = state->shared_state->config_params.aec_core_conf.sigma_xx_shift;
     float_s32_t *sum_X_energy_ptr = &state->shared_state->sum_X_energy[ch]; //This needs to be done only for main filter, so doing it here instead of in aec_calc_X_fifo_energy
-    aec_priv_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
+    fdaf_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
 }
 
 //per y-channel
@@ -184,7 +186,7 @@ void aec_calc_Error_and_Y_hat(
     bfp_complex_s32_t *Y_hat_ptr = &state->Y_hat[ch];
     bfp_complex_s32_t *Error_ptr = &state->Error[ch];
     int32_t bypass_enabled = state->shared_state->config_params.aec_core_conf.bypass;
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
+    fdaf_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, state->X_fifo_1d, state->H_hat[ch], state->shared_state->num_x_channels, state->num_phases, bypass_enabled);
 }
 
 void aec_inverse_fft(
@@ -285,8 +287,7 @@ void aec_calc_normalisation_spectrum(
     //calc inverse energy
     bfp_s32_t *sigma_XX_ptr = &state->shared_state->sigma_XX[ch];
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
-    unsigned normdenom_apply_factor_of_2 = 0;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, &state->shared_state->config_params, state->delta, is_shadow, normdenom_apply_factor_of_2);
+    fdaf_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, state->shared_state->config_params.aec_core_conf.gamma_log2, state->delta, is_shadow);
 }
 
 void aec_filter_adapt(
@@ -301,7 +302,7 @@ void aec_filter_adapt(
     }
     bfp_complex_s32_t *T_ptr = &state->T[0];
 
-    aec_priv_filter_adapt(state->H_hat[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
+    fdaf_filter_adapt(state->H_hat[y_ch], state->X_fifo_1d, T_ptr, state->shared_state->num_x_channels, state->num_phases);
 }
 
 void aec_calc_T(
@@ -316,7 +317,7 @@ void aec_calc_T(
     bfp_complex_s32_t *Error_ptr = &state->Error[y_ch];
     bfp_s32_t *inv_X_energy_ptr = &state->inv_X_energy[x_ch];
     float_s32_t mu = state->mu[y_ch][x_ch];
-    aec_priv_compute_T(T_ptr, Error_ptr, inv_X_energy_ptr, mu);
+    fdaf_compute_T(T_ptr, Error_ptr, inv_X_energy_ptr, mu);
 }
 
 void aec_compare_filters_and_calc_mu(
@@ -337,9 +338,17 @@ void aec_compare_filters_and_calc_mu(
     
     //calculate delta. Done here instead of aec_l2_calc_inv_X_energy_denom() since max_X_energy across all x-channels is needed in delta computation.
     //aec_l2_calc_inv_X_energy_denom() is called per x channel
-    aec_priv_calc_delta(&main_state->delta, &main_state->max_X_energy[0], &main_state->shared_state->config_params, main_state->delta_scale, main_state->shared_state->num_x_channels);
+    fdaf_calc_delta(&main_state->delta, &main_state->max_X_energy[0], 
+                    main_state->shared_state->config_params.aec_core_conf.delta_min, 
+                    main_state->shared_state->config_params.aec_core_conf.delta_adaption_force_on,
+                    main_state->shared_state->config_params.coh_mu_conf.adaption_config, 
+                    main_state->delta_scale, main_state->shared_state->num_x_channels);
     if(shadow_state != NULL) {
-        aec_priv_calc_delta(&shadow_state->delta, &shadow_state->max_X_energy[0], &shadow_state->shared_state->config_params, shadow_state->delta_scale, shadow_state->shared_state->num_x_channels);
+        fdaf_calc_delta(&shadow_state->delta, &shadow_state->max_X_energy[0], 
+        shadow_state->shared_state->config_params.aec_core_conf.delta_min,
+        shadow_state->shared_state->config_params.aec_core_conf.delta_adaption_force_on,
+        shadow_state->shared_state->config_params.coh_mu_conf.adaption_config,
+        shadow_state->delta_scale, shadow_state->shared_state->num_x_channels);
     }
     
     //Update main and shadow filter mu

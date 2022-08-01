@@ -4,9 +4,10 @@
 #include "ic_low_level.h"
 
 // lib_ic heavily reuses functions from lib_aec currently
-#include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
+
+#include "fdaf_api.h"
 
 // Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
@@ -89,7 +90,7 @@ void ic_frame_init(
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
+    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in fdaf_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         const exponent_t zero_exp = -1024;
         state->Y_hat_bfp[ch].exp = zero_exp;
@@ -144,7 +145,7 @@ void ic_update_X_energy(
     bfp_s32_t *X_energy_ptr = &state->X_energy_bfp[ch];
     bfp_complex_s32_t *X_ptr = &state->X_bfp[ch];
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
-    aec_priv_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->X_fifo_bfp[ch][0], X_ptr, IC_FILTER_PHASES, recalc_bin);
+    fdaf_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->X_fifo_bfp[ch][0], X_ptr, IC_FILTER_PHASES, recalc_bin);
 }
 
 // Update X-fifo with the newest X data. Calculate sigmaXX
@@ -156,7 +157,7 @@ void ic_update_X_fifo_and_calc_sigmaXX(
     bfp_complex_s32_t *X_ptr = &state->X_bfp[ch];
     uint32_t sigma_xx_shift = state->config_params.sigma_xx_shift;
     float_s32_t *sum_X_energy_ptr = &state->sum_X_energy[ch];
-    aec_priv_update_X_fifo_and_calc_sigmaXX(&state->X_fifo_bfp[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, IC_FILTER_PHASES, sigma_xx_shift);
+    fdaf_update_X_fifo_and_calc_sigmaXX(&state->X_fifo_bfp[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, IC_FILTER_PHASES, sigma_xx_shift);
 
 }
 
@@ -183,7 +184,7 @@ void ic_calc_Error_and_Y_hat(
     bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
 
     int32_t bypass_enabled = state->config_params.bypass;
-    aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
+    fdaf_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
 
 // Window error. Overlap add to create IC output
@@ -213,12 +214,8 @@ void ic_calc_inv_X_energy(
     bfp_s32_t *sigma_XX_ptr = &state->sigma_XX_bfp[ch];
     bfp_s32_t *X_energy_ptr = &state->X_energy_bfp[ch];
 
-    //Make a copy of aec_conf so we can pass the right type
-    aec_config_params_t aec_conf; //Only gamma_log2 is accessed in aec_priv_calc_inv_X_energy_denom
-    aec_conf.aec_core_conf.gamma_log2 = state->config_params.gamma_log2;
     const unsigned disable_freq_smoothing = 0;
-    const unsigned normdenom_apply_factor_of_2 = 0;
-    aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
+    fdaf_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, state->config_params.gamma_log2, state->config_params.delta, disable_freq_smoothing);
 }
 
 // Calculate T (mu * inv_X_energy * Error)
@@ -232,7 +229,7 @@ void ic_compute_T(
     bfp_s32_t *inv_X_energy_ptr = &state->inv_X_energy_bfp[x_ch];
     float_s32_t mu = state->mu[y_ch][x_ch];
 
-    aec_priv_compute_T(T_ptr, Error_ptr, inv_X_energy_ptr, mu);
+    fdaf_compute_T(T_ptr, Error_ptr, inv_X_energy_ptr, mu);
 }
 
 // Adapt H_hat
@@ -243,7 +240,7 @@ void ic_filter_adapt(ic_state_t *state){
     }
     bfp_complex_s32_t *T_ptr = &state->T_bfp[0];
     int y_ch = 0;
-    aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
+    fdaf_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
 // Arithmetic shift for a signed int32_t
@@ -352,7 +349,7 @@ void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
-        aec_priv_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
+        fdaf_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
     }
     const exponent_t zero_exp = -1024;
     for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){

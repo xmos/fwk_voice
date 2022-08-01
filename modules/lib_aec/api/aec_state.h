@@ -25,9 +25,9 @@
  * @ingroup aec_types
  */
 typedef enum {
-    AEC_ADAPTION_AUTO, ///< Compute filter adaption config every frame
-    AEC_ADAPTION_FORCE_ON, ///< Filter adaption always ON
-    AEC_ADAPTION_FORCE_OFF, ///< Filter adaption always OFF
+    AEC_ADAPTION_AUTO = 0, ///< Compute filter adaption config every frame
+    AEC_ADAPTION_FORCE_ON = 1, ///< Filter adaption always ON
+    AEC_ADAPTION_FORCE_OFF = 2, ///< Filter adaption always OFF
 } aec_adaption_e;
 
 /**

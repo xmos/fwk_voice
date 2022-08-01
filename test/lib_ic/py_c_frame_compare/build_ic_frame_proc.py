@@ -52,9 +52,10 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     library_dirs=[
                 '../../../../build/modules/lib_ic',
                 '../../../../build/modules/lib_aec',
+                '../../../../build/modules/adaptive_filter',
                 '../../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_module_fdaf', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
