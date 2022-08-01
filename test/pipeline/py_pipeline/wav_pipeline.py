@@ -29,7 +29,7 @@ def parse_arguments():
     return args
 
 
-def test_data(input_wav_data, input_rate, file_length, ap_conf, verbose = False, process_until_frame = -1, stage_a_only = False, vnr_input_override=np.empty(0, dtype=np.float64), mu_override=np.empty(0, dtype=np.float64)):
+def test_data(input_wav_data, input_rate, file_length, ap_conf, verbose = False, process_until_frame = -1, stage_a_only = False, vnr_input_override=np.empty(0, dtype=np.float64), mu_override=np.empty(0, dtype=np.float64), disable_aec=False, disable_ic=False, disable_ns=False, disable_agc=False):
     input_channel_count = len(input_wav_data)
     x_channel_count = ap_conf['x_channel_count']
     y_channel_count = ap_conf['y_channel_count']
@@ -41,7 +41,7 @@ def test_data(input_wav_data, input_rate, file_length, ap_conf, verbose = False,
         print('Y Channels: ' + str(y_channel_count))
         print('Rate: ' + str(input_rate))
 
-    ap = pipeline.pipeline(input_rate, verbose, **ap_conf)
+    ap = pipeline.pipeline(input_rate, verbose, disable_aec, disable_ic, disable_ns, disable_agc, **ap_conf)
 
     output = np.zeros((y_channel_count, file_length))
     count = 0
@@ -63,11 +63,11 @@ def test_data(input_wav_data, input_rate, file_length, ap_conf, verbose = False,
     return output, ap.vnr_pred_log, ap.mu_log
 
 
-def test_file(input_file, output_file, ap_conf, verbose = False, process_until_frame = -1, stage_a_only = False, vnr_input_override=np.empty(0, dtype=np.float64), mu_override=np.empty(0, dtype=np.float64)):
+def test_file(input_file, output_file, ap_conf, verbose = False, process_until_frame = -1, stage_a_only = False, vnr_input_override=np.empty(0, dtype=np.float64), mu_override=np.empty(0, dtype=np.float64), disable_aec=False, disable_ic=False, disable_ns=False, disable_agc=False):
     input_rate, input_wav_file = scipy.io.wavfile.read(input_file, 'r')
     input_wav_data, input_channel_count, file_length = awu.parse_audio(input_wav_file)
 
-    output, vnr_pred, mu_log = test_data(input_wav_data, input_rate, file_length, ap_conf, vnr_input_override=vnr_input_override, mu_override=mu_override)
+    output, vnr_pred, mu_log = test_data(input_wav_data, input_rate, file_length, ap_conf, vnr_input_override=vnr_input_override, mu_override=mu_override, disable_aec=disable_aec, disable_ic=disable_ic, disable_ns=disable_ns, disable_agc=disable_agc)
 
     output_32bit = np.asarray(output*np.iinfo(np.int32).max, dtype=np.int32)
     scipy.io.wavfile.write(output_file, input_rate, output_32bit.T)

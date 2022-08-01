@@ -43,13 +43,16 @@ def process_x86(bin_file, input_file, output_file):
     stdout = subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT)
     return stdout
 
-def process_python(input_file, output_file):
+def process_python(input_file, output_file, arch):
     config_file = os.path.join(thisfile_path, "py_pipeline/config/two_mic_stereo.json")
-    #vnr_input = np.load("feed_vnr_input_pred_InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_70dB__Take1.npy")
-    #wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), vnr_input_override=vnr_input)
-    #mu_override = np.load("feed_mu_InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_70dB__Take1.npy")
-    #wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), mu_override=mu_override)
-    wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
+    if arch == 'aec_ic_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True, disable_agc=True)
+    elif arch == 'aec_ic_ns_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_agc=True)
+    elif arch == 'aec_ic_agc_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True)
+    elif arch == 'aec_ic_ns_agc_prev_arch':
+        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
     stdo = ""
     return stdo
 
@@ -64,7 +67,7 @@ def process_file(input_file, arch, target="xcore"):
         pipeline_bin = pipeline_bins[arch][target]
         stdout = process_x86(pipeline_bin, input_file, output_file)
     elif target == "python":
-        stdout = process_python(input_file, output_file)
+        stdout = process_python(input_file, output_file, arch)
     else:
         assert False, "Invalid target"
 
