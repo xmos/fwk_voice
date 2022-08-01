@@ -112,7 +112,7 @@ void fdaf_update_X_fifo_and_calc_sigmaXX(
     //update sigma_XX
     int32_t DWORD_ALIGNED sigma_scratch_mem[FDAF_F_BIN_COUNT];
     bfp_s32_t scratch;
-    bfp_s32_init(&scratch, sigma_scratch_mem, 0, FDAF_PROC_FRAME_LENGTH, 0);
+    bfp_s32_init(&scratch, sigma_scratch_mem, 0, FDAF_F_BIN_COUNT, 0);
     bfp_complex_s32_squared_mag(&scratch, X);
     float_s64_t sum = bfp_s32_sum(&scratch);
     *sum_X_energy = float_s64_to_float_s32(sum);
