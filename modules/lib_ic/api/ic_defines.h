@@ -83,7 +83,7 @@
 #define IC_INIT_INPUT_VNR_THRESHOLD_HIGH            0.75 // From python model
 /** VNR low threshold to adapt faster when the speech level is low.
  * @ingroup ic_defines*/
-#define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0.05 // From python model
+#define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////
