@@ -227,7 +227,7 @@ void aec_priv_bfp_complex_s32_reset(bfp_complex_s32_t *a)
     a->hr = AEC_ZEROVAL_HR;
 }
 
-void aec_priv_reset_filter(
+/*void aec_priv_reset_filter(
         bfp_complex_s32_t *H_hat,
         unsigned num_x_channels,
         unsigned num_phases)
@@ -235,7 +235,7 @@ void aec_priv_reset_filter(
     for(unsigned ph=0; ph<num_x_channels*num_phases; ph++) {
         aec_priv_bfp_complex_s32_reset(&H_hat[ph]);
     }
-}
+}*/
 
 void aec_priv_copy_filter(
         bfp_complex_s32_t *H_hat_dst,
@@ -521,7 +521,7 @@ void aec_priv_calc_coherence_mu(
     }*/
 }
 
-void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
+/*void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
         bfp_s32_t *X_energy,
         const bfp_complex_s32_t *X_fifo,
         const bfp_complex_s32_t *X,
@@ -554,9 +554,9 @@ void aec_priv_bfp_complex_s32_recalc_energy_one_bin(
         X_energy->hr = sum_out.hr;
     }
     //printf("after recalc 0x%lx\n",X_energy->data[recalc_bin]);
-}
+}*/
 
-void aec_priv_update_total_X_energy(
+/*void aec_priv_update_total_X_energy(
         bfp_s32_t *X_energy,
         float_s32_t *max_X_energy,
         const bfp_complex_s32_t *X_fifo,
@@ -580,9 +580,9 @@ void aec_priv_update_total_X_energy(
     /** Due to fixed point arithmetic we might sometimes see -ve numbers in X_energy, so clamp to a minimum of 0. This
      * happens if all the energy in X_energy is made of the phase being subtracted out and the new X data energy being
      * added is 0*/
-    bfp_s32_rect(X_energy, X_energy);
+    //bfp_s32_rect(X_energy, X_energy);
 
-    *max_X_energy = bfp_s32_max(X_energy);
+    //*max_X_energy = bfp_s32_max(X_energy);
     /** Steps taken to make sure divide by 0 doesn't happen while calculating inv_X_energy in aec_priv_calc_inverse().
       * Divide by zero Scenario 1: All X_energy bins are 0 => max_X_energy is 0, but the exponent is something reasonably big, like
       * -34 and delta value ends up as delta min which is (some_non_zero_mant, -97 exp). So we end up with inv_X_energy
@@ -597,12 +597,12 @@ void aec_priv_update_total_X_energy(
       */
 
     //Scenario 1 (All bins 0 mant) fix
-    if(max_X_energy->mant == 0) {
+    /*if(max_X_energy->mant == 0) {
         X_energy->exp = AEC_ZEROVAL_EXP;
     }    
-}
+}*/
 
-void aec_priv_update_X_fifo_and_calc_sigmaXX(
+/*void aec_priv_update_X_fifo_and_calc_sigmaXX(
         bfp_complex_s32_t *X_fifo,
         bfp_s32_t *sigma_XX,
         float_s32_t *sum_X_energy,
@@ -615,7 +615,7 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     */
     //X-fifo update
     //rearrage X-fifo to point from newest phase to oldest phase
-    bfp_complex_s32_t last_phase = X_fifo[num_phases-1];
+    /*bfp_complex_s32_t last_phase = X_fifo[num_phases-1];
     for(int32_t n=num_phases-1; n>=1; n--) {
         X_fifo[n] = X_fifo[n-1];
     }
@@ -643,7 +643,7 @@ void aec_priv_update_X_fifo_and_calc_sigmaXX(
     bfp_s32_sub(sigma_XX, sigma_XX, &sigma_XX_scaled); //sigma_XX - (sigma_XX * pow(2, -ema_coef_shr))
     bfp_s32_add(sigma_XX, sigma_XX, &scratch); //sigma_XX - (sigma_XX * pow(2, -ema_coef_shr)) + (pow(2, -ema_coef_shr))*X_energy
 
-}
+}*/
 
 void aec_priv_calc_Error_and_Y_hat(
         bfp_complex_s32_t *Error,
@@ -795,11 +795,11 @@ void aec_priv_create_output(
     overlap->hr = error->hr;
     overlap->exp = error->exp;
 }
-extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
+/*extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
         unsigned shr,
-        unsigned count);
+        unsigned count);*/
 
-void aec_priv_calc_inverse(
+/*void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
 #if 1
@@ -820,10 +820,10 @@ void aec_priv_calc_inverse(
     vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
     input->hr = 0;
 #endif
-}
+}*/
 
 
-void bfp_new_add_scalar(
+/*void bfp_new_add_scalar(
     bfp_s32_t* a, 
     const bfp_s32_t* b, 
     const float_s32_t c)
@@ -844,9 +844,9 @@ void bfp_new_add_scalar(
 
     a->hr = xs3_vect_s32_add_scalar(a->data, b->data, cc, b->length, 
                                     b_shr);
-}
+}*/
 
-void aec_priv_calc_inv_X_energy_denom(
+/*void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_t *inv_X_energy_denom,
         const bfp_s32_t *X_energy,
         const bfp_s32_t *sigma_XX,
@@ -912,22 +912,22 @@ void aec_priv_calc_inv_X_energy_denom(
      bfp_s32_clip(inv_X_energy_denom, inv_X_energy_denom, 1, max.mant, inv_X_energy_denom->exp);*/
 
      //Option 2 (1528 cycles for the bfp_s32_min() call. Haven't profiled when min.mant == 0 is true
-     float_s32_t min = bfp_s32_min(inv_X_energy_denom);
+     /*float_s32_t min = bfp_s32_min(inv_X_energy_denom);
 
      if(min.mant == 0) {
          /** The presence of delta even when it's zero in bfp_s32_add_scalar(inv_X_energy_denom, X_energy, delta); above
           * ensures that bfp_s32_max(inv_X_energy_denom) always has a headroom of 1, making sure that t is not right shifted as part
           * of bfp_s32_add_scalar() making t.mant 0*/
-         float_s32_t t = {1, inv_X_energy_denom->exp};
+         /*float_s32_t t = {1, inv_X_energy_denom->exp};
          bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, t);
      }
-}
+}*/
 
 // For aec, to get adec tests passing norm_denom in aec_priv_calc_inv_X_energy_denom is calculated as
 // normDenom = 2*self.X_energy[:,k] + self.sigma_xx*gamma while in IC its done as
 // normDenom = self.X_energy[:,k] + self.sigma_xx*gamma. To work around this, an extra argument normdenom_apply_factor_of_2
 // is added to aec_priv_calc_inv_X_energy. When set to 1, X_energy is multiplied by 2 in the inverse energy calculation.
-void aec_priv_calc_inv_X_energy(
+/*void aec_priv_calc_inv_X_energy(
         bfp_s32_t *inv_X_energy,
         const bfp_s32_t *X_energy,
         const bfp_s32_t *sigma_XX,
@@ -939,7 +939,7 @@ void aec_priv_calc_inv_X_energy(
     // Calculate denom for the inv_X_energy = 1/denom calculation. denom calculation is different for shadow and main filter
     aec_priv_calc_inv_X_energy_denom(inv_X_energy, X_energy, sigma_XX, conf, delta, is_shadow, normdenom_apply_factor_of_2);
     aec_priv_calc_inverse(inv_X_energy);
-}
+}*/
 
 void aec_priv_filter_adapt(
         bfp_complex_s32_t *H_hat,
@@ -955,7 +955,7 @@ void aec_priv_filter_adapt(
     }
 }
 
-void aec_priv_compute_T(
+/*void aec_priv_compute_T(
         bfp_complex_s32_t *T,
         const bfp_complex_s32_t *Error,
         const bfp_s32_t *inv_X_energy,
@@ -972,7 +972,7 @@ void aec_priv_compute_T(
 
     //bfp_complex_s32_real_scale(T, Error, mu);
     //bfp_complex_s32_real_mul(T, T, inv_X_energy);
-}
+}*/
 
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)
@@ -1018,7 +1018,7 @@ void aec_priv_init_config_params(
     coh_cfg->force_adaption_mu_q30 = Q30(0.1);
 }
 
-void aec_priv_calc_delta(
+/*void aec_priv_calc_delta(
         float_s32_t *delta, 
         const float_s32_t *max_X_energy,
         aec_config_params_t *conf,
@@ -1036,4 +1036,4 @@ void aec_priv_calc_delta(
     else {
         *delta = conf->aec_core_conf.delta_adaption_force_on;
     }
-}
+}*/
