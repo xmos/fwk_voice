@@ -56,10 +56,7 @@ def pytest_sessionstart(session):
     finally:
         print(f"PIPELINE_FULL_RUN: {full_pipeline_run}")
 
-    if full_pipeline_run != 0:
-        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite")
-    else:
-        hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
+    hydra_audio_path = os.path.join(hydra_audio_base_dir, "xvf3510_no_processing_xmos_test_suite_subset_avona")
     
     # prev-arch: Standard config, full pipeline
     # alt-arch: Alt-arch config, full pipeline
