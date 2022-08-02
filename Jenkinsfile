@@ -202,7 +202,6 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_output_*/*.wav", fingerprint: true
         }
         cleanup {
           cleanWs()
