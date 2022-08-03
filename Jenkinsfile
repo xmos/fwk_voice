@@ -273,19 +273,19 @@ pipeline {
             }
           }
         }
-        stage('VNR Python C feature extraction equivalence') {
-          steps {
-            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_vnr_feature_extraction.py")
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
+        //stage('VNR Python C feature extraction equivalence') {
+          //steps {
+            //dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              //viewEnv() {
+                //withVenv {
+                  //runPython("python build_vnr_feature_extraction.py")
+                  //sh "pytest -s --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
+                //}
+              //}
+            //}
+          //}
+        //}
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
