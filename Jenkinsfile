@@ -158,6 +158,86 @@ pipeline {
             }
           }
         }
+        stage('Examples') {
+          steps {
+            dir("${REPO}/examples/bare-metal/aec_1_thread") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/aec_2_threads") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  // Make sure 1 thread and 2 threads output is bitexact
+                  sh "diff output.wav ../aec_1_thread/output.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/ic") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
+                  sh "mv output.wav ic_example_output.wav"
+                }
+              }
+              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+            }
+            dir("${REPO}/examples/bare-metal/vad") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  // Make sure single thread and multi threads pipeline output is bitexact
+                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_st.wav"
+
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "mv output.wav output_mt.wav"
+                  sh "diff output_st.wav output_mt.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/agc") {
+              viewEnv() {
+                withVenv {
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
+                  sh "diff vnr_out1.bin vnr_out2.bin"
+                }
+              }
+            }
+          }
+        }
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
