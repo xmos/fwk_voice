@@ -66,11 +66,20 @@ pipeline {
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                }
+              }
+            }
             dir("${REPO}") {
               stash name: 'cmake_build_x86_examples', includes: 'build/**/fwk_voice_example_bare_metal_*'
               // We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
               archiveArtifacts artifacts: "build/**/fwk_voice_example_bare_metal_*", fingerprint: true
+              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
             }
             // Now do xcore files
             dir("${REPO}/build") {
@@ -233,6 +242,45 @@ pipeline {
                   sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
                   sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
                   sh "diff vnr_out1.bin vnr_out2.bin"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR test_wav_vnr') {
+          steps {
+            dir("${REPO}/test/lib_vnr/test_wav_vnr") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
+                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('VNR vnr_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
+              viewEnv() {
+                withVenv {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR Python C feature extraction equivalence') {
+          steps {
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
