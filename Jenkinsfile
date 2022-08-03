@@ -262,17 +262,17 @@ pipeline {
             }
           }
         }
-        stage('VNR vnr_unit_tests') {
+        /*stage('VNR vnr_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
               viewEnv() {
                 withVenv {
-                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
                 }
               }
             }
           }
-        }
+        }*/
         //stage('VNR Python C feature extraction equivalence') {
           //steps {
             //dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
