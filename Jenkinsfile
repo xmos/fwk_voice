@@ -667,7 +667,7 @@ pipeline {
                       // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
                       junit "pytest_result.xml"
-                      sh "python compare_keywords.py results_Avona_aec_ic_prev_arch_xcore.csv results_Avona_aec_ic_prev_arch_python.csv --pass-threshold=1"
+                      sh "python compare_keywords.py results_Avona_aec_ic_prev_arch_xcore.csv results_Avona_aec_ic_prev_arch_python.csv --pass-threshold=3"
                     }
                   }
                 }
