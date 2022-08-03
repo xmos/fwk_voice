@@ -176,22 +176,22 @@ pipeline {
                 }
               }
             }
-            dir("${REPO}/examples/bare-metal/ic") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
-                  sh "mv output.wav ic_example_output.wav"
-                }
-              }
-              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
-            }
-            dir("${REPO}/examples/bare-metal/vad") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
-                }
-              }
-            }
+            //dir("${REPO}/examples/bare-metal/ic") {
+              //viewEnv() {
+                //withVenv {
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
+                  //sh "mv output.wav ic_example_output.wav"
+                //}
+              //}
+              //archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
+            //}
+            //dir("${REPO}/examples/bare-metal/vad") {
+              //viewEnv() {
+                //withVenv {
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
+                //}
+              //}
+            //}
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
@@ -220,22 +220,22 @@ pipeline {
                 }
               }
             }
-            dir("${REPO}/examples/bare-metal/agc") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/vnr") {
-              viewEnv() {
-                withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
-                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
-                  sh "diff vnr_out1.bin vnr_out2.bin"
-                }
-              }
-            }
+            //dir("${REPO}/examples/bare-metal/agc") {
+              //viewEnv() {
+                //withVenv {
+                  //sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                //}
+              //}
+            //}
+            //dir("${REPO}/examples/bare-metal/vnr") {
+              //viewEnv() {
+                //withVenv {
+                  //sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
+                  //sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
+                  //sh "diff vnr_out1.bin vnr_out2.bin"
+                //}
+              //}
+            //}
           }
         }
         stage('Pipeline tests') {
