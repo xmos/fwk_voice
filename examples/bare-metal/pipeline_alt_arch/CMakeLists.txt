@@ -4,36 +4,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_executable(fwk_voice_example_bare_metal_pipeline_alt_arch_mt)
 
-    file( GLOB_RECURSE SOURCES_APP  ../pipeline_multi_threaded/src/*.c )
-    target_sources(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-        PRIVATE
-            ${SOURCES_APP})
-
-    target_include_directories(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-        PRIVATE
-            ../pipeline_multi_threaded/src)
-
     target_link_libraries(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
         PUBLIC
         fwk_voice_example_pipeline_multi_thread_interface
-            )
+        )
 
     target_compile_definitions(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
         PRIVATE
             ALT_ARCH_MODE=1
         )
 
-    target_sources(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-        PRIVATE ../pipeline_multi_threaded/src/main.xc)
-
-    target_compile_options(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-        PRIVATE "-target=${XCORE_TARGET}")
-
-    target_link_options(fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-        PRIVATE
-            "-target=${XCORE_TARGET}"
-            "-report"
-            "${CONFIG_XSCOPE_PATH}/config.xscope")
 endif()
 
 ####### Single thread alt arch pipeline
