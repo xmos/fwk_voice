@@ -238,6 +238,45 @@ pipeline {
             }
           }
         }
+        stage('VNR test_wav_vnr') {
+          steps {
+            dir("${REPO}/test/lib_vnr/test_wav_vnr") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
+                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('VNR vnr_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
+              viewEnv() {
+                withVenv {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR Python C feature extraction equivalence') {
+          steps {
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
