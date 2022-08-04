@@ -22,7 +22,6 @@ target_compile_options(fwk_voice_module_lib_ic
 target_link_libraries(fwk_voice_module_lib_ic
     PUBLIC
         core::xs3_math
-        fwk_voice::aec
         fwk_voice::fdaf
 )
 

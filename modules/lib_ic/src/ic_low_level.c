@@ -2,11 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "ic_low_level.h"
-
-// lib_ic heavily reuses functions from lib_aec currently
-#include "aec_api.h"
-#include "aec_priv.h"
-
 #include "fdaf_api.h"
 
 // Delay y input w.r.t. x input
@@ -123,8 +118,15 @@ void ic_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input){
 
-    aec_forward_fft(output, input);
-
+    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
+    //This is done to avoid having to call bfp_s32_init() on the input every frame
+    uint32_t len = input->length; 
+    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
+    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
+    
+    memcpy(output, temp, sizeof(bfp_complex_s32_t));
+    bfp_fft_unpack_mono(output);
+    input->length = len;
 }
 
 // Real IFFT to single channel input data
@@ -133,8 +135,14 @@ void ic_ifft(
         bfp_complex_s32_t *input
         ){
 
-    aec_inverse_fft(output, input);
+    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
+    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
+    uint32_t len = input->length;
+    bfp_fft_pack_mono(input);
+    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
+    memcpy(output, temp, sizeof(bfp_s32_t));
 
+    input->length = len;
 }
 
 // Calculate X energy
