@@ -134,6 +134,11 @@ pipeline {
 
                   // Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
+                  // For IC characterisation we need some additional modules
+                  sh "pip install pyroomacoustics"
+		              // For IC test_bad_state
+		              sh "pip install -e ${env.WORKSPACE}/room_acoustic_pipeline"
+		              sh "pip install -e ${env.WORKSPACE}/acoustic_performance_tests"
                 }
               }
             }
