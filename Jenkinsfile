@@ -167,7 +167,7 @@ pipeline {
             }
           }
         }
-        stage('Examples') {
+        /*stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
@@ -246,7 +246,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         /*stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
@@ -273,7 +273,7 @@ pipeline {
             }
           }
         }
-        stage('VNR Python C feature extraction equivalence') {
+        /*stage('VNR Python C feature extraction equivalence') {
           steps {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
               viewEnv() {
@@ -285,8 +285,8 @@ pipeline {
               }
             }
           }
-        }
-        stage('NS profile test') {
+        }*/
+        /*stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
               viewEnv() {
@@ -297,21 +297,21 @@ pipeline {
               }
             }
           }
-        }
-        stage('NS performance tests') {
-          steps {
-            dir("${REPO}/test/lib_ns/compare_c_xc") {
-              copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('NS ns_unit_tests') {
+        }*/
+        //stage('NS performance tests') {
+          //steps {
+            //dir("${REPO}/test/lib_ns/compare_c_xc") {
+              //copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
+              //viewEnv() {
+                //withVenv {
+                  //sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  //junit "pytest_result.xml"
+                //}
+              //}
+            //}
+          //}
+        //}
+        /*stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ns/ns_unit_tests") {
               viewEnv() {
@@ -322,7 +322,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
