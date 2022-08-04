@@ -82,4 +82,9 @@ void fdaf_l2_adapt_plus_fft_gc(
         const bfp_complex_s32_t *X_fifo_ph,
         const bfp_complex_s32_t *T_ph);
 
+void fdaf_create_output(
+        bfp_s32_t * output,
+        bfp_s32_t * overlap,
+        bfp_s32_t * error);
+
 #endif

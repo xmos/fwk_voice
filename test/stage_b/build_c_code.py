@@ -76,7 +76,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
     library_dirs=[
                 '../../../build/modules/lib_ic',
                 '../../../build/modules/lib_aec',
-                '../../../build/modules/adaptive_filter',
+                '../../../build/modules/lib_fdaf',
                 '../../../build/modules/lib_vnr',
                 '../../../build/test/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'

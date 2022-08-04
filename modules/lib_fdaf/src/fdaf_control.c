@@ -1,6 +1,6 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <fdaf_deifnes.h>
+#include <fdaf_defines.h>
 #define FDAF_WINDOW_EXP (-31)
 #define FDAF_INPUT_EXP (-31)
 
@@ -29,7 +29,7 @@ void fdaf_create_output(
     bfp_s32_init(&win_flpd, (int32_t*)&WOLA_window_flpd_q31[0], FDAF_WINDOW_EXP, (FDAF_UNUSED_TAPS_PER_PHASE * 2) , 0);
 
     //zero first 240 samples
-    memset(error->data, 0, FDAF_FRAME_ADVANCE*sizeof(int32_t));
+    memset(error->data, 0, FDAF_FRAME_ADVANCE * sizeof(int32_t));
 
     bfp_s32_t chunks[2];
     bfp_s32_init(&chunks[0], &error->data[FDAF_FRAME_ADVANCE], error->exp, FDAF_UNUSED_TAPS_PER_PHASE * 2, 1); //240-272 fwd win

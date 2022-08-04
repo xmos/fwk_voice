@@ -200,7 +200,7 @@ void ic_create_output(
     bfp_s32_t *overlap_ptr = &state->overlap_bfp[ch];
     bfp_s32_t *error_ptr = &state->error_bfp[ch];
 
-    aec_priv_create_output(output_ptr, overlap_ptr, error_ptr);
+    fdaf_create_output(output_ptr, overlap_ptr, error_ptr);
     
 }
 
@@ -364,7 +364,7 @@ void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
         bfp_s32_t y, out;
         bfp_s32_init(&y, buff, init_exp, IC_FRAME_LENGTH, 1);
         bfp_s32_init(&out, output, init_exp, IC_FRAME_ADVANCE, 0);
-        aec_priv_create_output(&out, &state->overlap_bfp[ch], &y);
+        fdaf_create_output(&out, &state->overlap_bfp[ch], &y);
     }
 }
 
