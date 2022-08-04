@@ -262,7 +262,7 @@ pipeline {
             }
           }
         }*/
-        stage('VNR vnr_unit_tests') {
+        /*stage('VNR vnr_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
               viewEnv() {
@@ -272,7 +272,7 @@ pipeline {
               }
             }
           }
-        }
+        }*/
         /*stage('VNR Python C feature extraction equivalence') {
           steps {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
@@ -286,6 +286,43 @@ pipeline {
             }
           }
         }*/
+        stage('VAD vad_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vad/vad_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD compare_xc_c') {
+          steps {
+            dir("${REPO}/test/lib_vad/compare_xc_c") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VAD test_profile') {
+          steps {
+            dir("${REPO}/test/lib_vad/test_vad_profile") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
+            }
+          }
+        }
         /*stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
