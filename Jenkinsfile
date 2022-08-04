@@ -167,7 +167,7 @@ pipeline {
             }
           }
         }
-        /*stage('Examples') {
+        stage('Examples') {
           steps {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
@@ -246,7 +246,7 @@ pipeline {
               }
             }
           }
-        }*/
+        }
         /*stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
