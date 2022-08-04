@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include <fdaf_state.h>
+#include <fdaf_defines.h>
 #include <fdaf_api.h>
 
 void fdaf_l2_calc_Error_and_Y_hat(
