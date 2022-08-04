@@ -19,9 +19,6 @@ def test_pipelines(test, record_property):
     arch = test[1]
     target = test[2]
     
-    if target=="python" and arch != "aec_ic_prev_arch": # Python only exists for one config at this point.
-        return
-
     input_file = os.path.join(pipeline_input_dir, wav_name)
     if not os.path.isfile(input_file): 
         convert_input_wav(wav_file, input_file)
@@ -32,6 +29,9 @@ def test_pipelines(test, record_property):
     output_file, stdo = process_file(input_file, arch, target)
     tot = time.time() - t0
     print(f"Processing took {tot:.2f}s")
+
+    if not os.path.isfile(output_file): 
+        return 
 
     keyword_file = convert_keyword_wav(output_file, arch, target)
     sensory_old_detections =run_sensory(keyword_file)
