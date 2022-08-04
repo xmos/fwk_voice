@@ -6,7 +6,7 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 endif()
 
-add_subdirectory( adaptive_filter )
+add_subdirectory( lib_fdaf )
 
 add_subdirectory( lib_vnr )
 
