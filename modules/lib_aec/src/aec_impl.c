@@ -258,7 +258,7 @@ void aec_calc_output(
     bfp_s32_t *output_ptr = &output_struct;
     bfp_s32_t *overlap_ptr = &state->overlap[ch];
     bfp_s32_t *error_ptr = &state->error[ch];
-    aec_priv_create_output(output_ptr, overlap_ptr, error_ptr);
+    fdaf_create_output(output_ptr, overlap_ptr, error_ptr);
 }
 
 void aec_calc_freq_domain_energy(

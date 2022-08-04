@@ -5,6 +5,7 @@ add_library(fwk_voice_module_fdaf STATIC)
 target_sources(fwk_voice_module_fdaf
     PRIVATE
         src/fdaf_filter.c
+        src/fdaf_control.c
         src/fdaf_l2_filter.c
 )
 
