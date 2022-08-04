@@ -479,6 +479,30 @@ pipeline {
             }
           }
         }
+        stage('AGC tests') {
+          steps {
+            dir("${REPO}/test/lib_agc/test_process_frame") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('HPF test') {
+          steps {
+            dir("${REPO}/test/test_hpf") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
