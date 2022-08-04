@@ -201,7 +201,6 @@ void ic_create_output(
     bfp_s32_t *error_ptr = &state->error_bfp[ch];
 
     fdaf_create_output(output_ptr, overlap_ptr, error_ptr);
-    
 }
 
 // Calculate inverse X-energy

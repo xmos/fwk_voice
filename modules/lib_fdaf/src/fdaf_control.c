@@ -1,6 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <fdaf_defines.h>
+#include <fdaf_api.h>
 #define FDAF_WINDOW_EXP (-31)
 #define FDAF_INPUT_EXP (-31)
 
