@@ -99,6 +99,9 @@ void aec_frame_init(
     }
 }
 
+
+
+
 void aec_calc_time_domain_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
