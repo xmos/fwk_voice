@@ -7,7 +7,6 @@
 #include <string.h>
 #include "aec_defines.h"
 #include "bfp_math.h"
-#include "xs3_math.h"
 
 /**
  * @page page_aec_state_h aec_state.h

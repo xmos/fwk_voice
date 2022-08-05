@@ -1,8 +1,5 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
@@ -18,7 +15,8 @@ void aec_init(
         unsigned num_y_channels,
         unsigned num_x_channels,
         unsigned num_main_filter_phases,
-        unsigned num_shadow_filter_phases) {
+        unsigned num_shadow_filter_phases)
+{
 
     aec_priv_main_init(main_state, shared_state, main_mem_pool, num_y_channels, num_x_channels, num_main_filter_phases);
     aec_priv_shadow_init(shadow_state, shared_state, shadow_mem_pool, num_shadow_filter_phases);
@@ -78,15 +76,15 @@ void aec_frame_init(
         bfp_s32_headroom(&main_state->shared_state->prev_x[ch]);
     }
 
-    //Initialise T
-    //At the moment, there's only enough memory for storing num_x_channels and not num_y_channels*num_x_channels worth of T.
-    //So T calculation cannot be parallelised across Y channels
-    //Reuse X memory for calculating T
+    // Initialise T
+    // At the moment, there's only enough memory for storing num_x_channels and not num_y_channels*num_x_channels worth of T.
+    // So T calculation cannot be parallelised across Y channels
+    // Reuse X memory for calculating T
     for(unsigned ch=0; ch<num_x_channels; ch++) {
         bfp_complex_s32_init(&main_state->T[ch], (complex_s32_t*)&main_state->shared_state->x[ch].data[0], 0, (AEC_PROC_FRAME_LENGTH/2)+1, 0);
     }
 
-    //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
+    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         main_state->Y_hat[ch].exp = AEC_ZEROVAL_EXP;
         main_state->Y_hat[ch].hr = AEC_ZEROVAL_HR;
@@ -146,8 +144,8 @@ void aec_forward_fft(
     input->length = len;
 }
 
-//per x-channel
-//API: calculate X-energy (per x-channel)
+// Per x-channel
+// API: calculate X-energy (per x-channel)
 void aec_calc_X_fifo_energy(
         aec_state_t *state,
         unsigned ch,
@@ -162,7 +160,8 @@ void aec_calc_X_fifo_energy(
     float_s32_t *max_X_energy_ptr = &state->max_X_energy[ch];
     fdaf_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->shared_state->X_fifo[ch][0], X_ptr, state->num_phases, recalc_bin);
 }
-//per x-channel
+
+// Per x-channel
 void aec_update_X_fifo_and_calc_sigmaXX(
         aec_state_t *state,
         unsigned ch)
@@ -174,7 +173,7 @@ void aec_update_X_fifo_and_calc_sigmaXX(
     fdaf_update_X_fifo_and_calc_sigmaXX(&state->shared_state->X_fifo[ch][0], sigma_XX_ptr, sum_X_energy_ptr, X_ptr, state->num_phases, sigma_xx_shift);
 }
 
-//per y-channel
+// Per y-channel
 void aec_calc_Error_and_Y_hat(
         aec_state_t *state,
         unsigned ch)
@@ -193,8 +192,8 @@ void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input)
 {
-    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
-    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
+    // Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
+    // This is done to avoid having to call bfp_complex_s32_init() on the input every frame
     uint32_t len = input->length;
     bfp_fft_pack_mono(input);
     bfp_s32_t *temp = bfp_fft_inverse_mono(input);
@@ -205,7 +204,8 @@ void aec_inverse_fft(
 
 float_s32_t aec_calc_corr_factor(
         aec_state_t *state,
-        unsigned ch) {
+        unsigned ch)
+{
     // We need yhat[240:480-32] and y[240:480-32]
     int frame_window = 32;
 
@@ -228,11 +228,11 @@ void aec_calc_coherence(
         return;
     }
     coherence_mu_params_t *coh_mu_state_ptr = &state->shared_state->coh_mu_state[ch];
-    //We need y_hat[240:480] and y[240:480]
+    // We need y_hat[240:480] and y[240:480]
     bfp_s32_t y_hat_subset;
     bfp_s32_init(&y_hat_subset, &state->y_hat[ch].data[AEC_FRAME_ADVANCE], state->y_hat[ch].exp, AEC_FRAME_ADVANCE, 1);
 
-    //y[240:480] is prev_y[0:240]. Create a temporary bfp_s32_t to point to prev_y[0:240]
+    // y[240:480] is prev_y[0:240]. Create a temporary bfp_s32_t to point to prev_y[0:240]
     bfp_s32_t temp;
     bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 1);
 
@@ -283,8 +283,8 @@ void aec_calc_normalisation_spectrum(
     if(state == NULL) {
         return;
     }
-    //frequency smoothing
-    //calc inverse energy
+    // Frequency smoothing
+    // Calculate inverse energy
     bfp_s32_t *sigma_XX_ptr = &state->shared_state->sigma_XX[ch];
     bfp_s32_t *X_energy_ptr = &state->X_energy[ch];
     fdaf_calc_inv_X_energy(&state->inv_X_energy[ch], X_energy_ptr, sigma_XX_ptr, state->shared_state->config_params.aec_core_conf.gamma_log2, state->delta, is_shadow);
@@ -313,7 +313,7 @@ void aec_calc_T(
     if(state == NULL) {
         return;
     }
-    bfp_complex_s32_t *T_ptr = &state->T[x_ch]; //Use the same memory as X to store T
+    bfp_complex_s32_t *T_ptr = &state->T[x_ch]; // Use the same memory as X to store T
     bfp_complex_s32_t *Error_ptr = &state->Error[y_ch];
     bfp_s32_t *inv_X_energy_ptr = &state->inv_X_energy[x_ch];
     float_s32_t mu = state->mu[y_ch][x_ch];
@@ -336,8 +336,8 @@ void aec_compare_filters_and_calc_mu(
     aec_priv_calc_coherence_mu(coh_mu_state_ptr, coh_mu_conf_ptr, main_state->shared_state->sum_X_energy,
             main_state->shared_state->shadow_filter_params.shadow_flag, main_state->shared_state->num_y_channels, main_state->shared_state->num_x_channels);
     
-    //calculate delta. Done here instead of aec_l2_calc_inv_X_energy_denom() since max_X_energy across all x-channels is needed in delta computation.
-    //aec_l2_calc_inv_X_energy_denom() is called per x channel
+    // Calculate delta. Done here instead of aec_l2_calc_inv_X_energy_denom() since max_X_energy across all x-channels is needed in delta computation.
+    // aec_l2_calc_inv_X_energy_denom() is called per x channel
     fdaf_calc_delta(&main_state->delta, &main_state->max_X_energy[0], 
                     main_state->shared_state->config_params.aec_core_conf.delta_min, 
                     main_state->shared_state->config_params.aec_core_conf.delta_adaption_force_on,
@@ -351,7 +351,7 @@ void aec_compare_filters_and_calc_mu(
         shadow_state->delta_scale, shadow_state->shared_state->num_x_channels);
     }
     
-    //Update main and shadow filter mu
+    // Update main and shadow filter mu
     for(unsigned y_ch=0; y_ch<main_state->shared_state->num_y_channels; y_ch++) {
         for(unsigned x_ch=0; x_ch<main_state->shared_state->num_x_channels; x_ch++) {
             if(shadow_state != NULL) {
@@ -383,28 +383,28 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
     uint32_t x_channels = shared_state->num_x_channels;
     uint32_t main_phases = main_state->num_phases;
     uint32_t shadow_phases = shadow_state->num_phases;
-    //Main H_hat
+    // Main H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
             main_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             main_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
-    //Shadow H_hat
+    // Shadow H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*shadow_phases; ph++) {
             shadow_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             shadow_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
-    //X_fifo
+    // X_fifo
     for(int ch=0; ch<x_channels; ch++) {
         for(int ph=0; ph<main_phases; ph++) {
             shared_state->X_fifo[ch][ph].exp = AEC_ZEROVAL_EXP;
             shared_state->X_fifo[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
-    //X_energy, sigma_XX
+    // X_energy, sigma_XX
     for(int ch=0; ch<x_channels; ch++) {
         main_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
         main_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
@@ -416,8 +416,8 @@ void aec_reset_state(aec_state_t *main_state, aec_state_t *shadow_state){
 }
 
 uint32_t aec_detect_input_activity(const int32_t (*input_data)[AEC_FRAME_ADVANCE], float_s32_t active_threshold, int32_t num_channels) {
-    /*abs_max_ref = abs(np.max(new_frame))
-    return abs_max_ref > threshold*/
+    // abs_max_ref = abs(np.max(new_frame))
+    // return abs_max_ref > threshold
     bfp_s32_t ref, abs;
     int32_t scratch[AEC_FRAME_ADVANCE];
     bfp_s32_init(&abs, scratch, AEC_INPUT_EXP, AEC_FRAME_ADVANCE, 0);
