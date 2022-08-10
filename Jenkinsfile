@@ -515,6 +515,157 @@ pipeline {
             }
           }
         }
+        stage('Stage B tests') {
+          steps {
+            dir("${REPO}/test/stage_b") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
+                      runPython("python build_c_code.py")
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC de_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_adec/de_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC test_delay_estimator') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_delay_estimator") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh 'mkdir -p ./input_wavs/'
+                      sh 'mkdir -p ./output_files/'
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                      runPython("python print_stats.py")
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC Initial DE startup time test') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec_startup") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC test_adec') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC test_adec_profile') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec_profile") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
+                      sh "pytest -n 1 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('AEC test_aec_enhancements') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_aec_enhancements") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
+                      sh "./make_dirs.sh"
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('AEC aec_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_aec/aec_unit_tests") {
+              viewEnv() {
+                withVenv {
+                  sh "pytest -n 2 --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('AEC test_aec_spec') {
+          steps {
+            dir("${REPO}/test/lib_aec/test_aec_spec") {
+              viewEnv {
+                withVenv {
+                  sh "./make_dirs.sh"
+                  script {
+                    if (env.FULL_TEST == "0") {
+                      sh 'mv excluded_tests_quick.txt excluded_tests.txt'
+                    }
+                  }
+                  sh "python generate_audio.py"
+                  sh "pytest -n 2 --junitxml=pytest_result.xml test_process_audio.py"
+                  sh "cp pytest_result.xml results_process.xml"
+                  catchError {
+                    sh "pytest --junitxml=pytest_result.xml test_check_output.py"
+                  }
+                  sh "cp pytest_result.xml results_check.xml"
+                  sh "python parse_results.py"
+                  sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
+                  sh "cp pytest_result.xml results_final.xml"
+                  junit "results_final.xml"
+                }
+              }
+            }
+          }
+        }
         stage('AGC tests') {
           steps {
             dir("${REPO}/test/lib_agc/test_process_frame") {
@@ -542,6 +693,15 @@ pipeline {
       }// stages
       post {
         always {
+          // AEC aretfacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
+          // NS artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
+          // VNR artifacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
           // Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
