@@ -297,7 +297,7 @@ pipeline {
             }
           }
         }
-        /*stage('VNR test_wav_vnr') {
+        stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
               viewEnv() {
@@ -311,8 +311,8 @@ pipeline {
               }
             }
           }
-        }*/
-        /*stage('VNR vnr_unit_tests') {
+        }
+        stage('VNR vnr_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
               viewEnv() {
@@ -322,8 +322,8 @@ pipeline {
               }
             }
           }
-        }*/
-        /*stage('VNR Python C feature extraction equivalence') {
+        }
+        stage('VNR Python C feature extraction equivalence') {
           steps {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
               viewEnv() {
@@ -335,7 +335,7 @@ pipeline {
               }
             }
           }
-        }*/
+        }
         stage('VAD vad_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vad/vad_unit_tests") {
