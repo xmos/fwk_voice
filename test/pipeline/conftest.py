@@ -67,7 +67,7 @@ def pytest_sessionstart(session):
     if full_pipeline_run:
         architectures = ["prev_arch", "alt_arch", "aec_ic_prev_arch", "aec_ic_ns_agc_prev_arch"]
     else:
-        architectures = ["alt_arch", "aec_ic_prev_arch"]
+        architectures = ["alt_arch"]
 
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_80dB__Take1.wav")]
