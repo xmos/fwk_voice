@@ -119,7 +119,6 @@ def pytest_sessionstart(session):
         wav_file = test[0]
         wav_name = os.path.basename(wav_file)
         input_file = os.path.join(pipeline_input_dir, wav_name)
-        print(f"convert_file: {wav_file}, {input_file}")
         convert_input_wav(wav_file, input_file)
 
     #Start with empty logfile

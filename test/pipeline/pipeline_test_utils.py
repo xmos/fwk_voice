@@ -17,7 +17,6 @@ def process_xcore(xe_file, input_file, output_file):
     input_file = os.path.abspath(input_file)
 
     tmp_folder = tempfile.mkdtemp(suffix=os.path.splitext(output_file)[0].replace('/', '_'), dir=thisfile_path)
-    print(f"tmp_folder = {tmp_folder}")
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
     shutil.copyfile(input_file, "input.wav")
