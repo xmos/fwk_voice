@@ -708,9 +708,9 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
-        //cleanup {
-        //  cleanWs()
-        //}
+        cleanup {
+          cleanWs()
+        }
       }
     }// stage xcore.ai Verification
     stage('Update view files') {

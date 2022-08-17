@@ -35,7 +35,7 @@ def process_xcore(xe_file, input_file, output_file):
 
     shutil.copyfile("output.wav", output_file)
     os.chdir(prev_path)
-    #shutil.rmtree(tmp_folder)
+    shutil.rmtree(tmp_folder)
 
     return stdout
 
@@ -74,32 +74,6 @@ def process_file(input_file, arch, target="xcore"):
 
     return output_file, stdout
 
-
-def get_wav_info(input_file):
-    chans = int(subprocess.check_output(("soxi", "-c", input_file)))
-    rate = int(subprocess.check_output(("soxi", "-r", input_file)))
-    samps = int(subprocess.check_output(("soxi", "-s", input_file)))
-    bits = int(subprocess.check_output(("soxi", "-b", input_file)))
-
-    return chans, rate, samps, bits
-
-def convert_input_wav(input_file, output_file):
-    chans, rate, samps, bits = get_wav_info(input_file)
-    extra_args = "" #"trim 0 5" #to test with short wavs
-    if chans == 6:
-        #for 6 channel wav file, first 2 channels are the mic input, followed by 2 channels of far-end audio, followed by 2 channels of pipeline output
-        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 2 3 4 {extra_args}".split())
-    elif chans == 8:
-        # for 8 channel wav file, first 2 channels are comms and asr outputs, followed by 4 channels of mic input
-        # and last 2 channels are far-end audio
-        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 3 6 7 8 {extra_args}".split())
-    elif chans == 4:
-        # for 4 channel wav file, first 2 channels are mic, followed by 2 channels of reference input
-        # and last 2 channels are far-end audio
-        subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} {extra_args}".split())
-    else:
-        assert False, f"Error: input wav format not supported - chans:{chans}"
-    return output_file
 
 def convert_keyword_wav(input_file, arch, target):
     wav_name = os.path.basename(input_file)
