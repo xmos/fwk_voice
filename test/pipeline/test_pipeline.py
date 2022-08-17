@@ -3,8 +3,8 @@
 
 import os, sys, shutil
 import pytest
-from pipeline_test_utils import process_file, get_wav_info, convert_input_wav, convert_keyword_wav, log_vnr
-from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds
+from pipeline_test_utils import process_file, convert_keyword_wav, log_vnr
+from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds, get_wav_info
 from run_sensory import run_sensory
 
 if sys.platform != "darwin":
@@ -20,8 +20,6 @@ def test_pipelines(test, record_property):
     target = test[2]
     
     input_file = os.path.join(pipeline_input_dir, wav_name)
-    if not os.path.isfile(input_file): 
-        convert_input_wav(wav_file, input_file)
 
     chans, rate, samps, bits = get_wav_info(input_file)
     print(f"Processing a {samps//rate}s track")
