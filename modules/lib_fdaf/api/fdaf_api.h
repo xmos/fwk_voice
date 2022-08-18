@@ -4,6 +4,8 @@
 #ifndef FDAF_API_H
 #define FDAF_API_H
 
+#include "fdaf_defines.h"
+
 void fdaf_update_total_X_energy(
         bfp_s32_t *X_energy,
         float_s32_t *max_X_energy,
@@ -86,5 +88,13 @@ void fdaf_create_output(
         bfp_s32_t * output,
         bfp_s32_t * overlap,
         bfp_s32_t * error);
+
+void fdaf_fft(
+        bfp_complex_s32_t *output,
+        bfp_s32_t *input);
+
+void fdaf_ifft(
+        bfp_s32_t *output,
+        bfp_complex_s32_t *input);
 
 #endif

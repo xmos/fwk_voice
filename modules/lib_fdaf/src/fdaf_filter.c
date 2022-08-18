@@ -1,7 +1,6 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include <fdaf_defines.h>
 #include <fdaf_api.h>
 
 void fdaf_bfp_complex_s32_recalc_energy_one_bin(
@@ -155,16 +154,20 @@ void fdaf_filter_adapt(
     }
 }
 
+#define USE_VTB_INV 0
+
+#if USE_VTB_INV
 extern void vtb_inv_X_energy_asm(
         uint32_t * inv_X_energy,
         unsigned shr,
         unsigned count);
+#endif
 
 void fdaf_calc_inverse(
         bfp_s32_t * input)
 {
-#if 1
-    //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
+#if !USE_VTB_INV
+    //82204 cycles. 2 x-channels, single thread
     bfp_s32_inverse(input, input);
 
 #else //36323 cycles. 2 x-channels, single thread
@@ -352,4 +355,35 @@ void fdaf_reset_filter(
     for(unsigned ph = 0; ph < num_x_channels * num_phases; ph++) {
         fdaf_bfp_complex_s32_reset(&H_hat[ph]);
     }
+}
+
+// FFT single channel real input
+void fdaf_fft(
+        bfp_complex_s32_t *output,
+        bfp_s32_t *input)
+{
+    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
+    //This is done to avoid having to call bfp_s32_init() on the input every frame
+    uint32_t len = input->length; 
+    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
+    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
+    
+    memcpy(output, temp, sizeof(bfp_complex_s32_t));
+    bfp_fft_unpack_mono(output);
+    input->length = len;
+}
+
+// Real IFFT to single channel input data
+void fdaf_ifft(
+        bfp_s32_t *output,
+        bfp_complex_s32_t *input)
+{
+    //Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
+    //This is done to avoid having to call bfp_complex_s32_init() on the input every frame
+    uint32_t len = input->length;
+    bfp_fft_pack_mono(input);
+    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
+    memcpy(output, temp, sizeof(bfp_s32_t));
+
+    input->length = len;
 }

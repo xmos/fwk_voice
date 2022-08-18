@@ -12,7 +12,6 @@ target_sources(fwk_voice_module_lib_fdaf
 target_include_directories(fwk_voice_module_lib_fdaf
     PUBLIC
         api
-        src
 )
 
 target_compile_options(fwk_voice_module_lib_fdaf

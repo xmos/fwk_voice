@@ -133,15 +133,7 @@ void aec_forward_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input)
 {
-    //Input bfp_s32_t structure will get overwritten since FFT is computed in-place. Keep a copy of input->length and assign it back after fft call.
-    //This is done to avoid having to call bfp_s32_init() on the input every frame
-    uint32_t len = input->length; 
-    bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
-    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
-    
-    memcpy(output, temp, sizeof(bfp_complex_s32_t));
-    bfp_fft_unpack_mono(output);
-    input->length = len;
+    fdaf_fft(output, input);
 }
 
 // Per x-channel
@@ -192,14 +184,7 @@ void aec_inverse_fft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input)
 {
-    // Input bfp_complex_s32_t structure will get overwritten since IFFT is computed in-place. Keep a copy of input->length and assign it back after ifft call.
-    // This is done to avoid having to call bfp_complex_s32_init() on the input every frame
-    uint32_t len = input->length;
-    bfp_fft_pack_mono(input);
-    bfp_s32_t *temp = bfp_fft_inverse_mono(input);
-    memcpy(output, temp, sizeof(bfp_s32_t));
-
-    input->length = len;
+    fdaf_ifft(output, input);
 }
 
 float_s32_t aec_calc_corr_factor(

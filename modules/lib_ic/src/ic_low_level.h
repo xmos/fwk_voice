@@ -5,6 +5,7 @@
 #define IC_LOW_LEVEL_H
 
 #include "ic_state.h"
+#include "fdaf_api.h"
 
 ///IC Private API
 //setup core configuration parameters of the IC
@@ -44,11 +45,6 @@ void ic_update_td_ema_energy(
         unsigned length,
         const fixed_s32_t alpha);
 
-/// FFT single channel real input
-void ic_fft(
-        bfp_complex_s32_t *output,
-        bfp_s32_t *input);
-
 /// Calculate X energy
 void ic_update_X_energy(
         ic_state_t *state,
@@ -68,12 +64,6 @@ void ic_update_X_fifo_1d(
 void ic_calc_Error_and_Y_hat(
         ic_state_t *state,
         unsigned ch);
-
-/// Real IFFT to single channel input data
-void ic_ifft(
-        bfp_s32_t *output,
-        bfp_complex_s32_t *input
-        );
 
 /// Window error. Overlap add to create IC output
 void ic_create_output(
@@ -108,8 +98,7 @@ void ic_l2_calc_Error_and_Y_hat(
 void ic_l2_adapt_plus_fft_gc(
         bfp_complex_s32_t *H_hat_ph,
         const bfp_complex_s32_t *X_fifo_ph,
-        const bfp_complex_s32_t *T_ph
-        );
+        const bfp_complex_s32_t *T_ph);
 
 /// Unify bfp_complex_s32_t chunks into a single exponent and headroom
 void ic_l2_bfp_complex_s32_unify_exponent(

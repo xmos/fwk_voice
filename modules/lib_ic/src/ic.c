@@ -160,11 +160,11 @@ void ic_filter(
 
 
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_fft(&state->Y_bfp[ch], &state->y_bfp[ch]);
+        fdaf_fft(&state->Y_bfp[ch], &state->y_bfp[ch]);
     }
 
     for(int ch=0; ch<IC_X_CHANNELS; ch++) {
-        ic_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
+        fdaf_fft(&state->X_bfp[ch], &state->x_bfp[ch]);
     }
 
     // Update X_energy
@@ -191,7 +191,7 @@ void ic_filter(
 
     // IFFT Error (output)
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
+        fdaf_ifft(&state->error_bfp[ch], &state->Error_bfp[ch]);
     }
 
     // Note the model supports noise minimisation but we have not ported this
@@ -213,7 +213,7 @@ void ic_filter(
 
     // error -> Error FFT
     for(int ch=0; ch<IC_Y_CHANNELS; ch++) {
-        ic_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
+        fdaf_fft(&state->Error_bfp[ch], &state->error_bfp[ch]);
     }
 
     ic_calc_fast_ratio(ad_state);
