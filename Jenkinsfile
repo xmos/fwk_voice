@@ -14,7 +14,7 @@ pipeline {
   }
   environment {
     REPO = 'sw_avona'
-    VIEW = getViewName(REPO)
+    VIEW = 'sw_avona_cleanup'
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
@@ -208,13 +208,6 @@ pipeline {
               }
               archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
             }
-            dir("${REPO}/examples/bare-metal/vad") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
-                }
-              }
-            }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
@@ -297,43 +290,6 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
-            }
-          }
-        }
-        stage('VAD vad_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_vad/vad_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('VAD compare_xc_c') {
-          steps {
-            dir("${REPO}/test/lib_vad/compare_xc_c") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('VAD test_profile') {
-          steps {
-            dir("${REPO}/test/lib_vad/test_vad_profile") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
             }
           }
         }
