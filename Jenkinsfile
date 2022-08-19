@@ -193,7 +193,7 @@ pipeline {
               archiveArtifacts artifacts: "build/**/fwk_voice_example_bare_metal_*", fingerprint: true
               //stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               //stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
-            //}
+            }
             dir("${REPO}") {
              unstash 'cmake_build_xcore'
             }
