@@ -9,9 +9,9 @@ A 32-bit, 2 channel wav file input.wav is read and processed through the IC stag
 mic input consisting of a `Alexa` utterances with a point noise source consisting of pop music. The signal and noise sources in input.wav
 come from different spatial locations.
 
-The interference cancelled version of the mic input is generated as the IC output and written to the output.wav file. In this example, a VAD
-is not used and so the VAD signal is set to 0 to indicate that voice is not present, meaning adaption will occur. In a practical system, the
-VAD probability would increase during the utterances to ensure the IC does not adapt to the voice and cause it to be attenuated. The test
+The interference cancelled version of the mic input is generated as the IC output and written to the output.wav file. In this example, a VNR
+is not used and so the VNR signal is set to 0 to indicate that voice is not present, meaning adaption will occur. In a practical system, the
+VNR voice to noise ratio would increase during the utterances to ensure the IC does not adapt to the voice and cause it to be attenuated. The test
 file has only a few short voice utterances and so the example works and demonstrates the IC operation.
 
 Building

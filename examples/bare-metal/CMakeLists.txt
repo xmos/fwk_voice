@@ -15,7 +15,7 @@ add_subdirectory( vnr )
 
 ## Multi thread example builds only on XCORE
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    #TODO move vad back to all examples when we can build it
+
     add_subdirectory( aec_2_threads )
 
     add_subdirectory( pipeline_multi_threaded )
