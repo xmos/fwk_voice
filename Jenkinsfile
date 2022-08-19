@@ -94,7 +94,7 @@ pipeline {
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
-                  sh 'rm CMakeCache.txt'
+                  //sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON'
