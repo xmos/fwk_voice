@@ -33,9 +33,9 @@ float_s32_t test_vnr(){
     return vnr_pred_state.input_vnr_pred;
 }
 
-void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f){
-    //ic_state.ic_adaption_controller_state.input_energy_slow = double_to_float_s32(ie_s);
-    //ic_state.ic_adaption_controller_state.output_energy_slow = double_to_float_s32(oe_s);
-    //ic_state.ic_adaption_controller_state.input_energy_fast = double_to_float_s32(ie_f);
-    //ic_state.ic_adaption_controller_state.output_energy_fast = double_to_float_s32(oe_f);
+void test_control_system(double vnr_fl, int32_t ad_config, double fast_ratio){
+    ic_state.ic_adaption_controller_state.adaption_controller_config.adaption_config = ad_config;
+    ic_state.ic_adaption_controller_state.fast_ratio = double_to_float_s32(fast_ratio);
+    float_s32_t vnr = double_to_float_s32(vnr_fl);
+    ic_mu_control_system(&ic_state, vnr);
 }

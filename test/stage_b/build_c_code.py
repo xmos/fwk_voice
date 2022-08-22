@@ -39,7 +39,7 @@ predefs += """
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);
     float_s32_t test_vnr();
-    void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
+    void test_control_system(double vnr_fl, int32_t ad_config, double fast_ratio);
 """
 #Bit of a faff having to do this. The preproc doesn't handle mul/div or enums or even #define so do it here manually
 replacements = [["bfp_flags_e", "int"],
@@ -70,7 +70,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);
     float_s32_t test_vnr();
-    void test_set_ic_energies(double ie_s, double oe_s, double ie_f, double oe_f);
+    void test_control_system(double vnr_fl, int32_t ad_config, double fast_ratio);
 """,
     sources=SRCS,
     library_dirs=[
