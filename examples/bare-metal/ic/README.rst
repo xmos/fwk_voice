@@ -18,19 +18,19 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/ic` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/ic` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_ic
+    make fwk_voice_example_bare_metal_ic
     cd ../examples/bare-metal/ic
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
 
 Output
 ------
 
-The output file output.wav is generated in the `sw_avona/examples/bare-metal/ic` directory. When viewing output.wav in a visual audio tool, such as Audacity, you can see a stark differnce between the channels emitted. Channel 0 is the IC output and is suitable for increasing the SNR in automatic speech recognition (ASR) applications. Channel 1 is the `simple beamformed` (average of mic 0 and mic 1 inputs) which may be preferable in comms (human to human) applications. The logic for channel 1 is contained in the ``ic_test_task.c`` file and is not part of the IC library.s
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/ic` directory. When viewing output.wav in a visual audio tool, such as Audacity, you can see a stark differnce between the channels emitted. Channel 0 is the IC output and is suitable for increasing the SNR in automatic speech recognition (ASR) applications. Channel 1 is the `simple beamformed` (average of mic 0 and mic 1 inputs) which may be preferable in comms (human to human) applications. The logic for channel 1 is contained in the ``ic_test_task.c`` file and is not part of the IC library.s
 
 .. image:: ic_output.png
     :alt: Comparision between the IC output and simple beamformed output

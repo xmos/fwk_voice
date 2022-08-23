@@ -1,0 +1,10 @@
+
+Run in test/lib_vnr/test_wav_vnr directory
+
+To run one stream
+By default it runs only xcore target
+python test_wav_vnr.py <test stream> <tflite model>
+eg. python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav ../../../modules/lib_vnr/python/model/model_output/trained_model.tflite
+
+To run on x86 and xcore target
+python test_wav_vnr.py $hydra_audio_PATH/test_wav_vnr_streams/test_stream_1.wav ../../../modules/lib_vnr/python/model/model_output/trained_model.tflite --run-x86

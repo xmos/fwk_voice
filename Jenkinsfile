@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.16.2') _
+@Library('xmos_jenkins_shared_library@v0.19.0') _
 getApproval()
 
 pipeline {
@@ -23,6 +23,12 @@ pipeline {
   }
   options {
     skipDefaultCheckout()
+    timestamps()
+    // On develop discard builds after a certain number else keep forever
+    buildDiscarder(logRotator(
+        numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '50' : '',
+        artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '50' : ''
+    ))
   }
   stages {
     stage('xcore.ai executables build') {
@@ -55,7 +61,7 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
                   sh "make -j8"
                 }
               }
@@ -68,11 +74,20 @@ pipeline {
                 }
               }
             }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                }
+              }
+            }
             dir("${REPO}") {
-              stash name: 'cmake_build_x86_examples', includes: 'build/**/avona_example_bare_metal_*'
-              //We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
+              stash name: 'cmake_build_x86_examples', includes: 'build/**/fwk_voice_example_bare_metal_*'
+              // We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
               stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
-              archiveArtifacts artifacts: "build/**/avona_example_bare_metal_*", fingerprint: true
+              archiveArtifacts artifacts: "build/**/fwk_voice_example_bare_metal_*", fingerprint: true
+              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
               stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
             }
             // Now do xcore files
@@ -82,10 +97,10 @@ pipeline {
                   sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DAVONA_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
                       }
                   }
                   sh "make -j8"
@@ -117,10 +132,13 @@ pipeline {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
 
-                  //Note xscopefileio is fetched by build so install in next stage
+                  // Note xscopefileio is fetched by build so install in next stage
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  //For IC characterisation we need some additional modules
+                  // For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
+		              // For IC test_bad_state
+		              sh "pip install -e ${env.WORKSPACE}/room_acoustic_pipeline"
+		              sh "pip install -e ${env.WORKSPACE}/acoustic_performance_tests"
                 }
               }
             }
@@ -136,12 +154,11 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DAVONA_BUILD_TESTS=ON'
-                  // sh "make -j8"
-                  sh "make VERBOSE=1"
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
+                  sh "make -j8"
 
-                  //We need to put this here because it is not fetched until we build
-                  sh "pip install -e avona_deps/xscope_fileio"
+                  // We need to put this here because it is not fetched until we build
+                  sh "pip install -e fwk_voice_deps/xscope_fileio"
 
                 }
               }
@@ -154,7 +171,7 @@ pipeline {
         stage('Reset XTAGs'){
           steps{
             dir("${REPO}") {
-              sh 'rm -f ~/.xtag/acquired' //Hacky but ensure it always works even when previous failed run left lock file present
+              sh 'rm -f ~/.xtag/acquired' // Hacky but ensure it always works even when previous failed run left lock file present
               viewEnv() {
                 withVenv{
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
@@ -169,14 +186,14 @@ pipeline {
             dir("${REPO}/examples/bare-metal/aec_1_thread") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/avona_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/aec_2_threads") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   // Make sure 1 thread and 2 threads output is bitexact
                   sh "diff output.wav ../aec_1_thread/output.wav"
                 }
@@ -185,7 +202,7 @@ pipeline {
             dir("${REPO}/examples/bare-metal/ic") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/avona_example_bare_metal_ic.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
                   sh "mv output.wav ic_example_output.wav"
                 }
               }
@@ -194,21 +211,21 @@ pipeline {
             dir("${REPO}/examples/bare-metal/vad") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/avona_example_bare_metal_vad.xe"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/avona_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                 }
               }
             }
             dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/avona_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   // Make sure single thread and multi threads pipeline output is bitexact
                   sh "diff output.wav ../pipeline_single_threaded/output.wav"
                 }
@@ -217,10 +234,10 @@ pipeline {
             dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   sh "mv output.wav output_st.wav"
 
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/avona_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
                   sh "mv output.wav output_mt.wav"
                   sh "diff output_st.wav output_mt.wav"
                 }
@@ -229,7 +246,55 @@ pipeline {
             dir("${REPO}/examples/bare-metal/agc") {
               viewEnv() {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/avona_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                }
+              }
+            }
+            dir("${REPO}/examples/bare-metal/vnr") {
+              viewEnv() {
+                withVenv {
+                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
+                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
+                  sh "diff vnr_out1.bin vnr_out2.bin"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR test_wav_vnr') {
+          steps {
+            dir("${REPO}/test/lib_vnr/test_wav_vnr") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
+                        sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('VNR vnr_unit_tests') {
+          steps {
+            dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
+              viewEnv() {
+                withVenv {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('VNR Python C feature extraction equivalence') {
+          steps {
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  junit "pytest_result.xml"
                 }
               }
             }
@@ -352,16 +417,16 @@ pipeline {
             dir("${REPO}/test/lib_ic/test_ic_spec") {
               viewEnv() {
                 withVenv {
-                  //This test compares the model and C implementation over a range of scenarious for:
-                  //convergence_time, db_suppression, maximum noise added to input (to test for stability)
-                  //and expected group delay. It will fail if these are not met.
+                  // This test compares the model and C implementation over a range of scenarious for:
+                  // convergence_time, db_suppression, maximum noise added to input (to test for stability)
+                  // and expected group delay. It will fail if these are not met.
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                   sh "python print_stats.py > ic_spec_summary.txt"
-                  //This script generates a number of polar plots of attenuation vs null point angle vs freq
-                  //It currently only uses the python model to do this. It takes about 40 mins for all plots
-                  //and generates a series of IC_performance_xxxHz.svg files which could be archived
-                  // sh "python plot_ic.py"
+                  // This script generates a number of polar plots of attenuation vs null point angle vs freq
+                  // It currently only uses the python model to do this. It takes about 40 mins for all plots
+                  // and generates a series of IC_performance_xxxHz.svg files which could be archived
+                  //sh "python plot_ic.py"
                 }
               }
               archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
@@ -373,13 +438,42 @@ pipeline {
             dir("${REPO}/test/lib_ic/characterise_c_py") {
               viewEnv() {
                 withVenv {
-                  //This test compares the suppression performance across angles between model and C implementation
-                  //and fails if they differ significantly. It requires that the C implementation run with fixed mu
-                  sh "pytest -s --junitxml=pytest_result.xml" //-n 2 fails often so run single threaded and also print result
+                  // This test compares the suppression performance across angles between model and C implementation
+                  // and fails if they differ significantly. It requires that the C implementation run with fixed mu
+                  sh "pytest -s --junitxml=pytest_result.xml" // -n 2 fails often so run single threaded and also print result
                   junit "pytest_result.xml"
-                  //This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
-                  //It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
-                  // sh "python sweep_ic_delay.py"
+                  // This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+                  // It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+                  //sh "python sweep_ic_delay.py"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test_calc_vnr_pred') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
+              viewEnv() {
+                withVenv {
+                  // This is a unit test for ic_calc_vnr_pred function.
+                  // It compares the avona output with py_ic model output
+                  sh "pytest -n1 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
+        stage('IC test_bad_state') {
+          steps {
+            dir("${REPO}/test/lib_ic/test_bad_state") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_bad_state"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_bad_state_PATH", "sensory_PATH=sensory_sdk"]) {
+                      sh "pytest -s --junitxml=pytest_result.xml"
+                      junit "pytest_result.xml"
+                    }
+                  }
                 }
               }
             }
@@ -426,6 +520,21 @@ pipeline {
                       sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                       runPython("python print_stats.py")
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('ADEC Initial DE startup time test') {
+          steps {
+            dir("${REPO}/test/lib_adec/test_adec_startup") {
+              viewEnv() {
+                withVenv {
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
+                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
+                      sh "pytest -n 2 --junitxml=pytest_result.xml"
                     }
                   }
                 }
@@ -549,15 +658,15 @@ pipeline {
           steps {
             dir("${REPO}/test/pipeline") {
               withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
                   viewEnv {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
-                      //Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
+
+                      // Note we have 2 xcore targets and we can run x86 threads too. But in case we have only xcore jobs in the config, limit to 4 so we don't timeout waiting for xtags
                       sh "pytest -n 4 --junitxml=pytest_result.xml -vv"
-                      // sh "pytest -s --junitxml=pytest_result.xml" //Debug, run single threaded with STDIO captured
                       junit "pytest_result.xml"
-                      // Archive below (always section) even if fails
+                      sh "python compare_keywords.py results_Avona_aec_ic_prev_arch_xcore.csv results_Avona_aec_ic_prev_arch_python.csv --pass-threshold=1"
                     }
                   }
                 }
@@ -565,22 +674,45 @@ pipeline {
             }
           }
         }
-      }//stages
+        stage('Benchmark Pipeline test results') {
+          when {
+            expression { env.PIPELINE_FULL_RUN == "1" }
+          }
+          steps {
+            dir("${REPO}/test/pipeline") {
+              viewEnv {
+                withVenv {
+                  copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
+                  runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_alt_arch_xcore.csv results_Avona_alt_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_alt_arch")                    
+                }
+              }
+            }
+          }
+        }
+      }// stages
       post {
         always {
-          //AEC aretfacts
+          // AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
-          //NS artefacts
+          // NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
-          //Pipelines tests
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/results_*.csv", fingerprint: true
+          // VNR artifacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_vnr/test_wav_vnr/*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/examples/bare-metal/vnr/vnr_prof.log", fingerprint: true
+          // Pipelines tests
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.csv", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
         cleanup {
           cleanWs()
         }
       }
-    }//stage xcore.ai Verification
+    }// stage xcore.ai Verification
     stage('Update view files') {
       agent {
         label 'x86_64&&brew'

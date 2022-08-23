@@ -29,7 +29,7 @@ def get_polar_response(test_id, angle_roi, step_size, noise_band, noise_db,
 
         angle_radians = angle * np.pi / 180
         generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_radians, rt60)
-        process_py(input_file, output_file_py, x_channel_delay, audio_dir)
+        process_py(input_file, output_file_py, audio_dir)
         attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)
         results_py.append(attenuation_py[-2])
 

@@ -15,18 +15,18 @@ Building
 ********
 
 After configuring the CMake project, the following commands can be used from the
-`sw_avona/examples/bare-metal/aec_2_threads` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+`fwk_voice/examples/bare-metal/aec_2_threads` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
 
 ::
     
     cd ../../../build
-    make avona_example_bare_metal_aec_2_thread
+    make fwk_voice_example_bare_metal_aec_2_thread
     cd ../examples/bare-metal/aec_2_threads
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/avona_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 Output
 ------
 
-The output file output.wav is generated in the `sw_avona/examples/bare-metal/aec_2_threads` directory. The input file
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/aec_2_threads` directory. The input file
 input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the echo cancelled
 output against the microphone input.

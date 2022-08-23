@@ -21,6 +21,11 @@ INPUT += ../modules/lib_ic/api
 # VAD module
 INPUT += ../modules/lib_vad/api
 
+# VNR module
+INPUT += ../modules/lib_vnr/api/common
+INPUT += ../modules/lib_vnr/api/features
+INPUT += ../modules/lib_vnr/api/inference
+
 PREDEFINED             = C_API= EXTERN_C= DWORD_ALIGNED=
 
 USE_MATHJAX            = YES

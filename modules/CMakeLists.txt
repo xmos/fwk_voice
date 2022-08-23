@@ -6,6 +6,8 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 endif()
 
+add_subdirectory( lib_vnr )
+
 add_subdirectory( lib_ns )
 
 add_subdirectory( lib_aec )

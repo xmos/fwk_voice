@@ -2,18 +2,16 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "ic_low_level.h"
-#include <limits.h>
 
-//lib_ic heavily reuses functions from lib_aec currently
+// lib_ic heavily reuses functions from lib_aec currently
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
 
-
-///Delay y input w.r.t. x input
+// Delay y input w.r.t. x input
 void ic_delay_y_input(ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE]){
-    //Run through delay line
+    // Run through delay line
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         unsigned input_delay_idx = state->y_delay_idx[ch];
         for(unsigned i=0; i<IC_FRAME_ADVANCE; i++){
@@ -29,7 +27,7 @@ void ic_delay_y_input(ic_state_t *state,
     }
 }
 
-/// Sets up IC for processing a new frame
+// Sets up IC for processing a new frame
 void ic_frame_init(
         ic_state_t *state,
         int32_t y_data[IC_FRAME_ADVANCE],
@@ -50,6 +48,8 @@ void ic_frame_init(
         bfp_s32_headroom(&state->y_bfp[ch]);
 
         /* Update previous samples */
+        // Save a copy of the first 240 samples of prev_y_bfp that are about to get overwritten, in case it's needed in ic_reset_filter() to recreate the original 512 samples time-domain frame.
+        memcpy(&state->y_prev_samples_copy[ch][0], &state->prev_y_bfp[ch].data[0], IC_FRAME_ADVANCE*sizeof(int32_t));
         // Copy the last 32 samples to the beginning
         memcpy(state->prev_y_bfp[ch].data, &state->prev_y_bfp[ch].data[IC_FRAME_ADVANCE], (IC_FRAME_LENGTH-(2*IC_FRAME_ADVANCE))*sizeof(int32_t));
         // Copy current frame to previous
@@ -82,14 +82,14 @@ void ic_frame_init(
         bfp_s32_headroom(&state->prev_x_bfp[ch]);
     }
 
-    //Initialise T
-    //At the moment, there's only enough memory for storing IC_X_CHANNELS and not num_y_channels*num_x_channels worth of T.
-    //Reuse X memory for calculating T
+    // Initialise T
+    // At the moment, there's only enough memory for storing IC_X_CHANNELS and not num_y_channels*num_x_channels worth of T.
+    // Reuse X memory for calculating T
     for(unsigned ch=0; ch<IC_X_CHANNELS; ch++) {
         bfp_complex_s32_init(&state->T_bfp[ch], (complex_s32_t*)&state->x_bfp[ch].data[0], 0, IC_FD_FRAME_LENGTH, 0);
     }
 
-    //set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
+    // Set Y_hat memory to 0 since it will be used in bfp_complex_s32_macc operation in aec_l2_calc_Error_and_Y_hat()
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         const exponent_t zero_exp = -1024;
         state->Y_hat_bfp[ch].exp = zero_exp;
@@ -98,7 +98,7 @@ void ic_frame_init(
     }
 }
 
-/// Calculate average energy in time domain
+// Calculate average energy in time domain
 void ic_update_td_ema_energy(
         float_s32_t *ema_energy,
         const bfp_s32_t *input,
@@ -117,7 +117,7 @@ void ic_update_td_ema_energy(
     *ema_energy = float_s32_ema(*ema_energy, dot, alpha);
 }
 
-/// FFT single channel real input
+// FFT single channel real input
 void ic_fft(
         bfp_complex_s32_t *output,
         bfp_s32_t *input){
@@ -126,7 +126,7 @@ void ic_fft(
 
 }
 
-/// Real IFFT to single channel input data
+// Real IFFT to single channel input data
 void ic_ifft(
         bfp_s32_t *output,
         bfp_complex_s32_t *input
@@ -136,7 +136,7 @@ void ic_ifft(
 
 }
 
-/// Calculate X energy
+// Calculate X energy
 void ic_update_X_energy(
         ic_state_t *state,
         unsigned ch,
@@ -147,7 +147,7 @@ void ic_update_X_energy(
     aec_priv_update_total_X_energy(X_energy_ptr, max_X_energy_ptr, &state->X_fifo_bfp[ch][0], X_ptr, IC_FILTER_PHASES, recalc_bin);
 }
 
-/// Update X-fifo with the newest X data. Calculate sigmaXX
+// Update X-fifo with the newest X data. Calculate sigmaXX
 void ic_update_X_fifo_and_calc_sigmaXX(
         ic_state_t *state,
         unsigned ch){
@@ -160,7 +160,7 @@ void ic_update_X_fifo_and_calc_sigmaXX(
 
 }
 
-/// Update the 1d form of X-fifo pointers
+// Update the 1d form of X-fifo pointers
 void ic_update_X_fifo_1d(
         ic_state_t *state){
     unsigned count = 0;
@@ -172,7 +172,7 @@ void ic_update_X_fifo_1d(
     }
 }
 
-/// Calculate filter Error and Y_hat
+// Calculate filter Error and Y_hat
 void ic_calc_Error_and_Y_hat(
         ic_state_t *state,
         unsigned ch){
@@ -186,7 +186,7 @@ void ic_calc_Error_and_Y_hat(
     aec_priv_calc_Error_and_Y_hat(Error_ptr, Y_hat_ptr, Y_ptr, X_fifo, H_hat, IC_X_CHANNELS, IC_FILTER_PHASES, bypass_enabled);
 }
 
-/// Window error. Overlap add to create IC output
+// Window error. Overlap add to create IC output
 void ic_create_output(
         ic_state_t *state,
         int32_t output[IC_FRAME_ADVANCE],
@@ -203,7 +203,7 @@ void ic_create_output(
     
 }
 
-/// Calculate inverse X-energy
+// Calculate inverse X-energy
 void ic_calc_inv_X_energy(
         ic_state_t *state,
         unsigned ch){
@@ -221,13 +221,13 @@ void ic_calc_inv_X_energy(
     aec_priv_calc_inv_X_energy(&state->inv_X_energy_bfp[ch], X_energy_ptr, sigma_XX_ptr, &aec_conf, state->config_params.delta, disable_freq_smoothing, normdenom_apply_factor_of_2);
 }
 
-/// Calculate T (mu * inv_X_energy * Error)
+// Calculate T (mu * inv_X_energy * Error)
 void ic_compute_T(
         ic_state_t *state,
         unsigned y_ch,
         unsigned x_ch){
 
-    bfp_complex_s32_t *T_ptr = &state->T_bfp[x_ch]; //We reuse the same memory as X to store T
+    bfp_complex_s32_t *T_ptr = &state->T_bfp[x_ch]; // We reuse the same memory as X to store T
     bfp_complex_s32_t *Error_ptr = &state->Error_bfp[y_ch];
     bfp_s32_t *inv_X_energy_ptr = &state->inv_X_energy_bfp[x_ch];
     float_s32_t mu = state->mu[y_ch][x_ch];
@@ -235,7 +235,7 @@ void ic_compute_T(
     aec_priv_compute_T(T_ptr, Error_ptr, inv_X_energy_ptr, mu);
 }
 
-/// Adapt H_hat
+// Adapt H_hat
 void ic_filter_adapt(ic_state_t *state){
     if((state->ic_adaption_controller_state.adaption_controller_config.enable_adaption == 0) ||
        state->config_params.bypass) {
@@ -246,106 +246,150 @@ void ic_filter_adapt(ic_state_t *state){
     aec_priv_filter_adapt(state->H_hat_bfp[y_ch], state->X_fifo_1d_bfp, T_ptr, IC_X_CHANNELS, IC_FILTER_PHASES);
 }
 
-//Python port
-void ic_adaption_controller(ic_state_t *state, uint8_t vad){
-    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
-    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
+// Arithmetic shift for a signed int32_t
+static inline int32_t ashr32(int32_t x, right_shift_t shr)
+{
+  if(shr >= 0)
+    return x >> shr;
+  
+  int64_t tmp = ((int64_t)x) << -shr;
 
-    if(!ad_config->enable_adaption_controller){ //skip this function if adaption controller not enabled
-        return;
-    }
+  if(tmp > INT32_MAX)       return INT32_MAX;
+  else if(tmp < INT32_MIN)  return INT32_MIN;
+  else                      return tmp;
+}
 
-    const float_s32_t one = {1, 0};
-    const float_s32_t zero = {0, 0};
-    const float_s32_t delta = {1100, -40}; //1100 * 2**-40 = 0.000000001 (from stage_b.py)
+// Temporary implementation of float_s32_add which handles 32 bit shifts
+float_s32_t float_s32_add_fix(
+    const float_s32_t x,
+    const float_s32_t y)
+{
+  float_s32_t res;
 
-    exponent_t q0_8_exp = -8; 
-    float_s32_t vad_float = {vad, q0_8_exp}; //convert to float between 0 and 0.99609375
+  const headroom_t x_hr = HR_S32(x.mant);
+  const headroom_t y_hr = HR_S32(y.mant);
 
-    //self.smoothed_voice_chance = self.voice_chance_alpha*self.smoothed_voice_chance
-    //self.smoothed_voice_chance = max(self.smoothed_voice_chance, vad_result)
-    ad_state->smoothed_voice_chance = float_s32_mul(ad_state->smoothed_voice_chance, ad_config->voice_chance_alpha);
-    if(float_s32_gt(vad_float, ad_state->smoothed_voice_chance)){
-        ad_state->smoothed_voice_chance = vad_float;
-    }
+  const exponent_t x_min_exp = x.exp - x_hr;
+  const exponent_t y_min_exp = y.exp - y_hr;
 
-    //noise_mu = 1.0 - self.smoothed_voice_chance
-    float_s32_t noise_mu = float_s32_sub(one, ad_state->smoothed_voice_chance);
+  res.exp = MAX(x_min_exp, y_min_exp) + 1;
 
+  const right_shift_t x_shr = res.exp - x.exp;
+  const right_shift_t y_shr = res.exp - y.exp;
+  
+  int32_t x_mant = (x_shr >= 32) ? 0 : ashr32(x.mant, x_shr);
+  int32_t y_mant = (y_shr >= 32) ? 0 : ashr32(y.mant, y_shr);
 
-    //noise_mu = noise_mu * min(1.0, np.sqrt(np.sqrt(self.output_energy/(self.input_energy + 0.000000001))))
-    float_s32_t input_plus_delta = float_s32_add(ad_state->input_energy_slow, delta);
-    float_s32_t ratio = float_s32_div(ad_state->output_energy_slow, input_plus_delta);
-    ratio = float_s32_sqrt(ratio);
-    ratio = float_s32_sqrt(ratio);
-    if(float_s32_gt(one, ratio)){ 
-        ratio = one;
-    }
-    noise_mu = float_s32_mul(noise_mu, ratio);
+  res.mant = x_mant + y_mant;
 
-    // THIS IS NOT IN PYTHON - Included as safety feature
-    if(ad_config->enable_filter_instability_recovery){
-        if(float_s32_gte(ratio, ad_config->out_to_in_ratio_limit)){
-            ic_reset_filter(state);
-        }
-    }
+  return res;
+}
 
-    //fast_ratio = self.output_energy0 / (self.input_energy0 + 0.000000001)
-    input_plus_delta = float_s32_add(ad_state->input_energy_fast, delta);
-    float_s32_t fast_ratio = float_s32_div(ad_state->output_energy_fast, input_plus_delta);
+// Calculates fast ratio
+void ic_calc_fast_ratio(ic_adaption_controller_state_t * ad_state){
+    const float_s32_t delta = {7037, -46}; // ~ 0.0000000001 from Python model
+    float_s32_t denom = float_s32_add_fix(ad_state->input_energy, delta);
+    ad_state->fast_ratio = float_s32_div(ad_state->output_energy, denom);
+}
 
-    // if fast_ratio > 1.0:
-    //     self.ifc.set_leakage(0.995)
-    //     self.ifc.set_mu(0.0)
-    float_s32_t mu = zero;
-    if(float_s32_gt(fast_ratio, one)){
-        ad_config->leakage_alpha = ad_config->instability_recovery_leakage_alpha;//in ic_defines.h
-        mu = zero;
-    } 
-    // else:
-        // self.ifc.set_leakage (1.0)
-        // self.ifc.set_mu(noise_mu)
-    else {
-        ad_config->leakage_alpha = one;
-        mu = noise_mu;
-    }
-
-    //Now copy this into the actual state structure
+// Sets mu
+void ic_set_mu(ic_state_t * state, float_s32_t mu){
     for(int ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(int xch=0; xch<IC_X_CHANNELS; xch++) {
             state->mu[ych][xch] = mu;
         }
-    } 
+    }
 }
 
+// VNR based mu control system
+void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
+    ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
+    
+    const float_s32_t one = float_to_float_s32(1.0);
+    const float_s32_t zero = float_to_float_s32(0.0);
 
-//Clear down filter to init state
-void ic_reset_filter(ic_state_t *state){
+    if(ad_config->adaption_config == IC_ADAPTION_FORCE_ON){
+        ad_state->control_flag = FORCE_ADAPT;
+        return;
+    }
+    if(ad_config->adaption_config == IC_ADAPTION_FORCE_OFF){
+        ic_set_mu(state, zero);
+        state->leakage_alpha = one;
+        ad_state->control_flag = FORCE_HOLD;
+        return;
+    }
+
+    if(float_s32_gte(vnr, ad_config->input_vnr_threshold)){
+        ic_set_mu(state, zero);
+        if(float_s32_gt(vnr, ad_config->input_vnr_threshold_high)){
+            state->leakage_alpha = ad_config->high_input_vnr_hold_leakage_alpha;
+        }
+        else{
+            state->leakage_alpha = one;
+        }
+        ad_state->control_flag = HOLD;
+        ad_state->adapt_counter = 0;
+    }
+    else{
+        if((ad_state->adapt_counter <= ad_config->adapt_counter_limit)||(float_s32_gte(ad_config->input_vnr_threshold_low, vnr))){
+            ic_set_mu(state, one);
+            ad_state->control_flag = ADAPT;
+        }
+        else{
+            ic_set_mu(state, float_to_float_s32(0.1));
+            ad_state->control_flag = ADAPT_SLOW;
+        }
+        state->leakage_alpha = one;
+        ad_state->adapt_counter++;
+    }
+
+    if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
+        ic_set_mu(state, float_to_float_s32(0.9));
+        state->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
+        ad_state->control_flag = UNSTABLE;
+    }
+    //printf("MU: %ld %d\n", state->mu[0][0].mant, state->mu[0][0].exp);
+}
+
+// Reset adaptive components and output an unprocessed frame
+void ic_reset_filter(ic_state_t *state, int32_t output[IC_FRAME_ADVANCE]){
     
     for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
         bfp_complex_s32_t *H_hat = state->H_hat_bfp[ch];
         aec_priv_reset_filter(H_hat, IC_X_CHANNELS, IC_FILTER_PHASES);
     }
+    const exponent_t zero_exp = -1024;
+    for(unsigned ch = 0; ch < IC_X_CHANNELS; ch ++){
+        bfp_s32_set(&state->sigma_XX_bfp[ch], 0, zero_exp);
+    }
+    // Getting unproccessed y frame from state->y_prev_samples_copy[ch] and state->prev_y_bfp[ch].data 
+    for(unsigned ch=0; ch<IC_Y_CHANNELS; ch++) {
+        int32_t DWORD_ALIGNED buff[IC_FRAME_LENGTH];
+        memcpy(&buff[0], &state->y_prev_samples_copy[ch][0], IC_FRAME_ADVANCE*sizeof(int32_t));
+        memcpy(&buff[IC_FRAME_ADVANCE], &state->prev_y_bfp[ch].data[0], (IC_FRAME_LENGTH - IC_FRAME_ADVANCE)*sizeof(int32_t));
+        const exponent_t init_exp = -31;
+        bfp_s32_t y, out;
+        bfp_s32_init(&y, buff, init_exp, IC_FRAME_LENGTH, 1);
+        bfp_s32_init(&out, output, init_exp, IC_FRAME_ADVANCE, 0);
+        aec_priv_create_output(&out, &state->overlap_bfp[ch], &y);
+    }
 }
 
-//This allows the filter to forget some of its training
+// This allows the filter to forget some of its training
 void ic_apply_leakage(
     ic_state_t *state,
     unsigned y_ch){
-    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
+    ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
 
     if((ad_config->enable_adaption == 0) ||
        state->config_params.bypass) {
         return;
     }
 
-    int32_t mant = ad_config->leakage_alpha.mant;
-    exponent_t exp = ad_config->leakage_alpha.exp;
-    float_s32_t leakage = {mant, exp};
-
     for(int ph=0; ph<IC_X_CHANNELS*IC_FILTER_PHASES; ph++){
         bfp_complex_s32_t *H_hat_ptr = &state->H_hat_bfp[y_ch][ph];
-        bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, leakage); 
+        bfp_complex_s32_real_scale(H_hat_ptr, H_hat_ptr, state->leakage_alpha); 
     }
 }

@@ -28,30 +28,30 @@ list(APPEND LIB_PRIVATE_SOURCES ${${CMAKE_SYSTEM_NAME}_SOURCES})
 
 if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A))
     ## Create library target
-    add_library(avona_test_deps_lib_dsp STATIC)
-    target_sources(avona_test_deps_lib_dsp
+    add_library(fwk_voice_test_deps_lib_dsp STATIC)
+    target_sources(fwk_voice_test_deps_lib_dsp
         PUBLIC
             ${LIB_PUBLIC_SOURCES}
         PRIVATE
             ${LIB_PRIVATE_SOURCES}
     )
-    target_include_directories(avona_test_deps_lib_dsp
+    target_include_directories(fwk_voice_test_deps_lib_dsp
         PUBLIC
             ${LIB_PUBLIC_INCLUDES}
         PRIVATE
             ${LIB_PRIVATE_INCLUDES}
     )
-    target_compile_options(avona_test_deps_lib_dsp
+    target_compile_options(fwk_voice_test_deps_lib_dsp
         PRIVATE
             ${LIB_COMPILE_FLAGS}
     )
-    target_link_libraries(avona_test_deps_lib_dsp
+    target_link_libraries(fwk_voice_test_deps_lib_dsp
         PUBLIC
-            avona_test_deps::legacy_compat
+            fwk_voice_test_deps::legacy_compat
     )
 
     ## Create an alias
-    add_library(avona_test_deps::lib_dsp ALIAS avona_test_deps_lib_dsp)
+    add_library(fwk_voice_test_deps::lib_dsp ALIAS fwk_voice_test_deps_lib_dsp)
 else()  ## Assume Host
     ## Remove xcore only sources
     list(REMOVE_ITEM LIB_PRIVATE_SOURCES ${CMAKE_CURRENT_LIST_DIR}/lib_dsp/src/bfp/dsp_bfp.c)
@@ -66,24 +66,24 @@ else()  ## Assume Host
     list(REMOVE_ITEM LIB_PRIVATE_SOURCES ${CMAKE_CURRENT_LIST_DIR}/lib_dsp/src/testing/dsp_testing_rand.c)
 
     ## Create library target
-    add_library(avona_test_deps_lib_dsp STATIC)
-    target_sources(avona_test_deps_lib_dsp
+    add_library(fwk_voice_test_deps_lib_dsp STATIC)
+    target_sources(fwk_voice_test_deps_lib_dsp
         PUBLIC
             ${LIB_PUBLIC_SOURCES}
         PRIVATE
             ${LIB_PRIVATE_SOURCES}
     )
-    target_include_directories(avona_test_deps_lib_dsp
+    target_include_directories(fwk_voice_test_deps_lib_dsp
         PUBLIC
             ${LIB_PUBLIC_INCLUDES}
         PRIVATE
             ${LIB_PRIVATE_INCLUDES}
     )
-    target_compile_options(avona_test_deps_lib_dsp
+    target_compile_options(fwk_voice_test_deps_lib_dsp
         PRIVATE
             ${LIB_COMPILE_FLAGS}
     )
 
     ## Create an alias
-    add_library(avona_test_deps::lib_dsp ALIAS avona_test_deps_lib_dsp)
+    add_library(fwk_voice_test_deps::lib_dsp ALIAS fwk_voice_test_deps_lib_dsp)
 endif()

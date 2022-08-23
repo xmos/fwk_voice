@@ -1,0 +1,15 @@
+{
+    "frame_advance": 240,
+    "proc_frame_length": 512,
+    "phases": 10,
+    "mu" : 1.0, 
+    "delta" : 0.015624999996362021,
+    "y_channel_delay": 600,
+    "K" : 1,
+    "lamda" : 0.99951171875, 
+    "gamma" : 2.0,
+    "leakage" : 1.0,
+    "remove_NQ" : false,
+    "vnr_model" : "../../../../py_vnr/model_output/trained_model.h5",
+    "adaption_config": "IC_ADAPTION_FORCE_ON"
+}

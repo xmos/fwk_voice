@@ -1,0 +1,11 @@
+#### Running with python xscope host
+python host_app.py test_stream_1.wav vnr_out1.bin
+
+#### Running with lib xscope_filio implemented xscope host
+python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio
+
+
+### To see the plot
+python host_app.py test_stream_1.wav vnr_out1.bin --show-plot
+python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio --show-plot
+python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio --show-plot --run-x86

@@ -5,7 +5,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source build is not allowed! Please specify a build folder.\n\tex:cmake -B build")
 endif()
 
-project(sw_avona)
+project(sw_fwk_voice)
 
 enable_language(CXX C ASM)
 
@@ -16,7 +16,7 @@ if(PROJECT_IS_TOP_LEVEL)
     find_package( Python3 COMPONENTS Interpreter )
 
     ## Compile flags for C/C++ for all apps (for all platforms)
-    list(APPEND   COMPILE_FLAGS        -Os -MMD )
+    list(APPEND   COMPILE_FLAGS        -Os -MMD -g)
     list(APPEND   COMPILE_FLAGS        -Wno-format -Wall )
 
     message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )

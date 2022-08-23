@@ -266,6 +266,7 @@ void ns_process_frame(ns_state_t * ns,
     ns_priv_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
     bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
+    curr_fft->hr = bfp_complex_s32_headroom(curr_fft); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
     bfp_fft_unpack_mono(curr_fft);
 
     bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);

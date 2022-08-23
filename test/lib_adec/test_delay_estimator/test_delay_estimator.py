@@ -121,7 +121,7 @@ class DelaySpec(object):
     convergence_time = 2.0
 
 
-data, jazz = scipy.io.wavfile.read(hydra_audio_base_dir+'/avona_tests/test_delay_estimator/jazz_4ch_record_10s.wav')
+data, jazz = scipy.io.wavfile.read(hydra_audio_base_dir+'/fwk_voice_tests/test_delay_estimator/jazz_4ch_record_10s.wav')
 jazz = jazz.T.astype(float) / np.iinfo(np.int32).max
 #jazz_y = np.sum(jazz[:2], axis=0)[:jazz_length*16000]
 #jazz_x = np.sum(jazz[2:], axis=0)[:jazz_length*16000]

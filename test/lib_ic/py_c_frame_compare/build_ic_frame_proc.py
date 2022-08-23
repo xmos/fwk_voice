@@ -9,7 +9,7 @@ import sys
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
-XS3_MATH = "../../../../build/avona_deps/lib_xs3_math/"
+XS3_MATH = "../../../../build/fwk_voice_deps/lib_xs3_math/"
 
 FLAGS = [
     '-std=c99',
@@ -19,13 +19,14 @@ FLAGS = [
 INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_ic/api/",
     f"{MODULE_ROOT}/lib_ic/src/",
-    f"{XS3_MATH}/lib_xs3_math/api/",
+    f"{XS3_MATH}/lib_xs3_math/api/",  
 ]
 SRCS = f"../ic_test.c".split()
 ffibuilder = FFI()
 
 #Extract all defines and state from lib_ic programatically
 predefs = extract_pre_defs()
+predefs = predefs.replace("sizeof(uint64_t)", "8")
 print(predefs)
 # Contains all the C defs visible from Python
 ffibuilder.cdef(
@@ -34,7 +35,7 @@ predefs +
     void test_init(void);
     ic_state_t test_get_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
 """.replace("IC_FRAME_ADVANCE", "240")
 )
 
@@ -45,7 +46,7 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     void test_init(void);
     ic_state_t test_get_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
-    void test_adapt(uint8_t vad, int32_t output[IC_FRAME_ADVANCE]);
+    void test_adapt(float_s32_t vnr);
 """,
     sources=SRCS,
     library_dirs=[
@@ -53,7 +54,7 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
                 '../../../../build/modules/lib_aec',
                 '../../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['m', 'avona_module_lib_ic', 'avona_module_lib_aec', 'avona_deps_lib_xs3_math'],    # on Unix, link with the math library
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

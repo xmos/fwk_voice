@@ -13,8 +13,10 @@
 #include "pipeline_state.h"
 
 DECLARE_JOB(tx, (chanend_t, chanend_t, const char*));
-DECLARE_JOB(pipeline, (chanend_t, chanend_t));
+DECLARE_JOB(pipeline_tile0, (chanend_t, chanend_t));
 DECLARE_JOB(rx, (chanend_t, chanend_t, const char*));
+
+extern void pipeline_tile1(chanend_t c_pcm_in_b, chanend_t c_pcm_out_a);
 
 /// tx
 void tx(chanend_t c_pcm_in_a, chanend_t c_wavheader_a, const char* input_file_name) {
@@ -111,14 +113,21 @@ void rx(chanend_t c_pcm_out_b, chanend_t c_wavheader_b, const char* output_file_
     _Exit(0);
 }
 
-void main_tile0(const char *input_file_name, const char* output_file_name) {
+//**** Multi tile pipeline structure ***//
+// file_read -> stage1 -> (tile0_to_tile1)-> stage2 -> stage3 -> stage4 -> (tile1_to_tile0) -> file_write
+void main_tile0(chanend_t c_t0_t1, chanend_t c_t1_t0, const char *input_file_name, const char* output_file_name)
+{
     channel_t c_pcm_in = chan_alloc();
-    channel_t c_pcm_out = chan_alloc();
     channel_t c_wavheader = chan_alloc();
     PAR_JOBS(
         PJOB(tx, (c_pcm_in.end_a, c_wavheader.end_a, input_file_name)),
-        PJOB(pipeline, (c_pcm_in.end_b, c_pcm_out.end_a)),
-        PJOB(rx, (c_pcm_out.end_b, c_wavheader.end_b, output_file_name))
+        PJOB(pipeline_tile0, (c_pcm_in.end_b, c_t0_t1)),
+        PJOB(rx, (c_t1_t0, c_wavheader.end_b, output_file_name))
         );
+}
+
+void main_tile1(chanend_t c_t0_t1, chanend_t c_t1_t0)
+{
+    pipeline_tile1(c_t0_t1, c_t1_t0);
 }
 

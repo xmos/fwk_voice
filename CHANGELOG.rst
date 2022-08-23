@@ -1,5 +1,13 @@
-Avona Reference Design Change Log
-=================================
+XMOS Voice Framework Change Log
+===============================
+
+0.5.0
+-----
+
+  * ADDED: Support for VNR
+  * CHANGED: VNR input based IC control system (the API is not backwards compatible)
+  * CHANGED: VNR input based AGC in pipeline examples
+  * ADDED: Amazon based wake word engine testing in piplines tests
 
 0.4.0
 -----

@@ -4,8 +4,6 @@
 #define IC_STATE_H
 
 #include "ic_defines.h"
-
-
 /**
  * @page page_ic_state_h ic_state.h
  * 
@@ -20,6 +18,25 @@
  * @defgroup ic_state   IC Data Structures
  */ 
 
+/**
+ * @ingroup ic_state
+ */
+typedef enum {
+    IC_ADAPTION_AUTO  = 0,
+    IC_ADAPTION_FORCE_ON = 1,
+    IC_ADAPTION_FORCE_OFF = 2
+} adaption_config_e;
+
+/**
+ * @ingroup ic_state
+ */
+typedef enum {HOLD = 2, 
+            ADAPT = 1, 
+            ADAPT_SLOW = 0, 
+            UNSTABLE = -1, 
+            FORCE_ADAPT = -2, 
+            FORCE_HOLD = -3
+}control_flag_e;
 
 /**
  * @brief IC configuration structure
@@ -51,13 +68,12 @@ typedef struct {
     float_s32_t delta;
 }ic_config_params_t;
 
-
 /**
  * @brief IC adaption controller configuration structure
  *
  * This structure contains configuration settings that can be changed to alter the
  * behaviour of the adaption controller. This includes processing of the raw
- * VAD probability input and optional stability controller logic.
+ * VNR probability input and optional stability controller logic.
  * It is automatically included as part of the IC state and initialised by ic_init().
  * 
  * The initial values for these configuration parameters are defined in ic_defines.h.
@@ -65,29 +81,31 @@ typedef struct {
  * @ingroup ic_state
  */
 typedef struct {
-    /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. */
-    float_s32_t leakage_alpha;
-    /** Alpha used for low pass filtering the voice chance estimate based on VAD input. */
-    float_s32_t voice_chance_alpha;
 
-    /** Slow alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_slow_q30;
-    /** Fast alpha used filtering input and output energies of IC. */
-    fixed_s32_t energy_alpha_fast_q30;
+    /** Alpha for EMA input/output energy calculation. */
+    fixed_s32_t energy_alpha_q30;
 
-    /** Ratio of the output to input at which the filter will reset.
-     * Setting it to 2.0 is a good rule of thumb. */
-    float_s32_t out_to_in_ratio_limit;
+    /** Fast ratio threshold to detect instability. */
+    float_s32_t fast_ratio_threshold;
+    /** Setting of H_hat leakage which gets set if vnr detects high voice probability. */
+    float_s32_t high_input_vnr_hold_leakage_alpha;
     /** Setting of H_hat leakage which gets set if fast ratio exceeds a threshold. */
     float_s32_t instability_recovery_leakage_alpha;
 
+    /** VNR input threshold which decides whether to hold or adapt the filter. */
+    float_s32_t input_vnr_threshold;
+    /** VNR high threshold to leak the filter is the speech level is high. */
+    float_s32_t input_vnr_threshold_high;
+    /** VNR low threshold to adapt faster when the speech level is low. */
+    float_s32_t input_vnr_threshold_low;
+
+    /** Limits number of frames for which mu and leakage_alpha could be adapted. */
+    uint32_t adapt_counter_limit;
+
     /** Boolean which controls whether the IC adapts when ic_adapt() is called. */
     uint8_t enable_adaption;
-    /** Boolean which controls whether Mu is automatically adjusted from the VAD input. */
-    uint8_t enable_adaption_controller;
-    /** Boolean which controls whether to enable detection and recovery from instability
-     * in the case when the adaption controller is enabled. */
-    uint8_t enable_filter_instability_recovery;
+    /** Enum which controls the way mu and leakage_alpha are being adjusted. */
+    adaption_config_e adaption_config;
 
 }ic_adaption_controller_config_t;
 
@@ -102,18 +120,21 @@ typedef struct {
  * @ingroup ic_state
  */
 typedef struct {
-    /** Post processed VAD value. */
-    float_s32_t smoothed_voice_chance;
 
-    /** Slow filtered value of IC input energy. */
-    float_s32_t input_energy_slow;
-    /** Slow filtered value of IC output energy. */
-    float_s32_t output_energy_slow;
+    /** EMWA of input frame energy. */
+    float_s32_t input_energy;
 
-    /** Fast filtered value of IC input energy. */
-    float_s32_t input_energy_fast;
-    /** Fast filtered value of IC output energy. */
-    float_s32_t output_energy_fast;
+    /** EMWA of output frame energy. */
+    float_s32_t output_energy;
+
+    /** Ratio between output and input EMWA energies. */
+    float_s32_t fast_ratio;
+
+    /** Adaption counter which counts number of frames has been adapted. */
+    uint32_t adapt_counter;
+
+    /** Flag that represents the state ao the filter. */
+    control_flag_e control_flag;
 
     /** Configuration parameters for the adaption controller. */
     ic_adaption_controller_config_t adaption_controller_config;
@@ -151,6 +172,8 @@ typedef struct {
     bfp_s32_t prev_y_bfp[IC_Y_CHANNELS];
     /** Storage for previous y mantissas. */
     int32_t DWORD_ALIGNED y_prev_samples[IC_Y_CHANNELS][IC_FRAME_LENGTH - IC_FRAME_ADVANCE]; //272 samples history
+    // Copy of first 240 y prev samples before they get updated in ic_frame_init(). This, along with the updated y_prev_samples is used to get back the 512 samples of the input processing frame when it's needed again in ic_reset_filter(). All of this is needed since due to in-place DFT processing, y_bfp memory would hold freq domain at the point of ic_reset_filter() call*/  
+    int32_t DWORD_ALIGNED y_prev_samples_copy[IC_Y_CHANNELS][IC_FRAME_ADVANCE];  
     /** BFP array pointing to previous x samples which are used for framing. */
     bfp_s32_t prev_x_bfp[IC_X_CHANNELS];
     /** Storage for previous x mantissas. */
@@ -209,8 +232,8 @@ typedef struct {
 
     /** Mu value used for controlling adaption rate. */
     float_s32_t mu[IC_Y_CHANNELS][IC_X_CHANNELS];
-    /** Filtered error energy. */
-    float_s32_t error_ema_energy[IC_Y_CHANNELS];
+    /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. */
+    float_s32_t leakage_alpha;
     /** Used to keep track of peak X energy. */
     float_s32_t max_X_energy[IC_X_CHANNELS]; 
 

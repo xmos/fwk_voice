@@ -20,11 +20,11 @@ void test_reset() {
 
     agc_state_t agc;
     agc_config_t conf = AGC_PROFILE_ASR;
-    conf.adapt_on_vad = 0;
+    conf.adapt_on_vnr = 0;
     conf.lc_enabled = 0;
 
     agc_meta_data_t md;
-    md.vad_flag = AGC_META_DATA_NO_VAD;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 

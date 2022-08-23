@@ -38,36 +38,36 @@ foreach(testfile ${TEST_SOURCES})
 
     #########
     ## Add a build target
-    add_executable(avona_agc_${TESTNAME})
+    add_executable(fwk_voice_agc_${TESTNAME})
 
-    target_sources(avona_agc_${TESTNAME}
+    target_sources(fwk_voice_agc_${TESTNAME}
         PRIVATE
             ${testfile}
             ${RUNNER_FILE})
 
 
-    target_include_directories(avona_agc_${TESTNAME}
+    target_include_directories(fwk_voice_agc_${TESTNAME}
         PRIVATE src)
 
-    target_link_libraries(avona_agc_${TESTNAME} 
+    target_link_libraries(fwk_voice_agc_${TESTNAME} 
         PUBLIC
-            avona::agc
-            avona::test::shared::test_utils
-            avona::test::shared::unity)
+            fwk_voice::agc
+            fwk_voice::test::shared::test_utils
+            fwk_voice::test::shared::unity)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-        target_compile_options(avona_agc_${TESTNAME}
+        target_compile_options(fwk_voice_agc_${TESTNAME}
             PRIVATE 
                 "-DUNITY_SUPPORT_64"
                 "-Wno-xcore-fptrgroup"
                 "-report"
                 "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
 
-        target_link_options(avona_agc_${TESTNAME}
+        target_link_options(fwk_voice_agc_${TESTNAME}
             PRIVATE
                 "-target=${XCORE_TARGET}")
     else()
-        target_link_libraries(avona_agc_${TESTNAME}
+        target_link_libraries(fwk_voice_agc_${TESTNAME}
             PRIVATE
                 m)
     endif()

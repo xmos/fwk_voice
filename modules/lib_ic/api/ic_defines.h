@@ -7,8 +7,6 @@
 #include <limits.h>
 #include <string.h>
 #include "bfp_math.h"
-#include "xs3_math.h"
-
 
 /**
  * @page page_ic_defines_h ic_defines.h
@@ -26,14 +24,14 @@
 /** Initial MU value applied on startup. MU controls the adaption rate of the IC and 
  * is normally adjusted by the adaption rate controller during operation.
  * @ingroup ic_defines */
-#define IC_INIT_MU                                  0.369566 //From Python test_wav_ic
+#define IC_INIT_MU                                  1.0 // From two_mic_stereo.json
 /** Alpha used for calculating y_ema_energy, x_ema_energy and error_ema_energy.
  * @ingroup ic_defines */
-#define IC_INIT_EMA_ALPHA                           0.9995117188 //from two_mic_stereo.json
+#define IC_INIT_EMA_ALPHA                           0.9995117188 // From two_mic_stereo.json
 /** Alpha used for leaking away H_hat, allowing filter to slowly forget adaption. This
  * value is adjusted by the adaption rate controller if instability is detected.
  * @ingroup ic_defines */
-#define IC_INIT_LEAKAGE_ALPHA                       0.995 //from two_mic_stereo.json
+#define IC_INIT_LEAKAGE_ALPHA                       0.995 // From two_mic_stereo.json
 
 /** The number of filter phases supported by the IC. Each filter phase represents 15ms of
  * filter length. Hence a 10 phase filter will allow cancellation of noise sources with
@@ -42,51 +40,50 @@
  * the maximum cancellation at the cost of increasesed xCORE resource usage and slower
  * adaption times.
  * @ingroup ic_defines */
-#define IC_FILTER_PHASES                            10 //two_mic_stereo.json
+#define IC_FILTER_PHASES                            10 // two_mic_stereo.json
 /** This is the delay, in samples that one of the microphone signals is delayed in order
  * for the filter to be effective. A larger number increases the delay through the filter
  * but may improve cancellation.
- * The group delay through the IC filter is 32 + this number of samples
+ * The group delay through the IC filter is 32 + this number of samples.
  * @ingroup ic_defines */
-#define IC_Y_CHANNEL_DELAY_SAMPS                    180 //From Python model
+#define IC_Y_CHANNEL_DELAY_SAMPS                    600 // From python model
 
 /** Down scaling factor for X energy calculation used for normalisation.
  * @ingroup ic_defines */
-#define IC_INIT_SIGMA_XX_SHIFT                      11  //From XC IC and Python AEC
+#define IC_INIT_SIGMA_XX_SHIFT                      11  // From XC IC and Python AEC
 /** Up scaling factor for X energy calculation for used for LMS normalisation.
  * @ingroup ic_defines */
-#define IC_INIT_GAMMA_LOG2                          1   //from two_mic_stereo.json(2^1 = 2.0)
+#define IC_INIT_GAMMA_LOG2                          1   // From two_mic_stereo.json (2^1 = 2.0)
 /** Delta value used in denominator to avoid large values when calculating inverse X energy.
  * @ingroup ic_defines */
-#define IC_INIT_DELTA                               7.450580593454381e-09 //from two_mic_stereo.json
+#define IC_INIT_DELTA                               7.450580593454381e-09 // From two_mic_stereo.json
 
 
-/** Boolean which controls whether to enable detection and recovery from instability. 
- * Normally this should be enabled.
+/** Fast ratio threshold to detect instability.
  * @ingroup ic_defines */
-#define IC_INIT_ENABLE_FILTER_INSTABILITY_RECOVERY  1//from ap_stage_b.py
-/** Ratio of the output to input at which the filter will reset.
- * Setting it to 2.0 or above is a good rule of thumb.
+#define IC_INIT_FAST_RATIO_THRESHOLD                1.5 // From python model
+/** Alpha for EMA input/output energy calculation.
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RATIO_LIMIT             2.0//from ap_stage_b.py
-/** Alpha used for low pass filtering the voice chance estimate based on VAD input.
+#define IC_INIT_ENERGY_ALPHA                        0.5 // From python model
+/** Leakage alpha used in case vnr detects high voice probability.
  * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE_ALPHA         0.99//from ap_stage_b.py
-/** Slow alpha used filtering input and output energies of IC used in the adaption controller.
- * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_SLOW                   0.999//from ap_stage_b.py
-/** Fast alpha used filtering input and output energies of IC used in the adaption controller.
- * @ingroup ic_defines */
-#define IC_INIT_ENERGY_ALPHA_FAST                   0.98//from ap_stage_b.py
+#define IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA   0.996094 // From python model
 /** Leakage alpha used in the case where instability is detected. This allows the filter to stabilise
  * without completely forgetting the adaption.
  * @ingroup ic_defines */
-#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.995//from ap_stage_b.py
-/** Initial smoothed voice chance at startup. This value is quickly replaced by the calculated
- * voice change value from the VAD signal.
- * @ingroup ic_defines */
-#define IC_INIT_SMOOTHED_VOICE_CHANCE               1.0//from ap_stage_b.py
-
+#define IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA  0.99 // From python model
+/** Limits number of frames for which mu and leakage_alpha could be adapted.
+ * @ingroup ic_defines*/
+#define IC_INIT_ADAPT_COUNTER_LIMIT                 5 // From python model
+/** VNR input threshold which decides whether to hold or adapt the filter.
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD                 0.5 // From python model
+/** VNR high threshold to leak the filter is the speech level is high.
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD_HIGH            0.75 // From python model
+/** VNR low threshold to adapt faster when the speech level is low.
+ * @ingroup ic_defines*/
+#define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////
@@ -132,23 +129,22 @@
  *
  * @ingroup ic_defines
  */   
-#define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) //Frequency domain frame length
+#define IC_FD_FRAME_LENGTH ((IC_FRAME_LENGTH / 2) + 1) // Frequency domain frame length
 
 /** Extra 2 samples you need to allocate in time domain so that the full spectrum (DC to nyquist) can be stored
  * after the in-place FFT. NOT USER MODIFIABLE.
  *
  * @ingroup ic_defines
  */  
-//
 #define FFT_PADDING 2
 
-//For unit tests
+// For unit tests
 #ifdef __XC__ 
 #undef DWORD_ALIGNED
 #define DWORD_ALIGNED
 #endif
 
-//For the IC example
+// For the IC example
 #if !PROFILE_PROCESSING
     #define prof(n, str)
     #define print_prof(start, end, framenum)
