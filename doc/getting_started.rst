@@ -6,7 +6,6 @@ Requirements
 ------------
 
 * XTC Tools 15.0.6 or higher
-* A clone of the `xcore_sdk <https://github.com/xmos/xcore_sdk/>`_, with its submodules initialised
 * CMake 3.20 or higher
 * Python 3.7 or higher
 
@@ -30,19 +29,41 @@ procedure is currently supported on MacOS and Linux only.
        cd build
 
 #. Run cmake to setup the build environment for the XMOS toolchain
-     .. code-block:: console
+     .. tab:: Linux and Mac
+       .. code-block:: console
 
-       cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+         cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+
+     .. tab:: Windows
+       .. code-block:: console
+
+         cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
 #. Running make will then build the Voice Framework libraries and example applications
-     .. code-block:: console
+     .. tab:: Linux and Mac
+       .. code-block:: console
 
-       make
+         make fwk_voice_example_bare_metal_aec_1_thread
+
+     .. tab:: Windows
+       ..code-block:: console
+
+         nmake fwk_voice_example_bare_metal_aec_1_thread
 
 #. Install dependencies
-     .. code-block:: console
+     .. tab:: Linux Mac
+       .. code-block:: console
 
-       pip install -e build/fwk_voice_deps/xscope_fileio/
+         pip install -e build/fwk_voice_deps/xscope_fileio/
+
+     .. tab:: Windows
+       .. code-block:: console
+
+         pip install -e fwk_voice_deps/xscope_fileio
+         cd fwk_voice_deps/xscope_fileio/host
+         cmake -G "NMake Makefiles" .
+         nmake
+         cd ../../../
 
 #. Run the single-threaded AEC example
      .. code-block:: console

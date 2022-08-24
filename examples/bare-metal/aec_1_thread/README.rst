@@ -38,7 +38,7 @@ From the fwk_voice/build folder run:
 
     .. code-block:: console
 
-        pip install -e /fwk_voice_deps/xscope_fileio
+        pip install -e fwk_voice_deps/xscope_fileio
         cd ../examples/bare-metal/aec_1_thread
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
@@ -46,6 +46,7 @@ From the fwk_voice/build folder run:
 
     .. code-block:: console
 
+        pip install -e fwk_voice_deps/xscope_fileio
         cd fwk_voice_deps/xscope_fileio/host
         cmake -G "NMake Makefiles" .
         nmake
