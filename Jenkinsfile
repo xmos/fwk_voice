@@ -53,9 +53,6 @@ pipeline {
         }
         stage('CMake') {
           steps {
-            dir("${REPO}") {
-              sh "mkdir build"
-            }
             // Do xcore files
             dir("${REPO}/build") {
               viewEnv() {
@@ -112,9 +109,6 @@ pipeline {
         }
         stage('Make/get bins and libs'){
           steps {
-            dir("${REPO}") {
-              sh "mkdir build"
-            }
             // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
             dir("${REPO}/build") {
               viewEnv() {
