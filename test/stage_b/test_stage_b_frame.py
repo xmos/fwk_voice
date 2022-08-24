@@ -1,6 +1,7 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+from ast import If
 import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
@@ -52,7 +53,6 @@ class stage_b_comparison:
         self.num_phases = ic_conf["phases"]
 
         self.ic = IC.adaptive_interference_canceller(**ic_conf)
-        #self.vnr = vnr.Vnr(model_file=tflite_model)
 
         self.x_data = np.zeros(self.proc_frame_length, dtype=np.float64)
 
@@ -84,7 +84,6 @@ class stage_b_comparison:
         if (index < frames_print) and False:
             print(f"py_vnr: {py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
 
-        #note we override c_vnr to match py_vnr for comparison
         #c_vnr = [int(0), int(0)] # dummy
         if (index < frames_print) and False:
             print(f"py_vnr: {py_vnr}, c_vnr: {pvc.float_s32_to_float(c_vnr)}")
@@ -147,53 +146,54 @@ def test_frame_compare(test_config):
     assert geo_closeness > 0.98
     assert arith_closeness > 0.87 #Still very close over a 30s piece of audio with multiple blocks (adaption controller & IC)
 
-""" #Check equivalence of adaption controller
+def get_ad_conf(int):
+    if int == 0:
+        ad_conf = 'IC_ADAPTION_AUTO'
+    elif int == 1:
+        ad_conf = 'IC_ADAPTION_FORCE_ON'
+    elif int == 2:
+        ad_conf = 'IC_ADAPTION_FORCE_OFF'
+    else:
+        assert 1, f'ad_conf can only take 0 - 2, ad_conf = {int}'
+    return ad_conf
+
+#Check equivalence of adaption controller
 def test_adaption_controller(test_config):
-    stage_b_conf = test_config
-    #instantiate and init a stage B instance
-    #sb = ap_stage_b(stage_b_conf["ic_conf"]["frame_advance"], stage_b_conf["ic_conf"],stage_b_conf["ic_conf"]["passthrough_channel_count"], mic_shift=0, mic_saturate=0)
-    sbc = stage_b_comparison(test_config)
-    #Init the fwk_voice instance
+    
+    ic = IC.adaptive_interference_canceller(**test_config)
     ic_vnr_test_lib.test_init()
 
-    #A few fixed sceanrios
-    vnr_vects = [0, 0.1, 0.2, 0.1, 0.99, 1.0]
-    in_energy_vects_slow = [0.1, 0.2, 0.3, 0.4, 0.2, 0.2]
-    out_energy_vects_slow = [0.1, 0.15, 0.2, 0.3, 0.1, 0.1]
-    in_energy_vects_fast = [0.1, 0.2, 0.3, 0.4, 0.2, 0.2]
-    out_energy_vects_fast = [0.1, 0.3, 0.2, 0.1, 0.1, 0.1]
+    vnr_vect = np.random.random(10000)
+    fast_ratio_vect = 2.0 * np.random.random(10000)
+    ad_config_vect = np.zeros((5000), np.int32) # First 5000 are ADAPTION_AUTO
+    ad_config_vect = np.hstack((ad_config_vect, np.random.randint(low = 0, high = 3, size = (5000), dtype = np.int32)))
 
-    #A lot of random scenarios
-    for i in range(1000):
-        vnr_vects.append(np.random.random(1)[0])
-        in_energy_vects_slow.append(np.random.random(1)[0])
-        out_energy_vects_slow.append(np.random.random(1)[0])
-        in_energy_vects_fast.append(np.random.random(1)[0])
-        out_energy_vects_fast.append(np.random.random(1)[0])
-
-    for vnr, in_s, out_s, in_f, out_f in zip(vnr_vects, in_energy_vects_slow, out_energy_vects_slow,
-                                            in_energy_vects_fast, out_energy_vects_fast):
-        sbc.input_energy = in_s 
-        sbc.output_energy = out_s 
-        sbc.input_energy0 = in_f 
-        sbc.output_energy0 = out_f 
-
-        sbc.adaption_controller(vnr, 1000)
-        py_mu = sbc.ic.mu
-        py_svc = sbc.smoothed_voice_chance
-
-        c_vnr = pvc.float_to_float_s32(vnr)
-        ic_vnr_test_lib.test_set_ic_energies(in_s, out_s, in_f, out_f)
-        ic_vnr_test_lib.test_adaption_controller(c_vnr)
+    for vnr, fast_ratio, ad_config in zip(vnr_vect, fast_ratio_vect, ad_config_vect):
+        
+        ic.fast_ratio = fast_ratio
+        ic.adaption_config = get_ad_conf(ad_config)
+        ic.input_vnr_pred = vnr
+        ic.mu_control_system()
+        py_mu = ic.mu
+        py_leakage = ic.leakage
+        py_counter = ic.adapt_counter
+        py_flag = ic.control_flag
+        
+        ic_vnr_test_lib.test_control_system(vnr, ad_config, fast_ratio)
         ic_state = ic_vnr_test_lib.test_get_ic_state()
         c_mu = pvc.float_s32_to_float(ic_state.mu[0][0])
-        c_svc = pvc.float_s32_to_float(ic_state.ic_adaption_controller_state.smoothed_voice_chance)
+        c_leakage = pvc.float_s32_to_float(ic_state.leakage_alpha)
+        c_counter = ic_state.ic_adaption_controller_state.adapt_counter
+        c_flag = ic_state.ic_adaption_controller_state.control_flag
 
-        # print(f"py_mu:{py_mu}, c_mu:{c_mu}")
-        # print(f"py_svc:{py_svc}, c_svc:{c_svc}")
+        if False:
+            print(f"py_mu:{py_mu}, c_mu:{c_mu}")
+            print(f"py_leak:{py_leakage}, c_leak:{c_leakage}")
+        if False:
+            print(f"py_flag:{py_flag}, c_flag:{c_flag}")
+            print(f"py_count:{py_counter}, c_count:{c_counter}")
 
-        rtol=1-(1/256)#Because we quantise to 8b for VAD input
-        atol=1/256
-
-        assert np.isclose(py_mu, c_mu, rtol=rtol, atol=atol)
-        assert np.isclose(py_svc, c_svc, rtol=rtol, atol=atol) """
+        assert py_flag == c_flag
+        assert py_counter == c_counter
+        assert np.isclose(py_mu, c_mu)
+        assert np.isclose(py_leakage, c_leakage)
