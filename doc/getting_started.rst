@@ -17,58 +17,64 @@ The following instructions show how to build the Voice Framework and run one of 
 procedure is currently supported on MacOS and Linux only.
 
 #. Enter the clone of the Voice Framework and initialise submodules
-     .. code-block:: console
+.. code-block:: console
 
-       cd fwk_voice
-       git submodule update --init --recursive
+  cd fwk_voice
+  git submodule update --init --recursive
 
 #. Create a build directory
-     .. code-block:: console
+.. code-block:: console
 
-       mkdir build
-       cd build
+  mkdir build
+  cd build
 
 #. Run cmake to setup the build environment for the XMOS toolchain
-     .. tab:: Linux and Mac
-       .. code-block:: console
+.. tab:: Linux and Mac
 
-         cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+  .. code-block:: console
 
-     .. tab:: Windows
-       .. code-block:: console
+    cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
-         cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+.. tab:: Windows
+
+  .. code-block:: console
+
+    cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
 #. Running make will then build the Voice Framework libraries and example applications
-     .. tab:: Linux and Mac
-       .. code-block:: console
+.. tab:: Linux and Mac
 
-         make fwk_voice_example_bare_metal_aec_1_thread
+  .. code-block:: console
 
-     .. tab:: Windows
-       ..code-block:: console
+    make fwk_voice_example_bare_metal_aec_1_thread
 
-         nmake fwk_voice_example_bare_metal_aec_1_thread
+.. tab:: Windows
+
+  ..code-block:: console
+
+    nmake fwk_voice_example_bare_metal_aec_1_thread
 
 #. Install dependencies
-     .. tab:: Linux Mac
-       .. code-block:: console
+.. tab:: Linux and Mac
 
-         pip install -e build/fwk_voice_deps/xscope_fileio/
+  .. code-block:: console
 
-     .. tab:: Windows
-       .. code-block:: console
+    pip install -e build/fwk_voice_deps/xscope_fileio/
 
-         pip install -e fwk_voice_deps/xscope_fileio
-         cd fwk_voice_deps/xscope_fileio/host
-         cmake -G "NMake Makefiles" .
-         nmake
-         cd ../../../
+.. tab:: Windows
+
+  .. code-block:: console
+
+    pip install -e fwk_voice_deps/xscope_fileio
+    cd fwk_voice_deps/xscope_fileio/host
+    cmake -G "NMake Makefiles" .
+    nmake
+    cd ../../../
 
 #. Run the single-threaded AEC example
-     .. code-block:: console
+.. code-block:: console
 
-       cd ../examples/bare-metal/aec_1_thread
-       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+  cd ../examples/bare-metal/aec_1_thread
+  python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 See :ref:`examples` for full details about the example applications.

@@ -42,31 +42,6 @@ of reference input. Output is written to the output.wav file consisting of 2 cha
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the
-`fwk_voice/examples/bare-metal/pipeline_alt_arch` directory to build and run this example application using the
-XCORE-AI-EXPLORER board as a target:
-
-Running the single thread version.
-
-::
-    
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_st
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
-
-Running the multi thread version.
-
-::
-    
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
-
-Building
-********
-
 Run the following commands in the fwk_voice/build folder to build the multi-threaded firmware for the XCORE-AI-EXPLORER board as a target:
 
 .. tab:: Linux and Mac
