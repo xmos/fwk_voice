@@ -42,27 +42,49 @@ of reference input. Output is written to the output.wav file consisting of 2 cha
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the
-`fwk_voice/examples/bare-metal/pipeline_alt_arch` directory to build and run this example application using the
-XCORE-AI-EXPLORER board as a target:
+Run the following commands in the fwk_voice/build folder to build the multi-threaded firmware for the XCORE-AI-EXPLORER board as a target:
 
-Running the single thread version.
+.. tab:: Linux and Mac
 
-::
+    .. code-block:: console
     
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_st
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
 
-Running the multi thread version.
+.. tab:: Windows
 
-::
-    
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    .. code-block:: console
+
+        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        nmake fwk_voice_example_bare_metal_pipeline_alt_arch_mt
+
+To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_alt_arch_st cmake target when doing make(nmake).
+
+Running
+*******
+
+To run the multi-threaded application run these comands from the fwk_voice/build folder:
+
+.. tab:: Linux and Mac
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd ../examples/bare-metal/pipeline_alt_arch
+         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd fwk_voice_deps/xscope_fileio/host
+        cmake -G "NMake Makefiles" .
+        nmake
+        cd ../../../../examples/bare-metal/pipeline_alt_arch
+         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+
+To run the single-threaded application use fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe as an executable for the python script.
 
 Output
 ------
