@@ -17,18 +17,21 @@ The following instructions show how to build the Voice Framework and run one of 
 procedure is currently supported on MacOS and Linux only.
 
 #. Enter the clone of the Voice Framework and initialise submodules
+
 .. code-block:: console
 
   cd fwk_voice
   git submodule update --init --recursive
 
 #. Create a build directory
+
 .. code-block:: console
 
   mkdir build
   cd build
 
 #. Run cmake to setup the build environment for the XMOS toolchain
+
 .. tab:: Linux and Mac
 
   .. code-block:: console
@@ -42,6 +45,7 @@ procedure is currently supported on MacOS and Linux only.
     cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
 #. Running make will then build the Voice Framework libraries and example applications
+
 .. tab:: Linux and Mac
 
   .. code-block:: console
@@ -55,6 +59,7 @@ procedure is currently supported on MacOS and Linux only.
     nmake fwk_voice_example_bare_metal_aec_1_thread
 
 #. Install dependencies
+
 .. tab:: Linux and Mac
 
   .. code-block:: console
@@ -72,6 +77,7 @@ procedure is currently supported on MacOS and Linux only.
     cd ../../../
 
 #. Run the single-threaded AEC example
+
 .. code-block:: console
 
   cd ../examples/bare-metal/aec_1_thread
