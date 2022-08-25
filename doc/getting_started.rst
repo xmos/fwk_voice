@@ -54,7 +54,7 @@ procedure is currently supported on MacOS and Linux only.
 
 .. tab:: Windows
 
-  .. code-block::
+  .. code-block:: console
 
     nmake fwk_voice_example_bare_metal_aec_1_thread
 
