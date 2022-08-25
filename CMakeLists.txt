@@ -5,7 +5,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source build is not allowed! Please specify a build folder.\n\tex:cmake -B build")
 endif()
 
-project(sw_fwk_voice)
+project(fwk_voice)
 
 enable_language(CXX C ASM)
 

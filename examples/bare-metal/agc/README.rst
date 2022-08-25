@@ -5,7 +5,7 @@ agc
 This example demonstrates how AGC functions are called on a single thread to process data through the AGC stage of
 a pipeline. A single AGC instance is run using the profile that is tuned for communication with a human listener.
 
-Since this example application only demonstrates the AGC module, without a VAD or an AEC, adaption based on voice
+Since this example application only demonstrates the AGC module, without a VNR or an AEC, adaption based on voice
 activity and the loss control feature are both disabled.
 
 The input is a single channel, 32-bit wav file, which is read and processed through the AGC frame-by-frame.

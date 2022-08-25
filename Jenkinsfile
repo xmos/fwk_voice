@@ -53,48 +53,10 @@ pipeline {
         }
         stage('CMake') {
           steps {
-            dir("${REPO}") {
-              sh "mkdir build"
-            }
-            // Do x86 versions first because it's hard to glob just for extensionless files
+            // Do xcore files
             dir("${REPO}/build") {
               viewEnv() {
                 withVenv {
-                  sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
-                  sh "make -j8"
-                }
-              }
-            }
-            // We do this again on the NUCs for verification later, but this just checks we have no build error
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                }
-              }
-            }
-            // We do this again on the NUCs for verification later, but this just checks we have no build error
-            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_vnr_feature_extraction.py")
-                }
-              }
-            }
-            dir("${REPO}") {
-              stash name: 'cmake_build_x86_examples', includes: 'build/**/fwk_voice_example_bare_metal_*'
-              // We are archveing the x86 version. Be careful - these have the same file name as the xcore versions but the linker should warn at least in this case
-              stash name: 'cmake_build_x86_libs', includes: 'build/**/*.a'
-              archiveArtifacts artifacts: "build/**/fwk_voice_example_bare_metal_*", fingerprint: true
-              stash name: 'vnr_py_c_feature_compare', includes: 'test/lib_vnr/py_c_feature_compare/build/**'
-              stash name: 'py_c_frame_compare', includes: 'test/lib_ic/py_c_frame_compare/build/**'
-            }
-            // Now do xcore files
-            dir("${REPO}/build") {
-              viewEnv() {
-                withVenv {
-                  sh 'rm CMakeCache.txt'
                   script {
                       if (env.FULL_TEST == "1") {
                         sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON'
@@ -108,6 +70,7 @@ pipeline {
               }
             }
             dir("${REPO}") {
+              // Stash all executables and xscope_fileio
               stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
             }
           }
@@ -146,9 +109,6 @@ pipeline {
         }
         stage('Make/get bins and libs'){
           steps {
-            dir("${REPO}") {
-              sh "mkdir build"
-            }
             // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
             dir("${REPO}/build") {
               viewEnv() {
@@ -160,6 +120,29 @@ pipeline {
                   // We need to put this here because it is not fetched until we build
                   sh "pip install -e fwk_voice_deps/xscope_fileio"
 
+                }
+              }
+            }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_ic_frame_proc.py")
+                }
+              }
+            }
+            // We do this again on the NUCs for verification later, but this just checks we have no build error
+            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_vnr_feature_extraction.py")
+                }
+              }
+            }
+            dir("${REPO}/test/stage_b") {
+              viewEnv() {
+                withVenv {
+                  runPython("python build_c_code.py")
                 }
               }
             }
@@ -204,14 +187,6 @@ pipeline {
                 withVenv {
                   sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
                   sh "mv output.wav ic_example_output.wav"
-                }
-              }
-              archiveArtifacts artifacts: "ic_example_output.wav", fingerprint: true
-            }
-            dir("${REPO}/examples/bare-metal/vad") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/vad/bin/fwk_voice_example_bare_metal_vad.xe"
                 }
               }
             }
@@ -300,43 +275,6 @@ pipeline {
             }
           }
         }
-        stage('VAD vad_unit_tests') {
-          steps {
-            dir("${REPO}/test/lib_vad/vad_unit_tests") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -n 2 --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('VAD compare_xc_c') {
-          steps {
-            dir("${REPO}/test/lib_vad/compare_xc_c") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-            }
-          }
-        }
-        stage('VAD test_profile') {
-          steps {
-            dir("${REPO}/test/lib_vad/test_vad_profile") {
-              viewEnv() {
-                withVenv {
-                  sh "pytest -s --junitxml=pytest_result.xml"
-                  junit "pytest_result.xml"
-                }
-              }
-              archiveArtifacts artifacts: "vad_profile_report.log", fingerprint: true
-            }
-          }
-        }
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
@@ -408,7 +346,6 @@ pipeline {
                   junit "pytest_result.xml"
                 }
               }
-              archiveArtifacts artifacts: "ic_prof.log", fingerprint: true
             }
           }
         }
@@ -429,7 +366,6 @@ pipeline {
                   //sh "python plot_ic.py"
                 }
               }
-              archiveArtifacts artifacts: "ic_spec_summary.txt", fingerprint: true
             }
           }
         }
@@ -486,7 +422,6 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      runPython("python build_c_code.py")
                       sh "pytest -s --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
@@ -693,8 +628,13 @@ pipeline {
       }// stages
       post {
         always {
+          // Examples artifacts
+          archiveArtifacts artifacts: "${REPO}/build/**/fwk_voice_example_bare_metal_*", fingerprint: true
           // AEC aretfacts
           archiveArtifacts artifacts: "${REPO}/test/lib_adec/test_adec_profile/**/adec_prof*.log", fingerprint: true
+          // IC artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           // NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           // VNR artifacts
