@@ -17,15 +17,45 @@ file has only a few short voice utterances and so the example works and demonstr
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the
-`fwk_voice/examples/bare-metal/ic` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+Run the following commands in the fwk_voice/build folder to build the firmware for the XCORE-AI-EXPLORER board as a target:
 
-::
+.. tab:: Linux and Mac
+
+    .. code-block:: console
     
-    cd ../../../build
-    make fwk_voice_example_bare_metal_ic
-    cd ../examples/bare-metal/ic
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
+        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        make fwk_voice_example_bare_metal_ic
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        nmake fwk_voice_example_bare_metal_ic
+
+Running
+*******
+
+From the fwk_voice/build folder run:
+
+.. tab:: Linux and Mac
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd ../examples/bare-metal/ic
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd fwk_voice_deps/xscope_fileio/host
+        cmake -G "NMake Makefiles" .
+        nmake
+        cd ../../../../examples/bare-metal/ic
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
 
 Output
 ------
