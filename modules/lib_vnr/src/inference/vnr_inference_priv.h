@@ -16,7 +16,6 @@ typedef struct {
 }vnr_model_quant_spec_t;
 
 typedef struct {
-    uint64_t tensor_arena[(TENSOR_ARENA_SIZE_BYTES + sizeof(uint64_t) - 1)/sizeof(uint64_t)]; /// Primary memory available to the inference engine
     vnr_model_quant_spec_t quant_spec; /// VNR model quantisation spec
 }vnr_ie_state_t;
 

@@ -15,3 +15,4 @@ int8_t* vnr_get_output() {
 void vnr_inference_invoke() {
     model_invoke();
 }
+

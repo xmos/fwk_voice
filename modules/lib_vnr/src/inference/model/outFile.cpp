@@ -1121,3 +1121,4 @@ TfLiteStatus model_invoke() {
   thread_destroy(&xc_config.thread_info);
   return kTfLiteOk;
 }
+

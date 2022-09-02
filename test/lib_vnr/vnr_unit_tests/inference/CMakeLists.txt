@@ -30,7 +30,7 @@ foreach(testfile ${TEST_SOURCES})
 
     target_link_libraries(${APP_NAME} 
         PUBLIC
-            fwk_voice_module_lib_vnr_inference_only_for_testing
+            fwk_voice::vnr::inference
             fwk_voice::example::fileutils)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
