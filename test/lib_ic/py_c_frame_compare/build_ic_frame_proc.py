@@ -19,7 +19,13 @@ FLAGS = [
 INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_ic/api/",
     f"{MODULE_ROOT}/lib_ic/src/",
-    f"{XS3_MATH}/lib_xs3_math/api/",  
+    f"{MODULE_ROOT}/lib_vnr/api/common",
+    f"{MODULE_ROOT}/lib_vnr/api/features",
+    f"{MODULE_ROOT}/lib_vnr/src/features",
+    f"{MODULE_ROOT}/lib_vnr/api/inference",
+    f"{MODULE_ROOT}/lib_vnr/src/inference/model",
+    f"{MODULE_ROOT}/lib_vnr/src/inference",
+    f"{XS3_MATH}/lib_xs3_math/api/",
 ]
 SRCS = f"../ic_test.c".split()
 ffibuilder = FFI()
@@ -52,9 +58,10 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     library_dirs=[
                 '../../../../build/modules/lib_ic',
                 '../../../../build/modules/lib_aec',
+		'../../../../build/modules/lib_vnr',
                 '../../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec','fwk_voice_module_lib_vnr_features', 'fwk_voice_module_lib_vnr_inference', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

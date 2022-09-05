@@ -4,7 +4,6 @@ include(${TOP_DIR}/cmakefiles/xtflm.cmake)
 
 target_sources(xcore_sdk_inferencing_lib_tflite_micro
     INTERFACE
-	${TOP_DIR}/lib_tflite_micro/submodules/flatbuffers/src/util.cpp #link error on x86
         ${TFLM_KERNEL_SOURCES}
         ${TFLITE_SOURCES}
         ${NN_SOURCES}
@@ -20,6 +19,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         INTERFACE
             ${LIB_NN_SOURCES_XCORE_XS3A}
             ${TFLIB_SOURCES_ASM}
+    )
+else()
+    target_sources(xcore_sdk_inferencing_lib_tflite_micro
+        INTERFACE
+            ${TOP_DIR}/lib_tflite_micro/submodules/flatbuffers/src/util.cpp #link error on x86
     )
 endif()
 

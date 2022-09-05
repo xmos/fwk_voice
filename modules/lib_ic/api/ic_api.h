@@ -54,6 +54,10 @@ void ic_filter(ic_state_t *state,
                       int32_t x_data[IC_FRAME_ADVANCE],
                       int32_t output[IC_FRAME_ADVANCE]);
 
+void ic_calc_vnr_pred(ic_state_t *state,
+		      float_s32_t * input_vnr_pred,
+		      float_s32_t * output_vnr_pred);
+
 /**
  * @brief Adapts the IC filter according to previous frame's statistics and VNR input
  *

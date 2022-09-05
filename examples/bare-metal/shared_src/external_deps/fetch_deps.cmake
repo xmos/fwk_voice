@@ -34,5 +34,6 @@ FetchContent_Declare(
     GIT_TAG        a2dccc68bdef57a3b0ed326ea4d815a475feb39e
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
+    PATCH_COMMAND  patch -d lib_tflite_micro/submodules/tflite-micro/ -p0 -i ../../../patches/tflite-micro.patch
 )
 FetchContent_Populate(tflite_micro)

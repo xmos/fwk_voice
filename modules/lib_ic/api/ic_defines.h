@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <string.h>
 #include "bfp_math.h"
+#include "vnr_features_api.h"
+#include "vnr_inference_api.h"
 
 /**
  * @page page_ic_defines_h ic_defines.h
@@ -84,6 +86,16 @@
 /** VNR low threshold to adapt faster when the speech level is low.
  * @ingroup ic_defines*/
 #define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0 // From python model
+
+/** Alpha for EMA VNR prediction calculation.
+ * @ingroup ic_defines */
+#define IC_INIT_VNR_PRED_ALPHA			    0.97 // From python model
+/** Initial vaue for the input VNR prediction.
+ * @ingroup ic_defines */
+#define IC_INIT_INPUT_VNR_PRED			    0.5 // From python model
+/** Initial vaue for the output VNR prediction.
+ * @ingroup ic_defines */
+#define IC_INIT_OUTPUT_VNR_PRED                      0.5 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////

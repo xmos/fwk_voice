@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include "ic_api.h"
 #include "ic_low_level.h"
-#include "calc_vnr_pred.h"
 
 ic_state_t ic_state;
-vnr_pred_state_t vnr_pred_state;
 
 void test_init(void){
     ic_init(&ic_state);
-    init_vnr_pred_state(&vnr_pred_state);
 }
 
 ic_state_t test_get_ic_state(void){
@@ -28,9 +25,10 @@ void test_adapt(float_s32_t vnr){
 
 float_s32_t test_vnr(){
 
-    calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
+    float_s32_t input_vnr_pred, output_vnr_pred;
+    ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
 
-    return vnr_pred_state.input_vnr_pred;
+    return input_vnr_pred;
 }
 
 void test_control_system(double vnr_fl, int32_t ad_config, double fast_ratio){
