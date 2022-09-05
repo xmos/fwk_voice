@@ -7,7 +7,6 @@
 #include <limits.h>
 #include "ic_api.h"
 
-static vnr_pred_state_t DWORD_ALIGNED vnr_pred_state;
 static ic_state_t DWORD_ALIGNED ic_state;
 void test_init()
 {
