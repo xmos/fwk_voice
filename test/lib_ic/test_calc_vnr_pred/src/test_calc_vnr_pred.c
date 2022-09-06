@@ -10,9 +10,7 @@
 static ic_state_t DWORD_ALIGNED ic_state;
 void test_init()
 {
-    init_vnr_pred_state(&vnr_pred_state);
     ic_init(&ic_state);
-    
 }
 
 void test(int32_t *output, int32_t *input)
@@ -30,7 +28,7 @@ void test(int32_t *output, int32_t *input)
     ic_state.Error_bfp[0].hr = bfp_complex_s32_headroom(&ic_state.Error_bfp[0]);
 
     float_s32_t input_vnr_pred, output_vnr_pred;
-    calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
+    ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
     // Write to output buffer
     memcpy(&output[0], &input_vnr_pred, sizeof(float_s32_t));
     memcpy(&output[2], &output_vnr_pred, sizeof(float_s32_t));

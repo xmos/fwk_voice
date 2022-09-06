@@ -10,9 +10,13 @@ target_include_directories(fwk_voice_module_lib_vnr_inference PUBLIC api/common 
 
 target_link_libraries(fwk_voice_module_lib_vnr_inference
     PUBLIC
-        sdk::inferencing::lib_tflite_micro
         core::xs3_math
         )
+
+target_link_libraries(fwk_voice_module_lib_vnr_inference
+    PRIVATE
+	sdk::inferencing::lib_tflite_micro
+	)
 
 add_library(fwk_voice::vnr::inference ALIAS fwk_voice_module_lib_vnr_inference)
 
@@ -30,7 +34,7 @@ target_compile_definitions(fwk_voice_module_lib_vnr_features PRIVATE HEADROOM_CH
 target_compile_options(fwk_voice_module_lib_vnr_features
     PRIVATE
         -Os
-        -g       
+        -g
 )
 
 target_link_libraries(fwk_voice_module_lib_vnr_features

@@ -27,11 +27,10 @@ foreach(testfile ${TEST_SOURCES})
     add_executable(${APP_NAME})
 
     target_sources(${APP_NAME} PRIVATE ${COMMON_SOURCES_C} ${testfile})
-    
+
     target_link_libraries(${APP_NAME} 
         PUBLIC
             fwk_voice::ic
-            fwk_voice_calc_vnr_pred_only_for_testing
             fwk_voice::example::fileutils)
 
 
@@ -44,7 +43,7 @@ foreach(testfile ${TEST_SOURCES})
         target_link_options(${APP_NAME}
             PRIVATE
                 -lquadspi
-                -w            
+                -w
                 "-target=${XCORE_TARGET}"
                 "-report"
                 "${CONFIG_XSCOPE_PATH}/config.xscope")
