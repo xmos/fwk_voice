@@ -11,9 +11,6 @@ static void prof(int n, const char* str) {}
 static void print_prof(int a, int b, int framenum){}
 #endif
 
-
-
-
 void vnr(chanend_t c_frame_in, chanend_t c_frame_out)
 {
     vnr_input_state_t vnr_input_state;
