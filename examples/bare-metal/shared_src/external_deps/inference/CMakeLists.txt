@@ -20,10 +20,20 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             ${LIB_NN_SOURCES_XCORE_XS3A}
             ${TFLIB_SOURCES_ASM}
     )
+    target_compile_options(xcore_sdk_inferencing_lib_tflite_micro
+        INTERFACE
+            -Wno-xcore-fptrgroup
+            -mcmodel=large
+    )
 else()
     target_sources(xcore_sdk_inferencing_lib_tflite_micro
         INTERFACE
             ${TOP_DIR}/lib_tflite_micro/submodules/flatbuffers/src/util.cpp #link error on x86
+    )
+    set(CMAKE_CXX_FLAGS "-std=c++11" CACHE STRING "C++ Compiler Base Flags" FORCE)
+    target_compile_definitions(xcore_sdk_inferencing_lib_tflite_micro
+        INTERFACE
+           NN_USE_REF
     )
 endif()
 
@@ -36,8 +46,6 @@ target_compile_options(xcore_sdk_inferencing_lib_tflite_micro
         INTERFACE
             -Os
             -g
-            -mcmodel=large
-            -Wno-xcore-fptrgroup
     )
 
 target_compile_definitions(xcore_sdk_inferencing_lib_tflite_micro
@@ -46,12 +54,5 @@ target_compile_definitions(xcore_sdk_inferencing_lib_tflite_micro
         TF_LITE_STATIC_MEMORY=1
         TF_LITE_STRIP_ERROR_STRINGS
         __xtflm_conf_h_exists__=1)
-
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
-    set(CMAKE_CXX_FLAGS "-std=c++11" CACHE STRING "C++ Compiler Base Flags" FORCE)
-        target_compile_definitions(xcore_sdk_inferencing_lib_tflite_micro
-            INTERFACE
-                NN_USE_REF)
-endif()
 
 add_library(sdk::inferencing::lib_tflite_micro ALIAS xcore_sdk_inferencing_lib_tflite_micro)
