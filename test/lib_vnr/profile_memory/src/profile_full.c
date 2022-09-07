@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
 
-    int32_t err = vnr_inference_init();
+    vnr_inference_init();
     
     int32_t new_frame[VNR_FRAME_ADVANCE];
     complex_s32_t DWORD_ALIGNED input_frame[VNR_FD_FRAME_LENGTH];

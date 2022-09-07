@@ -64,12 +64,8 @@ void test_wav_vnr(const char *in_filename)
     vnr_feature_state_t vnr_feature_state;
     vnr_feature_state_init(&vnr_feature_state);
 
-    int32_t err = vnr_inference_init();
-    if(err) {
-        printf("vnr_inference_init() returned error %ld. Exiting.\n", err);
-        assert(0);
-    }
-
+    vnr_inference_init();
+    
     uint64_t end_init_cycles = (uint64_t)get_reference_time();
     uint32_t vnr_init_cycles = (uint32_t)(end_init_cycles - start_init_cycles);
 

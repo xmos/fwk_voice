@@ -15,11 +15,7 @@ void test_init()
 {
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    int32_t ret = vnr_inference_init();
-    if(ret) {
-        printf("vnr_inference_init() returned error %ld\n",ret);
-        assert(0);
-    }
+    vnr_inference_init();
 }
 
 void test(int32_t *output, int32_t *input)
