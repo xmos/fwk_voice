@@ -36,7 +36,7 @@ print(predefs)
 ffibuilder.cdef(
 predefs +
 """
-    int test_init(void);
+    void test_init(void);
     vnr_feature_state_t test_get_feature_state(void);
     void test_vnr_features(bfp_s32_t *feature_bfp, int32_t *feature_data, const int32_t *new_x_frame);
     double test_vnr_inference(bfp_s32_t *features);
@@ -48,7 +48,7 @@ ffibuilder.set_source("vnr_test_py",  # name of the output C extension
 """
     #include "vnr_features_api.h"
     #include "vnr_inference_api.h" 
-    int test_init(void);
+    void test_init(void);
     vnr_feature_state_t test_get_feature_state(void);
     void test_vnr_features(bfp_s32_t *feature_bfp, int32_t *feature_data, const int32_t *new_x_frame);
     double test_vnr_inference(bfp_s32_t *features);

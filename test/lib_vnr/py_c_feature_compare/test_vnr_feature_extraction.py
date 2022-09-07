@@ -50,7 +50,7 @@ class vnr_feature_comparison:
     def __init__(self):
         self.vnr_obj = vnr.Vnr(model_file=tflite_model) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
-        err = vnr_test_lib.test_init()
+        vnr_test_lib.test_init()
 
     def process_frame(self, new_x_frame):
         frame_int = pvc.float_to_int32(new_x_frame)
