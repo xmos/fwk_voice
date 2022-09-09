@@ -32,7 +32,7 @@ extern TfLiteRegistration *Register_XC_conv2d_v2(void);
 
 namespace {
 
-constexpr int kTensorArenaSize = 1208;
+constexpr int kTensorArenaSize = 20000;
 uint8_t tensor_arena[kTensorArenaSize] ALIGN(8);
 template <int SZ, class T> struct TfArray {
   int sz; T elem[SZ];
