@@ -54,6 +54,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
 
     .. code-block:: console
 
+        # make sure you have the patch command available
         cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
         nmake fwk_voice_example_bare_metal_pipeline_single_thread
 

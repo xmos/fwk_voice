@@ -19,7 +19,7 @@
  */ 
 
 /**
- * @brief Initialise IC data structures and set parameters according to ic_defines.h
+ * @brief Initialise IC and VNR data structures and set parameters according to ic_defines.h
  *
  * This is the first function that must called after creating an ic_state_t instance.
  *
@@ -54,7 +54,7 @@ void ic_filter(ic_state_t *state,
                       int32_t x_data[IC_FRAME_ADVANCE],
                       int32_t output[IC_FRAME_ADVANCE]);
 /**
- * @brief Calculate voice to noise ratio for the input and output of the IC
+ * @brief Calculate voice to noise ratio estimation for the input and output of the IC
  *
  * This function can be called after each call to ic_filter.
  * It will calculate voice to noise ratio which can be used to give information
