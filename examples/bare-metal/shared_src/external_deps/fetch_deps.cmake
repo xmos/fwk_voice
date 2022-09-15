@@ -31,7 +31,7 @@ FetchContent_Populate(lib_nn)
 FetchContent_Declare(
     tflite_micro
     GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
-    GIT_TAG        c85e3be656bd4e250df7859892afede7aaca81d0
+    GIT_TAG        9a754984d51cc088fed836d1a32c1419dffcb21a
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
 )
