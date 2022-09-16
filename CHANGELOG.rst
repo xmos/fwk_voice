@@ -1,6 +1,11 @@
 XMOS Voice Framework Change Log
 ===============================
 
+0.5.1
+-----
+
+  * CHANGED: Git hash at which lib_tflite_micro is fetched during CMake FetchContent
+
 0.5.0
 -----
 
