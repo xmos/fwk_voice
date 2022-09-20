@@ -4,20 +4,18 @@ include(FetchContent)
 FetchContent_Declare(
     xs3_math
     GIT_REPOSITORY https://github.com/xmos/lib_xs3_math.git
-    GIT_TAG        918aa48b1f6cb284c5db31af1f77592f650e4324
+    GIT_TAG        881cf848a5899f4ecb9182e7f50fd3705e5b68ef
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_xs3_math
-
 )
 FetchContent_Populate(xs3_math)
 
 FetchContent_Declare(
     xscope_fileio
     GIT_REPOSITORY https://github.com/xmos/xscope_fileio.git
-    GIT_TAG        86add5101d73d98d4addea9aaeb238072e461b63
+    GIT_TAG        2ad04971103f8ca4558d1d2fc903c2a6047b95ba
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/xscope_fileio
-
 )
 FetchContent_Populate(xscope_fileio)
 
@@ -33,7 +31,7 @@ FetchContent_Populate(lib_nn)
 FetchContent_Declare(
     tflite_micro
     GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
-    GIT_TAG        c85e3be656bd4e250df7859892afede7aaca81d0
+    GIT_TAG        9a754984d51cc088fed836d1a32c1419dffcb21a
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
 )

@@ -7,7 +7,7 @@ This example demonstrates how the audio processing stages are put together in an
 In this example, a 32-bit, 4 channel wav file input.wav is read and processed through the pipeline modules frame by frame. The
 example currently demonstrates a pipeline having AEC, IC, NS and AGC stages. It also demonstrates the use of ADEC module to
 do a one time estimation and correction for possible reference and loudspeaker delay offsets at start up in order to
-maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VAD is introduced
+maximise AEC performance.  ADEC processing happens on the same thread as the AEC. The VNR is introduced
 to give the IC and the AGC information about the speech presence in a frame.
 
 The AEC is configured for 1 mic input channel, 2 reference input channels, 15 phase main filter and a 5 phase shadow
@@ -21,7 +21,7 @@ In the absense of activity on the reference channels, when the AEC is disabled, 
 
 When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output one channel of interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
-Hence the VAD is called to calculate the probability of the voice activity. The output of the VAD will allow IC to modulate the rate
+Hence the VNR is called to calculate the voice to noise ratio estimation in a frame. The output of the VNR will allow IC to modulate the rate
 at which it adapts it's coefficients. The output of the IC is copied to the second channel as well. When disabled in the presence of reference channel activity, the IC stage configured in bypass mode.
 
 The NS is a single channel API, so two instances of NS should be initialised for 2 channel processing. The NS is configured the same way 
@@ -29,7 +29,7 @@ for both channels. It will try to predict the background noise and cancel it fro
 
 The AGC is configured for ASR engine suitable gain control on both channels. The
 output of AGC stage is the pipeline output which is written into a 2 channel output wav file. The AGC also takes the output
-of the VAD to control when to adapt. This avoids noise being amplified during the absence of voice.
+of the VNR to control when to adapt. This avoids noise being amplified during the absence of voice.
 
 The example build outputs 2 executables, a single thread and a multi-thread implementation of the pipeline. The single thread version does the entire pipeline processing on a single thread. In the multi-thread version, the audio processing consumes 5 hardware threads; 2 for the AEC stage, 1 for the IC and VAD, 1 for the NS stage and 1 for the AGC stage.
 Note that it is possible to run the full pipeline in as little as two 75MHz threads if required using one thread for stage 1 and
@@ -42,27 +42,49 @@ of reference input. Output is written to the output.wav file consisting of 2 cha
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the
-`fwk_voice/examples/bare-metal/pipeline_alt_arch` directory to build and run this example application using the
-XCORE-AI-EXPLORER board as a target:
+Run the following commands in the fwk_voice/build folder to build the multi-threaded firmware for the XCORE-AI-EXPLORER board as a target:
 
-Running the single thread version.
+.. tab:: Linux and Mac
 
-::
+    .. code-block:: console
     
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_st
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
 
-Running the multi thread version.
+.. tab:: Windows
 
-::
-    
-    cd ../../../build
-    make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
-    cd ../examples/bare-metal/pipeline_alt_arch
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+    .. code-block:: console
+
+        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        nmake fwk_voice_example_bare_metal_pipeline_alt_arch_mt
+
+To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_alt_arch_st cmake target when doing make(nmake).
+
+Running
+*******
+
+To run the multi-threaded application run these comands from the fwk_voice/build folder:
+
+.. tab:: Linux and Mac
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd ../examples/bare-metal/pipeline_alt_arch
+         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd fwk_voice_deps/xscope_fileio/host
+        cmake -G "NMake Makefiles" .
+        nmake
+        cd ../../../../examples/bare-metal/pipeline_alt_arch
+         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
+
+To run the single-threaded application use fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe as an executable for the python script.
 
 Output
 ------

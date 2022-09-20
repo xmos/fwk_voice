@@ -30,7 +30,3 @@ add_library(fwk_voice::test::shared::unity ALIAS fwk_voice_test_shared_unity)
 
 #################
 add_subdirectory(legacy_compat)
-
-if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)
-    add_subdirectory(lib_dsp)
-endif()

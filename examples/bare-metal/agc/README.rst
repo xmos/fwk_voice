@@ -5,7 +5,7 @@ agc
 This example demonstrates how AGC functions are called on a single thread to process data through the AGC stage of
 a pipeline. A single AGC instance is run using the profile that is tuned for communication with a human listener.
 
-Since this example application only demonstrates the AGC module, without a VAD or an AEC, adaption based on voice
+Since this example application only demonstrates the AGC module, without a VNR or an AEC, adaption based on voice
 activity and the loss control feature are both disabled.
 
 The input is a single channel, 32-bit wav file, which is read and processed through the AGC frame-by-frame.
@@ -13,15 +13,45 @@ The input is a single channel, 32-bit wav file, which is read and processed thro
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the `fwk_voice/examples/bare-metal/agc`
-directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+Run the following commands in the fwk_voice/build folder to build the firmware for the XCORE-AI-EXPLORER board as a target:
 
-::
+.. tab:: Linux and Mac
 
-    cd ../../../build
-    make fwk_voice_example_bare_metal_agc
-    cd ../examples/bare-metal/agc
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav
+    .. code-block:: console
+    
+        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        make fwk_voice_example_bare_metal_agc
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        nmake fwk_voice_example_bare_metal_agc
+
+Running
+*******
+
+From the fwk_voice/build folder run:
+
+.. tab:: Linux and Mac
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd ../examples/bare-metal/agc
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd fwk_voice_deps/xscope_fileio/host
+        cmake -G "NMake Makefiles" .
+        nmake
+        cd ../../../../examples/bare-metal/agc
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav
 
 Output
 ------

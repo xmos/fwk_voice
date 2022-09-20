@@ -14,15 +14,45 @@ Echo cancelled version of the mic input is generated as the AEC output and writt
 Building
 ********
 
-After configuring the CMake project, the following commands can be used from the
-`fwk_voice/examples/bare-metal/aec_2_threads` directory to build and run this example application using the XCORE-AI-EXPLORER board as a target:
+Run the following commands in the fwk_voice/build folder to build the firmware for the XCORE-AI-EXPLORER board as a target:
 
-::
+.. tab:: Linux and Mac
+
+    .. code-block:: console
     
-    cd ../../../build
-    make fwk_voice_example_bare_metal_aec_2_thread
-    cd ../examples/bare-metal/aec_2_threads
-    python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        make fwk_voice_example_bare_metal_aec_2_thread
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        nmake fwk_voice_example_bare_metal_aec_2_thread
+
+Running
+*******
+
+From the fwk_voice/build folder run:
+
+.. tab:: Linux and Mac
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd ../examples/bare-metal/aec_2_thread
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_thread/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
+
+.. tab:: Windows
+
+    .. code-block:: console
+
+        pip install -e fwk_voice_deps/xscope_fileio
+        cd fwk_voice_deps/xscope_fileio/host
+        cmake -G "NMake Makefiles" .
+        nmake
+        cd ../../../../examples/bare-metal/aec_2_thread
+        python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_thread/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 Output
 ------
