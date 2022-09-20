@@ -23,8 +23,8 @@ target_link_libraries(fwk_voice_module_lib_ic
     PUBLIC
         core::xs3_math
         fwk_voice::aec
-	fwk_voice::vnr::features
-	fwk_voice::vnr::inference
+	    fwk_voice::vnr::features
+	    fwk_voice::vnr::inference
 )
 
 ## Create an alias

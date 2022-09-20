@@ -8,14 +8,6 @@
 
 // IC Private API
 
-// Struct to keep VNR predictions and the EMA alpha
-typedef struct {
-    vnr_feature_state_t feature_state[2];
-    float_s32_t input_vnr_pred;
-    float_s32_t output_vnr_pred;
-    fixed_s32_t pred_alpha_q30;
-}vnr_pred_state_t;
-
 // Setup core configuration parameters of the IC
 void ic_priv_init_config_params(ic_config_params_t *config_params);
 

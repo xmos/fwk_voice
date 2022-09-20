@@ -8,16 +8,14 @@
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
 
-vnr_pred_state_t vnr_pred_state;
-
-static void ic_init_vnr_pred_state(){
-    vnr_feature_state_init(&vnr_pred_state.feature_state[0]);
-    vnr_feature_state_init(&vnr_pred_state.feature_state[1]);
+static void ic_init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state){
+    vnr_feature_state_init(&vnr_pred_state->feature_state[0]);
+    vnr_feature_state_init(&vnr_pred_state->feature_state[1]);
 
     vnr_inference_init();
-    vnr_pred_state.pred_alpha_q30 = Q30(IC_INIT_VNR_PRED_ALPHA);
-    vnr_pred_state.input_vnr_pred = float_to_float_s32(IC_INIT_INPUT_VNR_PRED);
-    vnr_pred_state.output_vnr_pred = float_to_float_s32(IC_INIT_OUTPUT_VNR_PRED);
+    vnr_pred_state->pred_alpha_q30 = Q30(IC_INIT_VNR_PRED_ALPHA);
+    vnr_pred_state->input_vnr_pred = float_to_float_s32(IC_INIT_INPUT_VNR_PRED);
+    vnr_pred_state->output_vnr_pred = float_to_float_s32(IC_INIT_OUTPUT_VNR_PRED);
 }
 
 static void ic_init_config(ic_config_params_t *config){
@@ -146,7 +144,7 @@ void ic_init(ic_state_t *state){
     // Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);
     ic_init_adaption_controller(&state->ic_adaption_controller_state);
-    ic_init_vnr_pred_state();
+    ic_init_vnr_pred_state(&state->vnr_pred_state);
 }
 
 void ic_filter(
@@ -247,16 +245,16 @@ void ic_calc_vnr_pred(
 
     bfp_s32_t feature_patch;
     int32_t feature_patch_data[VNR_PATCH_WIDTH * VNR_MEL_FILTERS];
-    vnr_extract_features(&vnr_pred_state.feature_state[0], &feature_patch, feature_patch_data, &ic_state->Y_bfp[0]);
+    vnr_extract_features(&ic_state->vnr_pred_state.feature_state[0], &feature_patch, feature_patch_data, &ic_state->Y_bfp[0]);
     float_s32_t ie_output;
     vnr_inference(&ie_output, &feature_patch);
-    vnr_pred_state.input_vnr_pred = float_s32_ema(vnr_pred_state.input_vnr_pred, ie_output, vnr_pred_state.pred_alpha_q30);
-    *input_vnr_pred = vnr_pred_state.input_vnr_pred;
+    ic_state->vnr_pred_state.input_vnr_pred = float_s32_ema(ic_state->vnr_pred_state.input_vnr_pred, ie_output, ic_state->vnr_pred_state.pred_alpha_q30);
+    *input_vnr_pred = ic_state->vnr_pred_state.input_vnr_pred;
 
-    vnr_extract_features(&vnr_pred_state.feature_state[1], &feature_patch, feature_patch_data, &ic_state->Error_bfp[0]);
+    vnr_extract_features(&ic_state->vnr_pred_state.feature_state[1], &feature_patch, feature_patch_data, &ic_state->Error_bfp[0]);
     vnr_inference(&ie_output, &feature_patch);
-    vnr_pred_state.output_vnr_pred = float_s32_ema(vnr_pred_state.output_vnr_pred, ie_output, vnr_pred_state.pred_alpha_q30);
-    *output_vnr_pred = vnr_pred_state.output_vnr_pred;
+    ic_state->vnr_pred_state.output_vnr_pred = float_s32_ema(ic_state->vnr_pred_state.output_vnr_pred, ie_output, ic_state->vnr_pred_state.pred_alpha_q30);
+    *output_vnr_pred = ic_state->vnr_pred_state.output_vnr_pred;
 }
 
 void ic_adapt(
