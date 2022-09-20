@@ -33,7 +33,7 @@ ffibuilder = FFI()
 #Extract all defines and state from lib_ic programatically as CFFI doesn't do that yet
 predefs = extract_pre_defs()
 predefs += """
-    void test_init(void);
+    int test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);
@@ -63,7 +63,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
 """
     #include "ic_api.h"
     #include "ic_low_level.h"
-    void test_init(void);
+    int test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);

@@ -1,8 +1,9 @@
 #include "outFile.cpp.h"
 #include "wrapper.h"
 
-void vnr_init() {
-    model_init(NULL);
+int32_t vnr_init() {
+    int32_t ret = model_init(NULL);
+    return ret;
 }
 int8_t* vnr_get_input() {
     return model_input(0)->data.int8;

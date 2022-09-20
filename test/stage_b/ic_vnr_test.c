@@ -4,8 +4,9 @@
 
 ic_state_t ic_state;
 
-void test_init(void){
-    ic_init(&ic_state);
+int test_init(void){
+    int ret = ic_init(&ic_state);
+    return ret;
 }
 
 ic_state_t test_get_ic_state(void){

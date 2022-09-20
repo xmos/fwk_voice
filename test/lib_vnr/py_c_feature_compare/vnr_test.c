@@ -5,10 +5,11 @@
 vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
 
-void test_init(void){
+int test_init(void){
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    vnr_inference_init();
+    int err = vnr_inference_init();
+    return err;
 }
 
 vnr_feature_state_t test_get_feature_state(void){

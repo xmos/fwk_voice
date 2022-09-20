@@ -25,7 +25,7 @@ void ic_calc_fast_ratio(ic_adaption_controller_state_t * ad_state);
 void ic_filter_adapt(ic_state_t *state);
 
 // Some nice doxygen comments
-void ic_init(ic_state_t *state);
+int32_t ic_init(ic_state_t *state);
 
 // Delays y_channel w.r.t. x_channel
 void ic_delay_y_input(ic_state_t *state,

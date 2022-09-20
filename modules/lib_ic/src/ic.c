@@ -8,14 +8,15 @@
 void ic_dump_var_2d(ic_state_t *state);
 void ic_dump_var_3d(ic_state_t *state);
 
-static void ic_init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state){
+static int32_t ic_init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state){
     vnr_feature_state_init(&vnr_pred_state->feature_state[0]);
     vnr_feature_state_init(&vnr_pred_state->feature_state[1]);
 
-    vnr_inference_init();
+    int32_t ret = vnr_inference_init();
     vnr_pred_state->pred_alpha_q30 = Q30(IC_INIT_VNR_PRED_ALPHA);
     vnr_pred_state->input_vnr_pred = float_to_float_s32(IC_INIT_INPUT_VNR_PRED);
     vnr_pred_state->output_vnr_pred = float_to_float_s32(IC_INIT_OUTPUT_VNR_PRED);
+    return ret;
 }
 
 static void ic_init_config(ic_config_params_t *config){
@@ -62,7 +63,7 @@ static void ic_init_adaption_controller(ic_adaption_controller_state_t *ad_state
     ic_init_adaption_controller_config(&ad_state->adaption_controller_config);
 }
 
-void ic_init(ic_state_t *state){
+int32_t ic_init(ic_state_t *state){
     memset(state, 0, sizeof(ic_state_t));
     const exponent_t zero_exp = -1024;
     
@@ -144,7 +145,8 @@ void ic_init(ic_state_t *state){
     // Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);
     ic_init_adaption_controller(&state->ic_adaption_controller_state);
-    ic_init_vnr_pred_state(&state->vnr_pred_state);
+    int32_t ret = ic_init_vnr_pred_state(&state->vnr_pred_state);
+    return ret;
 }
 
 void ic_filter(

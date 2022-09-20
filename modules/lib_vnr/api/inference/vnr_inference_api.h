@@ -27,7 +27,7 @@ extern "C" {
      *
      * @ingroup vnr_inference_api
      */
-    void vnr_inference_init();
+    int32_t vnr_inference_init();
 
     /**
      * @brief Run model prediction on a feature patch

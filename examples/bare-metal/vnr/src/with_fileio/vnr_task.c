@@ -19,8 +19,12 @@ void vnr_task(const char* input_filename, const char *output_filename){
     prof(0, "start_vnr_init");
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-    vnr_inference_init();
+    int32_t err = vnr_inference_init();
     prof(1, "end_vnr_init");
+    if(err) {
+        printf("ERROR: vnr_inference_init() returned error %ld\n",err);
+        assert(0);
+    }
 
     file_t input_file;
     int ret = file_open(&input_file, input_filename, "rb");

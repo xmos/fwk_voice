@@ -24,9 +24,10 @@
  * This is the first function that must called after creating an ic_state_t instance.
  *
  * @param[inout] state pointer to IC state structure
- *
+ * @returns Error status of the VNR inference engine initialisation that is done as part of ic_init. 0 if no error, one of TfLiteStatus error enum values in case of error. 
  * @ingroup ic_func
- */void ic_init(ic_state_t *state);
+ */
+int32_t ic_init(ic_state_t *state);
 
 
 /**
