@@ -2,7 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <stdio.h>
 #include <string.h>
-#include "model/wrapper.h"
+#include "wrapper.h"
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 

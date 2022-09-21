@@ -46,13 +46,32 @@ if __name__ == "__main__":
     print(f"Keeping a copy of generated files in {test_dir} directory")
 
     # Tflite to xcore optimised tflite micro
-    xcore_opt_model = os.path.join(test_dir, os.path.basename(model).split('.')[0] + "_xcore.tflite")
+    xcore_opt_model = os.path.abspath(os.path.join(test_dir, os.path.basename(model).split('.')[0] + "_xcore.tflite"))
     #xf.print_help()
     #xf.convert(f"{model}", f"{xcore_opt_model}", {"mlir-disable-threading": None, "xcore-reduce-memory": None})
     convert_cmd = f"xcore-opt --xcore-thread-count 1 -o {xcore_opt_model} {model}".split()
     subprocess.run(convert_cmd, check=True)
     xcore_opt_model_size = os.path.getsize(xcore_opt_model)
+
+    # Run tflite_micro_compiler to get the cpp file that can be compiled as part of the VNR module
+    compiled_cpp_file = os.path.abspath(os.path.join(test_dir, os.path.basename(xcore_opt_model).split('.')[0] + ".cpp"))
+    # Build the tflite_micro_compiler
+    # Check if the directory exists
+    lib_tflite_micro_path = os.path.join(this_filepath, "../../../../../build/fwk_voice_deps/lib_tflite_micro")
+    assert os.path.isdir(lib_tflite_micro_path), f"ERROR: lib_tflite_micro doesn't exist in {os.path.abspath(lib_tflite_micro_path)}. Run the fwk_voice cmake command to ensure lib_tflite_repo is fetched."
+    # Run a make build in the lib_tflite_micro directory which will build the tflite_micro_compiler
+    save_dir = os.getcwd()
+    os.chdir(lib_tflite_micro_path)
+    build_cmd = "make build".split()
+    subprocess.run(build_cmd, check=True)
+    # Run the tflite_micro_compiler to generate the micro compiled .cpp file from the optimised tflite model
     
+    tflite_micro_compiler_exe = os.path.abspath("tflite_micro_compiler/build/tflite_micro_compiler")
+    tflite_micro_compiler_cmd = f"{tflite_micro_compiler_exe} {xcore_opt_model} {compiled_cpp_file}".split()
+    subprocess.run(tflite_micro_compiler_cmd, check=True)
+    os.chdir(save_dir)
+
+
     # Convert tflite micro to .c and .h files that lib_vnr can compile with
     model_c_file = os.path.join(test_dir, "vnr_model_data.c")
     model_h_file = os.path.join(test_dir, "vnr_model_data.h")

@@ -1,4 +1,4 @@
-#include "outFile.cpp.h"
+#include "model/outFile.cpp.h"
 #include "wrapper.h"
 
 int32_t vnr_init() {
