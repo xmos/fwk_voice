@@ -140,6 +140,13 @@ typedef struct {
     ic_adaption_controller_config_t adaption_controller_config;
 } ic_adaption_controller_state_t;
 
+// Struct to keep VNR predictions and the EMA alpha
+typedef struct {
+    vnr_feature_state_t feature_state[2];
+    float_s32_t input_vnr_pred;
+    float_s32_t output_vnr_pred;
+    fixed_s32_t pred_alpha_q30;
+}vnr_pred_state_t;
 
 /**
  * @brief IC state structure
@@ -249,6 +256,8 @@ typedef struct {
     ic_config_params_t config_params;
     /** State and configuration parameters for the IC adaption controller. */
     ic_adaption_controller_state_t ic_adaption_controller_state;
+    /** Input and Output VNR Prediction related state*/
+    vnr_pred_state_t vnr_pred_state;
 } ic_state_t;
 
 #endif

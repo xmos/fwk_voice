@@ -1,6 +1,5 @@
 
 add_subdirectory(external_deps)
-add_subdirectory(calc_vnr_pred)
 
 ######
 add_library(fwk_voice_example_shared_src_aec_1_thread INTERFACE)

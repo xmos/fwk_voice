@@ -22,7 +22,6 @@ target_link_libraries(fwk_voice_example_pipeline_single_thread_interface
         fwk_voice::example::delay_buffer
         fwk_voice::example::stage_1
         fwk_voice::example::fileutils
-        fwk_voice::shared::calc_vnr_pred
         core::xs3_math
         )
 

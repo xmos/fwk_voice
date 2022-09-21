@@ -69,7 +69,7 @@ void test_wav_vnr(const char *in_filename)
         printf("vnr_inference_init() returned error %ld. Exiting.\n", err);
         assert(0);
     }
-
+    
     uint64_t end_init_cycles = (uint64_t)get_reference_time();
     uint32_t vnr_init_cycles = (uint32_t)(end_init_cycles - start_init_cycles);
 

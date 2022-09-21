@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.19.0') _
+@Library('xmos_jenkins_shared_library@v0.20.0') _
 getApproval()
 
 pipeline {
@@ -422,8 +422,8 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
+                      sh "pytest -k test_frame_compare"
+                      sh "pytest -k test_adaption_controller"
                     }
                   }
                 }

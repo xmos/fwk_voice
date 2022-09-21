@@ -56,7 +56,7 @@ class stage_b_comparison:
 
         self.x_data = np.zeros(self.proc_frame_length, dtype=np.float64)
 
-        ic_vnr_test_lib.test_init() 
+        err = ic_vnr_test_lib.test_init() 
         
         #Logging
         self.ic_state = None

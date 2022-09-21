@@ -42,6 +42,7 @@ procedure is currently supported on MacOS and Linux only.
 
   .. code-block:: console
 
+    # make sure you have the patch command available
     cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
 
 4. Running make will then build the Voice Framework libraries and example applications

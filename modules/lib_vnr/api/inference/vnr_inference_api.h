@@ -25,8 +25,6 @@ extern "C" {
      * It is called once at startup. The memory required for the inference engine object as well as the tensor arena size required for inference 
      * is statically allocated as global buffers in the VNR module. The VNR model is compiled as part of the VNR module.
      *
-     * @returns error status. Non zero indicates an error.
-     *
      * @ingroup vnr_inference_api
      */
     int32_t vnr_inference_init();

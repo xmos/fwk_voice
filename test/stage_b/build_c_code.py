@@ -25,7 +25,6 @@ INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_vnr/api/inference",
     f"{MODULE_ROOT}/lib_vnr/src/inference/model",
     f"{MODULE_ROOT}/lib_vnr/src/inference",
-    f"{MODULE_ROOT}/../examples/bare-metal/shared_src/calc_vnr_pred/src",
     f"{XS3_MATH}/lib_xs3_math/api/",
 ]
 SRCS = f"../ic_vnr_test.c".split()
@@ -34,7 +33,7 @@ ffibuilder = FFI()
 #Extract all defines and state from lib_ic programatically as CFFI doesn't do that yet
 predefs = extract_pre_defs()
 predefs += """
-    void test_init(void);
+    int test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);
@@ -64,8 +63,7 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
 """
     #include "ic_api.h"
     #include "ic_low_level.h"
-    #include "calc_vnr_pred.h"
-    void test_init(void);
+    int test_init(void);
     ic_state_t test_get_ic_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);
     void test_adapt(float_s32_t vnr);
@@ -77,10 +75,9 @@ ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
                 '../../../build/modules/lib_ic',
                 '../../../build/modules/lib_aec',
                 '../../../build/modules/lib_vnr',
-                '../../../build/test/lib_vnr',                
                 '../../../build/examples/bare-metal/shared_src/external_deps/lib_xs3_math'
                     ],
-    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_calc_vnr_pred_only_for_testing', 'fwk_voice_module_lib_vnr_features', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec', 'fwk_voice_module_lib_vnr_inference', 'fwk_voice_module_lib_vnr_features', 'fwk_voice_deps_lib_xs3_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

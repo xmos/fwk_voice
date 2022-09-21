@@ -15,11 +15,6 @@ typedef struct {
     float_s32_t output_zero_point;
 }vnr_model_quant_spec_t;
 
-typedef struct {
-    uint64_t tensor_arena[(TENSOR_ARENA_SIZE_BYTES + sizeof(uint64_t) - 1)/sizeof(uint64_t)]; /// Primary memory available to the inference engine
-    vnr_model_quant_spec_t quant_spec; /// VNR model quantisation spec
-}vnr_ie_state_t;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,7 +24,7 @@ extern "C" {
     * @param[in] quant_spec Quantisation spec structure
     */
     void vnr_priv_init_quant_spec(vnr_model_quant_spec_t *quant_spec);
-    
+
     /**
      * @brief Quantise VNR features
      * This function quantises the floating point features according to the specification for TensorFlow Lite's 8-bit quantization scheme.

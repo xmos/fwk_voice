@@ -6,7 +6,6 @@
 #include "ic_state.h"
 #include "ns_state.h"
 #include "agc_api.h"
-#include "calc_vnr_pred.h"
 
 typedef struct {
     float_s32_t max_ref_energy;
@@ -23,7 +22,7 @@ typedef struct {
 typedef struct {
     // IC, VNR
     ic_state_t DWORD_ALIGNED ic_state;
-    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
+    float_s32_t input_vnr_pred, output_vnr_pred;
     // NS
     ns_state_t DWORD_ALIGNED ns_state[AP_MAX_Y_CHANNELS];
     // AGC

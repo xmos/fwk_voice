@@ -19,14 +19,15 @@
  */ 
 
 /**
- * @brief Initialise IC data structures and set parameters according to ic_defines.h
+ * @brief Initialise IC and VNR data structures and set parameters according to ic_defines.h
  *
  * This is the first function that must called after creating an ic_state_t instance.
  *
  * @param[inout] state pointer to IC state structure
- *
+ * @returns Error status of the VNR inference engine initialisation that is done as part of ic_init. 0 if no error, one of TfLiteStatus error enum values in case of error. 
  * @ingroup ic_func
- */void ic_init(ic_state_t *state);
+ */
+int32_t ic_init(ic_state_t *state);
 
 
 /**
@@ -53,6 +54,22 @@ void ic_filter(ic_state_t *state,
                       int32_t y_data[IC_FRAME_ADVANCE],
                       int32_t x_data[IC_FRAME_ADVANCE],
                       int32_t output[IC_FRAME_ADVANCE]);
+/**
+ * @brief Calculate voice to noise ratio estimation for the input and output of the IC
+ *
+ * This function can be called after each call to ic_filter.
+ * It will calculate voice to noise ratio which can be used to give information
+ * to ic_adapt and to the AGC.
+ *
+ * @param[inout] state pointer to IC state structure
+ * @param[inout] input_vnr_pred voice to noise estimate of the IC input
+ * @param[inout] output_vnr_pred voice to noise estimate of the IC output
+ *
+ * @ingroup ic_func
+ */
+void ic_calc_vnr_pred(ic_state_t *state,
+		      float_s32_t * input_vnr_pred,
+		      float_s32_t * output_vnr_pred);
 
 /**
  * @brief Adapts the IC filter according to previous frame's statistics and VNR input
