@@ -146,6 +146,13 @@ if __name__ == "__main__":
         # Optionally do a git add and git rm as well??
 
         print(f"Adding new files and removing old files in {vnr_module_path} from GIT now")
+        for f in files_to_delete:
+            cmd = f"git rm {os.path.join(vnr_module_path, f)}".split()
+            subprocess.run(cmd, check=True)
+        for f in files_to_add:
+            cmd = f"git add {os.path.join(vnr_module_path, f)}".split()
+            subprocess.run(cmd, check=True)
+
         
         
         
