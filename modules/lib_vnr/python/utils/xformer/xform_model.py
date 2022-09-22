@@ -56,6 +56,7 @@ if __name__ == "__main__":
 
     # Run tflite_micro_compiler to get the cpp file that can be compiled as part of the VNR module
     compiled_cpp_file = os.path.abspath(os.path.join(test_dir, os.path.basename(xcore_opt_model).split('.')[0] + ".cpp"))
+    compiled_h_file = os.path.abspath(os.path.join(test_dir, os.path.basename(xcore_opt_model).split('.')[0] + ".cpp.h"))
     # Build the tflite_micro_compiler
     # Check if the directory exists
     lib_tflite_micro_path = os.path.join(this_filepath, "../../../../../build/fwk_voice_deps/lib_tflite_micro")
@@ -64,9 +65,9 @@ if __name__ == "__main__":
     save_dir = os.getcwd()
     os.chdir(lib_tflite_micro_path)
     build_cmd = "make build".split()
-    #subprocess.run(build_cmd, check=True)
-    # Run the tflite_micro_compiler to generate the micro compiled .cpp file from the optimised tflite model
+    subprocess.run(build_cmd, check=True)
     
+    # Run the tflite_micro_compiler to generate the micro compiled .cpp file from the optimised tflite model
     tflite_micro_compiler_exe = os.path.abspath("tflite_micro_compiler/build/tflite_micro_compiler")
     tflite_micro_compiler_cmd = f"{tflite_micro_compiler_exe} {xcore_opt_model} {compiled_cpp_file}".split()
     subprocess.run(tflite_micro_compiler_cmd, check=True)
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     
     # Optionally, copy generated files into the VNR module
     if args.copy_files:
-        files_to_add = [os.path.basename(model_c_file), os.path.basename(model_h_file), os.path.basename(xcore_opt_model), "vnr_tensor_arena_size.h", "vnr_quant_spec_defines.h"]
+        files_to_add = [os.path.basename(model_c_file), os.path.basename(model_h_file), os.path.basename(xcore_opt_model), os.path.basename(compiled_cpp_file), os.path.basename(compiled_h_file), "vnr_tensor_arena_size.h", "vnr_quant_spec_defines.h"]
         files_to_delete = []
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
@@ -143,15 +144,22 @@ if __name__ == "__main__":
         shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), vnr_module_path)
         # Copy xcore opt model tflite file to the model's directory
         shutil.copy2(xcore_opt_model, vnr_module_path)
-        # Optionally do a git add and git rm as well??
+        # Copy the tflite_micro_compiler output .cpp file
+        shutil.copy2(compiled_cpp_file, vnr_module_path)
+        # Copy the tflite_micro_compiler output .h file
+        shutil.copy2(compiled_h_file, vnr_module_path)
+        # Do a git add and git rm as well?
 
-        print(f"Adding new files and removing old files in {vnr_module_path} from GIT now")
-        for f in files_to_delete:
-            cmd = f"git rm {os.path.join(vnr_module_path, f)}".split()
-            subprocess.run(cmd, check=True)
+        print(f"\nNext steps that need to be done manually:")
+        if len(files_to_delete):
+            print(f"\n1. From {vnr_module_path}, git rm the following files:")
+            for f in files_to_delete:
+                print(f"\t{f}")
+        print(f"\n2. To {vnr_module_path}, git add the following files:")
         for f in files_to_add:
-            cmd = f"git add {os.path.join(vnr_module_path, f)}".split()
-            subprocess.run(cmd, check=True)
+            print(f"\t{f}")
+        print(f"\n3. Make sure that {vnr_module_path}/../wrapper.cpp includes model/{os.path.basename(compiled_h_file)} file\n")
+
 
         
         

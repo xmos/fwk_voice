@@ -1,4 +1,4 @@
-#include "model/outFile.cpp.h"
+#include "model/trained_model_xcore.cpp.h"
 #include "wrapper.h"
 
 int32_t vnr_init() {
