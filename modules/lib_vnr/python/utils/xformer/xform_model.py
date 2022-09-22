@@ -8,6 +8,7 @@ from xmos_ai_tools.xinterpreters import xcore_tflm_host_interpreter
 from xmos_ai_tools import xformer as xf
 import pkg_resources
 import tempfile
+import glob
 
 this_filepath = os.path.dirname(os.path.abspath(__file__))
 
@@ -117,8 +118,20 @@ if __name__ == "__main__":
     
     # Optionally, copy generated files into the VNR module
     if args.copy_files:
+        files_to_add = [os.path.basename(model_c_file), os.path.basename(model_h_file), os.path.basename(xcore_opt_model), "vnr_tensor_arena_size.h", "vnr_quant_spec_defines.h"]
+        files_to_delete = []
         assert(args.module_path != None), "VNR module path --module-path needs to be specified when running with --copy-files"
         vnr_module_path = os.path.abspath(args.module_path)
+        current_files = glob.glob(f"{vnr_module_path}/*") # Files currently in vnr_module_path
+        for f in current_files:
+            if not os.path.basename(f) in files_to_add:
+                files_to_delete.append(f)
+        
+        print("files to delete\n",files_to_delete)
+        
+        # List of files that will be copied
+        # Check if any files from vnr_module_path would need deleting
+        
         print(f"WARNING: Copying files to lib_vnr module {vnr_module_path}. Verify before committing!")
         # Copy converted model .c and .h files
         shutil.copy2(model_c_file, vnr_module_path)
@@ -129,6 +142,10 @@ if __name__ == "__main__":
         shutil.copy2(os.path.join(test_dir, "vnr_quant_spec_defines.h"), vnr_module_path)
         # Copy xcore opt model tflite file to the model's directory
         shutil.copy2(xcore_opt_model, vnr_module_path)
+        # Optionally do a git add and git rm as well??
+        
+        
+        
         
 
 
