@@ -64,7 +64,7 @@ if __name__ == "__main__":
     save_dir = os.getcwd()
     os.chdir(lib_tflite_micro_path)
     build_cmd = "make build".split()
-    subprocess.run(build_cmd, check=True)
+    #subprocess.run(build_cmd, check=True)
     # Run the tflite_micro_compiler to generate the micro compiled .cpp file from the optimised tflite model
     
     tflite_micro_compiler_exe = os.path.abspath("tflite_micro_compiler/build/tflite_micro_compiler")
@@ -128,6 +128,7 @@ if __name__ == "__main__":
                 files_to_delete.append(f)
         
         print("files to delete\n",files_to_delete)
+        print("files to copy\n", files_to_add)
         
         # List of files that will be copied
         # Check if any files from vnr_module_path would need deleting
@@ -143,6 +144,8 @@ if __name__ == "__main__":
         # Copy xcore opt model tflite file to the model's directory
         shutil.copy2(xcore_opt_model, vnr_module_path)
         # Optionally do a git add and git rm as well??
+
+        print(f"Adding new files and removing old files in {vnr_module_path} from GIT now")
         
         
         
