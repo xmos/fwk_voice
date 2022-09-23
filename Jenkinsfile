@@ -59,10 +59,10 @@ pipeline {
                 withVenv {
                   script {
                       if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                       }
                       else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
+                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                       }
                   }
                   sh "make -j8"
@@ -114,7 +114,7 @@ pipeline {
               viewEnv() {
                 withVenv {
                   sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
+                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                   sh "make -j8"
 
                   // We need to put this here because it is not fetched until we build
@@ -422,8 +422,7 @@ pipeline {
                 withVenv {
                   withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
                     withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      sh "pytest -k test_frame_compare"
-                      sh "pytest -k test_adaption_controller"
+                      sh "pytest -n1"
                     }
                   }
                 }

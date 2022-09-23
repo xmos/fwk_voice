@@ -74,6 +74,8 @@ if __name__ == "__main__":
     os.chdir(save_dir)
     
     # Create Quant dequant spec defines file
+    str_index = os.path.realpath(__file__).find('fwk_voice/')
+    assert(str_index != -1)
     input_scale, input_zero_point, output_scale, output_zero_point = get_quant_spec(model)
     print(f"input_scale {input_scale}, input_zero_point {input_zero_point}, output_scale {output_scale}, output_zero_point {output_zero_point}")
     with open(os.path.join(test_dir, "vnr_quant_spec_defines.h"), "w") as fp:
