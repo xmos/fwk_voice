@@ -52,7 +52,6 @@ target_compile_definitions(xcore_sdk_inferencing_lib_tflite_micro
     INTERFACE
         NO_INTERPRETER
         TF_LITE_STATIC_MEMORY=1
-        TF_LITE_STRIP_ERROR_STRINGS
-        __xtflm_conf_h_exists__=1)
+        TF_LITE_STRIP_ERROR_STRINGS)
 
 add_library(sdk::inferencing::lib_tflite_micro ALIAS xcore_sdk_inferencing_lib_tflite_micro)
