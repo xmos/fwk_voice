@@ -33,7 +33,7 @@ pipeline {
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && fistrick'
+        label 'x86_64 && linux'
       }
       environment {
         XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
