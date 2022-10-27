@@ -1,5 +1,5 @@
 // This file is generated. Do not edit.
-// Generated on: 23.09.2022 11:48:04
+// Generated on: 26.10.2022 16:42:54
 
 #ifndef model_GEN_H
 #define model_GEN_H
@@ -17,11 +17,11 @@ TfLiteStatus model_invoke();
 
 // Returns the number of input tensors.
 inline size_t model_inputs() {
-  return 1;
+  return 3;
 }
 // Returns the number of output tensors.
 inline size_t model_outputs() {
-  return 1;
+  return 3;
 }
 
 inline void *model_input_ptr(int index) {
