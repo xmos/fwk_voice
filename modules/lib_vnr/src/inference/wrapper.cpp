@@ -1,5 +1,6 @@
 #include "model/trained_model_xcore.cpp.h"
 #include "wrapper.h"
+#include <string.h>
 
 // Flag to make sure a given model is initilised only once. This is needed because the model/trained_model_xcore.cpp file have one time initialised non-const global
 // values which will not be reset to their original values in subsequent calls to model_init() causing the initialisation to go wrong. 
