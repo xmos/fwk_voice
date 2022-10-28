@@ -28,17 +28,17 @@ int8_t* vnr_get_output() {
 }
 
 void vnr_inference_invoke() {
-    // static int8_t state_h[32];
+    static int8_t state_h[32];
     // static int8_t state_c[32];
 
-    // // set the LSTM states
-    // memcpy(model_input(1), state_h, 32);
+    // set the LSTM states
+    memcpy(model_input(1), state_h, 32);
     // memcpy(model_input(2), state_c, 32);
 
     model_invoke();
 
-    // // save the LSTM states
-    // memcpy(state_h, model_output(1), 32);
+    // save the LSTM states
+    memcpy(state_h, model_output(1), 32);
     // memcpy(state_c, model_output(2), 32);
 
 }
