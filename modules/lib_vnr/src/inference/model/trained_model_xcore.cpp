@@ -1497,7 +1497,7 @@ TfLiteStatus model_init(void *flash_data) {
   registrations[OP_SPLIT_V] = tflite::ops::micro::Register_SPLIT_V();
   registrations[OP_ADD] = tflite::Register_ADD();
   registrations[OP_XC_lookup] = *(tflite::ops::micro::xcore::Register_XC_lookup());
-  registrations[OP_SUB] = tflite::ops::micro::Register_SUB();
+  registrations[OP_SUB] = tflite::Register_SUB();
   registrations[OP_MUL] = tflite::Register_MUL();
   registrations[OP_RESHAPE] = tflite::ops::micro::Register_RESHAPE();
   registrations[OP_CONV_2D] = tflite::Register_CONV_2D();
