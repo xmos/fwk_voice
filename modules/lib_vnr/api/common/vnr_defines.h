@@ -21,7 +21,7 @@
 /** Number of frames that make up a full set of features for the inference to run on.
  * @ingroup vnr_defines
  */
-#define VNR_PATCH_WIDTH (1)
+#define VNR_PATCH_WIDTH (4)
 
 #endif
 
