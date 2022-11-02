@@ -7,7 +7,7 @@
 
 import subprocess
 
-xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api/xmath"
+xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
 lib_vnr_api_dir = "../../../modules/lib_vnr/api/features/"
 lib_vnr_defines_dir = "../../../modules/lib_vnr/api/common/"
 lib_vnr_inference_api_dir = "../../../modules/lib_vnr/api/inference/"
@@ -32,7 +32,7 @@ def extract_section_vnr(line, pp):
             vnr_state.append(line)
 
 def extract_xcore_math_vnr():
-    with open(xcore_math_types_api_dir+"/types.h") as xs3m:
+    with open(xcore_math_types_api_dir+"/xmath/types.h") as xs3m:
         lines = xs3m.readlines()
         for line in lines:
             if not "#" in line and "C_TYPE" not in line:

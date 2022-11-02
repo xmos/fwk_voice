@@ -7,7 +7,7 @@
 
 import subprocess
 
-xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api/xmath"
+xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
 lib_ic_api_dir = "../../../modules/lib_ic/api/"
 lib_vnr_common_api_dir = "../../../modules/lib_vnr/api/common"
 lib_vnr_features_api_dir = "../../../modules/lib_vnr/api/features/"
@@ -36,7 +36,7 @@ def extract_section(line, pp):
             ic_state.append(line)
 
 def extract_xcore_math():
-    with open(xcore_math_types_api_dir+"/types.h") as xs3m:
+    with open(xcore_math_types_api_dir+"/xmath/types.h") as xs3m:
         lines = xs3m.readlines()
         for line in lines:
             if not "#" in line and "C_TYPE" not in line:
