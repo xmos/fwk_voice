@@ -6,7 +6,7 @@ Overview
 
 ``lib_aec`` is a library which provides functions that can be put together to perform Acoustic Echo Cancellation (AEC)
 on input mic data using the input reference data to model the room echo characteristics. ``lib_aec`` library functions
-make use of functionality provided in ``lib_xs3_math`` to perform DSP operations. For more details refer to
+make use of functionality provided in ``lib_xcore_math`` to perform DSP operations. For more details refer to
 :ref:`aec_overview`.
 
 Repository Structure
@@ -24,7 +24,7 @@ Requirements
 
 ``lib_aec`` is included as part of the ``fwk_voice`` github repository
 and all requirements for cloning and building ``fwk_voice`` apply. ``lib_aec`` is compiled as a static library as part of
-overall ``fwk_voice`` build. It depends on `lib_xs3_math <https://github.com/xmos/lib_xs3_math/>`_.
+overall ``fwk_voice`` build. It depends on `lib_xcore_math <https://github.com/xmos/lib_xcore_math/>`_.
 
 API Structure
 -------------

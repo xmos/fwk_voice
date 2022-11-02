@@ -7,7 +7,7 @@ Overview
 ``lib_ic`` is a library which provides functions that together perform Interference Cancellation (IC)
 on two channel input mic data by adapting to and modelling the room transfer characteristics. ``lib_ic`` library functions
 make use of functionality provided in ``lib_aec`` for the core normalised LMS blocks which in turn uses
-``lib_xs3_math`` to perform DSP low-level optimised operations. For more details refer toc :ref:`ic_overview`.
+``lib_xcore_math`` to perform DSP low-level optimised operations. For more details refer toc :ref:`ic_overview`.
 
 Repository Structure
 --------------------
@@ -25,7 +25,7 @@ Requirements
 
 ``lib_ic`` is included as part of the ``fwk_voice`` github repository
 and all requirements for cloning and building ``fwk_voice`` apply. ``lib_ic`` is compiled as a static library as part of
-overall ``fwk_voice`` build. It depends on ``lib_aec`` and ``lib_xs3_math``. 
+overall ``fwk_voice`` build. It depends on ``lib_aec`` and ``lib_xcore_math``. 
 
 API Structure
 -------------
