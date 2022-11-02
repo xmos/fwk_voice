@@ -11,7 +11,7 @@
 #endif
 
 extern "C" {
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 void test_wav_vnr(const char *in_filename);
 #if TEST_WAV_XSCOPE
     #include "xscope_io_device.h"

@@ -148,7 +148,7 @@ typedef struct {
  * @par Example with modification to the profile
  * @code{.c}
  *      agc_config_t conf = AGC_PROFILE_FIXED_GAIN;
-        conf.gain = float_to_float_s32(100);
+        conf.gain = f32_to_float_s32(100);
         agc_state_t agc;
         agc_init(&agc, &conf);
  * @endcode

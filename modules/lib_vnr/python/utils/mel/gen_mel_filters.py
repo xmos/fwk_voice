@@ -189,7 +189,7 @@ class compact_mel:
         c_text += "\n"
         c_text += f"#include <stdint.h>"
         c_text += "\n"
-        c_text += f"#include <xs3_math.h>"
+        c_text += f"#include <xmath/xmath.h>"
         c_text += "\n"
         c_text += f"#define AUDIO_FEATURES_NUM_MELS {self.num_mels}\n";
         c_text += f"#define AUDIO_FEATURES_NUM_BINS {self.num_bins}\n";

@@ -2,7 +2,7 @@
 #define AP_STAGE_A_STATE_H
 
 #include "pipeline_config.h"
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 
 typedef struct {
     float_s32_t max_ref_energy;

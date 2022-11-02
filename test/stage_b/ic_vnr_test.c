@@ -34,7 +34,7 @@ float_s32_t test_vnr(){
 
 void test_control_system(double vnr_fl, int32_t ad_config, double fast_ratio){
     ic_state.ic_adaption_controller_state.adaption_controller_config.adaption_config = ad_config;
-    ic_state.ic_adaption_controller_state.fast_ratio = double_to_float_s32(fast_ratio);
-    float_s32_t vnr = double_to_float_s32(vnr_fl);
+    ic_state.ic_adaption_controller_state.fast_ratio = f64_to_float_s32(fast_ratio);
+    float_s32_t vnr = f64_to_float_s32(vnr_fl);
     ic_mu_control_system(&ic_state, vnr);
 }

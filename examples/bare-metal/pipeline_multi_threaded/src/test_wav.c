@@ -5,7 +5,7 @@
 #include <xcore/parallel.h>
 #include <xcore/assert.h>
 #include <xcore/hwtimer.h>
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 #include "fileio.h"
 #include "wav_utils.h"
 

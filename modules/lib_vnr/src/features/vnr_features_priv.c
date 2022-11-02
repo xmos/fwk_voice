@@ -19,7 +19,7 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     }
 #endif
     //printf("post fft hr = reported %d, actual %d\n",temp->hr, bfp_complex_s32_headroom(temp));
-    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
+    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xcore_math/issues/96 is fixed
     bfp_fft_unpack_mono(temp);
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }

@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // Frames of random data are generated (scaled to avoid overflow), and processed by two
@@ -39,10 +39,10 @@ void test_soft_clipping() {
     unsigned seed = 62809;
 
     // Scale the input down so that there is enough room to apply the max gain
-    float_s32_t scale = float_s32_div(float_to_float_s32(1), conf_clip.max_gain);
-    float_s32_t zero = float_to_float_s32(0);
+    float_s32_t scale = float_s32_div(f32_to_float_s32(1), conf_clip.max_gain);
+    float_s32_t zero = f32_to_float_s32(0);
     // This is the threshold above which soft-clipping is applied
-    float_s32_t thresh = float_to_float_s32(0.5);
+    float_s32_t thresh = f32_to_float_s32(0.5);
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {

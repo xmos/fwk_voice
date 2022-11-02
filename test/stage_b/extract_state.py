@@ -7,7 +7,7 @@
 
 import subprocess
 
-xs3_math_types_api_dir = "../../build/fwk_voice_deps/lib_xs3_math/lib_xs3_math/api"
+xcore_math_types_api_dir = "../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api/xmath"
 lib_ic_api_dir = "../../modules/lib_ic/api/"
 lib_ic_src_dir = "../../modules/lib_ic/src/"
 lib_vnr_api_common_dir = "../../modules/lib_vnr/api/common/"
@@ -32,11 +32,11 @@ def extract_section(line, pp, filenames):
         if log_state:
             state.append(line)
 
-def extract_xs3_math():
+def extract_xcore_math():
     #This is a really quick and dirty way to get things to play nicely. CFFI should do this for us but doesn't
     #Note enums do not go down well so we replace that with int late
     skip_lines_containing = ["#", "C_TYPE", "enum", "BFP_FLAG_DYNAMIC", "bfp_flags_e;"]
-    with open(xs3_math_types_api_dir+"/xs3_math_types.h") as xs3m:
+    with open(xcore_math_types_api_dir+"/types.h") as xs3m:
         lines = xs3m.readlines()
         for line in lines:
             line_ok = True
@@ -48,11 +48,11 @@ def extract_xs3_math():
 
 
 def extract_pre_defs():
-    #Grab xs3_math types
-    extract_xs3_math()
+    #Grab xcore_math types
+    extract_xcore_math()
 
     #Grab just ic_state related lines from the C pre-processed 
-    subprocess.call(f"gcc -E ic_vnr_test.c -o ic_vnr_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {xs3_math_types_api_dir} -I {lib_vnr_api_common_dir} -I {lib_vnr_api_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir} -I {calc_vnr_pred_dir}".split())
+    subprocess.call(f"gcc -E ic_vnr_test.c -o ic_vnr_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {xcore_math_types_api_dir} -I {lib_vnr_api_common_dir} -I {lib_vnr_api_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir} -I {calc_vnr_pred_dir}".split())
 
     with open("ic_vnr_test.i") as pp:
         end_of_file = False

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 
 #include <ns_api.h>
 #include <ns_priv.h>

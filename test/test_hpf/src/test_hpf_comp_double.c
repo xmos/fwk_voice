@@ -5,7 +5,7 @@
 
 #define len 240
 
-extern const fixed_s32_t hpf_coef_q30[TOTAL_NUM_COEFF];
+extern const uq2_30 hpf_coef_q30[TOTAL_NUM_COEFF];
 
 void biquad(double out[len + 2], const double in[len + 2], const double coef[NUM_COEFF_PER_BIQUAD]){
     for(int v = 2; v < len + 2; v++){
