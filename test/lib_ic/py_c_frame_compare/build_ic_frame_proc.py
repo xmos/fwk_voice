@@ -9,7 +9,7 @@ import sys
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
-XCORE_MATH = "../../../../build/fwk_voice_deps/lib_xcore_math/"
+XCORE_MATH = "../../../../build/fwk_voice_deps/lib_xcore_math"
 
 FLAGS = [
     '-std=c99',
@@ -58,7 +58,7 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
     library_dirs=[
                 '../../../../build/modules/lib_ic',
                 '../../../../build/modules/lib_aec',
-		'../../../../build/modules/lib_vnr',
+                '../../../../build/modules/lib_vnr',
                 '../../../../build/fwk_voice_deps/build'
                     ],
     libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec','fwk_voice_module_lib_vnr_features', 'fwk_voice_module_lib_vnr_inference', 'lib_xcore_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux

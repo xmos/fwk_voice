@@ -9,7 +9,7 @@ import sys
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
-XCORE_MATH = "../../../../build/fwk_voice_deps/lib_xcore_math/"
+XCORE_MATH = "../../../../build/fwk_voice_deps/lib_xcore_math"
 
 FLAGS = [
     '-std=c99',
