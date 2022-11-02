@@ -46,6 +46,15 @@ def extract_xcore_math():
             if line_ok and not line == "\n":
                 state.append(line)
 
+    # really hacky way to work-around CFFI's lack of support for `extern "C"`
+    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the 
+    #  closing bracket is the last line.  However, this may not make the parsing of 
+    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
+    #  subtle changes to the header.  
+    EXTERN_C_LINE_NUM=2
+    if state[EXTERN_C_LINE_NUM] == 'extern "C" { \n':
+        del state[EXTERN_C_LINE_NUM]
+        del state[-1]
 
 def extract_pre_defs():
     #Grab xcore_math types
