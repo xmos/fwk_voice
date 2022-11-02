@@ -23,7 +23,7 @@ INCLUDE_DIRS=[
     f"{MODULE_ROOT}/lib_vnr/api/inference",
     f"{MODULE_ROOT}/lib_vnr/src/inference/model",
     f"{MODULE_ROOT}/lib_vnr/src/inference",
-    f"{XCORE_MATH}/lib_xcore_math/api/",
+    f"{XCORE_MATH}/lib_xcore_math/api",
 ]
 SRCS = f"../vnr_test.c".split()
 ffibuilder = FFI()
