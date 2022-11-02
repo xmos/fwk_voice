@@ -197,7 +197,7 @@ class compact_mel:
         c_text += f"#define AUDIO_FEATURES_MEL_HEADROOM_BITS {self.headroom_bits}\n";
         c_text += f"#define AUDIO_FEATURES_MEL_ARRAY_NAME {array_name}\n";
         c_text += "\n"
-        c_text += f"fixed_s32_t {array_name}[{len(self.flattened_fbank)}] = {{\n"
+        c_text += f"uq1_31 {array_name}[{len(self.flattened_fbank)}] = {{\n"
         for line in self.compact_mel:
             c_text += "\t" + gen_c_line(line, mel_max)
         c_text = c_text[:-2] + "};\n" #chop off comma and space first

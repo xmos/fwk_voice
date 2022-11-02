@@ -104,7 +104,7 @@ void ic_update_td_ema_energy(
         const bfp_s32_t *input,
         unsigned start_offset,
         unsigned length,
-        const fixed_s32_t alpha){
+        const int32_t alpha){
     
     if(!length) {
         return;
@@ -306,8 +306,8 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
     ic_adaption_controller_state_t *ad_state = &state->ic_adaption_controller_state;
     ic_adaption_controller_config_t *ad_config = &state->ic_adaption_controller_state.adaption_controller_config;
     
-    const float_s32_t one = float_to_float_s32(1.0);
-    const float_s32_t zero = float_to_float_s32(0.0);
+    const float_s32_t one = f32_to_float_s32(1.0);
+    const float_s32_t zero = f32_to_float_s32(0.0);
 
     if(ad_config->adaption_config == IC_ADAPTION_FORCE_ON){
         ad_state->control_flag = FORCE_ADAPT;
@@ -337,7 +337,7 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
             ad_state->control_flag = ADAPT;
         }
         else{
-            ic_set_mu(state, float_to_float_s32(0.1));
+            ic_set_mu(state, f32_to_float_s32(0.1));
             ad_state->control_flag = ADAPT_SLOW;
         }
         state->leakage_alpha = one;
@@ -345,7 +345,7 @@ void ic_mu_control_system(ic_state_t * state, float_s32_t vnr){
     }
 
     if(float_s32_gt(ad_state->fast_ratio, ad_config->fast_ratio_threshold)){
-        ic_set_mu(state, float_to_float_s32(0.9));
+        ic_set_mu(state, f32_to_float_s32(0.9));
         state->leakage_alpha = ad_config->instability_recovery_leakage_alpha;
         ad_state->control_flag = UNSTABLE;
     }

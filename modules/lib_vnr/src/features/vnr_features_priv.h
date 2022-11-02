@@ -20,7 +20,7 @@
 /**
  * @brief Gain applied to the first mel filtered bin when highpass filtering of MEL output is enabled
  */
-#define VNR_MEL_HP_GAIN (float_to_float_s32((float)0.01))
+#define VNR_MEL_HP_GAIN (f32_to_float_s32((float)0.01))
 
 // Matching with python names
 /**
@@ -34,7 +34,7 @@
  *
  * This function name matches with the corresponding function in py_vnr python model.
 */
-void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int32_t hp);
+void vnr_priv_make_slice(uq8_24 *new_slice, const bfp_complex_s32_t *X, int32_t hp);
 
 /**
  * @brief roll a buffer and add a new slice to the end
@@ -46,7 +46,7 @@ void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int
  *
  * This function name matches with the corresponding function in py_vnr python model.
  */
-void vnr_priv_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice);
+void vnr_priv_add_new_slice(int32_t (*feature_buffers)[VNR_MEL_FILTERS], const uq8_24 *new_slice);
 
 /**
  * @brief Normalise a patch by subtracting the max.
@@ -102,12 +102,12 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
  * @param[input] input float_s32_t values
  * @param[input] length length of the input array
  */
-void vnr_priv_log2(fixed_s32_t *output_q24, const float_s32_t *input, unsigned length);
+void vnr_priv_log2(uq8_24 *output_q24, const float_s32_t *input, unsigned length);
 
 /**
  * @brief log2 of a single value
  * This function calculates output = log2(input) for a single float_s32_t input value. log2 output format is fixed to Q8.24
  */
-fixed_s32_t vnr_priv_float_s32_to_fixed_q24_log2(float_s32_t x);
+uq8_24 vnr_priv_float_s32_to_fixed_q24_log2(float_s32_t x);
 
 #endif

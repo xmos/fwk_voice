@@ -4,7 +4,7 @@
 #define _NS_PRIV_H
 
 #include <ns_state.h>
-#include <xs3_math_types.h>
+#include "xmath/xmath.h"
 
 
 void ns_priv_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_t * orig_mag);

@@ -3,7 +3,7 @@
 #ifndef AGC_PROFILES_H
 #define AGC_PROFILES_H
 
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 
 /**
  * @page page_agc_profiles_h agc_profiles.h

@@ -15,7 +15,7 @@ def test_vnr_priv_make_slice(target, tflite_model):
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE + 1 #No. of int32 values sent to dut as input per frame
-    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -24
+    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS int32_t values. Exponent fixed to -24
 
     fd_frame_len = int(fp.NFFT/2 + 1)
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))    

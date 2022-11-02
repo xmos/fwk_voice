@@ -2,7 +2,8 @@
 #define __VNR_FEATURES_STATE_H__
 
 #include "vnr_defines.h"
-#include "bfp_math.h"
+#include "xmath/xmath.h"
+
 /**
  * @page page_vnr_features_state_h vnr_features_state.h
  * 
@@ -64,7 +65,7 @@ typedef struct {
  */
 typedef struct {
     /** Feature buffer containing the most recent VNR_MEL_FILTERS frames' MEL frequency spectrum. */
-    fixed_s32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
+    int32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
     vnr_feature_config_t config;
 }vnr_feature_state_t;
 #endif

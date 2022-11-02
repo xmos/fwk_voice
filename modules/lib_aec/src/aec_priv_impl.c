@@ -6,7 +6,7 @@
 #include "aec_defines.h"
 #include "aec_api.h"
 #include "aec_priv.h"
-#include "q_format.h"
+#include "xmath/xmath.h"
 
 void aec_priv_main_init(
         aec_state_t *state,
@@ -108,7 +108,7 @@ void aec_priv_main_init(
         state->shared_state->x_ema_energy[ch].exp = AEC_ZEROVAL_EXP;
     }
     //fractional regularisation scalefactor
-    state->delta_scale = double_to_float_s32((double)1e-5);
+    state->delta_scale = f64_to_float_s32((double)1e-5);
 
     //Initialise aec config params
     aec_priv_init_config_params(&state->shared_state->config_params);
@@ -116,8 +116,8 @@ void aec_priv_main_init(
     //Initialise coherence mu params
     coherence_mu_params_t *coh_params = state->shared_state->coh_mu_state;
     for(unsigned ch=0; ch<num_y_channels; ch++) {
-        coh_params[ch].coh = double_to_float_s32(1.0);
-        coh_params[ch].coh_slow = double_to_float_s32(0.0);
+        coh_params[ch].coh = f64_to_float_s32(1.0);
+        coh_params[ch].coh_slow = f64_to_float_s32(0.0);
         coh_params[ch].mu_coh_count = 0;
         coh_params[ch].mu_shad_count = 0;
     }
@@ -198,7 +198,7 @@ void aec_priv_shadow_init(
         state->error_ema_energy[ch].exp = AEC_ZEROVAL_EXP;
     }
     //fractional regularisation scalefactor
-    state->delta_scale = double_to_float_s32((double)1e-3);
+    state->delta_scale = f64_to_float_s32((double)1e-3);
 }
 
 void aec_priv_bfp_complex_s32_copy(
@@ -435,19 +435,19 @@ void aec_priv_calc_coherence_mu(
             if(coh_mu_state[ch].mu_shad_count >= 1)
             {
                 for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                    coh_mu_state[ch].coh_mu[x_ch] = double_to_float_s32(1.0); //TODO profile double_to_float_s32
+                    coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(1.0); //TODO profile f64_to_float_s32
                 }
             }
             else if(coh_mu_state[ch].mu_coh_count > 0)
             {
                 for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                    coh_mu_state[ch].coh_mu[x_ch] = double_to_float_s32(0);
+                    coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(0);
                 }
             }
             else { //# if yy_hat coherence denotes absence of near-end/noise
                 if(float_s32_gt(coh_mu_state[ch].coh, coh_mu_state[ch].coh_slow)) {
                     for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                        coh_mu_state[ch].coh_mu[x_ch] = double_to_float_s32(1.0);
+                        coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(1.0);
                     }
                 }
                 else if(float_s32_gt(coh_mu_state[ch].coh, CC_thres))
@@ -464,7 +464,7 @@ void aec_priv_calc_coherence_mu(
                 }
                 else {
                     for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                        coh_mu_state[ch].coh_mu[x_ch] = double_to_float_s32(0);
+                        coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(0);
                     }
                 }
             }
@@ -485,7 +485,7 @@ void aec_priv_calc_coherence_mu(
                 )
             {
                 for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
-                    coh_mu_state[y_ch].coh_mu[x_ch] = double_to_float_s32(0);
+                    coh_mu_state[y_ch].coh_mu[x_ch] = f64_to_float_s32(0);
                 }
             }
         }
@@ -507,7 +507,7 @@ void aec_priv_calc_coherence_mu(
     else if(coh_conf->adaption_config == AEC_ADAPTION_FORCE_OFF){
         for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
             for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                coh_mu_state[y_ch].coh_mu[x_ch] = double_to_float_s32(0);
+                coh_mu_state[y_ch].coh_mu[x_ch] = f64_to_float_s32(0);
             }
         }
     }
@@ -683,7 +683,7 @@ void aec_priv_calc_coherence(
 
     //# moving average coherence
     //self.coh = self.coh_alpha*self.coh + (1.0 - self.coh_alpha)*this_coh
-    float_s32_t one = double_to_float_s32(1.0); //TODO profile this call
+    float_s32_t one = f64_to_float_s32(1.0); //TODO profile this call
     float_s32_t one_minus_alpha = float_s32_sub(one, coh_conf->coh_alpha);
     float_s32_t t1 = float_s32_mul(coh_conf->coh_alpha, coh_mu_state->coh);
     float_s32_t t2 = float_s32_mul(one_minus_alpha, this_coh);
@@ -728,14 +728,14 @@ float_s32_t aec_priv_calc_corr_factor(bfp_s32_t *y, bfp_s32_t *yhat) {
 }
 
 // Hanning window structure used in the windowing operation done to remove discontinuities from the filter error
-static const fixed_s32_t WOLA_window_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
+static const uq1_31 WOLA_window_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
        4861986,   19403913,   43494088,   76914346,  119362028,  170452721,  229723740,  296638317,
      370590464,  450910459,  536870911,  627693349,  722555272,  820597594,  920932429, 1022651130,
     1124832516, 1226551217, 1326886052, 1424928374, 1519790297, 1610612735, 1696573187, 1776893182,
     1850845329, 1917759906, 1977030925, 2028121618, 2070569300, 2103989558, 2128079733, 2142621660
 };
 
-static const fixed_s32_t WOLA_window_flpd_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
+static const uq1_31 WOLA_window_flpd_q31[AEC_UNUSED_TAPS_PER_PHASE*2] = {
     2142621660, 2128079733, 2103989558, 2070569300, 2028121618, 1977030925, 1917759906, 1850845329, 
     1776893182, 1696573187, 1610612735, 1519790297, 1424928374, 1326886052, 1226551217, 1124832516, 
     1022651130, 920932429, 820597594, 722555272, 627693349, 536870911, 450910459, 370590464, 
@@ -805,7 +805,7 @@ void aec_priv_calc_inverse(
     bfp_s32_inverse(input, input);
 
 #else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = xs3_vect_s32_min(
+    int32_t min_element = vect_s32_min(
                                 input->data,
                                 input->length);
  
@@ -826,21 +826,21 @@ void bfp_new_add_scalar(
     const bfp_s32_t* b, 
     const float_s32_t c)
 {
-#if (XS3_BFP_DEBUG_CHECK_LENGTHS) // See xs3_math_conf.h
+#if (BFP_DEBUG_CHECK_LENGTHS)
     assert(b->length == a->length);
     assert(b->length != 0);
 #endif
 
     right_shift_t b_shr, c_shr;
 
-    xs3_vect_s32_add_scalar_prepare(&a->exp, &b_shr, &c_shr, b->exp, c.exp, 
+    vect_s32_add_scalar_prepare(&a->exp, &b_shr, &c_shr, b->exp, c.exp, 
                                     b->hr, HR_S32(c.mant));
 
     int32_t cc = 0;
     if (c_shr < 32)
         cc = (c_shr >= 0)? (c.mant >> c_shr) : (c.mant << -c_shr);
 
-    a->hr = xs3_vect_s32_add_scalar(a->data, b->data, cc, b->length, 
+    a->hr = vect_s32_add_scalar(a->data, b->data, cc, b->length, 
                                     b_shr);
 }
 
@@ -871,12 +871,12 @@ void aec_priv_calc_inv_X_energy_denom(
         bfp_s32_add(&norm_denom, &sigma_times_gamma, &temp);
 
         //self.taps = [0.5, 1, 1, 1, 0.5] 
-        fixed_s32_t taps_q30[5] = {0x20000000, 0x40000000, 0x40000000, 0x40000000, 0x20000000};
+        uq2_30 taps_q30[5] = {0x20000000, 0x40000000, 0x40000000, 0x40000000, 0x20000000};
         for(int i=0; i<5; i++) {
             taps_q30[i] = taps_q30[i] >> 2;//This is equivalent to a divide by 4
         }
 
-        bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, &taps_q30[0], 5, PAD_MODE_REFLECT);
+        bfp_s32_convolve_same(inv_X_energy_denom, &norm_denom, (const int32_t *) &taps_q30[0], 5, PAD_MODE_REFLECT);
 
         //bfp_s32_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
         bfp_new_add_scalar(inv_X_energy_denom, inv_X_energy_denom, delta);
@@ -975,7 +975,7 @@ void aec_priv_compute_T(
 void aec_priv_init_config_params(
         aec_config_params_t *config_params)
 {
-    //TODO profile double_to_float_s32() calls
+    //TODO profile f64_to_float_s32() calls
     //aec_core_config_params_t
     aec_core_config_params_t *core_conf = &config_params->aec_core_conf;
     core_conf->sigma_xx_shift = 6;
@@ -983,32 +983,32 @@ void aec_priv_init_config_params(
     core_conf->gamma_log2 = 5;
     core_conf->delta_adaption_force_on.mant = (unsigned)UINT_MAX >> 1;
     core_conf->delta_adaption_force_on.exp = -32 - 6 + 1; //extra +1 to account for shr of 1 to the mant in order to store it as a signed number
-    core_conf->delta_min = double_to_float_s32((double)1e-20);
+    core_conf->delta_min = f64_to_float_s32((double)1e-20);
     core_conf->bypass = 0;
     core_conf->coeff_index = 0;
 
     //shadow_filt_config_params_t
     shadow_filt_config_params_t *shadow_cfg = &config_params->shadow_filt_conf;
-    shadow_cfg->shadow_sigma_thresh = double_to_float_s32(0.6); //# threshold for resetting sigma_xx
-    shadow_cfg->shadow_copy_thresh = double_to_float_s32(0.5); //# threshold for copying shadow filter
-    shadow_cfg->shadow_reset_thresh = double_to_float_s32(1.5);
-    shadow_cfg->shadow_delay_thresh = double_to_float_s32(0.5); //# will not reset if reference delay is large
-    shadow_cfg->x_energy_thresh = double_to_float_s32(pow(10, -40/10.0));
+    shadow_cfg->shadow_sigma_thresh = f64_to_float_s32(0.6); //# threshold for resetting sigma_xx
+    shadow_cfg->shadow_copy_thresh = f64_to_float_s32(0.5); //# threshold for copying shadow filter
+    shadow_cfg->shadow_reset_thresh = f64_to_float_s32(1.5);
+    shadow_cfg->shadow_delay_thresh = f64_to_float_s32(0.5); //# will not reset if reference delay is large
+    shadow_cfg->x_energy_thresh = f64_to_float_s32(pow(10, -40/10.0));
     shadow_cfg->shadow_better_thresh = 5; //# how many times better before copying
     shadow_cfg->shadow_zero_thresh = 5;//# zero shadow filter every n resets
     shadow_cfg->shadow_reset_timer = 20; //# number of frames between zeroing resets
-    shadow_cfg->shadow_mu = double_to_float_s32(1.0);
+    shadow_cfg->shadow_mu = f64_to_float_s32(1.0);
 
     //coherence_mu_config_params_t 
     coherence_mu_config_params_t *coh_cfg = &config_params->coh_mu_conf;
-    coh_cfg->coh_alpha = double_to_float_s32(0.0);
-    coh_cfg->coh_slow_alpha = double_to_float_s32(0.99);
-    coh_cfg->coh_thresh_slow = double_to_float_s32(0.9);
-    coh_cfg->coh_thresh_abs = double_to_float_s32(0.65);
-    coh_cfg->mu_scalar = double_to_float_s32(1.0);
-    coh_cfg->eps = double_to_float_s32((double)1e-100);
-    coh_cfg->thresh_minus20dB = double_to_float_s32(pow(10, -20/10.0));
-    coh_cfg->x_energy_thresh = double_to_float_s32(pow(10, -40/10.0));
+    coh_cfg->coh_alpha = f64_to_float_s32(0.0);
+    coh_cfg->coh_slow_alpha = f64_to_float_s32(0.99);
+    coh_cfg->coh_thresh_slow = f64_to_float_s32(0.9);
+    coh_cfg->coh_thresh_abs = f64_to_float_s32(0.65);
+    coh_cfg->mu_scalar = f64_to_float_s32(1.0);
+    coh_cfg->eps = f64_to_float_s32((double)1e-100);
+    coh_cfg->thresh_minus20dB = f64_to_float_s32(pow(10, -20/10.0));
+    coh_cfg->x_energy_thresh = f64_to_float_s32(pow(10, -40/10.0));
     coh_cfg->mu_coh_time = 2;
     coh_cfg->mu_shad_time = 5;
 

@@ -2,13 +2,13 @@
 include(FetchContent)
 
 FetchContent_Declare(
-    xs3_math
-    GIT_REPOSITORY https://github.com/xmos/lib_xs3_math.git
-    GIT_TAG        881cf848a5899f4ecb9182e7f50fd3705e5b68ef
+    xcore_math
+    GIT_REPOSITORY https://github.com/xmos/lib_xcore_math.git
+    GIT_TAG        v2.1.0
     GIT_SHALLOW    FALSE
-    SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_xs3_math
+    SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_xcore_math
 )
-FetchContent_Populate(xs3_math)
+FetchContent_Populate(xcore_math)
 
 FetchContent_Declare(
     xscope_fileio

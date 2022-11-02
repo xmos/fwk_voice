@@ -13,7 +13,7 @@ target_include_directories(fwk_voice_example_bare_metal_agc
 target_link_libraries(fwk_voice_example_bare_metal_agc
     PUBLIC
         fwk_voice::agc
-        core::xs3_math
+        lib_xcore_math
         fwk_voice::example::fileutils)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)

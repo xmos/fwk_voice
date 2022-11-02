@@ -22,7 +22,7 @@ target_compile_options(fwk_voice_module_lib_ns
 
 target_link_libraries(fwk_voice_module_lib_ns
     PUBLIC
-        core::xs3_math
+        lib_xcore_math
 )
 
 ## Create an alias

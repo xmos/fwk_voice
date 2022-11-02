@@ -62,7 +62,7 @@ typedef struct {
     /** Down scaling factor for X energy for used for normalisation. */
     uint32_t sigma_xx_shift;
     /** Alpha used for calculating error_ema_energy in adapt. */
-    fixed_s32_t ema_alpha_q30;
+    q2_30 ema_alpha_q30;
     /** Delta value used in denominator to avoid large values when calculating inverse
      * X energy. */
     float_s32_t delta;
@@ -83,7 +83,7 @@ typedef struct {
 typedef struct {
 
     /** Alpha for EMA input/output energy calculation. */
-    fixed_s32_t energy_alpha_q30;
+    q2_30 energy_alpha_q30;
 
     /** Fast ratio threshold to detect instability. */
     float_s32_t fast_ratio_threshold;
@@ -145,7 +145,7 @@ typedef struct {
     vnr_feature_state_t feature_state[2];
     float_s32_t input_vnr_pred;
     float_s32_t output_vnr_pred;
-    fixed_s32_t pred_alpha_q30;
+    q2_30 pred_alpha_q30;
 }vnr_pred_state_t;
 
 /**

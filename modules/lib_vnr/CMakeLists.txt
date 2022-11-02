@@ -10,7 +10,7 @@ target_include_directories(fwk_voice_module_lib_vnr_inference PUBLIC api/common 
 
 target_link_libraries(fwk_voice_module_lib_vnr_inference
     PUBLIC
-        core::xs3_math
+        lib_xcore_math
         )
 
 target_link_libraries(fwk_voice_module_lib_vnr_inference
@@ -39,7 +39,7 @@ target_compile_options(fwk_voice_module_lib_vnr_features
 
 target_link_libraries(fwk_voice_module_lib_vnr_features
     PUBLIC
-        core::xs3_math
+        lib_xcore_math
         )
 
 add_library(fwk_voice::vnr::features ALIAS fwk_voice_module_lib_vnr_features)

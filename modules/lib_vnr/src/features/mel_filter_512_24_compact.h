@@ -3,14 +3,14 @@
 #define _mel_filter_512_24_compact_h_
 
 #include <stdint.h>
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 #define AUDIO_FEATURES_NUM_MELS 24
 #define AUDIO_FEATURES_NUM_BINS 257
 #define AUDIO_FEATURES_MEL_MAX 2147483647
 #define AUDIO_FEATURES_MEL_HEADROOM_BITS 0
 #define AUDIO_FEATURES_MEL_ARRAY_NAME mel_filter_512_24_compact_q31
 
-fixed_s32_t mel_filter_512_24_compact_q31[257] = {
+uq1_31 mel_filter_512_24_compact_q31[257] = {
 	0, 1073741823, 2147483647, 1431655764, 715827882,
 	0, 1073741823, 2147483647, 1610612735, 1073741823, 536870911,
 	0, 715827882, 1431655764, 2147483647, 1610612735, 1073741823, 536870911,

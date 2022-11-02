@@ -24,7 +24,7 @@ void vnr_priv_forward_fft(bfp_complex_s32_t *X, int32_t *x_data) {
     memcpy(X, temp, sizeof(bfp_complex_s32_t));
 }
 
-void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int32_t hp) {    
+void vnr_priv_make_slice(uq8_24 *new_slice, const bfp_complex_s32_t *X, int32_t hp) {    
     // MEL
     float_s32_t mel_output[VNR_MEL_FILTERS];
     // out_spect = np.abs(X_spect)**2
@@ -39,7 +39,7 @@ void vnr_priv_make_slice(fixed_s32_t *new_slice, const bfp_complex_s32_t *X, int
     vnr_priv_log2(new_slice, mel_output, VNR_MEL_FILTERS); //Calculate new_slice in state->scratch_data
 }
 
-void vnr_priv_add_new_slice(fixed_s32_t (*feature_buffers)[VNR_MEL_FILTERS], const fixed_s32_t *new_slice)
+void vnr_priv_add_new_slice(int32_t (*feature_buffers)[VNR_MEL_FILTERS], const uq8_24 *new_slice)
 {
     // Roll the patch buffer to get rid of oldest slice
     // self.feature_buffers[buffer_number] = np.roll(self.feature_buffers[buffer_number], -1, axis=0)
@@ -100,11 +100,11 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
         unsigned filter_length = mel_filter_512_24_compact_start_bins[2*(i+1)] - filter_start;
         // Create input spectrum subset BFP structure
         bfp_s32_t spect_subset;
-        bfp_s32_init(&spect_subset, &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
+        bfp_s32_init(&spect_subset, (int32_t *) &squared_mag.data[filter_start], squared_mag.exp, filter_length, 1);
 
         // Create MEL filter BFP structure
         bfp_s32_t filter_subset;
-        bfp_s32_init(&filter_subset, &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
+        bfp_s32_init(&filter_subset, (int32_t *) &mel_filter_512_24_compact_q31[filter_start], filter_exp, filter_length, 0);
         filter_subset.hr = filter_hr;
         
         // Dot product
@@ -112,7 +112,7 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
     }
 
     bfp_s32_t filter;
-    bfp_s32_init(&filter, &mel_filter_512_24_compact_q31[0], filter_exp, AUDIO_FEATURES_NUM_BINS, 0);
+    bfp_s32_init(&filter, (int32_t *) &mel_filter_512_24_compact_q31[0], filter_exp, AUDIO_FEATURES_NUM_BINS, 0);
     
     // Generate odd band filters
     int32_t odd_band_filters_data[AUDIO_FEATURES_NUM_BINS]; // Memory for storing odd filters
@@ -139,7 +139,7 @@ void vnr_priv_mel_compute(float_s32_t *filter_output, const bfp_complex_s32_t *X
     }
 }
 
-void vnr_priv_log2(fixed_s32_t *output_q24, const float_s32_t *input, unsigned length) {
+void vnr_priv_log2(uq8_24 *output_q24, const float_s32_t *input, unsigned length) {
     for(unsigned i=0; i<length; i++) {
         output_q24[i] = vnr_priv_float_s32_to_fixed_q24_log2(input[i]);
     }
@@ -169,7 +169,7 @@ static int lookup_small_log2_linear_new(uint32_t x) {
     return (v0 * (uint64_t) f0 + v1 * (uint64_t) f1) >> (mask_bits - (MEL_PRECISION - LOOKUP_PRECISION));
 }
 
-fixed_s32_t vnr_priv_float_s32_to_fixed_q24_log2(float_s32_t x) {
+uq8_24 vnr_priv_float_s32_to_fixed_q24_log2(float_s32_t x) {
     headroom_t hr = HR_S32(x.mant);
     hr = hr + 1;
     uint32_t x_mant = 0;

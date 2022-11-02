@@ -3,7 +3,7 @@
 #ifndef NS_STATE_H
 #define NS_STATE_H
 
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 
 /**
  * @page page_ns_state_h ns_state.h 

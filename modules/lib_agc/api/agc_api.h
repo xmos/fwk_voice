@@ -3,7 +3,7 @@
 #ifndef AGC_API_H
 #define AGC_API_H
 
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 #include <agc_profiles.h>
 
 /**

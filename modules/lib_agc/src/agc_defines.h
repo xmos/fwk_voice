@@ -3,7 +3,7 @@
 #ifndef AGC_DEFINES_H
 #define AGC_DEFINES_H
 
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 
 // The input and output frame data format is Q1.31
 #define FRAME_EXP -31
