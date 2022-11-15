@@ -65,7 +65,7 @@ typedef struct {
  */
 typedef struct {
     /** Feature buffer containing the most recent VNR_MEL_FILTERS frames' MEL frequency spectrum. */
-    int32_t DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
+    uq8_24 DWORD_ALIGNED feature_buffers[VNR_PATCH_WIDTH][VNR_MEL_FILTERS];
     vnr_feature_config_t config;
 }vnr_feature_state_t;
 #endif

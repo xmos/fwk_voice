@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     xcore_math
     GIT_REPOSITORY https://github.com/xmos/lib_xcore_math.git
-    GIT_TAG        v2.1.0
+    GIT_TAG        v2.1.1
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_xcore_math
 )

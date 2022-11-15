@@ -104,7 +104,7 @@ void ic_update_td_ema_energy(
         const bfp_s32_t *input,
         unsigned start_offset,
         unsigned length,
-        const int32_t alpha){
+        const uq2_30 alpha){
     
     if(!length) {
         return;

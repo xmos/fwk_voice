@@ -39,7 +39,7 @@ void vnr_priv_make_slice(uq8_24 *new_slice, const bfp_complex_s32_t *X, int32_t 
     vnr_priv_log2(new_slice, mel_output, VNR_MEL_FILTERS); //Calculate new_slice in state->scratch_data
 }
 
-void vnr_priv_add_new_slice(int32_t (*feature_buffers)[VNR_MEL_FILTERS], const uq8_24 *new_slice)
+void vnr_priv_add_new_slice(uq8_24 (*feature_buffers)[VNR_MEL_FILTERS], const uq8_24 *new_slice)
 {
     // Roll the patch buffer to get rid of oldest slice
     // self.feature_buffers[buffer_number] = np.roll(self.feature_buffers[buffer_number], -1, axis=0)
