@@ -5,4 +5,4 @@ ADEC #define constants
 
 .. doxygengroup:: adec_defines
     :members:
-    :content-only:
+    

@@ -9,13 +9,13 @@
 --------------------
 
 .. doxygenpage:: page_vnr_features_api_h
-  :content-only:
+  
 
 `vnr_inference_api.h`
 --------------------
 
 .. doxygenpage:: page_vnr_inference_api_h
-  :content-only:
+  
 
 .. _vnr_common_defines_h:
 
@@ -23,7 +23,7 @@
 ---------------
 
 .. doxygenpage:: page_vnr_defines_h
-  :content-only:
+  
 
 .. _vnr_features_state_h:
 
@@ -31,7 +31,7 @@
 ----------------------
 
 .. doxygenpage:: page_vnr_features_state_h
-  :content-only:
+  
 
 
 
