@@ -2,10 +2,10 @@
 API Reference
 =============
 
- .. toctree::
-     :maxdepth: 1
+.. toctree::
+    :maxdepth: 1
 
-     api
-     state
-     defines
-     header_files
+    api
+    state
+    defines
+    header_files
