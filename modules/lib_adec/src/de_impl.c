@@ -9,7 +9,7 @@ void adec_estimate_delay (
         const bfp_complex_s32_t* H_hat, 
         unsigned num_phases)
 {
-    //Direct manipulation of mant/exp because double_to_float_s32(0.0) takes hundreds of cycles
+    //Direct manipulation of mant/exp because f64_to_float_s32(0.0) takes hundreds of cycles
     const float_s32_t zero = {0, 0};
     const float_s32_t one = {1, 0};
 

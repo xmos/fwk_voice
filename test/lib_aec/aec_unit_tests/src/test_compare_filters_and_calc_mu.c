@@ -707,7 +707,7 @@ void test_compare_filters_and_calc_mu() {
             //set coh to a number between CC_thres and coh_slow for code coverage of an if condition
             for(int ch=0; ch<params_fp->y_channels; ch++) {
                 params_fp->coh[ch] = CC_thres + (params_fp->coh_slow[ch] - CC_thres)/(3.15 + params_fp->coh[ch]);
-                main_state.shared_state->coh_mu_state[ch].coh = double_to_float_s32(params_fp->coh[ch]);
+                main_state.shared_state->coh_mu_state[ch].coh = f64_to_float_s32(params_fp->coh[ch]);
             }
         }
         //mu_scalar

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include "bfp_math.h"
+#include "xmath/xmath.h"
 #include "vnr_features_api.h"
 #include "vnr_inference_api.h"
 

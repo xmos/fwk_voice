@@ -2,7 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "ic_low_level.h"
-#include "q_format.h"
+#include "xmath/xmath.h"
 
 // For use when dumping variables for debug
 void ic_dump_var_2d(ic_state_t *state);
@@ -14,8 +14,8 @@ static int32_t ic_init_vnr_pred_state(vnr_pred_state_t *vnr_pred_state){
 
     int32_t ret = vnr_inference_init();
     vnr_pred_state->pred_alpha_q30 = Q30(IC_INIT_VNR_PRED_ALPHA);
-    vnr_pred_state->input_vnr_pred = float_to_float_s32(IC_INIT_INPUT_VNR_PRED);
-    vnr_pred_state->output_vnr_pred = float_to_float_s32(IC_INIT_OUTPUT_VNR_PRED);
+    vnr_pred_state->input_vnr_pred = f32_to_float_s32(IC_INIT_INPUT_VNR_PRED);
+    vnr_pred_state->output_vnr_pred = f32_to_float_s32(IC_INIT_OUTPUT_VNR_PRED);
     return ret;
 }
 
@@ -24,7 +24,7 @@ static void ic_init_config(ic_config_params_t *config){
     config->gamma_log2 = IC_INIT_GAMMA_LOG2;
     config->ema_alpha_q30 = Q30(IC_INIT_EMA_ALPHA);
     config->bypass = 0;
-    config->delta = double_to_float_s32(IC_INIT_DELTA);
+    config->delta = f64_to_float_s32(IC_INIT_DELTA);
 
 }
 
@@ -32,13 +32,13 @@ static void ic_init_adaption_controller_config(ic_adaption_controller_config_t *
 
     ad_config->energy_alpha_q30 = Q30(IC_INIT_ENERGY_ALPHA);
 
-    ad_config->fast_ratio_threshold = double_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
-    ad_config->high_input_vnr_hold_leakage_alpha = double_to_float_s32(IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA);
-    ad_config->instability_recovery_leakage_alpha = double_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
+    ad_config->fast_ratio_threshold = f64_to_float_s32(IC_INIT_FAST_RATIO_THRESHOLD);
+    ad_config->high_input_vnr_hold_leakage_alpha = f64_to_float_s32(IC_INIT_HIGH_INPUT_VNR_HOLD_LEAKAGE_ALPHA);
+    ad_config->instability_recovery_leakage_alpha = f64_to_float_s32(IC_INIT_INSTABILITY_RECOVERY_LEAKAGE_ALPHA);
 
-    ad_config->input_vnr_threshold = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
-    ad_config->input_vnr_threshold_high = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_HIGH);
-    ad_config->input_vnr_threshold_low = double_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_LOW);
+    ad_config->input_vnr_threshold = f64_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD);
+    ad_config->input_vnr_threshold_high = f64_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_HIGH);
+    ad_config->input_vnr_threshold_low = f64_to_float_s32(IC_INIT_INPUT_VNR_THRESHOLD_LOW);
 
     ad_config->adapt_counter_limit = IC_INIT_ADAPT_COUNTER_LIMIT;
 
@@ -136,11 +136,11 @@ int32_t ic_init(ic_state_t *state){
     // mu
     for(unsigned ych=0; ych<IC_Y_CHANNELS; ych++) {
         for(unsigned xch=0; xch<IC_X_CHANNELS; xch++) {
-            state->mu[ych][xch] = double_to_float_s32(IC_INIT_MU);
+            state->mu[ych][xch] = f64_to_float_s32(IC_INIT_MU);
         }
     }
 
-    state->leakage_alpha = double_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
+    state->leakage_alpha = f64_to_float_s32(IC_INIT_LEAKAGE_ALPHA);
 
     // Initialise ic core config params and adaption controller
     ic_init_config(&state->config_params);

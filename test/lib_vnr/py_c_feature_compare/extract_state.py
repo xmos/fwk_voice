@@ -7,7 +7,7 @@
 
 import subprocess
 
-xs3_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xs3_math/lib_xs3_math/api"
+xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
 lib_vnr_api_dir = "../../../modules/lib_vnr/api/features/"
 lib_vnr_defines_dir = "../../../modules/lib_vnr/api/common/"
 lib_vnr_inference_api_dir = "../../../modules/lib_vnr/api/inference/"
@@ -31,8 +31,8 @@ def extract_section_vnr(line, pp):
         if log_state:
             vnr_state.append(line)
 
-def extract_xs3_math_vnr():
-    with open(xs3_math_types_api_dir+"/xs3_math_types.h") as xs3m:
+def extract_xcore_math_vnr():
+    with open(xcore_math_types_api_dir+"/xmath/types.h") as xs3m:
         lines = xs3m.readlines()
         for line in lines:
             if not "#" in line and "C_TYPE" not in line:
@@ -40,12 +40,22 @@ def extract_xs3_math_vnr():
                     continue
                 vnr_state.append(line)
 
+    # really hacky way to work-around CFFI's lack of support for `extern "C"`
+    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the 
+    #  closing bracket is the last line.  However, this may not make the parsing of 
+    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
+    #  subtle changes to the header.  
+    EXTERN_C_LINE_NUM=2
+    if vnr_state[EXTERN_C_LINE_NUM] == 'extern "C" { \n':
+        del vnr_state[EXTERN_C_LINE_NUM]
+        del vnr_state[-1]
+
 def extract_pre_defs_vnr():
-    #Grab xs3_math types
-    extract_xs3_math_vnr()
+    #Grab xcore_math types
+    extract_xcore_math_vnr()
 
     #Grab just vnr_feature_state related lines from the C pre-processed 
-    subprocess.call(f"gcc -E vnr_test.c -o vnr_test.i -I {lib_vnr_api_dir} -I {lib_vnr_defines_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir} -I {xs3_math_types_api_dir}".split())
+    subprocess.call(f"gcc -E vnr_test.c -o vnr_test.i -I {lib_vnr_api_dir} -I {lib_vnr_defines_dir} -I {lib_vnr_inference_api_dir} -I {lib_vnr_inference_model_dir} -I {lib_vnr_inference_src_dir} -I {xcore_math_types_api_dir}".split())
 
     with open("vnr_test.i") as pp:
         end_of_file = False

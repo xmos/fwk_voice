@@ -137,7 +137,7 @@ void aec_forward_fft(
     //This is done to avoid having to call bfp_s32_init() on the input every frame
     uint32_t len = input->length; 
     bfp_complex_s32_t *temp = bfp_fft_forward_mono(input);
-    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
+    temp->hr = bfp_complex_s32_headroom(temp); // TODO Workaround till https://github.com/xmos/lib_xcore_math/issues/96 is fixed
     
     memcpy(output, temp, sizeof(bfp_complex_s32_t));
     bfp_fft_unpack_mono(output);

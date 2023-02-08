@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // A single iteration of this test generates frames of random data and processes them with
@@ -27,7 +27,7 @@ void test_upper_threshold() {
     conf.lc_enabled = 0;
 
     // Set initial gain to a lower value to save time adapting
-    conf.gain = float_to_float_s32(1);
+    conf.gain = f32_to_float_s32(1);
 
     agc_meta_data_t md;
     md.vnr_flag = AGC_META_DATA_NO_VNR;

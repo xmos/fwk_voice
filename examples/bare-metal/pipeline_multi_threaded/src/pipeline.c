@@ -104,7 +104,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Initialise IC and VNR
     ic_state_t DWORD_ALIGNED ic_state;
     float_s32_t input_vnr_pred, output_vnr_pred;
-    float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
+    float_s32_t agc_vnr_threshold = f32_to_float_s32(VNR_AGC_THRESHOLD);
     ic_init(&ic_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];

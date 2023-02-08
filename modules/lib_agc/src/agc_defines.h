@@ -3,12 +3,12 @@
 #ifndef AGC_DEFINES_H
 #define AGC_DEFINES_H
 
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 
 // The input and output frame data format is Q1.31
 #define FRAME_EXP -31
 
-// Pre-calculated values to avoid the cycles of float_to_float_s32()
+// Pre-calculated values to avoid the cycles of f32_to_float_s32()
 #define FLOAT_S32_ZERO (float_s32_t){0, -31}
 #define FLOAT_S32_ONE (float_s32_t){1073741824, -30}
 

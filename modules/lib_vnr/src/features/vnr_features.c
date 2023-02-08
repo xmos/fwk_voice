@@ -33,7 +33,7 @@ void vnr_extract_features(vnr_feature_state_t *vnr_feature_state,
         int32_t feature_patch_data[VNR_PATCH_WIDTH * VNR_MEL_FILTERS],
         const bfp_complex_s32_t *X)
 {
-    fixed_s32_t new_slice[VNR_MEL_FILTERS];
+    uq8_24 new_slice[VNR_MEL_FILTERS];
     vnr_priv_make_slice(new_slice, X, vnr_feature_state->config.enable_highpass);
     vnr_priv_add_new_slice(vnr_feature_state->feature_buffers, new_slice);
     vnr_priv_normalise_patch(feature_patch, feature_patch_data, (const vnr_feature_state_t*)vnr_feature_state);
