@@ -6,7 +6,7 @@
 // Q30 coefficients for the 100 Hz high pass filter
 // coefficients were generated here:
 // https://github.com/xmos/lib_audio_pipelines/blob/develop/lib_audio_pipelines/src/dsp/ap_stage_c.xc#L26
-const uq2_30 hpf_coef_q30[TOTAL_NUM_COEFF] = {
+const q2_30 hpf_coef_q30[TOTAL_NUM_COEFF] = {
     1020035168, -2040070348, 1020035168, 2070720224, -998576072,
     1073741824, -2147483648, 1073741824, 2114066120, -1041955416
 };
