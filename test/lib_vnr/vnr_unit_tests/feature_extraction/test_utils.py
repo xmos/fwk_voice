@@ -45,7 +45,7 @@ def int32_to_double(x, exp):
     y = x.astype(np.float64) * (2.0 ** exp)
     return y
 
-def double_to_float_s32(d):
+def f64_to_float_s32(d):
     m,e = math.frexp(d)
     m_int = int(m * (2.0 ** 31))
     e = e-31

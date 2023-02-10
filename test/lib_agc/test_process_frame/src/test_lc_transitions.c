@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // Frames of random data are processed by an AGC instance, which has its meta-data set to
@@ -64,7 +64,7 @@ static void perform_transition(agc_state_t *agc, struct lc_test_params *params, 
     md.vnr_flag = AGC_META_DATA_NO_VNR;
 
     // Scale input frame by 0.5 to avoid AGC adaption upper threshold
-    float_s32_t scale = float_to_float_s32(0.5 * params->silence_scale);
+    float_s32_t scale = f32_to_float_s32(0.5 * params->silence_scale);
 
     for (unsigned frame = 0; frame < TRANSITION_FRAMES; ++frame) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
@@ -76,8 +76,8 @@ static void perform_transition(agc_state_t *agc, struct lc_test_params *params, 
 
         float_s32_t input_energy = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
 
-        md.aec_ref_power = float_s32_mul(input_energy, float_to_float_s32(params->power_scale));
-        md.aec_corr_factor = float_to_float_s32(params->correlation);
+        md.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(params->power_scale));
+        md.aec_corr_factor = f32_to_float_s32(params->correlation);
         agc_process_frame(agc, output, input, &md);
 
         // Return here if successfully transitioned to the expected state

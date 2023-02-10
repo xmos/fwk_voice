@@ -5,8 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "bfp_math.h"
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 
 //private AEC functions and defines
 

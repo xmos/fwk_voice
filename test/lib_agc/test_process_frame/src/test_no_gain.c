@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // In this test, the AGC is configured to use a fixed gain of 1, so no gain is expected to be
@@ -18,7 +18,7 @@ void test_no_gain() {
 
     agc_state_t agc;
     agc_config_t conf = AGC_PROFILE_FIXED_GAIN;
-    conf.gain = float_to_float_s32(1);
+    conf.gain = f32_to_float_s32(1);
     agc_init(&agc, &conf);
 
     agc_meta_data_t md;

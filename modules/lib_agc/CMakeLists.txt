@@ -20,7 +20,7 @@ target_compile_options(fwk_voice_module_lib_agc
 
 target_link_libraries(fwk_voice_module_lib_agc
     PUBLIC
-        core::xs3_math
+        lib_xcore_math
 )
 
 

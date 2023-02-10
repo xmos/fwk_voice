@@ -11,7 +11,7 @@
 #endif
 
 extern "C" {
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 void main_tile0(chanend, chanend);
 void main_tile1(chanend);
 }

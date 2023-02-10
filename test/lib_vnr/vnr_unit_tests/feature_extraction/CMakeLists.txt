@@ -71,7 +71,7 @@ foreach(testfile ${TEST_SOURCES})
 
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                core::xs3_math)
+                lib_xcore_math)
 
         target_link_libraries(${APP_NAME} PRIVATE "-lpthread")
         target_link_libraries(${APP_NAME} PRIVATE m)

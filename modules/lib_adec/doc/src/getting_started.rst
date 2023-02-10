@@ -6,7 +6,7 @@ Overview
 
 ``lib_adec`` is a library which provides functions for measuring and correcting delay offsets between the reference
 and loudpeaker signals.
-``lib_adec`` depends on ``lib_aec`` and ``lib_xs3_math`` libraries. For more details about the ADEC, refer to
+``lib_adec`` depends on ``lib_aec`` and ``lib_xcore_math`` libraries. For more details about the ADEC, refer to
 :ref:`adec_overview`
 
 Repository Structure

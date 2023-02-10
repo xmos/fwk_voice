@@ -8,7 +8,7 @@
 
 #include "fileio.h"
 #include "wav_utils.h"
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 #include "ic_defines.h"
 
 extern void test_init(int32_t adapt_conf, int32_t * H_data);

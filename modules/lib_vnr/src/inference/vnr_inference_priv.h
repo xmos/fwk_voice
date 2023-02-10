@@ -1,7 +1,7 @@
 #ifndef __VNR_INFERENCE_PRIV_H__
 #define __VNR_INFERENCE_PRIV_H__
 
-#include "bfp_math.h"
+#include "xmath/xmath.h"
 
 /** Quantisation spec used to quantise the VNR input features and dequantise the VNR output according to the specification for TensorFlow Lite's 8-bit quantization scheme
  * Quantisation: q = f/input_scale + input_zero_point

@@ -2,9 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #pragma once
 
-#include "xs3_math_conf.h"
-#include "xs3_api.h"
-#include "xs3_math_types.h"
+#include "xmath/xmath.h"
 
 
 /**

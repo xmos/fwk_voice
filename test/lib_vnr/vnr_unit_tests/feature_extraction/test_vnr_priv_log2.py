@@ -16,7 +16,7 @@ def test_vnr_priv_log2(target):
     input_words_per_frame = fp.MEL_FILTERS*2 # MEL_FILTERS float_s32_t values 
 
     # No. of int32 output values expected from dut per frame
-    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS fixed_s32_t values. Exponent fixed to -24
+    output_words_per_frame = fp.MEL_FILTERS # MEL_FILTERS uq8_24 values. Exponent fixed to -24
 
     input_data = np.empty(0, dtype=np.int32)
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))

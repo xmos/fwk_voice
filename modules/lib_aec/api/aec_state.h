@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "aec_defines.h"
-#include "bfp_math.h"
-#include "xs3_math.h"
+#include "xmath/xmath.h"
+
 
 /**
  * @page page_aec_state_h aec_state.h
@@ -116,7 +116,7 @@ typedef struct {
     /** coefficient index used to track H_hat index when sending H_hat values over the host control interface.*/
     uint32_t coeff_index;
     /** alpha used while calculating y_ema_energy, x_ema_energy and error_ema_energy.*/
-    fixed_s32_t ema_alpha_q30;
+    uq2_30 ema_alpha_q30;
 }aec_core_config_params_t;
 
 /**

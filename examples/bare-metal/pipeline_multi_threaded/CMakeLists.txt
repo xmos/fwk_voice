@@ -22,7 +22,7 @@ target_link_libraries(fwk_voice_example_pipeline_multi_thread_interface
         fwk_voice::example::delay_buffer
         fwk_voice::example::stage_1
         fwk_voice::example::fileutils
-        core::xs3_math
+        lib_xcore_math
         )
 
 target_compile_definitions(fwk_voice_example_pipeline_multi_thread_interface

@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    #include "bfp_math.h"
+    #include "xmath/xmath.h"
 
     /**
      * @brief Initialise the inference_engine object and load the VNR model into the inference engine.

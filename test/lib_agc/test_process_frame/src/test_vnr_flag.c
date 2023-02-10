@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // Take an input frame of random data and run it through two AGC instances: one always sets
@@ -23,8 +23,8 @@ void test_vnr_flag() {
     agc_state_t agc_vnr0;
     agc_config_t conf_vnr0 = AGC_PROFILE_COMMS;
     // Set the upper and lower threshold to one so that AGC adaption with VNR always gains
-    conf_vnr0.lower_threshold = float_to_float_s32(1);
-    conf_vnr0.upper_threshold = float_to_float_s32(1);
+    conf_vnr0.lower_threshold = f32_to_float_s32(1);
+    conf_vnr0.upper_threshold = f32_to_float_s32(1);
     conf_vnr0.lc_enabled = 0;
     agc_init(&agc_vnr0, &conf_vnr0);
 
@@ -36,8 +36,8 @@ void test_vnr_flag() {
     agc_state_t agc_vnr1;
     agc_config_t conf_vnr1 = AGC_PROFILE_COMMS;
     // Set the upper and lower threshold to one so that AGC adaption with VNR always gains
-    conf_vnr1.lower_threshold = float_to_float_s32(1);
-    conf_vnr1.upper_threshold = float_to_float_s32(1);
+    conf_vnr1.lower_threshold = f32_to_float_s32(1);
+    conf_vnr1.upper_threshold = f32_to_float_s32(1);
     conf_vnr1.lc_enabled = 0;
     agc_init(&agc_vnr1, &conf_vnr1);
 
@@ -47,7 +47,7 @@ void test_vnr_flag() {
     md_vnr1.aec_corr_factor = AGC_META_DATA_NO_AEC;
 
     // Scale the input to allow room to apply the max gain
-    float_s32_t scale = float_s32_div(float_to_float_s32(1), conf_vnr0.max_gain);
+    float_s32_t scale = float_s32_div(f32_to_float_s32(1), conf_vnr0.max_gain);
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
