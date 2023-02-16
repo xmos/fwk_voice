@@ -5,4 +5,4 @@ NS API Structure Definitions
 
 .. doxygengroup:: ns_defs
     :members:
-    :content-only:
+    

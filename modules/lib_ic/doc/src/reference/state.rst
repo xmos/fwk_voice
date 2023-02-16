@@ -5,4 +5,4 @@
 
  .. doxygengroup:: ic_state
      :members:
-     :content-only:
+     
