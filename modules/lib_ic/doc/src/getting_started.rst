@@ -7,7 +7,7 @@ Overview
 ``lib_ic`` is a library which provides functions that together perform Interference Cancellation (IC)
 on two channel input mic data by adapting to and modelling the room transfer characteristics. ``lib_ic`` library functions
 make use of functionality provided in ``lib_aec`` for the core normalised LMS blocks which in turn uses
-``lib_xcore_math`` to perform DSP low-level optimised operations. For more details refer toc :ref:`ic_overview`.
+``lib_xcore_math`` to perform DSP low-level optimised operations. For more details refer to :ref:`ic_overview`.
 
 Repository Structure
 --------------------

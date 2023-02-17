@@ -133,7 +133,7 @@ typedef struct {
     /** Adaption counter which counts number of frames has been adapted. */
     uint32_t adapt_counter;
 
-    /** Flag that represents the state ao the filter. */
+    /** Flag that represents the state of the filter. */
     control_flag_e control_flag;
 
     /** Configuration parameters for the adaption controller. */

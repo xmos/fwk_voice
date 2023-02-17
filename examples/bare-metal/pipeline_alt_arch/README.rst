@@ -17,7 +17,7 @@ output is ignored and the mic input is directly sent to output. Once the new del
 applied, the AEC gets configured back to its original configuration and starts adapting and cancellation.
 This example supports a maximum of 150ms of delay correction, in either direction, between the reference and microphone input.
 
-In the absense of activity on the reference channels, when the AEC is disabled, the mic input is copied directly to the output of the AEC.
+In the absence of activity on the reference channels, when the AEC is disabled, the mic input is copied directly to the output of the AEC.
 
 When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output one channel of interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
@@ -64,7 +64,7 @@ To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_
 Running
 *******
 
-To run the multi-threaded application run these comands from the fwk_voice/build folder:
+To run the multi-threaded application run these commands from the fwk_voice/build folder:
 
 .. tab:: Linux and Mac
 

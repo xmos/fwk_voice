@@ -16,7 +16,7 @@
 
 /** @brief Maximum number of microphone input channels supported in the library.
  * Microphone input to the AEC refers to the input from the device's microphones from which AEC removes the echo
- * created in the room by the device's loudpeakers.
+ * created in the room by the device's loudspeakers.
  *
  * AEC functions follow the convention of using @math{y} and @math{Y} for referring to time domain and frequency domain
  * representation of microphone input.
