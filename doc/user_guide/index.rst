@@ -7,6 +7,6 @@ The Voice Framework Design Guide is written for system architects and engineers 
 It is expected that this document is read in conjunction with the relevant datasheet and that the user is familiar with basic voice processing terminology.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    audio_processing/index

@@ -60,7 +60,7 @@ procedure is currently supported on MacOS and Linux only.
 
       .. code-block:: console
 
-      nmake fwk_voice_example_bare_metal_aec_1_thread
+         nmake fwk_voice_example_bare_metal_aec_1_thread
 
 #. Install dependencies
 
@@ -79,6 +79,10 @@ procedure is currently supported on MacOS and Linux only.
          cmake -G "NMake Makefiles" .
          nmake
          cd ../../../
+
+.. raw:: latex
+
+    \newpage
 
 #. Run the single-threaded AEC example
 
