@@ -88,7 +88,7 @@ To run the multi-threaded application run these commands from the fwk_voice/buil
 To run the single-threaded application use fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe as an executable for the python script.
 
 Output
-------
+******
 
 The output file output.wav is generated in the `fwk_voice/examples/bare-metal/pipeline_alt_arch` directory. The
 input file input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the

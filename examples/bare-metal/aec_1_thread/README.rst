@@ -55,7 +55,7 @@ From the fwk_voice/build folder run:
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
 Output
-------
+******
 
 The output file output.wav is generated in the `fwk_voice/examples/bare-metal/aec_1_thread` directory. The input file
 input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the echo cancelled
