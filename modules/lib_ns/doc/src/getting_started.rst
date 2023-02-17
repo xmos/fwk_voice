@@ -1,16 +1,5 @@
-Getting Started
-===============
-
-Overview
---------
-
-``lib_ns`` is a library which performs Noise Suppression (NS), by estimating the noise and 
-subtracting it from frame. ``lib_ns`` library functions make use of functionality 
-provided in ``lib_xcore_math`` to perform DSP operations. For more details, refer to :ref:`ns_overview`.
-
-
 Repository Structure
---------------------
+********************
 
 * ``modules/lib_ns`` - The actual ``lib_ns`` library directory within ``https://github.com/xmos/fwk_voice/``.
   Within ``lib_ns``
@@ -21,7 +10,7 @@ Repository Structure
 
 
 Requirements
-------------
+************
 
 ``lib_ns`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning
 and building ``fwk_voice`` apply. ``lib_ns`` is compiled as a static library as part of the overall
@@ -29,7 +18,7 @@ and building ``fwk_voice`` apply. ``lib_ns`` is compiled as a static library as 
 
 
 Getting and Building
---------------------
+********************
 
 This module is part of the parent ``fwk_voice`` repo clone. It is compiled as a static library as part of
 ``fwk_voice`` compilation process.
