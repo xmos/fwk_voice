@@ -25,5 +25,5 @@ On GitHub
 Indices and tables
 ******************
 
-* :ref:`genindex`
-* :ref:`search`
+* `genindex`_
+* `search`_
