@@ -21,9 +21,3 @@ On GitHub
 ``lib_vnr`` is present as part of ``fwk_voice``. Get the latest version of ``fwk_voice`` from
 ``https://github.com/xmos/fwk_voice``. The ``lib_vnr`` module can be found in the `modules/lib_vnr` directory in ``fwk_voice``.
 
-
-Indices and tables
-******************
-
-* `genindex`_
-* `search`_

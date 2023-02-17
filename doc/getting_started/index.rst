@@ -91,4 +91,4 @@ procedure is currently supported on MacOS and Linux only.
       cd ../examples/bare-metal/aec_1_thread
       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
-   See `Example Applications`_ section in User Guide for full details about the example applications
+   See ``Example Applications`` section in the User Guide for full details about the examples.

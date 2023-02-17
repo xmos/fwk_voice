@@ -25,11 +25,3 @@ API
 
 To use the functions in this library in an application, include :ref:`adec_api_h` in the application source file
 
-Indices and tables
-******************
-
-* :ref:`genindex`
-* :ref:`search`
-
-
-
