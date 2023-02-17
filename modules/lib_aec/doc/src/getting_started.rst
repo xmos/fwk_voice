@@ -43,7 +43,7 @@ details about the fields within the state modified when calling a given function
 Low level API has more input arguments but allows more freedom for running in parallel across multiple threads. Low
 level API function names begin with a ``aec_l2_`` prefix. 
 Depending on the low level API used, functions can be run in parallel to work over a range of bins or a range of phases.
-This API is still a work in progess and will be fully supported in the future.
+This API is still a work in progress and will be fully supported in the future.
 
 Getting and Building
 ####################

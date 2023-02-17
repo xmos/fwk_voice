@@ -80,15 +80,15 @@ procedure is currently supported on MacOS and Linux only.
          nmake
          cd ../../../
 
-.. raw:: latex
+.. raw:: pdf
 
-    \newpage
+   PageBreak oneColumn
 
-#. Run the single-threaded AEC example
+6. Run the single-threaded AEC example
 
    .. code-block:: console
 
       cd ../examples/bare-metal/aec_1_thread
       python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
-   See :ref:`examples` for full details about the example applications.
+   See :ref:`examples` section in User Guide for full details about the example applications.
