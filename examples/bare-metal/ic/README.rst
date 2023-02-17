@@ -2,7 +2,6 @@
 ic
 ===============
 
-
 This example demonstrates how the IC functions are called to process data through the IC stage of a voice pipeline.
 
 A 32-bit, 2 channel wav file input.wav is read and processed through the IC stage frame by frame. The input file consists of 2 channels of
