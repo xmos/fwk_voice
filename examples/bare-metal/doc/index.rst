@@ -27,8 +27,8 @@ build step has been completed prior to this.
 
 
 .. toctree::
-   :maxdepth: 1
-   
+   :maxdepth: 3
+
    aec_1_thread
    aec_2_threads
    vnr

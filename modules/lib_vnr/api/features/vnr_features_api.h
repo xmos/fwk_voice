@@ -76,7 +76,7 @@ void vnr_feature_state_init(vnr_feature_state_t *feature_state);
  * structure and feature_patch_data memory provided by the user. The feature output from this function are passed as input to the VNR inference engine.
  *
  * @param[inout] vnr_feature_state Pointer to the VNR feature extraction state structure
- * @param[out] feature_patch Pointer to the bfp_s32_t structure allocated by the user. The user doesn't need to initialise this BFP strcuture
+ * @param[out] feature_patch Pointer to the bfp_s32_t structure allocated by the user. The user doesn't need to initialise this BFP structure
  *             before passing it to this function. After this function call feature_patch will be updated and will point to the extracted features.
  *             It can then be passed to the inference stage.
  * @param[out] feature_patch_data Pointer to the VNR_PATCH_WIDTH * VNR_MEL_FILTERS int32_t values allocated by the user. The extracted features will be written

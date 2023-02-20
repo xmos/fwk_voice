@@ -1,6 +1,6 @@
 
 pipeline_alt_arch
-==================
+=================
 
 This example demonstrates how the audio processing stages are put together in an alternate implementation of the pipeline, which is different from sequentially calling the stages one after the other. In this pipeline form, the AEC and the IC frame processing are selectively enabled and disabled based on the presence of reference input signal. Acoustic Echo Cancellation is performed only if activity is detected on the reference input channels and disabled otherwise. Interference Cancellation is performed only when AEC is disabled so in the absence of reference channel activity and disabled otherwise.
 
@@ -17,7 +17,7 @@ output is ignored and the mic input is directly sent to output. Once the new del
 applied, the AEC gets configured back to its original configuration and starts adapting and cancellation.
 This example supports a maximum of 150ms of delay correction, in either direction, between the reference and microphone input.
 
-In the absense of activity on the reference channels, when the AEC is disabled, the mic input is copied directly to the output of the AEC.
+In the absence of activity on the reference channels, when the AEC is disabled, the mic input is copied directly to the output of the AEC.
 
 When enabled, the IC processes the two channel input. It will use the second channel as the reference to the first to output one channel of interference cancelled output.
 In this manner, it tries to cancel the room noise. However, to avoid cancelling the wanted signal, it only adapts in the absence of voice.
@@ -64,7 +64,7 @@ To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_
 Running
 *******
 
-To run the multi-threaded application run these comands from the fwk_voice/build folder:
+To run the multi-threaded application run these commands from the fwk_voice/build folder:
 
 .. tab:: Linux and Mac
 
@@ -88,7 +88,7 @@ To run the multi-threaded application run these comands from the fwk_voice/build
 To run the single-threaded application use fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe as an executable for the python script.
 
 Output
-------
+******
 
 The output file output.wav is generated in the `fwk_voice/examples/bare-metal/pipeline_alt_arch` directory. The
 input file input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the

@@ -137,8 +137,8 @@ typedef struct {
     int32_t gated_milliseconds_since_mode_change; ///< milliseconds elapsed since a delay change was last requested. Used to ensure that delay corrections are not requested too early without allowing enough time for aec filter to converge.
     int32_t last_measured_delay; ///< Last measured delay 
     int32_t peak_power_history_idx; ///< index storing the head of the peak_power_history circular buffer
-    int32_t peak_power_history_valid; ///< Flag indicating whether the peak_power_history buffer has been filled atleast once.
-    int32_t sf_copy_flag; ///< Flag indicating if shadow to main filter copy has happened atleast once in the AEC
+    int32_t peak_power_history_valid; ///< Flag indicating whether the peak_power_history buffer has been filled at least once.
+    int32_t sf_copy_flag; ///< Flag indicating if shadow to main filter copy has happened at least once in the AEC
     int32_t convergence_counter; ///< Counter indicating number of frames the AEC shadow filter has been attempting to converge.
     int32_t shadow_flag_counter; ///< Counter indicating number of frame the AEC shadow filter has been better than the main filter.
     adec_config_t adec_config; ///< ADEC configuration parameters structure. Can be modified by application at run-time to reconfigure ADEC.

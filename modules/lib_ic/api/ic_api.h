@@ -75,7 +75,7 @@ void ic_calc_vnr_pred(ic_state_t *state,
  * @brief Adapts the IC filter according to previous frame's statistics and VNR input
  *
  * This function should be called after each call to ic_filter.
- * Filter and adapt functions are seprated so that the external VNR can operate
+ * Filter and adapt functions are separated so that the external VNR can operate
  * on each frame.
  *
  * @param[inout] state pointer to IC state structure

@@ -1,11 +1,10 @@
 
 ic
-===============
-
+==
 
 This example demonstrates how the IC functions are called to process data through the IC stage of a voice pipeline.
 
-A 32-bit, 2 channel wav file input.wav is read and processed through the IC stage frame by frame. The input file consistes of 2 channels of
+A 32-bit, 2 channel wav file input.wav is read and processed through the IC stage frame by frame. The input file consists of 2 channels of
 mic input consisting of a `Alexa` utterances with a point noise source consisting of pop music. The signal and noise sources in input.wav
 come from different spatial locations.
 
@@ -59,9 +58,9 @@ From the fwk_voice/build folder run:
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe
 
 Output
-------
+******
 
-The output file output.wav is generated in the `fwk_voice/examples/bare-metal/ic` directory. When viewing output.wav in a visual audio tool, such as Audacity, you can see a stark differnce between the channels emitted. Channel 0 is the IC output and is suitable for increasing the SNR in automatic speech recognition (ASR) applications. Channel 1 is the `simple beamformed` (average of mic 0 and mic 1 inputs) which may be preferable in comms (human to human) applications. The logic for channel 1 is contained in the ``ic_test_task.c`` file and is not part of the IC library.s
+The output file output.wav is generated in the `fwk_voice/examples/bare-metal/ic` directory. When viewing output.wav in a visual audio tool, such as Audacity, you can see a stark difference between the channels emitted. Channel 0 is the IC output and is suitable for increasing the SNR in automatic speech recognition (ASR) applications. Channel 1 is the `simple beamformed` (average of mic 0 and mic 1 inputs) which may be preferable in comms (human to human) applications. The logic for channel 1 is contained in the ``ic_test_task.c`` file and is not part of the IC library.s
 
 .. image:: ic_output.png
     :alt: Comparision between the IC output and simple beamformed output

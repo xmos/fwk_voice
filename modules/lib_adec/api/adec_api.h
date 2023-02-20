@@ -67,7 +67,7 @@ void adec_process_frame(
  * This function measures the microphone signal delay wrt the reference signal. It does so by
  * looking for the phase with the peak energy among all AEC filter phases and uses the peak energy phase index
  * as the estimate of the microphone delay. Along with the measured delay, it also outputs information
- * about the peak phase energy that can then be used to guage the AEC filter convergence and the reliability of the
+ * about the peak phase energy that can then be used to gauge the AEC filter convergence and the reliability of the
  * measured delay.
  *
  * @param[out] de_state Delay estimator output structure

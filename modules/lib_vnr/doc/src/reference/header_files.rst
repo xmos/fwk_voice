@@ -12,7 +12,7 @@
   
 
 `vnr_inference_api.h`
---------------------
+---------------------
 
 .. doxygenpage:: page_vnr_inference_api_h
   

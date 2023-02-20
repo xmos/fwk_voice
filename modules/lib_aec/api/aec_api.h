@@ -44,7 +44,7 @@
  *
  * main_mem_pool and shadow_mem_pool must point to memory buffers big enough to support main and shadow filter
  * processing.  AEC state aec_state_t and shared state aec_shared_state_t structures contain only the BFP data
- * strctures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
+ * structures used in the AEC. The memory these BFP structures will point to needs to be provided by the user in the
  * memory pool main and shadow filters memory pool. An example memory pool structure is present in aec_memory_pool_t and
  * aec_shadow_filt_memory_pool_t.
  *
@@ -244,7 +244,7 @@ void aec_calc_Error_and_Y_hat(
  * @brief Calculate coherence
  *
  * This function calculates the average coherence between mic input signal (`y`) and estimated mic signal (`y_hat`).
- * A metric is calcuated using `y` and `y_hat` and the moving average (`coh`) and a slow moving average (`coh_slow`) of that metric is calculated.
+ * A metric is calculated using `y` and `y_hat` and the moving average (`coh`) and a slow moving average (`coh_slow`) of that metric is calculated.
  * The coherence values are used to distinguish between situations when filter adaption should continue or freeze and update mu accordingly.
  *
  * @param[inout] state AEC state structure. `state->shared_state->coh_mu_state[ch].coh` and `state->shared_state->coh_mu_state[ch].coh_slow` are updated
@@ -275,12 +275,12 @@ void aec_calc_output(
         unsigned ch);
 
 /**
- * @brief Calculate normalisation specturm
+ * @brief Calculate normalisation spectrum
  *
  * This function calculates the normalisation spectrum of the reference input signal. This normalised spectrum is later used during filter adaption to scale the adaption to the size of the input signal.
  * The normalisation spectrum is calculated as a time and frequency smoothed energy of the reference input spectrum.
  *
- * The normalisation spectrum is calculated differetly for main and shadow filter, so a flag indicating whether this calculation is being done for the main or shadow filter is passed as an input to the function
+ * The normalisation spectrum is calculated differently for main and shadow filter, so a flag indicating whether this calculation is being done for the main or shadow filter is passed as an input to the function
  *
  * @param[inout] state AEC state structure. state->inv_X_energy[ch] is updated
  * @param[in] ch reference channel index for which to calculate normalisation spectrum
@@ -296,8 +296,8 @@ void aec_calc_normalisation_spectrum(
 /**
  * @brief Compare and update filters. Calculate the adaption step size mu.
  *
- * This function has 2 reponsibilities. 
- * First, it compares the energies in the error spectrums of the main and shadow filter with each other and with the mic input spectum energy, and makes an estimate of how well the filters are performing. Based on this, it optionally modifies the filters by either resetting the filter coefficients or copying one filter into another.
+ * This function has 2 responsibilities. 
+ * First, it compares the energies in the error spectrums of the main and shadow filter with each other and with the mic input spectrum energy, and makes an estimate of how well the filters are performing. Based on this, it optionally modifies the filters by either resetting the filter coefficients or copying one filter into another.
  * Second, it uses the coherence values calculated in aec_calc_coherence as well as information from filter comparison done in step 1 to calculate the adaption step size mu.
  *
  * @param[inout] main_state AEC state structure for the main filter
@@ -329,7 +329,7 @@ void aec_calc_T(
 /** @brief Update filter
  *
  * This function updates the adaptive filter spectrum (`H_hat'). It calculates the delta update that is applied to the filter by scaling the X FIFO with the T values computed in `aec_compute_T()` and applies the delta update to `H_hat`.
- * A gradient contraint FFT is then applied to constrain the length of each phase of the filter to avoid wrapping when calculating `y_hat`
+ * A gradient constraint FFT is then applied to constrain the length of each phase of the filter to avoid wrapping when calculating `y_hat`
  *
  * @param[inout] state AEC state structure. `state->H_hat[y_ch]` is updated
  * @param[in] y_ch mic channel index
@@ -357,7 +357,7 @@ void aec_update_X_fifo_1d(
 
 /** @brief Calculate a correlation metric between the microphone input and estimated microphone signal
  *
- * This function calculates a metric of resemblence between the mic input and the estimated mic signal. The correlation
+ * This function calculates a metric of resemblance between the mic input and the estimated mic signal. The correlation
  * metric, along with reference signal energy is used to infer presence of near and far end signals in the AEC mic
  * input.
  *

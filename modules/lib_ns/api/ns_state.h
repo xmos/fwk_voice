@@ -43,7 +43,7 @@
  */
 #define NS_INT_EXP (-31)
 
-/** The length of the window applyed in time domain
+/** The length of the window applied in time domain
  * 
  * @ingroup ns_defs
  */
@@ -64,7 +64,7 @@ typedef struct {
     //Dynamic MCRA filter coefficients
     /** BFP structure to hold the local energy. */
     bfp_s32_t S;
-    /** BFP structure to hold the minimun local energy whithin 10 frames. */
+    /** BFP structure to hold the minimum local energy within 10 frames. */
     bfp_s32_t S_min;
     /** BFP structure to hold the temporary local energy. */
     bfp_s32_t S_tmp;
@@ -72,7 +72,7 @@ typedef struct {
     bfp_s32_t p;
     /** BFP structure to hold the time-varying smoothing parameter. */
     bfp_s32_t alpha_d_tilde;
-    /** BFP structure to hold the noise estimanion. */
+    /** BFP structure to hold the noise estimation. */
     bfp_s32_t lambda_hat;
 
     /** int32_t array to hold the data for S. */
@@ -113,7 +113,7 @@ typedef struct {
     float_s32_t alpha_d;
     /** EWMA of the smoothing parameter for S. */
     float_s32_t alpha_s;
-    /** EWMA of the smoohting parameter for p. */
+    /** EWMA of the smoothing parameter for p. */
     float_s32_t alpha_p;
     /** EWMA of the 1 - alpha_d parameter. */
     float_s32_t one_minus_aplha_d;

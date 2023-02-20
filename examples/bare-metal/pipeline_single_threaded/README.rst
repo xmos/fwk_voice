@@ -1,6 +1,6 @@
 
 pipeline_single_threaded
-=====================================
+========================
 
 This example demonstrates how the audio processing stages are put together in a pipeline
 
