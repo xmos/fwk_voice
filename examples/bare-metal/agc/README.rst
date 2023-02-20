@@ -1,6 +1,6 @@
 
 agc
-================
+===
 
 This example demonstrates how AGC functions are called on a single thread to process data through the AGC stage of
 a pipeline. A single AGC instance is run using the profile that is tuned for communication with a human listener.

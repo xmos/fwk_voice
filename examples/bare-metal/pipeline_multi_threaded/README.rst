@@ -1,6 +1,6 @@
 
 pipeline_multi_threaded
-=====================================
+=======================
 
 This example demonstrates how the audio processing stages are put together in a pipeline where stages are run in
 parallel on separate hardware threads.

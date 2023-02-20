@@ -16,8 +16,8 @@ Requirements
 
 ``lib_vnr`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning and building ``fwk_voice`` apply. It depends on ``lib_xcore_math``, ``lib_tflite_micro`` and ``lib_nn``. 
 
-API
-***
+API Structure
+*************
 
 The API is split into 2 parts; feature extraction and inference. The feature extraction API processes an input audio frame to extract features that are input to the inference stage. The inference API has functions for running inference using the VNR TensorFlow Lite model to predict the speech to noise ratio. Both feature extraction and inference APIs have initialisation functions that are called only once at device initialisation and processing functions that are called every frame.  
 The performance requirement is relative low, around 5 MIPS for initialisation and 3 MIPS for processing, and as such is supplied as a single threaded implementation only.

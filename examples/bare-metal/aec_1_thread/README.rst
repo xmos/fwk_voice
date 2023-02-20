@@ -1,6 +1,6 @@
 
 aec_1_thread
-=========================
+============
 
 This example demonstrates how AEC functions are called on a single thread to process data through the AEC stage of a pipeline.
 

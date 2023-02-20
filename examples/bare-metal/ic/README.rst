@@ -1,6 +1,6 @@
 
 ic
-===============
+==
 
 This example demonstrates how the IC functions are called to process data through the IC stage of a voice pipeline.
 

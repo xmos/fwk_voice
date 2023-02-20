@@ -1,6 +1,6 @@
 
 aec_2_threads
-==========================
+=============
 
 This example demonstrates how AEC functions are called on 2 threads to process data through the AEC stage of a pipeline.
 
