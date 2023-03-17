@@ -1,9 +1,16 @@
 XMOS Voice Framework Change Log
 ===============================
 
+0.6.0
+-----
+
+  * CHANGED: Improved documentation style
+  * CHANGED: Replace lib_xs3_math with the lib_xcore_math v2.1.1
+  * CHANGED: Integrate new version of lib_tflite_micro in VNR module
+
 0.5.1
 -----
-  
+
   * ADDED: Windows documentation
   * REMOVED: VAD module
   * CHANGED: Git hash at which lib_tflite_micro is fetched during CMake FetchContent
