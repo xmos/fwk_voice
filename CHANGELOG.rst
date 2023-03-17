@@ -8,7 +8,7 @@ XMOS Voice Framework Change Log
   * CHANGED: Improved documentation style
   * REMOVED: VAD module
   * CHANGED: Replace lib_xs3_math with the lib_xcore_math v2.1.1
-  * CHANGED: Integrate latest version of tflite-micro library in VNR module
+  * CHANGED: Integrate latest version of lib_tflite_micro in VNR module
 
 0.5.0
 -----
