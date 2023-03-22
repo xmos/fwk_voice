@@ -62,7 +62,7 @@ typedef struct {
     /** Down scaling factor for X energy for used for normalisation. */
     uint32_t sigma_xx_shift;
     /** Alpha used for calculating error_ema_energy in adapt. */
-    fixed_s32_t ema_alpha_q30;
+    q2_30 ema_alpha_q30;
     /** Delta value used in denominator to avoid large values when calculating inverse
      * X energy. */
     float_s32_t delta;
@@ -83,7 +83,7 @@ typedef struct {
 typedef struct {
 
     /** Alpha for EMA input/output energy calculation. */
-    fixed_s32_t energy_alpha_q30;
+    q2_30 energy_alpha_q30;
 
     /** Fast ratio threshold to detect instability. */
     float_s32_t fast_ratio_threshold;
@@ -133,13 +133,20 @@ typedef struct {
     /** Adaption counter which counts number of frames has been adapted. */
     uint32_t adapt_counter;
 
-    /** Flag that represents the state ao the filter. */
+    /** Flag that represents the state of the filter. */
     control_flag_e control_flag;
 
     /** Configuration parameters for the adaption controller. */
     ic_adaption_controller_config_t adaption_controller_config;
 } ic_adaption_controller_state_t;
 
+// Struct to keep VNR predictions and the EMA alpha
+typedef struct {
+    vnr_feature_state_t feature_state[2];
+    float_s32_t input_vnr_pred;
+    float_s32_t output_vnr_pred;
+    q2_30 pred_alpha_q30;
+}vnr_pred_state_t;
 
 /**
  * @brief IC state structure
@@ -249,6 +256,8 @@ typedef struct {
     ic_config_params_t config_params;
     /** State and configuration parameters for the IC adaption controller. */
     ic_adaption_controller_state_t ic_adaption_controller_state;
+    /** Input and Output VNR Prediction related state*/
+    vnr_pred_state_t vnr_pred_state;
 } ic_state_t;
 
 #endif

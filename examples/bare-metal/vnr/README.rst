@@ -24,9 +24,8 @@ Alternatively, to not have the VNR output plot displayed on the screen, run,
 
     python host_app.py test_stream_1.wav vnr_out.bin --run-with-xscope-fileio
 
-
 Output
-------
+******
 
 The output from the VNR is written into the *vnr_out.bin* file. For every frame, VNR outputs its estimate in the form of a floating point value between 0 and 1. The floating point value is written as a 32bit mantissa, followed by a 32bit exponent in the vnr_out.bin file.
 Additionally, these estimates are plotted, with the plot displayed on screen when run with the ``--show-plot`` argument. Irrespective of whether on not ``--show-plot`` is used as an option, the plotted figure is saved in the *vnr_example_plot_test_stream_1.png* file.

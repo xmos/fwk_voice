@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include "bfp_math.h"
+#include "xmath/xmath.h"
+#include "vnr_features_api.h"
+#include "vnr_inference_api.h"
 
 /**
  * @page page_ic_defines_h ic_defines.h
@@ -37,7 +39,7 @@
  * filter length. Hence a 10 phase filter will allow cancellation of noise sources with
  * up to 150ms of echo tail length. There is a tradeoff between adaption speed and 
  * maximum cancellation of the filter; increasing the number of phases will increase
- * the maximum cancellation at the cost of increasesed xCORE resource usage and slower
+ * the maximum cancellation at the cost of increased xCORE resource usage and slower
  * adaption times.
  * @ingroup ic_defines */
 #define IC_FILTER_PHASES                            10 // two_mic_stereo.json
@@ -84,6 +86,16 @@
 /** VNR low threshold to adapt faster when the speech level is low.
  * @ingroup ic_defines*/
 #define IC_INIT_INPUT_VNR_THRESHOLD_LOW             0 // From python model
+
+/** Alpha for EMA VNR prediction calculation.
+ * @ingroup ic_defines */
+#define IC_INIT_VNR_PRED_ALPHA			    0.97 // From python model
+/** Initial value for the input VNR prediction.
+ * @ingroup ic_defines */
+#define IC_INIT_INPUT_VNR_PRED			    0.5 // From python model
+/** Initial value for the output VNR prediction.
+ * @ingroup ic_defines */
+#define IC_INIT_OUTPUT_VNR_PRED                      0.5 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////

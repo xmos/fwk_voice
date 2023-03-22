@@ -4,6 +4,7 @@
 # Build cruft
 **/build*/
 **/_build*/
+**/_templates*/
 **/bin*/
 **/dist*/
 **/fatfs_mkimage

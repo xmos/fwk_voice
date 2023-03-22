@@ -5,4 +5,4 @@ ADEC Data Structure and Enum definitions
 
 .. doxygengroup:: adec_types
     :members:
-    :content-only:
+    

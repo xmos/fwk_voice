@@ -37,7 +37,7 @@ foreach(testfile ${TEST_SOURCES})
     if (${testfile} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src/test_vnr_extract_features.c )
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                fwk_voice_module_lib_vnr_inference_only_for_testing # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
+                fwk_voice::vnr::inference # test_vnr_extract_features also compares quantised output as an extra step so need to link inference
                 )
     endif()
 
@@ -71,7 +71,7 @@ foreach(testfile ${TEST_SOURCES})
 
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                core::xs3_math)
+                lib_xcore_math)
 
         target_link_libraries(${APP_NAME} PRIVATE "-lpthread")
         target_link_libraries(${APP_NAME} PRIVATE m)

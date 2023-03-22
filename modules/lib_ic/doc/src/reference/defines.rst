@@ -5,4 +5,4 @@
 
  .. doxygengroup:: ic_defines
      :members:
-     :content-only:
+     

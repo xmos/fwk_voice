@@ -47,7 +47,7 @@ void pipeline_init(pipeline_state_t *state, aec_conf_t *de_conf, aec_conf_t *non
     prof(0, "start_pipeline_init"); //Start profiling after memset since the pipeline components do the memset as part of their init functions.
     state->delay_estimator_enabled = 0;
     state->adec_requested_delay_samples = 0;
-    state->ref_active_threshold =  double_to_float_s32(pow(10, -60/20.0));
+    state->ref_active_threshold =  f64_to_float_s32(pow(10, -60/20.0));
 
     // Initialise default delay values
     delay_buffer_init(&state->delay_state, 0/*Initialise with 0 delay_samples*/);

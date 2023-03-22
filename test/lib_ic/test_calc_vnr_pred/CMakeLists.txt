@@ -19,7 +19,6 @@ foreach(testfile ${TEST_SOURCES})
     target_link_libraries(${APP_NAME} 
         PUBLIC
             fwk_voice::ic
-            fwk_voice_calc_vnr_pred_only_for_testing
             fwk_voice::example::fileutils)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
@@ -45,7 +44,7 @@ foreach(testfile ${TEST_SOURCES})
 
         target_link_libraries(${APP_NAME} 
             PUBLIC
-                core::xs3_math)
+                lib_xcore_math)
 
         target_link_libraries(${APP_NAME} PRIVATE "-lpthread")
         target_link_libraries(${APP_NAME} PRIVATE m)

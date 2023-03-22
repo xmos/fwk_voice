@@ -1,16 +1,5 @@
-Getting Started
-===============
-
-Overview
---------
-
-``lib_adec`` is a library which provides functions for measuring and correcting delay offsets between the reference
-and loudpeaker signals.
-``lib_adec`` depends on ``lib_aec`` and ``lib_xs3_math`` libraries. For more details about the ADEC, refer to
-:ref:`adec_overview`
-
 Repository Structure
---------------------
+********************
 
 * ``modules/lib_adec`` - The actual ``lib_adec`` library directory within ``https://github.com/xmos/fwk_voice/``. Within ``lib_adec``
 
@@ -19,7 +8,7 @@ Repository Structure
   * ``src/`` - Library source code.
 
 Getting and Building
---------------------
+********************
 
 ``lib_adec`` is included as part of the ``fwk_voice`` github repository
 and all requirements for cloning and building ``fwk_voice`` apply. ``lib_adec`` is compiled as a static library as part of

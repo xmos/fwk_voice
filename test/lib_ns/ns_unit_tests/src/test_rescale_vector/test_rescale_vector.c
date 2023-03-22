@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <math.h>
 
 #include <ns_api.h>
@@ -92,8 +92,8 @@ TEST(ns_priv_rescale_vector, case0){
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
             int32_t d_r, d_i, re_int, im_int;
 
-            ex_re_fl = double_to_float_s32(expected[2 * v]);
-            ex_im_fl = double_to_float_s32(expected[(2 * v) + 1]);
+            ex_re_fl = f64_to_float_s32(expected[2 * v]);
+            ex_im_fl = f64_to_float_s32(expected[(2 * v) + 1]);
 
             re_int = use_exp_float(ex_re_fl, Y.exp);
             im_int = use_exp_float(ex_im_fl, Y.exp);

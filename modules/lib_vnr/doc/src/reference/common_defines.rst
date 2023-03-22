@@ -5,4 +5,4 @@
 
  .. doxygengroup:: vnr_defines
      :members:
-     :content-only:
+     

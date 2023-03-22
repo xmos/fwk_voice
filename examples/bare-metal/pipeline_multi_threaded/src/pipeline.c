@@ -16,7 +16,6 @@
 #include "ic_api.h"
 #include "ns_api.h"
 #include "agc_api.h"
-#include "calc_vnr_pred.h"
 
 #define VNR_AGC_THRESHOLD (0.5)
 #define PRINT_VNR_PREDICTION (0)
@@ -104,10 +103,9 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
     // Initialise IC and VNR
     ic_state_t DWORD_ALIGNED ic_state;
-    vnr_pred_state_t DWORD_ALIGNED vnr_pred_state; 
-    float_s32_t agc_vnr_threshold = float_to_float_s32(VNR_AGC_THRESHOLD);
+    float_s32_t input_vnr_pred, output_vnr_pred;
+    float_s32_t agc_vnr_threshold = f32_to_float_s32(VNR_AGC_THRESHOLD);
     ic_init(&ic_state);
-    init_vnr_pred_state(&vnr_pred_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
@@ -133,18 +131,18 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Calculating the ASR channel
         ic_filter(&ic_state, frame[0], frame[1], frame[0]);
         // VNR
-        calc_vnr_pred(&vnr_pred_state, &ic_state.Y_bfp[0], &ic_state.Error_bfp[0]);
+        ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
 #if PRINT_VNR_PREDICTION 
-        printf("VNR OUTPUT PRED: %ld %d\n", vnr_pred_state.output_vnr_pred.mant, vnr_pred_state.output_vnr_pred.exp);
-        printf("VNR INPUT PRED: %ld %d\n", vnr_pred_state.input_vnr_pred.mant, vnr_pred_state.input_vnr_pred.exp);
+        printf("VNR OUTPUT PRED: %ld %d\n", output_vnr_pred.mant, output_vnr_pred.exp);
+        printf("VNR INPUT PRED: %ld %d\n", input_vnr_pred.mant, input_vnr_pred.exp);
 #endif
-        md.vnr_pred_flag = float_s32_gt(vnr_pred_state.output_vnr_pred, agc_vnr_threshold);
+        md.vnr_pred_flag = float_s32_gt(output_vnr_pred, agc_vnr_threshold);
 
         // Transferring metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
-        ic_adapt(&ic_state, vnr_pred_state.input_vnr_pred);
+        ic_adapt(&ic_state, input_vnr_pred);
 
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){

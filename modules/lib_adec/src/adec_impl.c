@@ -18,7 +18,7 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
   adec_state->erle_bad_gain_q24 = FLOAT_TO_Q24(ADEC_ERLE_BAD_GAIN);
 
   adec_state->peak_to_average_ratio_valid_flag = 0;
-  adec_state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
+  adec_state->max_peak_to_average_ratio_since_reset = f64_to_float_s32(1.0);
 
   float_s32_t v = ADEC_PEAK_TO_AVERAGE_GOOD_AEC;
   adec_state->aec_peak_to_average_good_aec_threshold = v; 
@@ -28,7 +28,7 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
   adec_state->last_measured_delay = 0;
 
   for (int i = 0; i < ADEC_PEAK_LINREG_HISTORY_SIZE; i++){
-    adec_state->peak_power_history[i] = double_to_float_s32(0.0);
+    adec_state->peak_power_history[i] = f64_to_float_s32(0.0);
   }
   adec_state->peak_power_history_idx = 0;
   adec_state->peak_power_history_valid = 0;
@@ -80,12 +80,12 @@ void adec_process_frame(
   }
   state->peak_to_average_ratio_history[0] = adec_in->from_de.peak_to_average_ratio;
 
-  float_s32_t last_n_total = double_to_float_s32(0.0);
+  float_s32_t last_n_total = f64_to_float_s32(0.0);
   for(int i = 0; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i++){
     last_n_total = float_s32_add(last_n_total, state->peak_to_average_ratio_history[i]);
   }
  
-  float_s32_t penultimate_n_total = double_to_float_s32(0.0);
+  float_s32_t penultimate_n_total = f64_to_float_s32(0.0);
   for(int i = 1; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH + 1; i++){
     penultimate_n_total = float_s32_add(penultimate_n_total, state->peak_to_average_ratio_history[i]);
   }
@@ -116,7 +116,7 @@ void adec_process_frame(
   get_decimated_peak_power_history(peak_power_decimated, state);
   float_s32_t decimate_ratio = {ADEC_PEAK_LINREG_DECIMATE_RATIO, 0};
   float_s32_t decimate_norm_product = float_s32_mul(decimate_ratio, peak_power_decimated[ADEC_PEAK_LINREG_HISTORY_DECIMATED_SIZE - 1]);
-  float_s32_t peak_power_slope = double_to_float_s32(0.0);
+  float_s32_t peak_power_slope = f64_to_float_s32(0.0);
   // Only calculate slope from linear regression if the history is valid
   if (state->peak_power_history_valid){
     peak_power_slope= linear_regression_get_slope(peak_power_decimated, ADEC_PEAK_LINREG_HISTORY_DECIMATED_SIZE, decimate_norm_product);
@@ -129,10 +129,10 @@ void adec_process_frame(
       erle_ratio = float_s32_div(adec_in->from_aec.y_ema_energy_ch0, denom);
   }
   else {
-      erle_ratio = double_to_float_s32(1.0);
+      erle_ratio = f64_to_float_s32(1.0);
   }
   //printf("erle_ratio = %f\n",float_s32_to_float(erle_ratio));
-  fixed_s32_t log2erle_q24 = float_to_frac_bits(erle_ratio);
+  q8_24 log2erle_q24 = float_to_frac_bits(erle_ratio);
 
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):

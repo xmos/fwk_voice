@@ -63,7 +63,7 @@ foreach( testfile ${TEST_SOURCES} )
 
     target_link_libraries(fwk_voice_${TESTNAME}
         PUBLIC
-            core::xs3_math
+            lib_xcore_math
             fwk_voice::test::shared::test_utils
             fwk_voice::test::shared::unity
             fwk_voice::example::hpf

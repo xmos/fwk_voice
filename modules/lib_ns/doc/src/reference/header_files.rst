@@ -7,7 +7,7 @@ NS Header Files
 -----------
 
 .. doxygenpage:: page_ns_api_h
-  :content-only:
+  
 
 .. _ns_state_h:
 
@@ -15,4 +15,4 @@ NS Header Files
 -------------
 
 .. doxygenpage:: page_ns_state_h
-  :content-only:
+  

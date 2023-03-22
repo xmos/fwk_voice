@@ -5,4 +5,4 @@
 
  .. doxygengroup:: vnr_features_state
      :members:
-     :content-only:
+     

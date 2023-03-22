@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // In this test, the AGC is configured to use the "fixed gain" profile. Frames of random data
@@ -29,7 +29,7 @@ void test_simple_gain() {
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
 
     // Scale down the input so that the fixed gain doesn't overflow
-    float_s32_t scale = float_s32_div(float_to_float_s32(1), agc.config.gain);
+    float_s32_t scale = float_s32_div(f32_to_float_s32(1), agc.config.gain);
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {

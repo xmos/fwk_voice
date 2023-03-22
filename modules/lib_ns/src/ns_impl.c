@@ -2,7 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <string.h>
 #include <limits.h>
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include "ns_priv.h"
 #include <ns_api.h>
 
@@ -160,10 +160,10 @@ void ns_priv_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_
     //bfp_s32_inverse(orig_mag, orig_mag);
     //bfp_s32_mul(orig_mag, orig_mag, new_mag);
 
-    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
+    vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, new_mag->hr);
     new_mag->exp -= new_mag->hr; new_mag->hr = 0;
 
-    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
+    vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, orig_mag->hr);
     orig_mag->exp -= orig_mag->hr; orig_mag->hr = 0;
 
     int max_exp = INT_MIN;
@@ -196,7 +196,7 @@ void ns_priv_rescale_vector_old(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_
 
     // setting a headroom to be 1 to get the maximum precision and avoid overflow
     left_shift_t shl = bfp_s32_headroom(orig_mag) - 1;
-    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, shl);
+    vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, shl);
     orig_mag->exp -= shl; orig_mag->hr = 1;
     
     bfp_complex_s32_real_mul(Y, Y, orig_mag);
@@ -226,15 +226,15 @@ void ns_priv_rescale_vector(bfp_complex_s32_t * Y, bfp_s32_t * new_mag, bfp_s32_
 
     // preparing input data
     left_shift_t lsh = new_mag->hr;
-    xs3_vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
+    vect_s32_shl(new_mag->data, new_mag->data, NS_PROC_FRAME_BINS, lsh);
     new_mag->exp -= lsh;
 
     lsh = orig_mag->hr;
-    xs3_vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
+    vect_s32_shl(orig_mag->data, orig_mag->data, NS_PROC_FRAME_BINS, lsh);
     orig_mag->exp -= lsh;
 
     lsh = Y->hr - 2;
-    xs3_vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
+    vect_complex_s32_shl(Y->data, Y->data, NS_PROC_FRAME_BINS, lsh);
     Y->exp -= lsh;
 
     // modify the exponent
@@ -266,7 +266,7 @@ void ns_process_frame(ns_state_t * ns,
     ns_priv_apply_window(&curr_frame, &ns->wind, &ns->rev_wind, NS_PROC_FRAME_LENGTH, NS_WINDOW_LENGTH);
 
     bfp_complex_s32_t *curr_fft = bfp_fft_forward_mono(&curr_frame);
-    curr_fft->hr = bfp_complex_s32_headroom(curr_fft); // TODO Workaround till https://github.com/xmos/lib_xs3_math/issues/96 is fixed
+    curr_fft->hr = bfp_complex_s32_headroom(curr_fft); // TODO Workaround till https://github.com/xmos/lib_xcore_math/issues/96 is fixed
     bfp_fft_unpack_mono(curr_fft);
 
     bfp_complex_s32_mag(&abs_Y_suppressed, curr_fft);

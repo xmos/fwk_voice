@@ -1,6 +1,5 @@
 
 add_subdirectory(external_deps)
-add_subdirectory(calc_vnr_pred)
 
 ######
 add_library(fwk_voice_example_shared_src_aec_1_thread INTERFACE)
@@ -103,7 +102,7 @@ target_include_directories(fwk_voice_example_shared_src_hpf
 )
 target_link_libraries(fwk_voice_example_shared_src_hpf
     INTERFACE
-        core::xs3_math
+        lib_xcore_math
 )
 
 add_library(fwk_voice::example::hpf ALIAS fwk_voice_example_shared_src_hpf)

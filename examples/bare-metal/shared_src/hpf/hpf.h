@@ -4,7 +4,7 @@
 #ifndef HPF_API_H
 #define HPF_API_H
 
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #define AP_FRAME_ADVANCE (240)
 #define BIQUAD_COUNT (2)
 #define NUM_COEFF_PER_BIQUAD (5)

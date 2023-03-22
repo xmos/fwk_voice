@@ -10,9 +10,9 @@
 #define ADEC_ERLE_GOOD_BITS                     2.0              //6dB
 #define ADEC_ERLE_BAD_GAIN                      0.0625           //When ERLE goes below the threshold, how steep is the curve that reduces goodness
 #define ADEC_PEAK_PHASE_ENERGY_TREND_GAIN       3.0              //How sensitve we are to the peak phase energy trend, multiplier
-#define ADEC_PEAK_TO_AVERAGE_GOOD_AEC           float_to_float_s32(4.0)//Denormalised 4.0 - AEC only has 10 phases so pk:ave 
-#define ADEC_PEAK_TO_AVERAGE_GOOD_DE            float_to_float_s32(8.0)//Denormalised 8.0 - With 30 phases, it's easier to get a strong pk
-#define ADEC_PEAK_TO_AVERAGE_RUINED_AEC         float_to_float_s32(2.0)//Denormalised 2.0 - Used with watchdog.
+#define ADEC_PEAK_TO_AVERAGE_GOOD_AEC           f32_to_float_s32(4.0)//Denormalised 4.0 - AEC only has 10 phases so pk:ave 
+#define ADEC_PEAK_TO_AVERAGE_GOOD_DE            f32_to_float_s32(8.0)//Denormalised 8.0 - With 30 phases, it's easier to get a strong pk
+#define ADEC_PEAK_TO_AVERAGE_RUINED_AEC         f32_to_float_s32(2.0)//Denormalised 2.0 - Used with watchdog.
 
 
 #define ADEC_PK_AVE_POOR_WATCHDOG_SECONDS       30               //How long before we trigger DE mode if we haven't reached a good state after AEC reset
@@ -38,7 +38,7 @@
 
 #define Q24_FRAC_BITS                 24
 
-#define FLOAT_TO_Q24(f) (fixed_s32_t)((float)f * (float)(1 << Q24_FRAC_BITS))
+#define FLOAT_TO_Q24(f) (q8_24)((float)f * (float)(1 << Q24_FRAC_BITS))
 
 //Fast log2 defines
 #define LOG2_LOOKUP_TABLE_SIZE_BITS  8
@@ -58,10 +58,10 @@
 void init_pk_ave_ratio_history(adec_state_t *adec_state);
 void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle);
 void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_delay_samples, int32_t *requested_delay_debug);
-fixed_s32_t float_to_frac_bits(float_s32_t value);
+q8_24 float_to_frac_bits(float_s32_t value);
 void push_peak_power_into_history(adec_state_t *adec_state, float_s32_t peak_phase_power);
 void get_decimated_peak_power_history(float_s32_t peak_power_decimated[ADEC_PEAK_LINREG_HISTORY_DECIMATED_SIZE], adec_state_t *adec_state);
 float_s32_t linear_regression_get_slope(float_s32_t pk_energies[], unsigned n, float_s32_t scale_factor);
-fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2erle_q24, float_s32_t peak_power_slope, fixed_s32_t agm_q24);
+q8_24 calculate_aec_goodness_metric(adec_state_t *state, q8_24 log2erle_q24, float_s32_t peak_power_slope, q8_24 agm_q24);
 
 #endif
