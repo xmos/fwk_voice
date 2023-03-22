@@ -2,8 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef __ADEC_TYPES_H__
 #define __ADEC_TYPES_H__
-#include "bfp_math.h"
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 #include "aec_defines.h"
 #include "adec_defines.h"
 
@@ -127,19 +126,19 @@ typedef struct {
     float_s32_t peak_power_history[ADEC_PEAK_LINREG_HISTORY_SIZE]; ///< Last ADEC_PEAK_LINREG_HISTORY_SIZE frames peak phase power
     float_s32_t aec_peak_to_average_good_aec_threshold; ///< Threshold was considering peak to average ratio as good
     
-    fixed_s32_t agm_q24; ///< AEC goodness metric indicating a measure of how well AEC filter is performing
-    fixed_s32_t erle_bad_bits_q24; ///< log2 of threshold below which AEC output's measured ERLE is considered bad
-    fixed_s32_t erle_good_bits_q24; ///< log2 of threshold above which AEC output's measured ERLE is considered good
-    fixed_s32_t peak_phase_energy_trend_gain_q24; ///< Multiplier used for scaling agm's sensitivity to peak phase energy trend 
-    fixed_s32_t erle_bad_gain_q24; ///< Multiplier determining how steeply we reduce aec's goodness when measured erle falls below the bad erle threshold
+    q8_24 agm_q24; ///< AEC goodness metric indicating a measure of how well AEC filter is performing
+    q8_24 erle_bad_bits_q24; ///< log2 of threshold below which AEC output's measured ERLE is considered bad
+    q8_24 erle_good_bits_q24; ///< log2 of threshold above which AEC output's measured ERLE is considered good
+    q8_24 peak_phase_energy_trend_gain_q24; ///< Multiplier used for scaling agm's sensitivity to peak phase energy trend 
+    q8_24 erle_bad_gain_q24; ///< Multiplier determining how steeply we reduce aec's goodness when measured erle falls below the bad erle threshold
 
     adec_mode_t mode; ///< ADEC's mode of operation. Can be operating in normal AEC or delay estimation mode
     int32_t peak_to_average_ratio_valid_flag;
     int32_t gated_milliseconds_since_mode_change; ///< milliseconds elapsed since a delay change was last requested. Used to ensure that delay corrections are not requested too early without allowing enough time for aec filter to converge.
     int32_t last_measured_delay; ///< Last measured delay 
     int32_t peak_power_history_idx; ///< index storing the head of the peak_power_history circular buffer
-    int32_t peak_power_history_valid; ///< Flag indicating whether the peak_power_history buffer has been filled atleast once.
-    int32_t sf_copy_flag; ///< Flag indicating if shadow to main filter copy has happened atleast once in the AEC
+    int32_t peak_power_history_valid; ///< Flag indicating whether the peak_power_history buffer has been filled at least once.
+    int32_t sf_copy_flag; ///< Flag indicating if shadow to main filter copy has happened at least once in the AEC
     int32_t convergence_counter; ///< Counter indicating number of frames the AEC shadow filter has been attempting to converge.
     int32_t shadow_flag_counter; ///< Counter indicating number of frame the AEC shadow filter has been better than the main filter.
     adec_config_t adec_config; ///< ADEC configuration parameters structure. Can be modified by application at run-time to reconfigure ADEC.

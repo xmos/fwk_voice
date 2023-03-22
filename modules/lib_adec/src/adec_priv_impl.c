@@ -41,7 +41,7 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
   adec_state->peak_power_history_valid = 0;
 
   adec_state->peak_to_average_ratio_valid_flag = 0;
-  adec_state->max_peak_to_average_ratio_since_reset = double_to_float_s32(1.0);
+  adec_state->max_peak_to_average_ratio_since_reset = f64_to_float_s32(1.0);
 
   adec_state->gated_milliseconds_since_mode_change = 0;
 
@@ -80,7 +80,7 @@ void set_delay_params_from_signed_delay(int32_t measured_delay, int32_t *mic_del
 
 //This takes about 68 cycles compared with dsp_math_log that takes 12650
 //See unit test for const array generation and test. Accuracy is better than 0.06dB with this table & config
-fixed_s32_t float_to_frac_bits(float_s32_t value){
+int32_t float_to_frac_bits(float_s32_t value){
   const LOG2_LOOKUP_TYPE log2_lookup[LOG2_LOOKUP_TABLE_SIZE] = {
     0x0, 0x0, 0x1, 0x2, 0x2, 0x3, 0x4, 0x4, 0x5, 0x6, 0x7, 0x7, 0x8, 0x9, 0x9, 0xa, 0xb, 0xb, 0xc, 0xd, 0xd, 0xe, 
     0xf, 0xf, 0x10, 0x11, 0x11, 0x12, 0x13, 0x13, 0x14, 0x15, 0x15, 0x16, 0x17, 0x17, 0x18, 0x18, 0x19, 0x1a, 0x1a, 
@@ -123,7 +123,7 @@ fixed_s32_t float_to_frac_bits(float_s32_t value){
       number_of_bits += ((uint32_t)log2_lookup[top_n_bits] << (shift_threshold - LOG2_LOOKUP_TYPE_BITS));
   }
 
-  return (fixed_s32_t)number_of_bits;
+  return (int32_t)number_of_bits;
 }
 
 void push_peak_power_into_history(adec_state_t *adec_state, float_s32_t peak_phase_power){
@@ -152,7 +152,7 @@ void get_decimated_peak_power_history(float_s32_t peak_power_decimated[ADEC_PEAK
 //and so the slope is relative rather than absolute. This normalises it which is important when mag(H) is unknown
 float_s32_t linear_regression_get_slope(float_s32_t pk_energies[], unsigned n, float_s32_t scale_factor){
   float_s32_t sumx, sumxsq, sumy, sumxy;
-  float_s32_t zero = double_to_float_s32(0.0);
+  float_s32_t zero = f64_to_float_s32(0.0);
   sumx = zero;
   sumxsq = zero;
   sumy = zero;
@@ -201,13 +201,13 @@ float_s32_t linear_regression_get_slope(float_s32_t pk_energies[], unsigned n, f
 }
 
 
-static inline fixed_s32_t multiply_q24_no_saturation(fixed_s32_t a_q24, fixed_s32_t b_q24){
+static inline q8_24 multiply_q24_no_saturation(q8_24 a_q24, q8_24 b_q24){
   int64_t result_ll = (int64_t)a_q24 * (int64_t)b_q24;
-  return (fixed_s32_t)(result_ll >> 24);
+  return (q8_24)(result_ll >> 24);
 }
 
 //This function modifies the agm (AEC Goodness Metric) according to state of ERLE and the peak power slope
-fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2erle_q24, float_s32_t peak_power_slope, fixed_s32_t agm_q24){
+q8_24 calculate_aec_goodness_metric(adec_state_t *state, q8_24 log2erle_q24, float_s32_t peak_power_slope, q8_24 agm_q24){
 
   //All good if ERLE is high
   if (log2erle_q24 >= state->erle_good_bits_q24){
@@ -217,7 +217,7 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
     return ADEC_AGM_ONE;
   }
 
-  fixed_s32_t erle_agm_delta_q24 = 0;
+  q8_24 erle_agm_delta_q24 = 0;
   if (log2erle_q24 < state->erle_bad_bits_q24){
     //This value will be negative when dB ERLE is less than 0 (ratio <1). Note it is in Q7.24 format
     erle_agm_delta_q24 = (log2erle_q24 - state->erle_bad_bits_q24); 
@@ -230,10 +230,10 @@ fixed_s32_t calculate_aec_goodness_metric(adec_state_t *state, fixed_s32_t log2e
   bfp_s32_init(&temp, &peak_power_slope.mant, peak_power_slope.exp, 1, 1);
   bfp_s32_use_exponent(&temp, -Q24_FRAC_BITS);
   peak_power_slope.exp = temp.exp;
-  fixed_s32_t peak_slope_q24 = peak_power_slope.mant; //now in 8.24 format
+  q8_24 peak_slope_q24 = peak_power_slope.mant; //now in 8.24 format
   peak_slope_q24 = multiply_q24_no_saturation(peak_slope_q24, state->peak_phase_energy_trend_gain_q24); 
   
-  fixed_s32_t new_agm_q24 = (agm_q24 + erle_agm_delta_q24 + peak_slope_q24);
+  q8_24 new_agm_q24 = (agm_q24 + erle_agm_delta_q24 + peak_slope_q24);
 
   //Clip positive - negative will be captured by mode change logic
   if (new_agm_q24 > ADEC_AGM_ONE){

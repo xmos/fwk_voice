@@ -4,7 +4,6 @@
 
 vnr_input_state_t vnr_input_state;
 vnr_feature_state_t vnr_feature_state;
-int32_t vnr_ie_init_err;
 
 int test_init(void){
     vnr_input_state_init(&vnr_input_state);

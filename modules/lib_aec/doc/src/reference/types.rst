@@ -5,4 +5,4 @@ AEC Data Structure and Enum Definitions
 
 .. doxygengroup:: aec_types
     :members:
-    :content-only:
+    

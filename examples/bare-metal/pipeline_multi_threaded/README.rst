@@ -1,6 +1,6 @@
 
 pipeline_multi_threaded
-=====================================
+=======================
 
 This example demonstrates how the audio processing stages are put together in a pipeline where stages are run in
 parallel on separate hardware threads.
@@ -57,6 +57,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
 
     .. code-block:: console
 
+        # make sure you have the patch command available
         cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
         nmake fwk_voice_example_bare_metal_pipeline_multi_thread
 
@@ -85,7 +86,7 @@ From the fwk_voice/build folder run:
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 
 Output
-------
+******
 
 The output file output.wav is generated in the `fwk_voice/examples/bare-metal/pipeline_multi_threaded` directory. The
 input file input.wav is also present in the same directory. View output.wav and input.wav in Audacity to compare the

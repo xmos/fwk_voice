@@ -55,7 +55,7 @@ void test_update_td_ema_energy() {
         }
 
         //alpha
-        fixed_s32_t alpha_q30;
+        uq2_30 alpha_q30;
         alpha_q30 = pseudo_rand_uint32(&seed) >> 1;
         //alpha_q30 = 1063004405;
         double alpha_fp = ldexp(alpha_q30, -30);

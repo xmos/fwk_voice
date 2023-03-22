@@ -7,7 +7,7 @@ AGC Header Files
 -----------
 
 .. doxygenpage:: page_agc_api_h
-  :content-only:
+  
 
 .. _agc_profiles_h:
 
@@ -15,4 +15,4 @@ AGC Header Files
 ----------------
 
 .. doxygenpage:: page_agc_profiles_h
-  :content-only:
+  

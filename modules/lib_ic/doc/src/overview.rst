@@ -1,7 +1,7 @@
 .. _ic_overview:
 
 IC Overview
-===========
+***********
 
 The Interference Canceller (IC) suppresses static noise from point sources such as cooker hoods, washing machines,
 or radios for which there is no reference audio signal available. When the Voice to Noise Ratio estimator (VNR) input

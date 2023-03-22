@@ -1,7 +1,7 @@
 .. _agc_overview:
 
 AGC Overview
-~~~~~~~~~~~~
+************
 
 The ``lib_agc`` library provides an API to implement Automatic Gain Control within
 an application. The goal of the AGC algorithm is to provide consistent output

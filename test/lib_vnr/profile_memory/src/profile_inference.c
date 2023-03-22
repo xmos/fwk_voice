@@ -3,7 +3,7 @@
 #include "vnr_inference_api.h"
 
 int main(int argc, char** argv) {    
-    int32_t err = vnr_inference_init();
+    vnr_inference_init();
     
     float_s32_t inference_output;
     bfp_s32_t feature_patch;

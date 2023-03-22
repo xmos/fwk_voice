@@ -2,26 +2,26 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <limits.h>
 #include "agc_defines.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <agc_api.h>
 
 void agc_init(agc_state_t *agc, agc_config_t *config)
 {
     agc->config = *config;
 
-    agc->x_slow = float_to_float_s32(0);
-    agc->x_fast = float_to_float_s32(0);
-    agc->x_peak = float_to_float_s32(0);
+    agc->x_slow = f32_to_float_s32(0);
+    agc->x_fast = f32_to_float_s32(0);
+    agc->x_peak = f32_to_float_s32(0);
 
     agc->lc_t_far = 0;
     agc->lc_t_near = 0;
 
-    agc->lc_near_power_est = float_to_float_s32(0.00001F);
-    agc->lc_far_power_est = float_to_float_s32(0.01F);
-    agc->lc_near_bg_power_est = float_to_float_s32(0.01F);
-    agc->lc_gain = float_to_float_s32(1);
-    agc->lc_far_bg_power_est = float_to_float_s32(0.01F);
-    agc->lc_corr_val = float_to_float_s32(0);
+    agc->lc_near_power_est = f32_to_float_s32(0.00001F);
+    agc->lc_far_power_est = f32_to_float_s32(0.01F);
+    agc->lc_near_bg_power_est = f32_to_float_s32(0.01F);
+    agc->lc_gain = f32_to_float_s32(1);
+    agc->lc_far_bg_power_est = f32_to_float_s32(0.01F);
+    agc->lc_corr_val = f32_to_float_s32(0);
 }
 
 // Returns the mantissa for the input float shifted to an exponent of parameter exp

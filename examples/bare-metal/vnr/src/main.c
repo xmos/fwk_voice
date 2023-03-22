@@ -6,7 +6,7 @@
 #include <xscope.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xs3_math.h>
+#include "xmath/xmath.h"
 
 
 void get_frame(chanend_t xscope_chan, chanend_t c_frame_out){

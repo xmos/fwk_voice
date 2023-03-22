@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <string.h>
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include "ns_priv.h"
 #include <ns_state.h>
 

@@ -1,7 +1,7 @@
 .. _ns_overview:
 
 NS Overview
-~~~~~~~~~~~
+***********
 
 The ``lib_ns`` library provides an API to implement Noise 
 Suppression within an application. 

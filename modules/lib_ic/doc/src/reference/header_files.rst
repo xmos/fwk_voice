@@ -9,7 +9,7 @@
 ---------------
 
 .. doxygenpage:: page_ic_defines_h
-  :content-only:
+  
 
 .. _ic_state_h:
 
@@ -17,7 +17,7 @@
 -------------
 
 .. doxygenpage:: page_ic_state_h
-  :content-only:
+  
 
 
 .. _ic_api_h:
@@ -26,7 +26,7 @@
 ------------
 
 .. doxygenpage:: page_ic_api_h
-  :content-only:
+  
 
 
 

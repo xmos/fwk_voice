@@ -10,7 +10,7 @@ target_include_directories(fwk_voice_test_wav_vnr PRIVATE src)
 target_link_libraries(fwk_voice_test_wav_vnr 
     PUBLIC
         fwk_voice::vnr::features
-        fwk_voice_module_lib_vnr_inference_only_for_testing
+        fwk_voice::vnr::inference
         fwk_voice::example::fileutils)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)

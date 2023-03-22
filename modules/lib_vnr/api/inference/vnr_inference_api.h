@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    #include "bfp_math.h"
+    #include "xmath/xmath.h"
 
     /**
      * @brief Initialise the inference_engine object and load the VNR model into the inference engine.
@@ -24,8 +24,6 @@ extern "C" {
      * This function calls lib_tflite_micro functions to initialise the inference engine and load the VNR model into it.
      * It is called once at startup. The memory required for the inference engine object as well as the tensor arena size required for inference 
      * is statically allocated as global buffers in the VNR module. The VNR model is compiled as part of the VNR module.
-     *
-     * @returns error status. Non zero indicates an error.
      *
      * @ingroup vnr_inference_api
      */

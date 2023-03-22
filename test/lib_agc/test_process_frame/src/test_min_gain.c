@@ -1,7 +1,7 @@
 // Copyright 2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include "test_process_frame.h"
-#include <bfp_math.h>
+#include "xmath/xmath.h"
 #include <pseudo_rand.h>
 
 // The AGC is configured with a gain that is less than the minimum gain setting. The
@@ -26,10 +26,10 @@ void test_min_gain() {
     conf.adapt_on_vnr = 0;
     conf.soft_clipping = 0;
     conf.lc_enabled = 0;
-    conf.min_gain = float_to_float_s32(TEST_MIN_GAIN);
+    conf.min_gain = f32_to_float_s32(TEST_MIN_GAIN);
     // Set the upper and lower thresholds to extremes to avoid interfering
-    conf.lower_threshold = float_to_float_s32(0);
-    conf.upper_threshold = float_to_float_s32(1);
+    conf.lower_threshold = f32_to_float_s32(0);
+    conf.upper_threshold = f32_to_float_s32(1);
     agc_init(&agc, &conf);
 
     agc_meta_data_t md;
@@ -41,11 +41,11 @@ void test_min_gain() {
     unsigned seed = 9608;
 
     // Scale the input down by the min_gain so there is room to increase it fully
-    float_s32_t scale = float_s32_div(float_to_float_s32(1), conf.min_gain);
+    float_s32_t scale = float_s32_div(f32_to_float_s32(1), conf.min_gain);
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         // Reset the gain for each frame
-        agc.config.gain = float_to_float_s32(TEST_GAIN);
+        agc.config.gain = f32_to_float_s32(TEST_GAIN);
 
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
             input[idx] = pseudo_rand_int32(&seed);

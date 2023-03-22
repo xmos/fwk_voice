@@ -7,7 +7,7 @@ ADEC Header Files
 ----------------
 
 .. doxygenpage:: page_adec_defines_h
-  :content-only:
+  
 
 
 .. _adec_state_h:
@@ -16,7 +16,7 @@ ADEC Header Files
 ----------------
 
 .. doxygenpage:: page_adec_state_h
-  :content-only:
+  
 
 
 .. _adec_api_h:
@@ -25,4 +25,4 @@ ADEC Header Files
 -----------------
 
 .. doxygenpage:: page_adec_api_h
-  :content-only:
+  

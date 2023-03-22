@@ -11,7 +11,7 @@
 #endif
 
 extern "C" {
-#include "xs3_math.h"
+#include "xmath/xmath.h"
 void aec_task(const char *input_file_name, const char *output_file_name);
 #if TEST_WAV_XSCOPE
     #include "xscope_io_device.h"

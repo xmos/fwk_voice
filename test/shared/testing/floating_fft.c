@@ -1,6 +1,6 @@
 #include "testing.h"
 
-#include "xs3_util.h"
+#include "xmath/xmath.h"
 #include <math.h>
 #include <stdio.h>
 #include <assert.h>

@@ -4,4 +4,4 @@ ADEC API Functions
 ==================
 
 .. doxygengroup:: adec_func
-    :content-only:
+    
