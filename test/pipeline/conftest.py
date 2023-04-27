@@ -43,7 +43,7 @@ def get_wav_info(input_file):
 
 def convert_input_wav(input_file, output_file):
     chans, rate, samps, bits = get_wav_info(input_file)
-    extra_args = "gain 0" #"trim 0 5" #to test with short wavs
+    extra_args = "gain -30" #"trim 0 5" #to test with short wavs
     if chans == 6:
         #for 6 channel wav file, first 2 channels are the mic input, followed by 2 channels of far-end audio, followed by 2 channels of pipeline output
         subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 2 3 4 {extra_args}".split())
