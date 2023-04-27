@@ -43,7 +43,7 @@ def get_wav_info(input_file):
 
 def convert_input_wav(input_file, output_file):
     chans, rate, samps, bits = get_wav_info(input_file)
-    extra_args = "gain -50" #"trim 0 5" #to test with short wavs
+    extra_args = "gain 0" #"trim 0 5" #to test with short wavs
     if chans == 6:
         #for 6 channel wav file, first 2 channels are the mic input, followed by 2 channels of far-end audio, followed by 2 channels of pipeline output
         subprocess.run(f"sox {input_file} -r 16000 -b 32 {output_file} remix 1 2 3 4 {extra_args}".split())
@@ -96,7 +96,7 @@ def pytest_sessionstart(session):
     else:
         architectures = ["alt_arch", "aec_ic_prev_arch"]
 
-    hydra_audio_path = os.path.join(hydra_audio_base_dir, "acoustic_team_test_audio", "20230412_NH_AS_mic_recs", "mic_mic_ref_ref_xcore_voice")
+    hydra_audio_path = os.path.join(hydra_audio_base_dir, "acoustic_team_test_audio", "20230412_NH_AS_mic_recs", "mic_mic_ref_ref_infineon")
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_80dB__Take1.wav")]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav")]
