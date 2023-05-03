@@ -96,7 +96,7 @@ def pytest_sessionstart(session):
     else:
         architectures = ["alt_arch", "aec_ic_prev_arch"]
 
-    hydra_audio_path = os.path.join(hydra_audio_base_dir, "acoustic_team_test_audio", "20230412_NH_AS_mic_recs", "mic_mic_ref_ref_xcore_voice")
+    hydra_audio_path = os.path.join(hydra_audio_base_dir, "acoustic_team_test_audio", "20230412_NH_AS_mic_recs", "mic_mic_ref_ref_3615")
     input_wav_files = [os.path.join(hydra_audio_path, filename) for filename in os.listdir(hydra_audio_path) if (filename.endswith(".wav"))]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc3_Noise2_80dB__Take1.wav")]
     #input_wav_files = [os.path.join(hydra_audio_path, "InHouse_XVF3510v080_v1.2_20190423_Loc1_Noise1_65dB_XMOS_DUT1_80dB_Take1.wav")]
