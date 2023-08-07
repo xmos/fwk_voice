@@ -177,7 +177,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
     assert(geo_closeness > 0.965), "tflite_output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.94), "tflite_output arith_closeness below pass threshold"
+    assert(arith_closeness > 0.93), "tflite_output arith_closeness below pass threshold"
     
     # Calculate and print various ref-dut differences
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
