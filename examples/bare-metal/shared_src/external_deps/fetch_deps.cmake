@@ -22,7 +22,7 @@ FetchContent_Populate(xscope_fileio)
 FetchContent_Declare(
     lib_nn
     GIT_REPOSITORY https://github.com/xmos/lib_nn.git
-    GIT_TAG        0a08d7f3c4e036102cc669205fe8b97fa5412ab4
+    GIT_TAG        e722744acf138edf284824e693d3d3a4de0ba31f
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_nn
 )
@@ -31,7 +31,7 @@ FetchContent_Populate(lib_nn)
 FetchContent_Declare(
     tflite_micro
     GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
-    GIT_TAG        f61b686ae86455e441700cdbea870cbd22226bb2
+    GIT_TAG        ceac9133de9be3e12a54183751dbe040dd0a3d45
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
     PATCH_COMMAND  patch -l -d lib_tflite_micro/submodules/tflite-micro/ -p0 -i ../../../patches/tflite-micro.patch 
