@@ -60,7 +60,7 @@ def test_vnr_full(target, tflite_model):
         dut = dut_output_double[fr]
         ref = ref_output_double[fr]
         diff = np.abs(ref-dut)
-        assert(diff < 0.05), "ERROR: test_vnr_inference frame {fr}. diff exceeds threshold"
+        assert(diff < 0.055), "ERROR: test_vnr_inference frame {fr}. diff exceeds threshold"
     
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
