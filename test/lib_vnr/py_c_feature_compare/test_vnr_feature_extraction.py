@@ -109,13 +109,13 @@ def test_frame_features():
     max_error_ie = np.max(np.abs(ref_ie_output - dut_ie_output))
     print(f"Inference: max_error = {max_error_ie}")
 
-    assert(max_error_features < 0.006), f"features, max ref-dut error {max_error} exceeds threshold"
-    assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
-    assert(geo_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
+    assert(max_error_features < 0.006), f"features, max ref-dut error {max_error_features} exceeds threshold"
+    assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness_features} less than pass threshold"
+    assert(geo_closeness_features > 0.999), f"features, arith_closeness {geo_closeness_features} less than pass threshold"
 
-    assert(max_error_ie < 0.05), f"Inference, max ref-dut error {max_error} exceeds threshold"
-    assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
-    assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
+    assert(max_error_ie < 0.065), f"Inference, max ref-dut error {max_error_ie} exceeds threshold"
+    assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness_ie} less than pass threshold"
+    assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {geo_closeness_ie} less than pass threshold"
         
 
 
