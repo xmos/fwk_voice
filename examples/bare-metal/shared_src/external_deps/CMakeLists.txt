@@ -4,7 +4,13 @@ add_subdirectory(xscope_fileio)
 add_subdirectory(inference)
 
 # tflite_micro - Dependancies
-set(ENV(XMOS_AITOOLSLIB_PATH), $(python -c "import xmos_ai_tools.xinterpreters.device as device_lib; import os; print(os.path.dirname(device_lib._file_))"))
+
+execute_process(
+    COMMAND python -c "import xmos_ai_tools.xinterpreters.device as device_lib; import os; print(os.path.dirname(device_lib.__file__), end='')"
+    OUTPUT_VARIABLE XMOS_AITOOLSLIB_PATH)
+
+set(ENV{XMOS_AITOOLSLIB_PATH} ${XMOS_AITOOLSLIB_PATH})
+
 if(NOT DEFINED ENV{XMOS_AITOOLSLIB_PATH})
     message(FATAL_ERROR "Path to XMOS AI Tools not set correctly!")
 else()
