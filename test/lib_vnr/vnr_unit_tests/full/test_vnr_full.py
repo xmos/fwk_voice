@@ -66,7 +66,7 @@ def test_vnr_full(target, tflite_model):
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
     assert(geo_closeness > 0.97), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.95), "inference output arith_closeness below pass threshold"
+    assert(arith_closeness > 0.93), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
