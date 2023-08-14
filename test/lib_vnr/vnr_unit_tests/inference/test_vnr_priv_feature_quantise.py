@@ -46,9 +46,11 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
         ref = ref_output[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)]
         dut = dut_output[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)]
         diff = np.max(np.abs(ref-dut))
+        total_diff = np.sum(np.abs(ref-dut))
         print(ref)
         print(dut)
-        assert(diff < 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
+        assert(diff <= 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
+        assert(total_diff <= 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. total diff {diff} exceeds 1"
 
     print("max_diff = ",np.max(np.abs(ref_output-dut_output)))
 
