@@ -198,7 +198,7 @@ pipeline {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -n 1 --junitxml=pytest_result.xml"
                   }
                 }
@@ -359,7 +359,7 @@ pipeline {
             dir("${REPO}/test/lib_ic/test_bad_state") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -s --junitxml=pytest_result.xml"
                     junit "pytest_result.xml"
                   }
@@ -373,7 +373,7 @@ pipeline {
             dir("${REPO}/test/stage_b") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -n1"
                   }
                 }
@@ -398,7 +398,7 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_delay_estimator") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh 'mkdir -p ./input_wavs/'
                     sh 'mkdir -p ./output_files/'
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
@@ -416,7 +416,7 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_adec_startup") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
                   }
                 }
@@ -429,7 +429,7 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_adec") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
                     junit "pytest_result.xml"
                   }
@@ -443,7 +443,7 @@ pipeline {
             dir("${REPO}/test/lib_adec/test_adec_profile") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "pytest -n 1 --junitxml=pytest_result.xml"
                     junit "pytest_result.xml"
                   }
@@ -457,7 +457,7 @@ pipeline {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
               viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                  withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                     sh "./make_dirs.sh"
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
                     junit "pytest_result.xml"
@@ -533,7 +533,7 @@ pipeline {
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio"]) {
+              withEnv(["hydra_audio_path=/projects/hydra_audio"]) {
                 withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/"]) {
                   viewEnv {
                     withVenv {
