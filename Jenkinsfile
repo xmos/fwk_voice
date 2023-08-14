@@ -24,13 +24,12 @@ pipeline {
   options {
     skipDefaultCheckout()
     timestamps()
-    // On develop discard builds after a certain number else keep forever
     buildDiscarder(xmosDiscardBuildSettings())
   }
   stages {
     stage('xcore.ai executables build') {
       agent {
-        label 'x86_64 && fistrick'
+        label 'x86_64'
       }
       environment {
         XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
@@ -40,7 +39,7 @@ pipeline {
           steps {
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
                 }
@@ -52,7 +51,7 @@ pipeline {
           steps {
             // Do xcore files
             dir("${REPO}/build") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   script {
                       if (env.FULL_TEST == "1") {
@@ -88,7 +87,7 @@ pipeline {
           steps {
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "git submodule update --init --recursive --jobs 4"
 
@@ -106,45 +105,32 @@ pipeline {
         }
         stage('Make/get bins and libs'){
           steps {
-            // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
-            dir("${REPO}/build") {
-              viewEnv() {
-                withVenv {
-                  sh "cmake --version"
-                  sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
-                  sh "make -j8"
-
-                  // We need to put this here because it is not fetched until we build
-                  sh "pip install -e fwk_voice_deps/xscope_fileio"
-
-                }
-              }
-            }
-            // We do this again on the NUCs for verification later, but this just checks we have no build error
-            dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_ic_frame_proc.py")
-                }
-              }
-            }
-            // We do this again on the NUCs for verification later, but this just checks we have no build error
-            dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_vnr_feature_extraction.py")
-                }
-              }
-            }
-            dir("${REPO}/test/stage_b") {
-              viewEnv() {
-                withVenv {
-                  runPython("python build_c_code.py")
-                }
-              }
-            }
             dir("${REPO}") {
-             unstash 'cmake_build_xcore'
+              viewEnv {
+                withvenv {
+                  // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
+                  dir("build") {
+                    sh "cmake --version"
+                    sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                    sh "make -j8"
+
+                    // We need to put this here because it is not fetched until we build
+                    sh "pip install -e fwk_voice_deps/xscope_fileio"
+                  }
+                  // We do this again on the NUCs for verification later, but this just checks we have no build error
+                  dir("test/lib_ic/py_c_frame_compare") {
+                    sh "python build_ic_frame_proc.py"
+                  }
+                  // We do this again on the NUCs for verification later, but this just checks we have no build error
+                  dir("test/lib_vnr/py_c_feature_compare") {
+                    sh "python build_vnr_feature_extraction.py"
+                  }
+                  dir("test/stage_b") {
+                    sh "python build_c_code.py"
+                  }
+                  unstash 'cmake_build_xcore'
+                }
+              }
             }
           }
         }
@@ -152,7 +138,7 @@ pipeline {
           steps{
             dir("${REPO}") {
               sh 'rm -f ~/.xtag/acquired' // Hacky but ensure it always works even when previous failed run left lock file present
-              viewEnv() {
+              viewEnv {
                 withVenv{
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   sh "xtagctl reset_all XCORE-AI-EXPLORER"
@@ -163,71 +149,45 @@ pipeline {
         }
         stage('Examples') {
           steps {
-            dir("${REPO}/examples/bare-metal/aec_1_thread") {
-              viewEnv() {
+            dir("${REPO}") {
+              viewEnv {
                 withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/aec_2_threads") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-                  // Make sure 1 thread and 2 threads output is bitexact
-                  sh "diff output.wav ../aec_1_thread/output.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/ic") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
-                  sh "mv output.wav ic_example_output.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/pipeline_single_threaded") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/pipeline_multi_threaded") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  // Make sure single thread and multi threads pipeline output is bitexact
-                  sh "diff output.wav ../pipeline_single_threaded/output.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/pipeline_alt_arch") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  sh "mv output.wav output_st.wav"
+                  dir("examples/bare-metal/aec_1_thread") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                  }
+                  dir("xamples/bare-metal/aec_2_threads") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+                    // Make sure 1 thread and 2 threads output is bitexact
+                    sh "diff output.wav ../aec_1_thread/output.wav"
+                  }
+                  dir("examples/bare-metal/ic") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
+                    sh "mv output.wav ic_example_output.wav"
+                  }
+                  dir("examples/bare-metal/pipeline_single_threaded") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                  }
+                  dir("examples/bare-metal/pipeline_multi_threaded") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                    // Make sure single thread and multi threads pipeline output is bitexact
+                    sh "diff output.wav ../pipeline_single_threaded/output.wav"
+                  }
+                  dir("examples/bare-metal/pipeline_alt_arch") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                    sh "mv output.wav output_st.wav"
 
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  sh "mv output.wav output_mt.wav"
-                  sh "diff output_st.wav output_mt.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/agc") {
-              viewEnv() {
-                withVenv {
-                  sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
-                }
-              }
-            }
-            dir("${REPO}/examples/bare-metal/vnr") {
-              viewEnv() {
-                withVenv {
-                  sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
-                  sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
-                  sh "diff vnr_out1.bin vnr_out2.bin"
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+                    sh "mv output.wav output_mt.wav"
+                    sh "diff output_st.wav output_mt.wav"
+                  }
+                  dir("examples/bare-metal/agc") {
+                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+                  }
+                  dir("examples/bare-metal/vnr") {
+                    sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
+                    sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
+                    sh "diff vnr_out1.bin vnr_out2.bin"
+                  }
                 }
               }
             }
@@ -236,12 +196,10 @@ pipeline {
         stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_vnr_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_vnr_tests_PATH"]) {
-                        sh "pytest -n 1 --junitxml=pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -n 1 --junitxml=pytest_result.xml"
                   }
                 }
               }
@@ -251,7 +209,7 @@ pipeline {
         stage('VNR vnr_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
                 }
@@ -262,9 +220,9 @@ pipeline {
         stage('VNR Python C feature extraction equivalence') {
           steps {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  runPython("python build_vnr_feature_extraction.py")
+                  sh "python build_vnr_feature_extraction.py"
                   sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
@@ -275,7 +233,7 @@ pipeline {
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -288,7 +246,7 @@ pipeline {
           steps {
             dir("${REPO}/test/lib_ns/compare_c_xc") {
               copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -300,7 +258,7 @@ pipeline {
         stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ns/ns_unit_tests") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -312,7 +270,7 @@ pipeline {
         stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -324,9 +282,9 @@ pipeline {
         stage('IC Python C equivalence') {
           steps {
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  runPython("python build_ic_frame_proc.py")
+                  sh "python build_ic_frame_proc.py"
                   sh "pytest -s --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
                 }
@@ -337,7 +295,7 @@ pipeline {
         stage('IC test profile') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -349,7 +307,7 @@ pipeline {
         stage('IC test specification') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_spec") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   // This test compares the model and C implementation over a range of scenarious for:
                   // convergence_time, db_suppression, maximum noise added to input (to test for stability)
@@ -369,7 +327,7 @@ pipeline {
         stage('IC characterisation') {
           steps {
             dir("${REPO}/test/lib_ic/characterise_c_py") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   // This test compares the suppression performance across angles between model and C implementation
                   // and fails if they differ significantly. It requires that the C implementation run with fixed mu
@@ -386,7 +344,7 @@ pipeline {
         stage('IC test_calc_vnr_pred') {
           steps {
             dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   // This is a unit test for ic_calc_vnr_pred function.
                   // It compares the avona output with py_ic model output
@@ -399,13 +357,11 @@ pipeline {
         stage('IC test_bad_state') {
           steps {
             dir("${REPO}/test/lib_ic/test_bad_state") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_bad_state"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_bad_state_PATH", "sensory_PATH=sensory_sdk"]) {
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -s --junitxml=pytest_result.xml"
+                    junit "pytest_result.xml"
                   }
                 }
               }
@@ -415,12 +371,10 @@ pipeline {
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_stage_b_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_stage_b_tests_PATH"]) {
-                      sh "pytest -n1"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -n1"
                   }
                 }
               }
@@ -430,7 +384,7 @@ pipeline {
         stage('ADEC de_unit_tests') {
           steps {
             dir("${REPO}/test/lib_adec/de_unit_tests") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -442,16 +396,15 @@ pipeline {
         stage('ADEC test_delay_estimator') {
           steps {
             dir("${REPO}/test/lib_adec/test_delay_estimator") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
-                      sh 'mkdir -p ./input_wavs/'
-                      sh 'mkdir -p ./output_files/'
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                      runPython("python print_stats.py")
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh 'mkdir -p ./input_wavs/'
+                    sh 'mkdir -p ./output_files/'
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                    junit "pytest_result.xml"
+                    sh "python print_stats.py"
+
                   }
                 }
               }
@@ -461,12 +414,10 @@ pipeline {
         stage('ADEC Initial DE startup time test') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec_startup") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_de"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_de_PATH"]) {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
                   }
                 }
               }
@@ -476,13 +427,11 @@ pipeline {
         stage('ADEC test_adec') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                    junit "pytest_result.xml"
                   }
                 }
               }
@@ -492,13 +441,11 @@ pipeline {
         stage('ADEC test_adec_profile') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec_profile") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_adec_tests"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_adec_tests_PATH"]) {
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "pytest -n 1 --junitxml=pytest_result.xml"
+                    junit "pytest_result.xml"
                   }
                 }
               }
@@ -508,14 +455,12 @@ pipeline {
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
-                  withMounts([["projects", "projects/hydra_audio", "hydra_audio_test_skype"]]) {
-                    withEnv(["hydra_audio_PATH=$hydra_audio_test_skype_PATH"]) {
-                      sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
+                  withMounts([["projects", "projects/hydra_audio", "hydra_audio"]]) {
+                    sh "./make_dirs.sh"
+                    sh "pytest -n 2 --junitxml=pytest_result.xml"
+                    junit "pytest_result.xml"
                   }
                 }
               }
@@ -525,7 +470,7 @@ pipeline {
         stage('AEC aec_unit_tests') {
           steps {
             dir("${REPO}/test/lib_aec/aec_unit_tests") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -564,7 +509,7 @@ pipeline {
         stage('AGC tests') {
           steps {
             dir("${REPO}/test/lib_agc/test_process_frame") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -576,7 +521,7 @@ pipeline {
         stage('HPF test') {
           steps {
             dir("${REPO}/test/test_hpf") {
-              viewEnv() {
+              viewEnv {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -588,8 +533,8 @@ pipeline {
         stage('Pipeline tests') {
           steps {
             dir("${REPO}/test/pipeline") {
-              withMounts(["projects", "projects/hydra_audio", "hydra_audio_pipeline_sim"]) {
-                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/", "hydra_audio_PATH=$hydra_audio_pipeline_sim_PATH"]) {
+              withMounts(["projects", "projects/hydra_audio", "hydra_audio"]) {
+                withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/"]) {
                   viewEnv {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
@@ -643,10 +588,10 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
-	failure {
-	  // archive wavs on failure only
+        failure {
+          // archive wavs on failure only
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
-	}
+        }
         cleanup {
           xcoreCleanSandbox()
         }
