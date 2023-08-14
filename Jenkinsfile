@@ -359,7 +359,7 @@ pipeline {
             dir("${REPO}/test/lib_ic/test_bad_state") {
               viewEnv {
                 withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+                  withEnv(["hydra_audio_PATH=/projects/hydra_audio", "sensory_PATH=sensory_sdk"]) {
                     sh "pytest -s --junitxml=pytest_result.xml"
                     junit "pytest_result.xml"
                   }
