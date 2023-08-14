@@ -14,8 +14,8 @@ target_link_libraries(fwk_voice_module_lib_vnr_inference
         )
 
 target_link_libraries(fwk_voice_module_lib_vnr_inference
-    PRIVATE
-	sdk::inferencing::lib_tflite_micro
+    PUBLIC
+	tflite_micro
 	)
 
 add_library(fwk_voice::vnr::inference ALIAS fwk_voice_module_lib_vnr_inference)
