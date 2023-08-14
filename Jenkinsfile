@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.20.0') _
+@Library('xmos_jenkins_shared_library@v0.26.0') _
 getApproval()
 
 pipeline {
@@ -25,10 +25,7 @@ pipeline {
     skipDefaultCheckout()
     timestamps()
     // On develop discard builds after a certain number else keep forever
-    buildDiscarder(logRotator(
-        numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '50' : '',
-        artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '50' : ''
-    ))
+    buildDiscarder(xmosDiscardBuildSettings())
   }
   stages {
     stage('xcore.ai executables build') {
@@ -78,7 +75,7 @@ pipeline {
       }
       post {
         cleanup {
-          cleanWs()
+          xcoreCleanSandbox()
         }
       }
     }
@@ -644,11 +641,14 @@ pipeline {
           // Pipelines tests
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.csv", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/**/results_*.png", fingerprint: true, allowEmptyArchive: true
-          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.npy", fingerprint: true, allowEmptyArchive: true
         }
+	failure {
+	  // archive wavs on failure only
+          archiveArtifacts artifacts: "${REPO}/test/pipeline/keyword_input_*/*.wav", fingerprint: true
+	}
         cleanup {
-          cleanWs()
+          xcoreCleanSandbox()
         }
       }
     }// stage xcore.ai Verification
