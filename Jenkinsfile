@@ -107,7 +107,7 @@ pipeline {
           steps {
             dir("${REPO}") {
               viewEnv {
-                withvenv {
+                withVenv {
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
