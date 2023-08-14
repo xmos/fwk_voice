@@ -155,7 +155,7 @@ pipeline {
                   dir("examples/bare-metal/aec_1_thread") {
                     sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                   }
-                  dir("xamples/bare-metal/aec_2_threads") {
+                  dir(e"xamples/bare-metal/aec_2_threads") {
                     sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
                     // Make sure 1 thread and 2 threads output is bitexact
                     sh "diff output.wav ../aec_1_thread/output.wav"
