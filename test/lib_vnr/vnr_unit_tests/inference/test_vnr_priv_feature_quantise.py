@@ -48,7 +48,7 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
         diff = np.max(np.abs(ref-dut))
         print(ref)
         print(dut)
-        assert(diff < 0), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
+        assert(diff < 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
 
     print("max_diff = ",np.max(np.abs(ref_output-dut_output)))
 
