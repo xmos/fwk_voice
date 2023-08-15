@@ -19,21 +19,21 @@ FetchContent_Declare(
 )
 FetchContent_Populate(xscope_fileio)
 
-FetchContent_Declare(
-    lib_nn
-    GIT_REPOSITORY https://github.com/xmos/lib_nn.git
-    GIT_TAG        e722744acf138edf284824e693d3d3a4de0ba31f
-    GIT_SHALLOW    FALSE
-    SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_nn
-)
-FetchContent_Populate(lib_nn)
+# FetchContent_Declare(
+#     lib_nn
+#     GIT_REPOSITORY https://github.com/xmos/lib_nn.git
+#     GIT_TAG        e722744acf138edf284824e693d3d3a4de0ba31f
+#     GIT_SHALLOW    FALSE
+#     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_nn
+# )
+# FetchContent_Populate(lib_nn)
 
-FetchContent_Declare(
-    lib_tflite_micro
-    GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
-    GIT_TAG        ceac9133de9be3e12a54183751dbe040dd0a3d45
-    GIT_SHALLOW    FALSE
-    SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
-    PATCH_COMMAND  patch -d lib_tflite_micro/submodules/tflite-micro/ -p0 -i ../../../patches/tflite-micro.patch 
-)
-FetchContent_Populate(lib_tflite_micro)
+# FetchContent_Declare(
+#     lib_tflite_micro
+#     GIT_REPOSITORY https://github.com/xmos/lib_tflite_micro.git
+#     GIT_TAG        ceac9133de9be3e12a54183751dbe040dd0a3d45
+#     GIT_SHALLOW    FALSE
+#     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/lib_tflite_micro
+#     PATCH_COMMAND  patch -d lib_tflite_micro/submodules/tflite-micro/ -p0 -i ../../../patches/tflite-micro.patch 
+# )
+# FetchContent_Populate(lib_tflite_micro)
