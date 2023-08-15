@@ -59,7 +59,7 @@ ffibuilder.set_source("vnr_test_py",  # name of the output C extension
                 '../../../../build/test/lib_vnr',
                 '../../../../build/fwk_voice_deps/build'
                     ],
-    libraries=['fwk_voice_module_lib_vnr_inference', 'fwk_voice_module_lib_vnr_features', 'lib_xcore_math', 'lib_tflite_micro', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux!
+    libraries=['fwk_voice_module_lib_vnr_inference', 'fwk_voice_module_lib_vnr_features', 'lib_xcore_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux!
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 

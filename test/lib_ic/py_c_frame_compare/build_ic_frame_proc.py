@@ -61,7 +61,7 @@ ffibuilder.set_source("ic_test_py",  # name of the output C extension
                 '../../../../build/modules/lib_vnr',
                 '../../../../build/fwk_voice_deps/build'
                     ],
-    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec','fwk_voice_module_lib_vnr_features', 'fwk_voice_module_lib_vnr_inference', 'lib_xcore_math', 'lib_tflite_micro', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
+    libraries=['fwk_voice_module_lib_ic', 'fwk_voice_module_lib_aec','fwk_voice_module_lib_vnr_features', 'fwk_voice_module_lib_vnr_inference', 'lib_xcore_math', 'm', 'stdc++'],    # on Unix, link with the math library. Linking order is important here for gcc compile on Linux
     extra_compile_args=FLAGS,
     include_dirs=INCLUDE_DIRS)
 
