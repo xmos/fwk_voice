@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.26.0') _
+@Library('xmos_jenkins_shared_library@v0.27.0') _
 getApproval()
 
 pipeline {
@@ -24,7 +24,7 @@ pipeline {
   options {
     skipDefaultCheckout()
     timestamps()
-    buildDiscarder(xmosDiscardBuildSettings())
+    buildDiscarder(xmosDiscardBuildSettings(onlyArtifacts=false))
   }
   stages {
     stage('xcore.ai executables build') {
