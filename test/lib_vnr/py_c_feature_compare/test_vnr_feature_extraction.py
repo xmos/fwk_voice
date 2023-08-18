@@ -109,6 +109,9 @@ def test_frame_features():
     max_error_ie = np.max(np.abs(ref_ie_output - dut_ie_output))
     print(f"Inference: max_error = {max_error_ie}")
     print(np.abs(ref_ie_output - dut_ie_output))
+    print((ref_ie_output))
+    print((dut_ie_output))
+
     mean_error_ie = np.mean(np.abs(ref_ie_output - dut_ie_output))
     print(f"Inference: mean_error = {mean_error_ie}")
 
