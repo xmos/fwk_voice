@@ -108,6 +108,9 @@ def test_frame_features():
     print(f"Inference: arith_closeness {arith_closeness_ie}, geo_closeness {geo_closeness_ie}")
     max_error_ie = np.max(np.abs(ref_ie_output - dut_ie_output))
     print(f"Inference: max_error = {max_error_ie}")
+    print(np.abs(ref_ie_output - dut_ie_output))
+    mean_error_ie = np.mean(np.abs(ref_ie_output - dut_ie_output))
+    print(f"Inference: mean_error = {mean_error_ie}")
 
     assert(max_error_features < 0.006), f"features, max ref-dut error {max_error_features} exceeds threshold"
     assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness_features} less than pass threshold"
