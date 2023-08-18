@@ -41,7 +41,7 @@ def get_closeness_metric(ref, dut):
     output_wav_data[0,:] = ref
     output_wav_data[1,:] = dut
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=True)
     os.chdir(prev_path)
     os.system("rm -r {}".format(tmp_folder))
     return arith_closeness, geo_closeness
@@ -113,7 +113,7 @@ def test_frame_features():
     assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness_features} less than pass threshold"
     assert(geo_closeness_features > 0.999), f"features, arith_closeness {geo_closeness_features} less than pass threshold"
 
-    assert(max_error_ie < 0.065), f"Inference, max ref-dut error {max_error_ie} exceeds threshold"
+    assert(max_error_ie < 0.05), f"Inference, max ref-dut error {max_error_ie} exceeds threshold"
     assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness_ie} less than pass threshold"
     assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {geo_closeness_ie} less than pass threshold"
         
