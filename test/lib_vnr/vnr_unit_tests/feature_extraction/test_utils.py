@@ -143,8 +143,8 @@ def tflite_predict(interpreter_tflite, input_patches):
         pass
 
     # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]
+    input_details = interpreter_tflite.get_input_details()
+    output_details = interpreter_tflite.get_output_details()
 
     # quantization spec
     if input_details["dtype"] in [np.int8, np.uint8]:
