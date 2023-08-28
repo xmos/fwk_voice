@@ -13,9 +13,9 @@ import math
 import tensorflow as tf
 import subprocess
 import py_vnr.vnr as vnr
-import py_vnr.training.model_helpers as mh
 import tensorflow.lite as tfl
 import tensorflow_model_optimization as tfmot
+from xmos_ai_tools.xinterpreters import xcore_tflm_host_interpreter
 
 thisfile_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -107,8 +107,12 @@ class xc_vnr(vnr.Vnr):
 class tflite_wrapper(object):
     ''' small wrapper to call tflite models the same way as tf'''
 
-    def __init__(self, model_file):
-        self.model = tfl.Interpreter(model_path=str(model_file))
+    def __init__(self, model_file, xc=False):
+        if xc:
+            self.model = xcore_tflm_host_interpreter()
+            self.model.set_model(model_path=str(model_file))
+        else:
+            self.model = tfl.Interpreter(model_path=str(model_file))
 
     def __call__(self, x, training=False):
         return tflite_predict(self.model, x)
@@ -126,11 +130,7 @@ def load_vnr_model(model_file):
     if ext == ".tflite":
         model = tflite_wrapper(model_file)
     else:
-        # assume we might be loading a quantization aware model
-        with tfmot.quantization.keras.quantize_scope():
-            model = load_model(
-                model_file,
-                custom_objects=mh.get_custom_objects())
+        pass
 
     return model
 
