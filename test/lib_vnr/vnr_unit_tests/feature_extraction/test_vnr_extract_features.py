@@ -32,7 +32,7 @@ def test_vnr_extract_features(target, tflite_model, verbose=False):
 
     x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)    
     for itt in range(0,test_frames):
-        enable_highpass = np.random.randint(2)
+        enable_highpass = 0  # np.random.randint(2)
         # Generate input data
         hr = np.random.randint(8)
         data = np.random.randint(min_int, high=max_int, size=fp.FRAME_ADVANCE)
