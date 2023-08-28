@@ -16,6 +16,7 @@ import fcntl
 this_file_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_path, "../../../examples/bare-metal/shared_src/python")) # For run_xcoreai
 sys.path.append(os.path.join(this_file_path, "../../shared/python")) # For py_vs_c_utils
+sys.path.append(os.path.join(this_file_dir, "../vnr_unit_tests/feature_extraction")) # for test_utils
 
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
