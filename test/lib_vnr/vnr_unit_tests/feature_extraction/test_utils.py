@@ -107,7 +107,7 @@ class xc_vnr(vnr.Vnr):
 class tflite_wrapper(object):
     ''' small wrapper to call tflite models the same way as tf'''
 
-    def __init__(self, model_file, xc=False):
+    def __init__(self, model_file, xc=True):
         if xc:
             self.model = xcore_tflm_host_interpreter()
             self.model.set_model(model_path=str(model_file))

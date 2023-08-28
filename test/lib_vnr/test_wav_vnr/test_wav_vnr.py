@@ -236,7 +236,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 @pytest.mark.parametrize('input_wav', streams)
 @pytest.mark.parametrize('target', ['x86', 'xcore'])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/python/model/model_output/trained_model.tflite"), plot_results=False)
+    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/src/inference/model/trained_model_xcore.tflite"), plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
