@@ -96,12 +96,11 @@ def dequantise_output(model_file, output_data):
 
 class xc_vnr(vnr.Vnr):
     # Current implementation of the VNR
-    def __init__(self, config, model_file=None, n_buffers=1):
+    def __init__(self, model_file, n_buffers=1):
 
-        super().__init__(config, model_file)
-        if model_file:
-            self.model_file = model_file
-            self.model = load_vnr_model(self.model_file)
+        super().__init__(model_file, n_buffers)
+        self.model_file = model_file
+        self.model = load_vnr_model(self.model_file)
 
 
 class tflite_wrapper(object):
