@@ -165,7 +165,7 @@ def tflite_predict(interpreter_tflite, input_patches):
         this_patch = this_patch.astype(input_details["dtype"])
 
         # set the input tensor to a test_audio slice
-        interpreter_tflite.set_tensor(input_details['index'], this_patch)
+        interpreter_tflite.set_input_tensor(this_patch)
 
         # run the model
         interpreter_tflite.invoke()
