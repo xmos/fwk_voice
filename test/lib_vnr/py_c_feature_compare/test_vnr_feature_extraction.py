@@ -15,6 +15,7 @@ import py_vnr.run_wav_vnr as rwv
 from build import vnr_test_py
 from vnr_test_py import ffi
 import vnr_test_py.lib as vnr_test_lib
+import test_utils
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 pvc_path = os.path.join(package_dir, '../../shared/python')
@@ -48,7 +49,8 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
-        self.vnr_obj = vnr.Vnr(model_file=tflite_model) 
+        self.vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
+
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 

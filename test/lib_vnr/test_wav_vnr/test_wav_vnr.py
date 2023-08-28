@@ -22,6 +22,7 @@ import tensorflow_model_optimization as tfmot
 import glob
 import pytest
 import py_vs_c_utils as pvc
+import test_utils
 
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 print(hydra_audio_path)
@@ -64,8 +65,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     
     print_model_details(interpreter_tflite)
     
-    with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
+
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''

@@ -14,7 +14,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_feature_quantise.xe')
 
 def test_vnr_priv_feature_quantise(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent

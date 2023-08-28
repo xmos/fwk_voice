@@ -15,7 +15,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_inference.xe')
 
 def test_vnr_inference(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent
@@ -56,8 +56,8 @@ def test_vnr_inference(target, tflite_model):
     print("max_diff = ",np.max(np.abs(ref_output_double - dut_output_double)))
     arith_closeness, geo_closeness = test_utils.get_closeness_metric(ref_output_double, dut_output_double)
     print(f"arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}")
-    assert(geo_closeness > 0.98), "inference output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.95), "inference output arith_closeness below pass threshold"
+    assert(geo_closeness > 0.9998), "inference output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.9995), "inference output arith_closeness below pass threshold"
 
     plt.plot(ref_output_double, label="ref")
     plt.plot(dut_output_double, label="dut")
