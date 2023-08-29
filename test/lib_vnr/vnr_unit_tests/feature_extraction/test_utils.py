@@ -171,7 +171,7 @@ def tflite_predict(interpreter_tflite, input_patches):
         interpreter_tflite.invoke()
 
         # get output
-        output_data = interpreter_tflite.get_tensor(output_details['index'])
+        output_data = interpreter_tflite.get_output_tensor(output_details['index'])
 
         # dequantize output as required
         if output_details['dtype'] in [np.int8, np.uint8]:
