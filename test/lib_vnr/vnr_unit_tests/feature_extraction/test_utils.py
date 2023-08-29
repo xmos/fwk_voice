@@ -143,8 +143,8 @@ def tflite_predict(interpreter_tflite, input_patches):
         pass
 
     # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()
-    output_details = interpreter_tflite.get_output_details()
+    input_details = interpreter_tflite.get_input_details()[0]
+    output_details = interpreter_tflite.get_output_details()[0]
 
     # quantization spec
     if input_details["dtype"] in [np.int8, np.uint8]:
@@ -165,13 +165,13 @@ def tflite_predict(interpreter_tflite, input_patches):
         this_patch = this_patch.astype(input_details["dtype"])
 
         # set the input tensor to a test_audio slice
-        interpreter_tflite.set_input_tensor(this_patch)
+        interpreter_tflite.set_tensor(input_details['index'], this_patch)
 
         # run the model
         interpreter_tflite.invoke()
 
         # get output
-        output_data = interpreter_tflite.get_output_tensor()
+        output_data = interpreter_tflite.get_tensor(output_details['index'])
 
         # dequantize output as required
         if output_details['dtype'] in [np.int8, np.uint8]:
