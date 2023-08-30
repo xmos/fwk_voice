@@ -5,16 +5,30 @@ add_subdirectory(inference)
 
 # tflite_micro - Dependancies
 
+# Get path of xmos ai tools
+set(CMD "\
+import os; \
+import xmos_ai_tools.xinterpreters.device as dl; \
+print(os.path.dirname(dl.__file__)) \
+")
+
 execute_process(
-    COMMAND python -c "import xmos_ai_tools.xinterpreters.device as device_lib; import os; print(os.path.dirname(device_lib.__file__), end='')"
-    OUTPUT_VARIABLE XMOS_AITOOLSLIB_PATH)
+    COMMAND python -c "${CMD}"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE XMOS_AITOOLSLIB_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-set(ENV{XMOS_AITOOLSLIB_PATH} ${XMOS_AITOOLSLIB_PATH})
+# tflite_micro - add dependancy
+set(XMOS_AITOOLSLIB_PATH_CMAKE "${XMOS_AITOOLSLIB_PATH}/buildfiles/aitoolslib.cmake")
 
-if(NOT DEFINED ENV{XMOS_AITOOLSLIB_PATH})
-    message(FATAL_ERROR "Path to XMOS AI Tools not set correctly!")
+if(XMOS_AITOOLSLIB_PATH STREQUAL "")
+    message(FATAL_ERROR "Path to XMOS AI tools NOT found")
+elseif(NOT EXISTS  ${XMOS_AITOOLSLIB_PATH_CMAKE})
+    message(FATAL_ERROR "Cmake NOT found in this path")
 else()
-    include($ENV{XMOS_AITOOLSLIB_PATH}/buildfiles/aitoolslib.cmake)
+    message("Found python package xmos-ai-tools at: ${XMOS_AITOOLSLIB_PATH}")
+    include(${XMOS_AITOOLSLIB_PATH_CMAKE})
     set(LIB_NAME tflite_micro)
     add_library(${LIB_NAME} STATIC IMPORTED GLOBAL)
     target_compile_definitions(${LIB_NAME} INTERFACE ${XMOS_AITOOLSLIB_DEFINITIONS})
