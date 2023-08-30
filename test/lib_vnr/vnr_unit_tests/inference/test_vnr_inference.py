@@ -47,6 +47,9 @@ def test_vnr_inference(target, tflite_model):
     d = dut_mant.astype(np.float64) * (2.0 ** dut_exp)
     dut_output_double = np.append(dut_output_double, d)
 
+    print(dut_output_double)
+    print(ref_output_double)
+    
     for fr in range(0,test_frames):
         dut = dut_output_double[fr]
         ref = ref_output_double[fr]
