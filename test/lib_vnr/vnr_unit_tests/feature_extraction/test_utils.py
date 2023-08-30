@@ -65,7 +65,7 @@ def get_closeness_metric(ref, dut):
     output_wav_data[0,:] = ref
     output_wav_data[1,:] = dut
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=True)
     os.chdir(prev_path)
     os.system("rm -r {}".format(tmp_folder))
     return arith_closeness, geo_closeness
