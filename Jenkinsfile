@@ -27,54 +27,77 @@ pipeline {
     buildDiscarder(xmosDiscardBuildSettings(onlyArtifacts=false))
   }
   stages {
-    stage('xcore.ai executables build') {
-      agent {
-        label 'x86_64'
-      }
-      environment {
-        XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
-      }
-      stages {
-        stage('Get view') {
+    stage('Build and Docs') {
+      parallel {
+        stage('Build Docs') {
+          agent { label "docker" }
+          environment { XMOSDOC_VERSION = "pr-67" }
           steps {
-            xcorePrepareSandbox("${VIEW}", "${REPO}")
-            dir("${REPO}") {
-              viewEnv {
-                withVenv {
-                  sh "git submodule update --init --recursive --jobs 4"
-                }
-              }
+            checkout scm
+            sh 'git submodule update --init --recursive --depth 1'
+            sh "docker pull ghcr.io/xmos/doc_builder:$XMOSDOC_VERSION"
+            sh """docker run -u "\$(id -u):\$(id -g)" \
+                --rm \
+                -v ${WORKSPACE}:/build \
+                ghcr.io/xmos/doc_builder:$XMOSDOC_VERSION -v"""
+            archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
+          }
+          post {
+            cleanup {
+              xcoreCleanSandbox()
             }
           }
         }
-        stage('CMake') {
-          steps {
-            // Do xcore files
-            dir("${REPO}/build") {
-              viewEnv {
-                withVenv {
-                  script {
-                      if (env.FULL_TEST == "1") {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
-                      }
-                      else {
-                        sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
-                      }
+        stage('xcore.ai executables build') {
+          agent {
+            label 'x86_64'
+          }
+          environment {
+            XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+          }
+          stages {
+            stage('Get view') {
+              steps {
+                xcorePrepareSandbox("${VIEW}", "${REPO}")
+                dir("${REPO}") {
+                  viewEnv {
+                    withVenv {
+                      sh "git submodule update --init --recursive --jobs 4"
+                    }
                   }
-                  sh "make -j8"
                 }
               }
             }
-            dir("${REPO}") {
-              // Stash all executables and xscope_fileio
-              stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
+            stage('CMake') {
+              steps {
+                // Do xcore files
+                dir("${REPO}/build") {
+                  viewEnv {
+                    withVenv {
+                      script {
+                          if (env.FULL_TEST == "1") {
+                            sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                          }
+                          else {
+                            sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                          }
+                      }
+                      sh "make -j8"
+                    }
+                  }
+                }
+                dir("${REPO}") {
+                  // Stash all executables and xscope_fileio
+                  stash name: 'cmake_build_xcore', includes: 'build/**/*.xe, build/**/conftest.py, build/**/xscope_fileio/**'
+                }
+              }
             }
           }
-        }
-      }
-      post {
-        cleanup {
-          xcoreCleanSandbox()
+          post {
+            cleanup {
+              xcoreCleanSandbox()
+            }
+          }
         }
       }
     }
