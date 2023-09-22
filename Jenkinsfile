@@ -49,6 +49,9 @@ pipeline {
           }
         }
         stage('xcore.ai executables build') {
+          when {
+            expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
+          }
           agent {
             label 'x86_64'
           }
@@ -102,6 +105,9 @@ pipeline {
       }
     }
     stage('xcore.ai Verification') {
+      when {
+        expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
+      }
       agent {
         label 'xcore.ai'
       }
