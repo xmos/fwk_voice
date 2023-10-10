@@ -19,3 +19,4 @@ Audio Features
    ../../../modules/lib_adec/doc/index
    ../../../modules/lib_ic/doc/index
    ../../../modules/lib_vnr/doc/index
+   ../../../modules/lib_melspectrogram/doc/index
