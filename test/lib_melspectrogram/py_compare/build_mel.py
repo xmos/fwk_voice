@@ -23,8 +23,7 @@ def build_ffi():
 
     SRCS = [p for p in lib_mel_spec_sources]
     SRCS.extend((lib_xcore_math_path / "src").rglob("*.c"))
-    # print(lib_xcore_math_path / "src").rglob("*.c")
-    # print(lib_xcore_math_path / "src")
+
     INCLUDES = [
         lib_mel_spec_path / "api",
         lib_xcore_math_path / "api",
@@ -80,16 +79,14 @@ def build_ffi():
         libraries=["m"],
         extra_compile_args=FLAGS,
     )
-    print("***", SRCS)
-    print("***", INCLUDES)
 
-
-
-    ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
+    output_file = pathlib.Path("build/melspectrogram.dylib")
+    if not output_file.exists():
+        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
 
     # Darwin hack https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
     if sys.platform == "darwin":
-        copyfile("build/melspectrogram.dylib", "build/melspectrogram.so")
+        copyfile(output_file, output_file.with_suffix('.so'))
 
     open(build_dir + "/__init__.py", 'w').close() # Needed to load module from subdir
 

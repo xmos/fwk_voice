@@ -111,8 +111,8 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
         data_block = data[start_idx : start_idx + n_samples]
 
         py_melspec = lr.feature.melspectrogram(
-            data_block.astype(np.float32) / ((2**15) - 1),
-            fs,
+            y=data_block.astype(np.float32) / ((2**15) - 1),
+            sr=fs,
             n_fft=n_fft,
             hop_length=hop,
             n_mels=n_mel,
