@@ -109,7 +109,7 @@ static void mel_compute(float_s32_t filter_output[],
   // Mel filtering
   unsigned filter_head = 0;
 
-  for (int i = 0; i < n_mel; i++)
+  for (unsigned i = 0; i < n_mel; i++)
   {
     // Get start and end bins for the filter
     unsigned filter_start = filter_indices[i][0];
@@ -164,7 +164,7 @@ static inline void _to_float(mel_spec_buffers_t *const bufs,
     frame_adjust = -bufs->trim_top_frm;
   }
 
-  for (uint32_t i = 0; i < in_sz; i++)
+  for (int i = 0; i < in_sz; i++)
   {
     // Intentional matrix transpose
     target[(i * target_frm) + frame + frame_adjust] = float_s32_to_float(input[i]);
@@ -204,7 +204,7 @@ static inline void _to_float_and_db(mel_spec_buffers_t *const bufs,
     frame_adjust = -bufs->trim_top_frm;
   }
 
-  for (uint32_t i = 0; i < in_sz; i++)
+  for (int i = 0; i < in_sz; i++)
   {
     float temp = float_s32_to_float(input[i]) + offset;
     if (input[i].exp == 0 || input[i].mant == 0 || temp < min_val)
@@ -223,7 +223,7 @@ static inline void _subtract_mean_in_place(mel_spec_buffers_t *const bufs)
   uint32_t elems = bufs->quantise_sz + bufs->trim_end_sz + bufs->trim_top_sz;
 
   // Accumulate all three arrays
-  for (uint32_t i = 0; i < bufs->trim_top_sz; i++)
+  for (int i = 0; i < bufs->trim_top_sz; i++)
   {
     if (!isinff(bufs->trim_top_buf[i]) && !isnanf(bufs->trim_top_buf[i]))
     {
@@ -234,7 +234,7 @@ static inline void _subtract_mean_in_place(mel_spec_buffers_t *const bufs)
       elems--;
     }
   }
-  for (uint32_t i = 0; i < bufs->quantise_sz; i++)
+  for (int i = 0; i < bufs->quantise_sz; i++)
   {
     if (!isinff(bufs->quantise_buf[i]) && !isnanf(bufs->quantise_buf[i]))
     {
@@ -245,7 +245,7 @@ static inline void _subtract_mean_in_place(mel_spec_buffers_t *const bufs)
       elems--;
     }
   }
-  for (uint32_t i = 0; i < bufs->trim_end_sz; i++)
+  for (int i = 0; i < bufs->trim_end_sz; i++)
   {
     if (!isinff(bufs->trim_end_buf[i]) && !isnanf(bufs->trim_end_buf[i]))
     {
@@ -261,15 +261,15 @@ static inline void _subtract_mean_in_place(mel_spec_buffers_t *const bufs)
   acc /= elems;
 
   // Subtract from arrays
-  for (uint32_t i = 0; i < bufs->trim_top_sz; i++)
+  for (int i = 0; i < bufs->trim_top_sz; i++)
   {
     bufs->trim_top_buf[i] -= acc;
   }
-  for (uint32_t i = 0; i < bufs->quantise_sz; i++)
+  for (int i = 0; i < bufs->quantise_sz; i++)
   {
     bufs->quantise_buf[i] -= acc;
   }
-  for (uint32_t i = 0; i < bufs->trim_end_sz; i++)
+  for (int i = 0; i < bufs->trim_end_sz; i++)
   {
     bufs->trim_end_buf[i] -= acc;
   }
@@ -282,15 +282,15 @@ static inline void _min_thresh(mel_spec_buffers_t *const bufs,
   float max_val = -INFINITY;
 
   // We need to do this for all three arrays so the mean ends up correct
-  for (uint32_t i = 0; i < bufs->trim_top_sz; i++)
+  for (int i = 0; i < bufs->trim_top_sz; i++)
   {
     max_val = MAX(max_val, bufs->trim_top_buf[i]);
   }
-  for (uint32_t i = 0; i < bufs->quantise_sz; i++)
+  for (int i = 0; i < bufs->quantise_sz; i++)
   {
     max_val = MAX(max_val, bufs->quantise_buf[i]);
   }
-  for (uint32_t i = 0; i < bufs->trim_end_sz; i++)
+  for (int i = 0; i < bufs->trim_end_sz; i++)
   {
     max_val = MAX(max_val, bufs->trim_end_buf[i]);
   }
@@ -299,17 +299,17 @@ static inline void _min_thresh(mel_spec_buffers_t *const bufs,
   const float min_val = max_val - dynamic_range;
 
   // Replace if less than.
-  for (uint32_t i = 0; i < bufs->trim_top_sz; i++)
+  for (int i = 0; i < bufs->trim_top_sz; i++)
   {
     bufs->trim_top_buf[i] = MAX(min_val, bufs->trim_top_buf[i]);
   }
 
-  for (uint32_t i = 0; i < bufs->quantise_sz; i++)
+  for (int i = 0; i < bufs->quantise_sz; i++)
   {
     bufs->quantise_buf[i] = MAX(min_val, bufs->quantise_buf[i]);
   }
 
-  for (uint32_t i = 0; i < bufs->trim_end_sz; i++)
+  for (int i = 0; i < bufs->trim_end_sz; i++)
   {
     bufs->trim_end_buf[i] = MAX(min_val, bufs->trim_end_buf[i]);
   }
@@ -324,11 +324,11 @@ static inline void _quantise(float *const in_out,
   // This _only works_ because low_dim is 4. This code will need to
   // change for any other value!
   // This uses undefined behaviour that is both arch and compiler specific!
-  for (uint32_t x = 0; x < x_width; x++)
+  for (int x = 0; x < x_width; x++)
   {
-    for (uint32_t y = 0; y < y_width; y++)
+    for (int y = 0; y < y_width; y++)
     {
-      uint32_t const idx = (x * y_width) + y;
+      int const idx = (x * y_width) + y;
       union
       {
         float f;
@@ -385,23 +385,15 @@ static inline void _get_slice_centre(int16_t *const dst,
                                      uint32_t slice_no,
                                      mel_spec_settings_t const *const opts)
 {
-  uint32_t key = slice_no * opts->hop;
-  uint32_t wing = opts->n_fft / 2;
-  uint32_t arr_size = opts->n_fft - 1;
+  int32_t key = slice_no * opts->hop;
+  int32_t wing = opts->n_fft / 2;
+  int32_t arr_size = opts->n_fft - 1;
 
-  uint32_t src_idx = key - wing;
+  uint32_t src_idx = MAX(key - wing, 0);
   uint32_t end_idx = MIN(key + wing, opts->n_samples);
   uint32_t span = end_idx - src_idx;
 
-printf("memcpy pre\n");
-    printf("wing: %ld slice_no: %ld\n", wing, slice_no);
-
-    printf("%d\n", &dst[slice_no ? 0 : wing]);
-    dst[slice_no ? 0 : wing] = 1;
-    printf("%d\n", &src[src_idx]);
-  // memcpy(&dst[slice_no ? 0 : wing], &src[src_idx], span * sizeof(int16_t));
-  memcpy(&dst[slice_no ? 0 : wing], &src[src_idx], 1 * sizeof(int16_t));
-printf("memcpy post\n");
+  memcpy(&dst[slice_no ? 0 : wing], &src[src_idx], span * sizeof(int16_t));
 
   if (span < opts->n_fft) // This frame needs padding
   {
@@ -434,7 +426,7 @@ printf("memcpy post\n");
     else if (opts->pad_mode == MEL_SPEC_PAD_MODE_SYMMETRIC)
     {
       // Symmetric pad
-      for (uint32_t top = 0, end = arr_size; top < wing; top++, end--)
+      for (int top = 0, end = arr_size; top < wing; top++, end--)
       {
         if (slice_no) // if n then pad right
         {
@@ -469,12 +461,7 @@ static void x_mel_spec(int8_t *const output,
                        mel_spec_normalisation_t const *const norm_opts,
                        mel_spec_trim_t const *const trim_opts)
 {
-  printf("x_mel_spec pre\n");
-
   memset(&output[0], 0, out_shape->top_dim * out_shape->low_dim * out_shape->frame_dim * mel_opts->n_mels);
-
-  printf("x_mel_spec post\n");
-
 
   /* Trimming values from the start and end means we need more space for Mel
    * output than we have in the output buffer. We really, really don't want to
@@ -498,20 +485,15 @@ static void x_mel_spec(int8_t *const output,
   {
     memset(buffers.trim_top_buf, 0, buffers.trim_top_sz * sizeof(float));
   }
-  printf("x_mel_spec post\n");
-
   if (buffers.trim_end_buf)
   {
     memset(buffers.trim_end_buf, 0, buffers.trim_end_sz * sizeof(float));
   }
-  printf("x_mel_spec post\n");
 
-  for (uint32_t n = 0; n < mel_opts->n_frames; n++)
+  for (int n = 0; n < mel_opts->n_frames; n++)
   {
-    printf("n=%d\n", n);
     int16_t WORD_ALIGNED slice[mel_opts->n_fft];
     memset(slice, 0, mel_opts->n_fft * sizeof(int16_t));
-    printf("n=%d\n", n);
 
     if (mel_opts->centre == false)
     {
@@ -521,11 +503,8 @@ static void x_mel_spec(int8_t *const output,
     }
     else
     {
-        printf("_get_slice_centre\n");
-
       _get_slice_centre(slice, input, n, mel_opts);
     }
-    printf("n=%d\n", n);
 
     /* Shuffle some data around. Highlight is doing 16b -> 32b vectorwise.*/
     bfp_s16_t slice_bfp;
@@ -544,8 +523,6 @@ static void x_mel_spec(int8_t *const output,
     /* Do the FFT. Unpack the result. */
     bfp_complex_s32_t *slice_fft = bfp_fft_forward_mono(&to_fft);
     bfp_fft_unpack_mono(slice_fft);
-
-    printf("mel_compute pre\n");
 
     /* Transform into Mel domain */
     float_s32_t DWORD_ALIGNED mel_out[mel_opts->n_mels];
@@ -602,8 +579,6 @@ void x_melspectrogram(int8_t *output,
                       bool convert_to_db,
                       bool subtract_mean)
 {
-  printf("x_melspectrogram: %d %d %d\n", quantise, convert_to_db, subtract_mean);
-
   switch (mel_spec_option)
   {
   case MEL_SPEC_SMALL:
@@ -645,8 +620,6 @@ void x_melspectrogram(int8_t *output,
         {
             .trim_top_len = MEL_SPEC_SMALL_TRIM_START,
             .trim_end_len = MEL_SPEC_SMALL_TRIM_END};
-
-    printf("x_mel_spec MEL_SPEC_SMALL\n");
 
     x_mel_spec(output,
                out_trim_top,
@@ -703,8 +676,6 @@ void x_melspectrogram(int8_t *output,
         {
             .trim_top_len = MEL_SPEC_LARGE_TRIM_START,
             .trim_end_len = MEL_SPEC_LARGE_TRIM_END};
-
-    printf("x_mel_spec MEL_SPEC_LARGE\n");
 
     x_mel_spec(output,
                out_trim_top,
