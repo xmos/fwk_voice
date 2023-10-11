@@ -11,18 +11,27 @@ build_dir = "build"
 def build_ffi():
     print("Building application...")
     # One more ../ than necessary - builds in the 'build' subdirectory in this folder
-    XCORE_MATH = "../../.."
+    XCORE_MATH = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/"
+    MEL_SPEC_PATH = "../../../modules/lib_melspectrogram/"
 
     FLAGS = ["-std=c99", "-fPIC", "-D_GNU_SOURCE", "-w"]
 
-    # Source file
-    lib_xcore_math = pathlib.Path(XCORE_MATH).resolve()
-    lib_xcore_math_sources = (lib_xcore_math / "lib_xcore_math" / "src").rglob("*.c")
+    # Source and include files
+    lib_mel_spec_path = pathlib.Path(MEL_SPEC_PATH).resolve()
+    lib_mel_spec_sources = (lib_mel_spec_path / "src").rglob("*.c")
+    lib_xcore_math_path = pathlib.Path(XCORE_MATH).resolve()
 
-    SRCS = [p for p in lib_xcore_math_sources]
+    SRCS = [p for p in lib_mel_spec_sources]
+    SRCS.extend((lib_xcore_math_path / "src").rglob("*.c"))
+    # print(lib_xcore_math_path / "src").rglob("*.c")
+    # print(lib_xcore_math_path / "src")
     INCLUDES = [
-        lib_xcore_math / "lib_xcore_math" / "api",
-        lib_xcore_math / "lib_xcore_math" / "src" / "etc" / "xmath_fft_lut",
+        lib_mel_spec_path / "api",
+        lib_xcore_math_path / "api",
+        lib_xcore_math_path / "src",
+        lib_xcore_math_path / "src" / "arch" / "ref",
+        lib_xcore_math_path / "src" / "etc" / "xmath_fft_lut",
+
     ]
 
     # Units under test
@@ -47,7 +56,7 @@ def build_ffi():
     )
 
     ffibuilder.set_source(
-        "mel_spectrogram_api",
+        "melspectrogram",
         """
         #include <stdint.h>     
         #include <stdbool.h>   
@@ -71,12 +80,18 @@ def build_ffi():
         libraries=["m"],
         extra_compile_args=FLAGS,
     )
+    print("***", SRCS)
+    print("***", INCLUDES)
 
-    ffibuilder.compile(tmpdir=build_dir, target="mel_spectrogram_api.*", verbose=False)
+
+
+    ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
 
     # Darwin hack https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
     if sys.platform == "darwin":
-        copyfile("build/mel_spectrogram_api.dylib", "build/mel_spectrogram_api.so")
+        copyfile("build/melspectrogram.dylib", "build/melspectrogram.so")
+
+    open(build_dir + "/__init__.py", 'w').close() # Needed to load module from subdir
 
     print("Build complete!")
 
@@ -88,12 +103,8 @@ def clean_ffi():
 def build_uut():
     build_ffi()
 
-    from build import mel_spectrogram_api
-    from mel_spectrogram_api import ffi
-    import mel_spectrogram_api.lib as mel_spectrogram_api_lib
-
-    return ffi, mel_spectrogram_api_lib.x_melspectrogram, mel_spectrogram_api_lib.test
-
+    import build.melspectrogram as ms
+    return ms.ffi, ms.lib.x_melspectrogram, ms.lib.test
 
 if __name__ == "__main__":
     build_ffi()
