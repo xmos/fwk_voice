@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <xmath/xmath.h>
+#include "xmath/xmath.h"
 #include "mel_spec_settings.h"
 #ifdef __XC__
     #define _Bool int

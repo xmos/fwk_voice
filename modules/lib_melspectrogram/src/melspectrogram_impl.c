@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-#include <xmath/xmath.h>
 #include <assert.h>
 
-#include "xmath/mel_spectrogram/coeffs/mel_filter_512_64_compressed.h"
-#include "xmath/mel_spectrogram/coeffs/mel_filter_1024_128_compressed.h"
-#include "xmath/mel_spectrogram/coeffs/hann_512.h"
-#include "xmath/mel_spectrogram/coeffs/hann_1024.h"
+#include "melspectrogram_api.h"
+#include "coeffs/mel_filter_512_64_compressed.h"
+#include "coeffs/mel_filter_1024_128_compressed.h"
+#include "coeffs/hann_512.h"
+#include "coeffs/hann_1024.h"
 
 #ifndef __XS3A__
 #define isnanf isnan
@@ -394,7 +394,7 @@ static inline void _get_slice_centre(int16_t *const dst,
   uint32_t span = end_idx - src_idx;
 
 printf("memcpy pre\n");
-    printf("wing: %d slice_no: %d\n", wing, slice_no);
+    printf("wing: %ld slice_no: %ld\n", wing, slice_no);
 
     printf("%d\n", &dst[slice_no ? 0 : wing]);
     dst[slice_no ? 0 : wing] = 1;
