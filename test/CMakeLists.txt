@@ -20,7 +20,10 @@ if ( ${FWK_VOICE_BUILD_TESTS} )
 
     add_subdirectory( lib_vnr )
 
+    add_subdirectory( lib_melspectrogram )
+
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         add_subdirectory( test_hpf )
     endif()
 endif()
+
