@@ -193,6 +193,17 @@ pipeline {
             }
           }
         }
+        stage('MEL_SPEC test_wav_mel') {
+          steps {
+            dir("${REPO}/test/lib_melspectrogram/py_compare") {
+              viewEnv {
+                withVenv {
+                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
@@ -576,6 +587,8 @@ pipeline {
           // IC artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
+          // MEL_SPEC artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_melspectrogram/py_compare/*.png", fingerprint: true
           // NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           // VNR artifacts

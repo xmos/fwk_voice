@@ -57,7 +57,7 @@ MEL_SPEC_LARGE_CENTRE = MEL_SPEC_COMMON_CENTRE
 MEL_SPEC_LARGE_PAD_MODE = MEL_SPEC_COMMON_PAD_MODE
 
 
-def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm):
+def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm):
     assert option in ("small", "large")
 
     if option == "small":
@@ -202,6 +202,8 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
 
     plt.savefig("melspectrogram_compare.png")
 
+    return np.array_equal(py_melspecs, c_melspecs)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare Py and C Mel specs")
@@ -218,7 +220,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    test_mel_spec(
+    # Example
+    #  python3.8 test_mel.py -i ../../lib_vnr/test_wav_vnr/data_16k/8842-302203-0010001.wav -b 3 -s small -op example_python_output.txt -oc example_c_output.txt -q -db -submean
+
+    compare_mel_spec(
         args.input_file,
         args.number_of_blocks,
         args.size,
