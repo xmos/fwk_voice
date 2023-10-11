@@ -42,7 +42,6 @@ def build_ffi():
             MEL_SPEC_SMALL,
             MEL_SPEC_LARGE
         } mel_spec_option_t;
-        int test(int);
         void x_melspectrogram(int8_t *out,
                       int8_t *out_trim_top,
                       int8_t *out_trim_end,
@@ -64,7 +63,6 @@ def build_ffi():
             MEL_SPEC_SMALL,
             MEL_SPEC_LARGE
         } mel_spec_option_t;
-        int test(int);
         void x_melspectrogram(int8_t *out,
                       int8_t *out_trim_top,
                       int8_t *out_trim_end,
@@ -82,9 +80,9 @@ def build_ffi():
 
     output_file = pathlib.Path("build/melspectrogram.dylib")
     if not output_file.exists():
-        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
+        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=False)
 
-    # Darwin hack https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
+    # Darwin workaround https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
     if sys.platform == "darwin":
         copyfile(output_file, output_file.with_suffix('.so'))
 
@@ -101,7 +99,7 @@ def build_uut():
     build_ffi()
 
     import build.melspectrogram as ms
-    return ms.ffi, ms.lib.x_melspectrogram, ms.lib.test
+    return ms.ffi, ms.lib.x_melspectrogram
 
 if __name__ == "__main__":
     build_ffi()

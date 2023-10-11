@@ -88,11 +88,6 @@ typedef struct
   uint32_t quantise_frm;
 } mel_spec_buffers_t;
 
-int test(int val){
-    printf("val: %d\n", val);
-    return 42;
-}
-
 static void mel_compute(float_s32_t filter_output[],
                         const int n_mel,
                         const bfp_complex_s32_t *X,

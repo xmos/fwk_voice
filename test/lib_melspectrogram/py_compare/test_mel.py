@@ -97,8 +97,7 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
         db_dynamic_range = MEL_SPEC_LARGE_DB_DYNAMIC_RANGE
         pre_db_offset = MEL_SPEC_LARGE_PRE_DB_OFFSET
 
-    ffi, c_func, test = build_uut()
-    print(ffi, c_func)
+    ffi, c_func = build_uut()
 
     data, sr = soundfile.read(input_filename, dtype=np.int16)
     assert sr == fs
@@ -131,19 +130,18 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
         if quantise:
             py_melspec = (py_melspec + zero_point) * scale
         py_melspec = np.clip(py_melspec, -128, 127).astype(np.int8)
-        print(py_melspec.shape)
+
         if end_trim > 0:
             py_melspec = py_melspec[:, :-end_trim]
         if top_trim > 0:
             py_melspec = py_melspec[:, top_trim:]
         py_melspecs.append(py_melspec)
 
-        print(1)
         c_input = ffi.new(f"int16_t[{n_samples}]", data_block.tolist())
         c_output = ffi.new(f"int8_t[{top_dim * frame_dim * n_mel * low_dim}]")
         c_output_trim_top = ffi.NULL
         c_output_trim_end = ffi.NULL
-        print(2)
+
         if option == MEL_SPEC_OPTION_T["MEL_SPEC_LARGE"]:
             c_output_trim_top = ffi.new(
                 f"int8_t[{top_dim * frame_dim * top_trim * low_dim}]"
@@ -151,15 +149,13 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
             c_output_trim_end = ffi.new(
                 f"int8_t[{top_dim * frame_dim * end_trim * low_dim}]"
             )
-        print(3)
-        print(test(6031769))
+
         c_func(c_output, c_output_trim_top, c_output_trim_end, c_input, option, quantise, db, sm)
-        print(4)
+
         c_melspec = np.frombuffer(
             ffi.buffer(c_output, top_dim * frame_dim * n_mel * low_dim), dtype=np.int8
         ).reshape(top_dim, n_mel, frame_dim, low_dim)
         c_melspecs.append(c_melspec[0, :, :, 0])
-        print(5)
 
     num_sp = 2
     _, axs = plt.subplots(
@@ -203,7 +199,8 @@ def test_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db, sm
                 f.write("".join([f"{x:4}, " for x in mel]))
                 f.write("\n")
             f.write("\n")
-    plt.show()
+
+    plt.savefig("melspectrogram_compare.png")
 
 
 if __name__ == "__main__":
