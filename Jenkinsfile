@@ -135,6 +135,23 @@ pipeline {
             }
           }
         }
+        stage('MEL_SPEC test_wav_mel') {
+          steps {
+            dir("${REPO}/test/lib_melspectrogram") {
+              viewEnv { // Loads the xmos tools
+                // Note we do things differntly here. Due to module version clashes we 
+                // need to have a local venv to satisfy the requirements of librosa
+                // This avoids clashes in the main requirements of fwk_voice which gets tricky
+                // due to all of the other requirements for py_aec,vnr etc.
+                createVenv("requirements_melspectrogram.txt")
+                withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram/requirements_melspectrogram.txt") {
+                  sh "pip3.9 install -r requirements.txt"
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                }
+              }
+            }
+          }
+        }
         stage('Reset XTAGs'){
           steps{
             dir("${REPO}") {
@@ -189,22 +206,6 @@ pipeline {
                     sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
                     sh "diff vnr_out1.bin vnr_out2.bin"
                   }
-                }
-              }
-            }
-          }
-        }
-        stage('MEL_SPEC test_wav_mel') {
-          steps {
-            dir("${REPO}/test/lib_melspectrogram") {
-              viewEnv { // Loads the xmos tools
-                // Note we do things differntly here. Due to module version clashes we 
-                // need to have a local venv to satisfy the requirements of librosa
-                // This avoids 
-                createVenv("requirements_melspectrogram.txt")
-                withVenv("${REPO}/test/lib_melspectrogram") {
-                  sh "pip install -r requirements.txt"
-                  sh "pytest -s --junitxml=pytest_result.xml"
                 }
               }
             }
