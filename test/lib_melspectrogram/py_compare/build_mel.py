@@ -3,23 +3,23 @@
 
 from cffi import FFI
 from shutil import rmtree, copyfile
-import pathlib
+from pathlib import Path
 import sys
 
 build_dir = "build"
 
 def build_ffi():
     print("Building application...")
-    # One more ../ than necessary - builds in the 'build' subdirectory in this folder
+    # Paths relative to this file
     XCORE_MATH = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/"
     MEL_SPEC_PATH = "../../../modules/lib_melspectrogram/"
 
     FLAGS = ["-std=c99", "-fPIC", "-D_GNU_SOURCE", "-w"]
 
     # Source and include files
-    lib_mel_spec_path = pathlib.Path(MEL_SPEC_PATH).resolve()
-    lib_mel_spec_sources = (lib_mel_spec_path / "src").rglob("*.c")
-    lib_xcore_math_path = pathlib.Path(XCORE_MATH).resolve()
+    lib_mel_spec_path = Path(__file__).resolve().parent / MEL_SPEC_PATH
+    lib_mel_spec_sources = (Path(__file__).resolve().parent / lib_mel_spec_path / "src").rglob("*.c")
+    lib_xcore_math_path = Path(__file__).resolve().parent / XCORE_MATH
 
     SRCS = [p for p in lib_mel_spec_sources]
     SRCS.extend((lib_xcore_math_path / "src").rglob("*.c"))
@@ -78,11 +78,13 @@ def build_ffi():
         extra_compile_args=FLAGS,
     )
 
-    output_file = pathlib.Path("build/melspectrogram.dylib")
-    
+    output_file = Path("build/melspectrogram.dylib")
+
     # Prevents rebuild if already built
     if not output_file.exists():
-        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
+        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=False)
+    else:
+        print(f"SKIPPING BUILD - {output_file} already exists..")
 
     # Darwin workaround https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
     if sys.platform == "darwin":
