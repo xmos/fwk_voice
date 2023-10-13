@@ -79,8 +79,10 @@ def build_ffi():
     )
 
     output_file = pathlib.Path("build/melspectrogram.dylib")
+    
+    # Prevents rebuild if already built
     if not output_file.exists():
-        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=False)
+        ffibuilder.compile(tmpdir=build_dir, target="melspectrogram.*", verbose=True)
 
     # Darwin workaround https://stackoverflow.com/questions/2488016/how-to-make-python-load-dylib-on-osx
     if sys.platform == "darwin":
