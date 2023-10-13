@@ -37,6 +37,7 @@ pipeline {
       stages {
         stage('Get view') {
           steps {
+            // Note this also creates the venv
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
               viewEnv {
@@ -195,10 +196,15 @@ pipeline {
         }
         stage('MEL_SPEC test_wav_mel') {
           steps {
-            dir("${REPO}/test/lib_melspectrogram/py_compare") {
-              viewEnv {
-                withVenv {
-                  sh "pytest -n 1 --junitxml=pytest_result.xml"
+            dir("${REPO}/test/lib_melspectrogram") {
+              viewEnv { // Loads the xmos tools
+                // Note we do things differntly here. Due to module version clashes we 
+                // need to have a local venv to satisfy the requirements of librosa
+                // This avoids 
+                createVenv("requirements_melspectrogram.txt")
+                withVenv("${REPO}/test/lib_melspectrogram") {
+                  sh "pip install -r requirements.txt"
+                  sh "pytest -s --junitxml=pytest_result.xml"
                 }
               }
             }

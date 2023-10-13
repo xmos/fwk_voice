@@ -1,3 +1,8 @@
+# python_version 3.9.0
+# pip_version 23.*
+# We need a separate venv here since many of the other py modules (vad, aec etc.) require a newer
+# version of matplotlib. librosa needs 3.4.0 so we need to pin this back
+
 audioread==3.0.0
 certifi==2023.7.22
 cffi==1.15.1
@@ -19,6 +24,7 @@ platformdirs==3.10.0
 pooch==1.7.0
 pycparser==2.21
 pyparsing==3.1.1
+pytest==7.4.2
 python-dateutil==2.8.2
 requests==2.31.0
 resampy==0.4.2
