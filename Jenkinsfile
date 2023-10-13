@@ -147,6 +147,7 @@ pipeline {
                 withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram") {
                   sh "pip install -r requirements_melspectrogram.txt"
                   sh "pytest -s --junitxml=pytest_result.xml"
+                  sh 'tree'
                 }
               }
             }
@@ -595,7 +596,7 @@ pipeline {
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
           // MEL_SPEC artefacts
-          archiveArtifacts artifacts: "${REPO}/test/lib_melspectrogram/py_compare/*.png", fingerprint: true
+          archiveArtifacts artifacts: "${REPO}/test/lib_melspectrogram/**/*.png", fingerprint: true
           // NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           // VNR artifacts
