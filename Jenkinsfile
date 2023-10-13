@@ -145,7 +145,7 @@ pipeline {
                 // due to all of the other requirements for py_aec,vnr etc.
                 createVenv("requirements_melspectrogram.txt")
                 withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram") {
-                  sh "pip install -r requirements.txt"
+                  sh "pip install -r requirements_melspectrogram.txt"
                   sh "pytest -s --junitxml=pytest_result.xml"
                 }
               }
