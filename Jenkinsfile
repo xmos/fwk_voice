@@ -144,7 +144,7 @@ pipeline {
                 // This avoids clashes in the main requirements of fwk_voice which gets tricky
                 // due to all of the other requirements for py_aec,vnr etc.
                 createVenv("requirements_melspectrogram.txt")
-                withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram/requirements_melspectrogram.txt") {
+                withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram") {
                   sh "pip3.9 install -r requirements.txt"
                   sh "pytest -s --junitxml=pytest_result.xml"
                 }
