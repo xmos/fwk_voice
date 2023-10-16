@@ -5,17 +5,16 @@ from compare_mel_wav import compare_mel_spec
 from pathlib import Path
 
 
-@pytest.mark.parametrize("a_param", (1,2,3))
-def test_simple(a_param):
+@pytest.mark.parametrize("size", ("small", "large"))
+@pytest.mark.parametrize("quantise", (True, False))
+@pytest.mark.parametrize("to_decibel", (True, False))
+@pytest.mark.parametrize("subtract_mean", (True, False))
+def test_simple(size, quantise, to_decibel, subtract_mean):
     
     input_file = Path(__file__).resolve().parent / "../../lib_vnr/test_wav_vnr/data_16k/8842-302203-0010001.wav"
-    number_of_blocks = 4
-    size = "small"
+    number_of_blocks = 2
     output_file_python = "mel_py.txt"
     output_file_c = "mel_c.txt"
-    quantise = True
-    to_decibel = True
-    subtract_mean = True
 
     equal = compare_mel_spec(
         input_file,
