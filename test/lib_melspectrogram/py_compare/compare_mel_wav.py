@@ -101,7 +101,7 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
 
     data, sr = soundfile.read(input_filename, dtype=np.int16)
     assert sr == fs
-    assert data.size >= n_samples * data_blocks
+    assert data.size >= n_samples * data_blocks, f"data.size: {data.size} n_samples * data_blocks: {n_samples * data_blocks}"
 
     c_melspecs = list()
     py_melspecs = list()
@@ -200,9 +200,25 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
                 f.write("\n")
             f.write("\n")
 
-    plt.savefig("melspectrogram_compare.png")
+    figname = f"melspectrogram_compare sm:{sm} db:{db} quantise:{quantise} size:{n_samples}"
+    plt.savefig(figname + ".png")
 
-    return np.array_equal(py_melspecs, c_melspecs)
+    print(len(py_melspecs), py_melspecs[0].shape)
+
+    # We end up with a list of length num_frames of 2D numpy arrays
+    # Compare frame by frame and look more closely if there is a diff + report
+    close = True
+    atol = 1 # Needed for case when Quantisation is set to off, otherwise 0 OK
+    for py, c in zip(py_melspecs, c_melspecs):
+        if not np.allclose(py, c, atol=atol):
+            close = False
+            for time in range(py.shape[1]):
+                py_slice = py[:,time]
+                c_slice = c[:,time]
+                diff = np.absolute(py_slice - c_slice)
+                print(f"Max diff of slice {time}: {np.max(diff)} at mel: {np.argmax(diff)}")
+
+    return close
 
 
 if __name__ == "__main__":
