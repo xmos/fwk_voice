@@ -99,7 +99,7 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
 
     ffi, c_func = build_uut()
 
-    data, sr = soundfile.read(input_filename, dtype=np.int16)
+    data, sr = soundfile.read(input_filename, dtype=np.int32)
     assert sr == fs
     assert data.size >= n_samples * data_blocks, f"data.size: {data.size} n_samples * data_blocks: {n_samples * data_blocks}"
 
@@ -110,7 +110,7 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
         data_block = data[start_idx : start_idx + n_samples]
 
         py_melspec = lr.feature.melspectrogram(
-            y=data_block.astype(np.float32) / ((2**15) - 1),
+            y=data_block.astype(np.float32) / ((2**31) - 1),
             sr=fs,
             n_fft=n_fft,
             hop_length=hop,
@@ -137,7 +137,7 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
             py_melspec = py_melspec[:, top_trim:]
         py_melspecs.append(py_melspec)
 
-        c_input = ffi.new(f"int16_t[{n_samples}]", data_block.tolist())
+        c_input = ffi.new(f"int32_t[{n_samples}]", data_block.tolist())
         c_output = ffi.new(f"int32_t[{top_dim * frame_dim * n_mel * low_dim}]")
         c_output_trim_top = ffi.NULL
         c_output_trim_end = ffi.NULL

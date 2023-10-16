@@ -355,8 +355,8 @@ static inline void _quantise(float *const in_out,
   }
 }
 
-static inline void _get_slice(int16_t *const dst,
-                              int16_t const *const src,
+static inline void _get_slice(int32_t *const dst,
+                              int32_t const *const src,
                               uint32_t slice,
                               mel_spec_settings_t const *const opts)
 {
@@ -371,12 +371,12 @@ static inline void _get_slice(int16_t *const dst,
   }
   if (n_copy > 0)
   {
-    memcpy(&dst[0], &src[src_idx], n_copy * sizeof(int16_t));
+    memcpy(&dst[0], &src[src_idx], n_copy * sizeof(int32_t));
   }
 }
 
-static inline void _get_slice_centre(int16_t *const dst,
-                                     int16_t const *const src,
+static inline void _get_slice_centre(int32_t *const dst,
+                                     int32_t const *const src,
                                      uint32_t slice_no,
                                      mel_spec_settings_t const *const opts)
 {
@@ -388,7 +388,7 @@ static inline void _get_slice_centre(int16_t *const dst,
   uint32_t end_idx = MIN(key + wing, opts->n_samples);
   uint32_t span = end_idx - src_idx;
 
-  memcpy(&dst[slice_no ? 0 : wing], &src[src_idx], span * sizeof(int16_t));
+  memcpy(&dst[slice_no ? 0 : wing], &src[src_idx], span * sizeof(int32_t));
 
   if (span < opts->n_fft) // This frame needs padding
   {
@@ -447,7 +447,7 @@ static inline void _get_slice_centre(int16_t *const dst,
 static void x_mel_spec(int32_t *const output,
                        int32_t *const output_trim_top,
                        int32_t *const output_trim_end,
-                       int16_t *const input,
+                       int32_t *const input,
                        mel_spec_output_shape_t const *const out_shape,
                        mel_spec_settings_t const *const mel_opts,
                        mel_spec_filters_t const *const filters,
@@ -487,8 +487,8 @@ static void x_mel_spec(int32_t *const output,
 
   for (int n = 0; n < mel_opts->n_frames; n++)
   {
-    int16_t WORD_ALIGNED slice[mel_opts->n_fft];
-    memset(slice, 0, mel_opts->n_fft * sizeof(int16_t));
+    int32_t WORD_ALIGNED slice[mel_opts->n_fft];
+    memset(slice, 0, mel_opts->n_fft * sizeof(int32_t));
 
     if (mel_opts->centre == false)
     {
@@ -502,13 +502,21 @@ static void x_mel_spec(int32_t *const output,
     }
 
     /* Shuffle some data around. Highlight is doing 16b -> 32b vectorwise.*/
-    bfp_s16_t slice_bfp;
-    bfp_s16_init(&slice_bfp, slice, -15, mel_opts->n_fft, 0);
+    // bfp_s16_t slice_bfp;
+    // bfp_s16_init(&slice_bfp, slice, -15, mel_opts->n_fft, 0);
+
+    // bfp_s32_t to_fft;
+    // int32_t DWORD_ALIGNED to_fft_buf[mel_opts->n_fft + 2];
+    // bfp_s32_init(&to_fft, to_fft_buf, -31, mel_opts->n_fft, 0);
+    // bfp_s16_to_bfp_s32(&to_fft, &slice_bfp);
 
     bfp_s32_t to_fft;
     int32_t DWORD_ALIGNED to_fft_buf[mel_opts->n_fft + 2];
     bfp_s32_init(&to_fft, to_fft_buf, -31, mel_opts->n_fft, 0);
-    bfp_s16_to_bfp_s32(&to_fft, &slice_bfp);
+    memcpy(to_fft_buf, slice, mel_opts->n_fft * sizeof(int32_t))
+
+    // bfp_s16_to_bfp_s32(&to_fft, &slice_bfp);
+
 
     /* Apply the window, again vector-accelerated */
     bfp_s32_t window_bfp;
@@ -568,7 +576,7 @@ static void x_mel_spec(int32_t *const output,
 void x_melspectrogram(int32_t *output,
                       int32_t *output_trim_top,
                       int32_t *output_trim_end,
-                      int16_t *input,
+                      int32_t *input,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,
                       bool convert_to_db,

@@ -101,7 +101,7 @@ typedef enum
 void x_melspectrogram(int32_t *output,
                       int32_t *out_trim_top,
                       int32_t *out_trim_end,
-                      int16_t *input,
+                      int32_t *input,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,
                       bool convert_to_db,

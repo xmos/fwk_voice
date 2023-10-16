@@ -8,7 +8,8 @@ from pathlib import Path
 
 @pytest.fixture(scope="session")
 def clean_build():
-    clean_ffi()
+    pass
+    # clean_ffi()
 
 
 @pytest.mark.parametrize("size", ("small", "large"))
