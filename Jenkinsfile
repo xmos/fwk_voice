@@ -37,6 +37,7 @@ pipeline {
       stages {
         stage('Get view') {
           steps {
+            // Note this also creates the venv
             xcorePrepareSandbox("${VIEW}", "${REPO}")
             dir("${REPO}") {
               viewEnv {
@@ -129,6 +130,24 @@ pipeline {
                     sh "python build_c_code.py"
                   }
                   unstash 'cmake_build_xcore'
+                }
+              }
+            }
+          }
+        }
+        stage('MEL_SPEC test_wav_mel') {
+          steps {
+            dir("${REPO}/test/lib_melspectrogram") {
+              viewEnv { // Loads the xmos tools
+                // Note we do things differntly here. Due to module version clashes we 
+                // need to have a local venv to satisfy the requirements of librosa
+                // This avoids clashes in the main requirements of fwk_voice which gets tricky
+                // due to all of the other requirements for py_aec,vnr etc.
+                createVenv("requirements_melspectrogram.txt")
+                withVenv("${WORKSPACE}/${REPO}/test/lib_melspectrogram") {
+                  sh "pip install -r requirements_melspectrogram.txt"
+                  sh "pytest -s --junitxml=pytest_result.xml"
+                  sh 'tree'
                 }
               }
             }
@@ -576,6 +595,8 @@ pipeline {
           // IC artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_profile/ic_prof.log", fingerprint: true
           archiveArtifacts artifacts: "${REPO}/test/lib_ic/test_ic_spec/ic_spec_summary.txt", fingerprint: true
+          // MEL_SPEC artefacts
+          archiveArtifacts artifacts: "${REPO}/test/lib_melspectrogram/**/*.png", fingerprint: true
           // NS artefacts
           archiveArtifacts artifacts: "${REPO}/test/lib_ns/test_ns_profile/ns_prof.log", fingerprint: true
           // VNR artifacts
