@@ -444,9 +444,9 @@ static inline void _get_slice_centre(int16_t *const dst,
 #ifdef __XS3A__
 #pragma stackfunction 1024
 #endif
-static void x_mel_spec(int8_t *const output,
-                       int8_t *const out_trim_top,
-                       int8_t *const out_trim_end,
+static void x_mel_spec(int32_t *const output,
+                       int32_t *const output_trim_top,
+                       int32_t *const output_trim_end,
                        int16_t *const input,
                        mel_spec_output_shape_t const *const out_shape,
                        mel_spec_settings_t const *const mel_opts,
@@ -456,7 +456,7 @@ static void x_mel_spec(int8_t *const output,
                        mel_spec_normalisation_t const *const norm_opts,
                        mel_spec_trim_t const *const trim_opts)
 {
-  memset(&output[0], 0, out_shape->top_dim * out_shape->low_dim * out_shape->frame_dim * mel_opts->n_mels);
+  memset(&output[0], 0, out_shape->top_dim * out_shape->low_dim * out_shape->frame_dim * mel_opts->n_mels * sizeof(int32_t));
 
   /* Trimming values from the start and end means we need more space for Mel
    * output than we have in the output buffer. We really, really don't want to
@@ -466,10 +466,10 @@ static void x_mel_spec(int8_t *const output,
    * calculate the whole array. This means we need somewhere to store the
    * output of calculating the whole array, before we quantise it. Let's use
    * the fact we have an output buffer that is 4 bytes per element. */
-  mel_spec_buffers_t buffers = {.trim_top_buf = (float *)out_trim_top,
+  mel_spec_buffers_t buffers = {.trim_top_buf = (float *)output_trim_top,
                                 .trim_top_sz = trim_opts->trim_top_len * mel_opts->n_mels,
                                 .trim_top_frm = trim_opts->trim_top_len,
-                                .trim_end_buf = (float *)out_trim_end,
+                                .trim_end_buf = (float *)output_trim_end,
                                 .trim_end_sz = trim_opts->trim_end_len * mel_opts->n_mels,
                                 .trim_end_frm = trim_opts->trim_end_len,
                                 .quantise_buf = (float *)output,
@@ -565,9 +565,9 @@ static void x_mel_spec(int8_t *const output,
   _quantise(buffers.trim_end_buf, mel_opts->n_mels, buffers.trim_end_frm, quant_opts);
 }
 
-void x_melspectrogram(int8_t *output,
-                      int8_t *out_trim_top,
-                      int8_t *out_trim_end,
+void x_melspectrogram(int32_t *output,
+                      int32_t *output_trim_top,
+                      int32_t *output_trim_end,
                       int16_t *input,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,
@@ -617,8 +617,8 @@ void x_melspectrogram(int8_t *output,
             .trim_end_len = MEL_SPEC_SMALL_TRIM_END};
 
     x_mel_spec(output,
-               out_trim_top,
-               out_trim_end,
+               output_trim_top,
+               output_trim_end,
                input,
                &out_shape,
                &mel_opts,
@@ -673,8 +673,8 @@ void x_melspectrogram(int8_t *output,
             .trim_end_len = MEL_SPEC_LARGE_TRIM_END};
 
     x_mel_spec(output,
-               out_trim_top,
-               out_trim_end,
+               output_trim_top,
+               output_trim_end,
                input,
                &out_shape,
                &mel_opts,

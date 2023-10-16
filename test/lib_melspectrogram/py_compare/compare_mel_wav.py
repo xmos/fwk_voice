@@ -138,16 +138,16 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
         py_melspecs.append(py_melspec)
 
         c_input = ffi.new(f"int16_t[{n_samples}]", data_block.tolist())
-        c_output = ffi.new(f"int8_t[{top_dim * frame_dim * n_mel * low_dim}]")
+        c_output = ffi.new(f"int32_t[{top_dim * frame_dim * n_mel * low_dim}]")
         c_output_trim_top = ffi.NULL
         c_output_trim_end = ffi.NULL
 
         if option == MEL_SPEC_OPTION_T["MEL_SPEC_LARGE"]:
             c_output_trim_top = ffi.new(
-                f"int8_t[{top_dim * frame_dim * top_trim * low_dim}]"
+                f"int32_t[{top_dim * frame_dim * top_trim * low_dim}]"
             )
             c_output_trim_end = ffi.new(
-                f"int8_t[{top_dim * frame_dim * end_trim * low_dim}]"
+                f"int32_t[{top_dim * frame_dim * end_trim * low_dim}]"
             )
 
         c_func(c_output, c_output_trim_top, c_output_trim_end, c_input, option, quantise, db, sm)

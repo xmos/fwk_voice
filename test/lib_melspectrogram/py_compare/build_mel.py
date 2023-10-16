@@ -42,9 +42,9 @@ def build_ffi():
             MEL_SPEC_SMALL,
             MEL_SPEC_LARGE
         } mel_spec_option_t;
-        void x_melspectrogram(int8_t *out,
-                      int8_t *out_trim_top,
-                      int8_t *out_trim_end,
+        void x_melspectrogram(int32_t *out,
+                      int32_t *out_trim_top,
+                      int32_t *out_trim_end,
                       int16_t *in,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,
@@ -63,9 +63,9 @@ def build_ffi():
             MEL_SPEC_SMALL,
             MEL_SPEC_LARGE
         } mel_spec_option_t;
-        void x_melspectrogram(int8_t *out,
-                      int8_t *out_trim_top,
-                      int8_t *out_trim_end,
+        void x_melspectrogram(int32_t *out,
+                      int32_t *out_trim_top,
+                      int32_t *out_trim_end,
                       int16_t *in,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,

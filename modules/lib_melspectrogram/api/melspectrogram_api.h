@@ -98,9 +98,9 @@ typedef enum
  * @param[in] subtract_mean - Chooses whether to subtract the mean of the output
  *                            tensor before quantisation
  */
-void x_melspectrogram(int8_t *output,
-                      int8_t *out_trim_top,
-                      int8_t *out_trim_end,
+void x_melspectrogram(int32_t *output,
+                      int32_t *out_trim_top,
+                      int32_t *out_trim_end,
                       int16_t *input,
                       mel_spec_option_t mel_spec_option,
                       bool quantise,
