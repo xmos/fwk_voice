@@ -106,5 +106,5 @@ def build_uut():
     return ms.ffi, ms.lib.x_melspectrogram
 
 if __name__ == "__main__":
-    build_ffi()
+    print(build_uut())
 

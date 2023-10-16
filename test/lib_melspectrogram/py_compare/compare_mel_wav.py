@@ -200,7 +200,7 @@ def compare_mel_spec(input_filename, data_blocks, option, opy, oc, quantise, db,
                 f.write("\n")
             f.write("\n")
 
-    figname = f"melspectrogram_compare sm:{sm} db:{db} quantise:{quantise} size:{n_samples}"
+    figname = f"melspectrogram_compare_sm_{sm}_db_{db}_quantise_{quantise}_size_{n_samples}"
     plt.savefig(figname + ".png")
 
     print(len(py_melspecs), py_melspecs[0].shape)
