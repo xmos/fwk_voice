@@ -96,7 +96,7 @@ def build_ffi():
 
 
 def clean_ffi():
-    rmtree(f"./{build_dir}")
+    rmtree(f"./{build_dir}", ignore_errors=True)
 
 
 def build_uut():
