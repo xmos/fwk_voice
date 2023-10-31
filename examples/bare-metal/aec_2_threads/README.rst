@@ -21,7 +21,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
 
     .. code-block:: console
     
-        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
         make fwk_voice_example_bare_metal_aec_2_thread
 
 .. tab:: Windows
@@ -29,7 +29,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
     .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake -S..
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
         ninja fwk_voice_example_bare_metal_aec_2_thread
 
 .. include :: ../../../doc/install_ninja_rst.inc

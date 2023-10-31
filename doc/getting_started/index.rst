@@ -38,14 +38,14 @@ procedure is currently supported on MacOS, Linux and Windows.
 
       .. code-block:: console
 
-        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
 
    - On Windows
 
       .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake -S..
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
 
    As part of the cmake, some dependencies are fetched using CMake FetchContent. One of these dependencies, lib_tflite_micro has a patch applied to it as part of the FetchContent. This means, when trying to rerun the cmake in the same build directory, sometimes errors
    related to not being able to apply a patch to an already patched library are seen. To get rid of these errors, add the -DFETCHCONTENT_UPDATES_DISCONNECTED=ON option to the cmake command line, which will disable the FetchContent if the content has been downloaded previously.

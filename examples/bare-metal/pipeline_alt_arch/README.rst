@@ -48,7 +48,7 @@ Run the following commands in the fwk_voice/build folder to build the multi-thre
 
     .. code-block:: console
     
-        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
         make fwk_voice_example_bare_metal_pipeline_alt_arch_mt
 
 .. tab:: Windows
@@ -56,7 +56,7 @@ Run the following commands in the fwk_voice/build folder to build the multi-thre
     .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake -S..
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
         ninja fwk_voice_example_bare_metal_pipeline_alt_arch_mt
 
 .. include :: ../../../doc/install_ninja_rst.inc
