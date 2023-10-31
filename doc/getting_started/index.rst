@@ -9,7 +9,7 @@ Requirements
 * CMake 3.20 or higher
 * Python 3.7 or higher
 
-.. include :: ../install_nmake_rst.inc
+.. include :: ../install_ninja_rst.inc
 
 
 Building

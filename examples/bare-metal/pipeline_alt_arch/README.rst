@@ -56,10 +56,13 @@ Run the following commands in the fwk_voice/build folder to build the multi-thre
     .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
-        nmake fwk_voice_example_bare_metal_pipeline_alt_arch_mt
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake -S..
+        ninja fwk_voice_example_bare_metal_pipeline_alt_arch_mt
 
-To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_alt_arch_st cmake target when doing make(nmake).
+.. include :: ../../../doc/install_ninja_rst.inc
+
+
+To build the single-threaded firmware use fwk_voice_example_bare_metal_pipeline_alt_arch_st cmake target when doing make(ninja).
 
 Running
 *******
@@ -80,8 +83,8 @@ To run the multi-threaded application run these commands from the fwk_voice/buil
 
         pip install -e fwk_voice_deps/xscope_fileio
         cd fwk_voice_deps/xscope_fileio/host
-        cmake -G "NMake Makefiles" .
-        nmake
+        cmake -G "Ninja" .
+        ninja
         cd ../../../../examples/bare-metal/pipeline_alt_arch
          python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav
 

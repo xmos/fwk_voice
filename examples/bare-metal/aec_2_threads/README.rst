@@ -11,6 +11,7 @@ filter.
 The input file input.wav has 2 channels of mic input followed by 2 channels of reference input.
 Echo cancelled version of the mic input is generated as the AEC output and written to the output.wav file.
 
+
 Building
 ********
 
@@ -28,8 +29,11 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
     .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
-        nmake fwk_voice_example_bare_metal_aec_2_thread
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake -S..
+        ninja fwk_voice_example_bare_metal_aec_2_thread
+
+.. include :: ../../../doc/install_ninja_rst.inc
+
 
 Running
 *******
@@ -50,8 +54,8 @@ From the fwk_voice/build folder run:
 
         pip install -e fwk_voice_deps/xscope_fileio
         cd fwk_voice_deps/xscope_fileio/host
-        cmake -G "NMake Makefiles" .
-        nmake
+        cmake -G "Ninja" .
+        ninja
         cd ../../../../examples/bare-metal/aec_2_thread
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_thread/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav
 
