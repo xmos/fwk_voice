@@ -5,9 +5,11 @@ QUICK START
 Requirements
 ------------
 
-* XTC Tools 15.0.6 or higher
+* XTC Tools 15.2.1 or higher
 * CMake 3.20 or higher
 * Python 3.7 or higher
+
+.. include :: ../install_ninja_rst.inc
 
 
 Building
@@ -36,15 +38,14 @@ procedure is currently supported on MacOS, Linux and Windows.
 
       .. code-block:: console
 
-        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
 
    - On Windows
 
       .. code-block:: console
 
-
         # make sure you have the patch command available
-        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
 
    As part of the cmake, some dependencies are fetched using CMake FetchContent. One of these dependencies, lib_tflite_micro has a patch applied to it as part of the FetchContent. This means, when trying to rerun the cmake in the same build directory, sometimes errors
    related to not being able to apply a patch to an already patched library are seen. To get rid of these errors, add the -DFETCHCONTENT_UPDATES_DISCONNECTED=ON option to the cmake command line, which will disable the FetchContent if the content has been downloaded previously.
@@ -61,7 +62,7 @@ procedure is currently supported on MacOS, Linux and Windows.
 
       .. code-block:: console
 
-         nmake fwk_voice_example_bare_metal_aec_1_thread
+         ninja fwk_voice_example_bare_metal_aec_1_thread
 
 #. Install dependencies
 
@@ -77,8 +78,8 @@ procedure is currently supported on MacOS, Linux and Windows.
 
          pip install -e fwk_voice_deps/xscope_fileio
          cd fwk_voice_deps/xscope_fileio/host
-         cmake -G "NMake Makefiles" .
-         nmake
+         cmake -G "Ninja" .
+         ninja
          cd ../../../
 
 .. raw:: pdf

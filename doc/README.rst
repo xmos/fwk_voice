@@ -2,6 +2,8 @@
 Documentation Source
 ####################
 
+This folder contains source files for the documentation and is intended for XMOS users. Pre-built documentation is published on `the XMOS website<https://www.xmos.com>`_.
+
 This folder contains source files for the **Voice Framework** documentation.  The sources do not render well in GitHub or an RST viewer. In addition, some information is not visible at all and some links will not be functional.
 
 **********************
@@ -12,13 +14,7 @@ Building Documentation
 Prerequisites
 =============
 
-Install `Docker <https://www.docker.com/>`_.
-
-Pull the docker container:
-
-.. code-block:: console
-
-    $ docker pull ghcr.io/xmos/doc_builder:main
+Use the `xmosdoc tool <https://github.com/xmos/xmosdoc>`_ either via docker or install it into a pip environment.
 
 ========
 Building
@@ -28,9 +24,14 @@ To build the documentation, run the following command in the root of the reposit
 
 .. code-block:: console
 
-    $ docker run --rm -t -u "$(id -u):$(id -g)" -v $(pwd):/build -e REPO:/build -e DOXYGEN_INCLUDE=/build/doc/Doxyfile.inc -e EXCLUDE_PATTERNS=/build/doc/exclude_patterns.inc -e DOXYGEN_INPUT=ignore ghcr.io/xmos/doc_builder:main
+    # via pip package
+    xmosdoc clean html latex
+    # via docker
+    $ docker run --rm -t -u "$(id -u):$(id -g)" -v $(pwd):/build ghcr.io/xmos/xmosdoc clean html latex
 
-HTML document output is saved in the ``doc/_build/latest/html`` folder.  Open ``index.html`` to preview the saved documentation.
+HTML document output is saved in the ``doc/_build/html`` folder.  Open ``index.html`` to preview the saved documentation.
+
+Please refer to the ``xmosdoc`` documentation for a complete guide on how to use the tool.
 
 **********************
 Adding a New Component
@@ -50,18 +51,14 @@ Q: Is it possible to build just a subset of the documentation?
 
 A: Yes, however it is not recommended at this time.
 
-Q: Is it possible to used the ``livehtml`` feature of Sphynx?
+Q: Is it possible to used the ``livehtml`` feature of Sphinx?
 
-A: No, but ``livehtml`` support may be added to the XMOS ``doc_builder`` Docker container in the future.
+A: Yes, run xmosdoc with the ``--auto`` option.
 
-Q: Where can I learn more about the XMOS ``doc_builder`` Docker container?
+Q: Where can I learn more about the XMOS ``xmosdoc`` tools?
 
-A: See the https://github.com/xmos/doc_builder repository.  See the ``doc_builder`` repository README for details on additional build options.
+A: See the https://github.com/xmos/xmosdoc repository.  See the ``xmosdoc`` repository README for details on additional build options.
 
-Q: How do I suggest enhancements to the XMOS ``doc_builder`` Docker container?
+Q: How do I suggest enhancements to the XMOS ``xmosdoc`` tool?
 
-A: Create a new issue here: https://github.com/xmos/doc_builder/issues
-
-Q: I don't need to run the link checking, can I disable that to make the build faster?
-
-A: Yes, add ``-e SKIP_LINK=1`` to the ``docker run`` command line above.
+A: Create a new issue here: https://github.com/xmos/xmosdoc/issues

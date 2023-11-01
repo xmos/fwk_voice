@@ -1,0 +1,17 @@
+---
+project: fwk_voice
+title: XCORE Voice Framework
+version: 0.7.0
+
+documentation:
+  exclude_patterns_path: doc/exclude_patterns.inc
+  doxygen_projects:
+    fwk_voice:
+      doxyfile_path: doc/Doxyfile.inc
+  pdfs:
+    doc/getting_started/index:
+      pdf_title: "{{title}} - Getting Started"
+      pdf_filename: "{{project}}_getting_started_v{{version}}"
+    doc/user_guide/index:
+      pdf_title: "{{title}} - User Guide"
+      pdf_filename: "{{project}}_user_guide_v{{version}}"
