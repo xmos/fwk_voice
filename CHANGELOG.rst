@@ -1,6 +1,12 @@
 XMOS Voice Framework Change Log
 ===============================
 
+0.7.0
+-----
+
+  * CHANGED: Tools version from 15.1.4 to 15.2.1
+  * CHANGED: Example builds and docs use Ninja instead of nmake under Windows
+
 0.6.0
 -----
 

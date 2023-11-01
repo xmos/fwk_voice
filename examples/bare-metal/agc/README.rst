@@ -10,6 +10,7 @@ activity and the loss control feature are both disabled.
 
 The input is a single channel, 32-bit wav file, which is read and processed through the AGC frame-by-frame.
 
+
 Building
 ********
 
@@ -19,7 +20,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
 
     .. code-block:: console
     
-        cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
+        cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
         make fwk_voice_example_bare_metal_agc
 
 .. tab:: Windows
@@ -27,8 +28,11 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
     .. code-block:: console
 
         # make sure you have the patch command available
-        cmake -G "NMake Makefiles" -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake
-        nmake fwk_voice_example_bare_metal_agc
+        cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
+        ninja fwk_voice_example_bare_metal_agc
+
+.. include :: ../../../doc/install_ninja_rst.inc
+
 
 Running
 *******
@@ -49,8 +53,8 @@ From the fwk_voice/build folder run:
 
         pip install -e fwk_voice_deps/xscope_fileio
         cd fwk_voice_deps/xscope_fileio/host
-        cmake -G "NMake Makefiles" .
-        nmake
+        cmake -G "Ninja" .
+        ninja
         cd ../../../../examples/bare-metal/agc
         python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav
 
