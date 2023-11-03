@@ -12,8 +12,8 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_mel_compute.xe')
 
 def test_vnr_priv_mel_compute(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
-    
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
+
     input_data = np.empty(0, dtype=np.int32)
 
     fd_frame_len = int(fp.NFFT/2 + 1)

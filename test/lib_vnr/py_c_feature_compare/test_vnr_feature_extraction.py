@@ -15,6 +15,7 @@ import py_vnr.run_wav_vnr as rwv
 from build import vnr_test_py
 from vnr_test_py import ffi
 import vnr_test_py.lib as vnr_test_lib
+import test_utils
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 pvc_path = os.path.join(package_dir, '../../shared/python')
@@ -41,14 +42,15 @@ def get_closeness_metric(ref, dut):
     output_wav_data[0,:] = ref
     output_wav_data[1,:] = dut
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
-    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
+    arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=True)
     os.chdir(prev_path)
     os.system("rm -r {}".format(tmp_folder))
     return arith_closeness, geo_closeness
 
 class vnr_feature_comparison:
     def __init__(self):
-        self.vnr_obj = vnr.Vnr(model_file=tflite_model) 
+        self.vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
+
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 
@@ -108,14 +110,20 @@ def test_frame_features():
     print(f"Inference: arith_closeness {arith_closeness_ie}, geo_closeness {geo_closeness_ie}")
     max_error_ie = np.max(np.abs(ref_ie_output - dut_ie_output))
     print(f"Inference: max_error = {max_error_ie}")
+    print(np.abs(ref_ie_output - dut_ie_output))
+    print((ref_ie_output))
+    print((dut_ie_output))
 
-    assert(max_error_features < 0.006), f"features, max ref-dut error {max_error} exceeds threshold"
-    assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
-    assert(geo_closeness_features > 0.999), f"features, arith_closeness {arith_closeness} less than pass threshold"
+    mean_error_ie = np.mean(np.abs(ref_ie_output - dut_ie_output))
+    print(f"Inference: mean_error = {mean_error_ie}")
 
-    assert(max_error_ie < 0.05), f"Inference, max ref-dut error {max_error} exceeds threshold"
-    assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
-    assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness} less than pass threshold"
+    assert(max_error_features < 0.006), f"features, max ref-dut error {max_error_features} exceeds threshold"
+    assert(arith_closeness_features > 0.999), f"features, arith_closeness {arith_closeness_features} less than pass threshold"
+    assert(geo_closeness_features > 0.999), f"features, arith_closeness {geo_closeness_features} less than pass threshold"
+
+    assert(max_error_ie < 0.05), f"Inference, max ref-dut error {max_error_ie} exceeds threshold"
+    assert(arith_closeness_ie > 0.99), f"Inference, arith_closeness {arith_closeness_ie} less than pass threshold"
+    assert(geo_closeness_ie > 0.99), f"Inference, arith_closeness {geo_closeness_ie} less than pass threshold"
         
 
 

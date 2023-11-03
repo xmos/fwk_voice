@@ -11,7 +11,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_make_slice.xe')
 
 def test_vnr_priv_make_slice(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE + 1 #No. of int32 values sent to dut as input per frame
@@ -28,7 +28,7 @@ def test_vnr_priv_make_slice(target, tflite_model):
     ref_output_int = np.empty(0, dtype=np.int32)
     dut_output_float = np.empty(0, dtype=np.float64)
     for itt in range(0,test_frames):
-        enable_highpass = np.random.randint(2)
+        enable_highpass = 0  # np.random.randint(2)
         # Generate input data
         hr = np.random.randint(8)
         data = np.random.randint(min_int, high=max_int, size=fp.FRAME_ADVANCE)

@@ -16,12 +16,14 @@ import fcntl
 this_file_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_path, "../../../examples/bare-metal/shared_src/python")) # For run_xcoreai
 sys.path.append(os.path.join(this_file_path, "../../shared/python")) # For py_vs_c_utils
+sys.path.append(os.path.join(this_file_path, "../vnr_unit_tests/feature_extraction")) # for test_utils
 
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
 import glob
 import pytest
 import py_vs_c_utils as pvc
+import test_utils
 
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 print(hydra_audio_path)
@@ -64,8 +66,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     
     print_model_details(interpreter_tflite)
     
-    with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
+
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -156,8 +158,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     #print(f"new_slice: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
-    assert(geo_closeness > 0.98), "new_slice geo_closeness below pass threshold"
-    assert(arith_closeness > 0.98), "new_slice arith_closeness below pass threshold"
+    assert(geo_closeness > 0.998), "new_slice geo_closeness below pass threshold"
+    assert(arith_closeness > 0.998), "new_slice arith_closeness below pass threshold"
 
     # norm_patch
     output_wav_data = np.zeros((2, len(ref_norm_patch)))
@@ -166,8 +168,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     print(f"norm_patch: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
-    assert(geo_closeness > 0.98), "norm_patch geo_closeness below pass threshold"
-    assert(arith_closeness > 0.98), "norm_patch arith_closeness below pass threshold"
+    assert(geo_closeness > 0.998), "norm_patch geo_closeness below pass threshold"
+    assert(arith_closeness > 0.998), "norm_patch arith_closeness below pass threshold"
 
     # tflite_output
     output_wav_data = np.zeros((2, len(ref_tflite_output)))
@@ -176,8 +178,8 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     scipy.io.wavfile.write(output_file, 16000, output_wav_data.T)
     arith_closeness, geo_closeness, c_delay, peak2ave = pvc.pcm_closeness_metric(output_file, verbose=False)
     print(f"tflite_output: arith_closeness = {arith_closeness}, geo_closeness = {geo_closeness}, c_delay = {c_delay}, peak2ave = {peak2ave}")
-    assert(geo_closeness > 0.98), "tflite_output geo_closeness below pass threshold"
-    assert(arith_closeness > 0.95), "tflite_output arith_closeness below pass threshold"
+    assert(geo_closeness > 0.985), "tflite_output geo_closeness below pass threshold"
+    assert(arith_closeness > 0.955), "tflite_output arith_closeness below pass threshold"
     
     # Calculate and print various ref-dut differences
     max_mel_log2_diff_per_frame = np.empty(0, dtype=np.float64) 
@@ -234,7 +236,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 @pytest.mark.parametrize('input_wav', streams)
 @pytest.mark.parametrize('target', ['x86', 'xcore'])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/python/model/model_output/trained_model.tflite"), plot_results=False)
+    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/src/inference/model/trained_model_xcore.tflite"), plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
