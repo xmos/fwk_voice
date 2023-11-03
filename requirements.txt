@@ -1,4 +1,4 @@
-# python_version 3.7.6
+# python_version 3.9
 #
 # The parse_version_from_requirements() function in the installPipfile.groovy
 # file of the Jenkins Shared Library uses the python_version comment to set
@@ -16,7 +16,7 @@
 # procedure to set up a suitable python environment for that repository may
 # pip-install this one as editable using this repository's setup.py file.  The
 # same modules should appear in the setup.py list as given below.
-matplotlib
+# matplotlib
 
 # Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
 numpy==1.21.6
@@ -33,7 +33,7 @@ tensorflow==2.8.0
 protobuf==3.20.1  # https://github.com/protocolbuffers/protobuf/issues/10051
 h5py==3.6.0
 tensorflow_model_optimization==0.7.2
-
+xmos-ai-tools==1.1.1
 
 # Development dependencies
 #

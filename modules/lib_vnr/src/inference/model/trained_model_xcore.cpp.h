@@ -1,19 +1,30 @@
 // This file is generated. Do not edit.
-// Generated on: 23.09.2022 11:48:04
+// Generated on: 29.08.2023 15:23:21
 
 #ifndef model_GEN_H
 #define model_GEN_H
 
 #include "tensorflow/lite/c/common.h"
 
+#ifdef SHARED_TENSOR_ARENA
+  #ifndef LARGEST_TENSOR_ARENA_SIZE
+    #define LARGEST_TENSOR_ARENA_SIZE 1264
+  #elif LARGEST_TENSOR_ARENA_SIZE < 1264
+    #define LARGEST_TENSOR_ARENA_SIZE 1264
+  #endif
+#endif
+
 // Sets up the model with init and prepare steps.
-TfLiteStatus model_init(void *flash_data = nullptr);
+TfLiteStatus model_init(void *flash_data);
 // Returns the input tensor with the given index.
 TfLiteTensor *model_input(int index);
 // Returns the output tensor with the given index.
 TfLiteTensor *model_output(int index);
 // Runs inference for the model.
 TfLiteStatus model_invoke();
+// Resets variable tensors in the model.
+// This should be called after invoking a model with stateful ops such as LSTM.
+TfLiteStatus model_reset();
 
 // Returns the number of input tensors.
 inline size_t model_inputs() {
@@ -48,6 +59,22 @@ inline int model_output_dims_len(int index) {
 }
 inline int *model_output_dims(int index) {
   return &model_output(index)->dims->data[1];
+}
+// Only returns valid value if input is quantized
+inline int32_t model_input_zeropoint(int index) {
+  return model_input(index)->params.zero_point;
+}
+// Only returns valid value if input is quantized
+inline float model_input_scale(int index) {
+  return model_input(index)->params.scale;
+}
+// Only returns valid value if output is quantized
+inline int32_t model_output_zeropoint(int index) {
+  return model_output(index)->params.zero_point;
+}
+// Only returns valid value if output is quantized
+inline float model_output_scale(int index) {
+  return model_output(index)->params.scale;
 }
 
 #endif
