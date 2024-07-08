@@ -18,14 +18,12 @@
 # same modules should appear in the setup.py list as given below.
 matplotlib
 
-# Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
-numpy==1.21.6
+numpy==1.26.4
 pytest
 pytest-xdist
 keras==2.8.0
 
-# Pin scipy to 1.4.1 due to tensorflow v2.1.1 hard pinning it to that version.
-scipy==1.7.3
+scipy==1.14.0
 soundfile==0.10.3.post1
 webrtcvad==2.0.10
 tensorflow==2.8.0
