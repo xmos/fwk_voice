@@ -20,8 +20,8 @@ matplotlib
 
 # Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
 numpy==1.21.6
-pytest==7.1.2
-pytest-xdist==2.5.0
+pytest
+pytest-xdist
 keras==2.8.0
 matplotlib==3.5.1
 
