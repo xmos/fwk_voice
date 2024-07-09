@@ -1,4 +1,5 @@
-# python_version 3.12
+# python_version 3.7.6
+# pip_version 20.*
 #
 # The parse_version_from_requirements() function in the installPipfile.groovy
 # file of the Jenkins Shared Library uses the python_version comment to set
@@ -18,12 +19,15 @@
 # same modules should appear in the setup.py list as given below.
 matplotlib
 
-numpy==1.26.4
-pytest
-pytest-xdist
+# Pin numpy to 1.18.5 due to tensorflow v2.1.1 hard pinning it to that version.
+numpy==1.21.6
+pytest==7.1.2
+pytest-xdist==2.5.0
 keras==2.8.0
+matplotlib==3.5.1
 
-scipy==1.14.0
+# Pin scipy to 1.4.1 due to tensorflow v2.1.1 hard pinning it to that version.
+scipy==1.7.3
 soundfile==0.10.3.post1
 webrtcvad==2.0.10
 tensorflow==2.8.0
