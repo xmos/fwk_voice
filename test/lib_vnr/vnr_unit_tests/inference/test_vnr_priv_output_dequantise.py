@@ -14,7 +14,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_output_dequantise.xe')
 
 def test_vnr_priv_output_dequantise(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = 1 # 1 int32 value out of which only the 1st byte is relevant since inference output is a single byte

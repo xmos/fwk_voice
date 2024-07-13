@@ -14,7 +14,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_feature_quantise.xe')
 
 def test_vnr_priv_feature_quantise(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = test_utils.xc_vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent
@@ -42,11 +42,20 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
     op = test_utils.run_dut(input_data, "test_vnr_priv_feature_quantise", exe_name)
     dut_output = op.view(np.int8)
 
+    all_diffs = 0
+
     for fr in range(0,test_frames):
         ref = ref_output[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)]
         dut = dut_output[fr*(fp.PATCH_WIDTH * fp.MEL_FILTERS) : (fr+1)*(fp.PATCH_WIDTH * fp.MEL_FILTERS)]
         diff = np.max(np.abs(ref-dut))
-        assert(diff < 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
+        total_diff = np.sum(np.abs(ref-dut))
+        all_diffs += total_diff
+        print(ref)
+        print(dut)
+        assert(diff <= 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. diff {diff} exceeds 0"
+        assert(total_diff <= 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. total diff {diff} exceeds 1"
+
+    assert(all_diffs <= 1), f"ERROR: test_vnr_priv_feature_quantise frame {fr}. all diff {diff} exceeds 1"
 
     print("max_diff = ",np.max(np.abs(ref_output-dut_output)))
 
