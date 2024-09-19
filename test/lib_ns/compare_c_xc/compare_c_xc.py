@@ -1,20 +1,16 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-from builtins import str
 from builtins import range
-import sys
 import os
 
 package_dir = os.path.dirname(os.path.abspath(__file__))
 
 from audio_generation import get_band_limited_noise, write_data
-import subprocess
 import time
 import numpy as np
 import scipy.io.wavfile as wavfile
 import audio_wav_utils as awu
 import argparse
-import shutil
 import glob
 import configparser
 import xtagctl

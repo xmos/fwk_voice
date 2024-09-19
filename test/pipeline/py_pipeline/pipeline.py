@@ -1,16 +1,8 @@
-import sys
 import os
+import numpy as np
+from py_voice.modules import aec, agc, ic, ns
 
 thisfile_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(thisfile_path, "../../../../lib_agc/python"))
-import agc
-sys.path.append(os.path.join(thisfile_path, "../../../../lib_noise_suppression/python"))
-import sup_sequential
-sys.path.append(os.path.join(thisfile_path, "../../../../lib_voice_toolbox/python"))
-from vtb_frame import VTBInfo, VTBFrame
-from aec import aec
-import IC
-import numpy as np
 
 class pipeline(object):
 
@@ -18,11 +10,11 @@ class pipeline(object):
                  mic_shift, mic_saturate, alt_arch, aec_conf, agc_init_config, ic_conf, suppression_conf):
 
         # Fix path to VNR model
-        self.aec = aec(**aec_conf)
+        self.aec = aec.aec(**aec_conf)
         self.agc = agc.agc(**agc_init_config)
         ic_conf['vnr_model'] = os.path.join(thisfile_path, "config", ic_conf['vnr_model'])
-        self.ifc = IC.adaptive_interference_canceller(**ic_conf) 
-        self.ns = sup_sequential.sup_sequential(**suppression_conf)
+        self.ifc = ic.ic(**ic_conf) 
+        self.ns = ns.ns(**suppression_conf)
         
         self.x_channel_count = x_channel_count
         self.y_channel_count = y_channel_count

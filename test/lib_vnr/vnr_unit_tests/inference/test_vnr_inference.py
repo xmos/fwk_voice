@@ -1,13 +1,11 @@
 import numpy as np
 import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
+import py_voice.modules.vnr as vnr
 import os
 import sys
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
-import tensorflow as tf
-import math
 import matplotlib.pyplot as plt
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
@@ -15,7 +13,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_inference.xe')
 
 def test_vnr_inference(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = vnr.vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent

@@ -1,21 +1,14 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-import numpy as np
 import os
 import tempfile
 import shutil
-import subprocess
-import scipy.io.wavfile
-import scipy.signal as spsig
 import xscope_fileio
 import xtagctl
-import io
 import glob
 import re
-import argparse
 import pytest
 import glob
-import sys
 from audio_generation import get_band_limited_noise, write_data
 
 ns_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../test_wav_ns/src".split("/"))

@@ -1,14 +1,11 @@
 import numpy as np
 import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
-import py_vnr.run_wav_vnr as rwv
+import py_voice.modules.vnr as vnr
 import os
 import sys
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
-import tensorflow as tf
-import math
 import matplotlib.pyplot as plt
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/full/bin/')
@@ -16,7 +13,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_full.xe')
 
 def test_vnr_full(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = vnr.vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE + 1#No. of int32 values sent to dut as input per frame
@@ -44,7 +41,7 @@ def test_vnr_full(target, tflite_model):
         # Ref VNR implementation
         x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
         x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
-        this_patch = rwv.extract_features(x_data, vnr_obj, enable_highpass)
+        this_patch = vnr_obj.extract_features(x_data, hp=enable_highpass)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
     exe_name = xe

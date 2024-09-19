@@ -1,6 +1,5 @@
 
 import numpy as np
-import data_processing.frame_preprocessor as fp
 import xscope_fileio
 import xtagctl
 import os

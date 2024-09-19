@@ -6,7 +6,6 @@ from builtins import object
 import xscope_fileio
 import xtagctl
 import tempfile
-import sys
 import os
 import warnings
 
@@ -20,12 +19,10 @@ import warnings
 #                         ]
 #py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
 
-from scipy.signal import convolve
 import scipy.io.wavfile
 import audio_generation
 import audio_wav_utils as awu
 import pytest
-import subprocess
 import numpy as np
 import filters
 from common_utils import json_to_dict

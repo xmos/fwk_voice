@@ -4,15 +4,11 @@
 import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
-import ctypes
-import pytest
 import sys, os
 import tempfile
 import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
-import py_vnr.run_wav_vnr as rwv
+import py_voice.modules.vnr as vnr
 
-from build import vnr_test_py
 from vnr_test_py import ffi
 import vnr_test_py.lib as vnr_test_lib
 
@@ -48,7 +44,7 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
-        self.vnr_obj = vnr.Vnr(model_file=tflite_model) 
+        self.vnr_obj = vnr.vnr(model_file=tflite_model) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 
@@ -59,7 +55,7 @@ class vnr_feature_comparison:
         self.x_data = np.roll(self.x_data, -fp.FRAME_ADVANCE, axis = 0)
         self.x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
         # Features
-        ref_features = rwv.extract_features(self.x_data, self.vnr_obj)
+        ref_features = self.vnr_obj.extract_features(self.x_data)
         # Inference
         ref_ie_output = self.vnr_obj.run(ref_features)
         ref_features = ref_features.flatten()

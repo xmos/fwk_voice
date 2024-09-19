@@ -2,7 +2,6 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 from cffi import FFI
-from pathlib import Path
 import shutil
 from extract_state import extract_pre_defs
 import sys

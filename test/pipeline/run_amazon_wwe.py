@@ -5,7 +5,6 @@ import os
 import subprocess
 import argparse
 import sys
-import time
 import tempfile
 import shutil
 import stat

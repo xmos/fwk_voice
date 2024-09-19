@@ -1,10 +1,9 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import configparser
-import subprocess
 import os.path
 import pytest
-from aec_test_utils import get_test_instances, files_exist, read_config
+from aec_test_utils import get_test_instances, read_config
 
 import os
 import tempfile
@@ -14,9 +13,6 @@ import shutil
 import tempfile
 import xscope_fileio
 import xtagctl
-import io
-from contextlib import redirect_stdout
-import re
 import glob
 
 parser = configparser.ConfigParser()

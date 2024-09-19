@@ -5,14 +5,11 @@ import os
 import shutil
 import scipy.io.wavfile
 import pytest
-import subprocess
 import numpy as np
 import tempfile
 import xscope_fileio
 import xtagctl
-import io
 import re
-from contextlib import redirect_stdout
 
 maximum_adec_delay_ms = 1000
 maximum_adec_estimation_time_ms = 3500

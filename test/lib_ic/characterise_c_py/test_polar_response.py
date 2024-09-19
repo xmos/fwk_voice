@@ -2,7 +2,6 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 from builtins import zip
-import pytest
 from get_polar_response import get_polar_response
 import numpy as np
 

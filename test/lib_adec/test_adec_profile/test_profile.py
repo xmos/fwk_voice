@@ -5,14 +5,10 @@ import os
 import tempfile
 import shutil
 import subprocess
-import scipy.io.wavfile
-import scipy.signal as spsig
 import xscope_fileio
 import xtagctl
-import io
 import glob
 import re
-import argparse
 import pytest
 import glob
 

@@ -1,14 +1,7 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-from builtins import range
-import sys
+
 import os
-import numpy as np
-import scipy.io.wavfile
-# import matplotlib
-# matplotlib.use('TkAgg')
-# import matplotlib.pyplot as plt
-import subprocess as sub
 import xtagctl
 import xscope_fileio
 import argparse

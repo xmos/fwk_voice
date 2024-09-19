@@ -1,9 +1,8 @@
 import numpy as np
 import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
+import py_voice.modules.vnr as vnr
 import os
 import test_utils
-import matplotlib.pyplot as plt
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')

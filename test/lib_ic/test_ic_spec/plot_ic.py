@@ -5,10 +5,8 @@ from __future__ import print_function
 from builtins import input
 from builtins import range
 import numpy as np
-import scipy.io.wavfile
 import matplotlib.pyplot as plt
 import sys
-import scipy.fftpack
 import os
 
 # update PYTHONPATH to avoid using an external script
@@ -16,8 +14,6 @@ sys.path.append('../../../../audio_test_tools/python/')
 sys.path.append('../../../../lib_interference_canceller/python')
 import audio_generation
 USE_POLAR_PLOT = 1
-
-import argparse
 
 import IC as ic
 import audio_wav_utils as awu

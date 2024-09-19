@@ -6,9 +6,7 @@ import scipy.io.wavfile
 import audio_wav_utils as awu
 import pytest
 import sys, os
-import json
 
-from build import ic_test_py
 from ic_test_py import ffi
 import ic_test_py.lib as ic_test_lib
 
@@ -17,7 +15,7 @@ pvc_path = os.path.join(package_dir, '../../shared/python')
 
 sys.path.append(pvc_path)
 try:
-    import IC
+    from py_voice.modules import ic
 except ModuleNotFoundError:
     print(f"Please install py_ic at root of project to support model testing")
 
@@ -41,7 +39,7 @@ class ic_comparison:
     def __init__(self):
         conf = pvc.json_to_dict(ap_config_file)
         
-        self.ic = IC.adaptive_interference_canceller(**conf)
+        self.ic = ic.ic(**conf)
 
         ic_test_lib.test_init()
 

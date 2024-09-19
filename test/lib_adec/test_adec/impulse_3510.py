@@ -12,10 +12,7 @@ import os
 import re
 import numpy as np
 import scipy.signal as spsig
-import matplotlib.pyplot as plt
 import soundfile as sf
-import time
-import sys
 
 # simulate multichannel playback arriving at microphones of 3510
 

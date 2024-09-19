@@ -10,7 +10,6 @@
 
 import os
 import numpy as np
-import scipy.signal as spsig
 import matplotlib.pyplot as plt
 import soundfile as sf
 from shutil import copyfile

@@ -2,7 +2,6 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from builtins import str
 from builtins import range
-import sys
 import os.path
 import configparser
 import numpy as np

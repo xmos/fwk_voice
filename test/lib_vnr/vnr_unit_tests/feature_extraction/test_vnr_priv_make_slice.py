@@ -1,6 +1,6 @@
 import numpy as np
 import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
+import py_voice.modules.vnr as vnr
 import os
 import test_utils
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_make_slice.xe')
 
 def test_vnr_priv_make_slice(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = vnr.vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE + 1 #No. of int32 values sent to dut as input per frame

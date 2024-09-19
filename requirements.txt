@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 # python_version 3.7.6
 # pip_version 20.*
+=======
+# python_version 3.10
+>>>>>>> c535d228 (cleaning up imports, switching to py_voice, removing vtb)
 #
 # The parse_version_from_requirements() function in the installPipfile.groovy
 # file of the Jenkins Shared Library uses the python_version comment to set
@@ -49,6 +53,4 @@ tensorflow_model_optimization==0.7.2
 # of its own setup.py file, then this list must include an entry for that
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
 -e ./../audio_test_tools/python
--e ./../py_vnr
--e ./../py_ic/py_ic
--e ./../py_aec/py_aec
+-e ./../py_voice

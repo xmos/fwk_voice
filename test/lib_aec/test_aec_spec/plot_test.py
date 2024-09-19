@@ -1,10 +1,9 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from aec_test_utils import read_wav, get_h_hat_impulse_response
-from audio_generation import get_filenames, get_h
+from audio_generation import get_h
 
 
 def plot(test_id, audio_in, audio_ref, audio_out, start_time, end_time,
