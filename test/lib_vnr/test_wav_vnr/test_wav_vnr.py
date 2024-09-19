@@ -1,5 +1,5 @@
 import py_voice.modules.vnr as vnr
-import data_processing.frame_preprocessor as fp
+import py_voice.modules.vnr.frame_preprocessor as fp
 import argparse
 import audio_wav_utils as awu
 import scipy.io.wavfile

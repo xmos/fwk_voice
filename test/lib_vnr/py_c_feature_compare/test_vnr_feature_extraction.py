@@ -6,7 +6,7 @@ import scipy.io.wavfile
 import audio_wav_utils as awu
 import sys, os
 import tempfile
-import data_processing.frame_preprocessor as fp
+import py_voice.modules.vnr.frame_preprocessor as fp
 import py_voice.modules.vnr as vnr
 
 from vnr_test_py import ffi

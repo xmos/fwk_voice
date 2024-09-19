@@ -1,6 +1,6 @@
 
 import numpy as np
-import data_processing.frame_preprocessor as fp
+import py_voice.modules.vnr.frame_preprocessor as fp
 import os
 import test_utils
 import py_voice.modules.vnr as vnr

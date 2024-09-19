@@ -1,5 +1,5 @@
 import numpy as np
-import data_processing.frame_preprocessor as fp
+import py_voice.modules.vnr.frame_preprocessor as fp
 import os
 import sys
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
