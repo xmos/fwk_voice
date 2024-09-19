@@ -1,4 +1,4 @@
-import py_vnr.vnr as vnr
+import py_voice.modules.vnr as vnr
 import data_processing.frame_preprocessor as fp
 import argparse
 import audio_wav_utils as awu
@@ -62,9 +62,10 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
         model_path=str(tflite_model))
     
     print_model_details(interpreter_tflite)
+    conf_dict = pvc.json_to_dict("../../shared/config/ic_conf_no_adapt_control.json")
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.Vnr(model_file=tflite_model) 
+        vnr_obj = vnr.vnr(conf_dict, model_file=tflite_model) 
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''

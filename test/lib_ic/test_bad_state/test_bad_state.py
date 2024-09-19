@@ -13,8 +13,8 @@ import room_acoustic_pipeline as rap
 from room_acoustic_pipeline import helpers
 
 
-sys.path.append('../../../../py_ic/tests/')
-import ic_test_helpers as ith
+import py_voice.test.ic.ic_test_helpers as ith
+
 sys.path.append('../../shared/python/')
 import py_vs_c_utils as pvc
 import xtagctl

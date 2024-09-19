@@ -14,12 +14,9 @@ package_dir = os.path.dirname(os.path.abspath(__file__))
 pvc_path = os.path.join(package_dir, '../../shared/python')
 
 sys.path.append(pvc_path)
-try:
-    from py_voice.modules import ic
-except ModuleNotFoundError:
-    print(f"Please install py_ic at root of project to support model testing")
-
 import py_vs_c_utils as pvc 
+
+from py_voice.modules import ic
 
 
 proc_frame_length = 512

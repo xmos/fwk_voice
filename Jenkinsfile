@@ -377,7 +377,6 @@ pipeline {
               viewEnv {
                 withVenv {
                   // This is a unit test for ic_calc_vnr_pred function.
-                  // It compares the avona output with py_ic model output
                   sh "pytest -n1 --junitxml=pytest_result.xml"
                 }
               }

@@ -16,10 +16,7 @@ import argparse
 import pyroomacoustics as pra
 import scipy
 
-try:
-    import test_wav_ic as twic
-except ModuleNotFoundError:
-    print(f"Please install py_ic at root of project to support model testing")
+import py_voice.modules.ic as ic
 
 import xtagctl, xscope_fileio
 
@@ -148,10 +145,12 @@ def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60):
     input_file = "input_{}.wav".format(test_id) # Required by test_wav_suppression.xe
     output_file_py = "output_{}_py.wav".format(test_id)
     output_file_c = "output_{}_c.wav".format(test_id)
+    ic_obj = ic.ic('../../shared/config/ic_conf_big_delta.json')
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_theta, rt60)
-    process_py(input_file, output_file_py, audio_dir)
+
+    ic_obj.process_file(input_file, output_file_py)
     process_c(input_file, output_file_c, audio_dir)
 
     attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)

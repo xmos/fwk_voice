@@ -9,16 +9,6 @@ import tempfile
 import os
 import warnings
 
-#py_env = os.environ.copy()
-#sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
-#                            "audio_test_tools/python",
-#                            "lib_interference_canceller/python",
-#                            "lib_vad/python",
-#                            "lib_audio_pipelines/python",
-#                            ]
-#                         ]
-#py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
-
 import scipy.io.wavfile
 import audio_generation
 import audio_wav_utils as awu
@@ -26,20 +16,14 @@ import pytest
 import numpy as np
 import filters
 from common_utils import json_to_dict
+import py_voice.modules.ic as ic
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
-try:
-    import test_wav_ic
-    xe_files = ['py', xe_path]
-except ModuleNotFoundError:
-    print("No python IC found, using C version only")
-    print(f"Please install py_ic at path {os.environ['XMOS_ROOT']} to support model testing")
-    xe_files = [xe_path]
-
+xe_files = ['py', xe_path]
 
 sample_rate = 16000
 proc_frame_length = 2**9 # = 512
@@ -127,15 +111,10 @@ def write_output(test_name, output, c_or_py):
     scipy.io.wavfile.write(output_filename, sample_rate, output_32bit.T)
 
 
-def process_py(input_data, test_name):
+def process_py(ic_obj, input_data, test_name):
 
-    file_length = input_data.shape[1]
+    output, metadata = ic_obj.process_array(input_data)
 
-    config_file = '../../shared/config/ic_conf_no_adapt_control.json'
-
-    ic_parameters = json_to_dict(config_file)
-
-    output, Mu, Input_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
@@ -184,9 +163,9 @@ def test_input(request):
     return (test_case, combined_data)
 
 
-def process_audio(model, input_audio, test_name):
+def process_audio(ic_obj, model, input_audio, test_name):
     if model == 'py':
-        return process_py(input_audio, test_name)
+        return process_py(ic_obj, input_audio, test_name)
     else:
         return process_c(input_audio, test_name, model)
 
@@ -261,8 +240,6 @@ def check_stability(record_property, test_case, suppression_arr):
     return check
 
 
-import matplotlib.pyplot as plt
-
 def check_delay(record_property, test_case, input_audio, output_audio):
     """ Verify that the IC is correctly delaying the input
 
@@ -300,7 +277,9 @@ def check_delay(record_property, test_case, input_audio, output_audio):
 def test_all(test_input, model, record_property):
     test_case, input_audio = test_input
     print("\n{}: {}\n".format(test_case.name, model))
-    output_audio = process_audio(model, input_audio, test_case.get_test_name())
+    config_file = '../../shared/config/ic_conf_no_adapt_control.json'
+    ic_obj = ic.ic(json_to_dict(config_file))
+    output_audio = process_audio(ic_obj, model, input_audio, test_case.get_test_name())
     suppression_arr = get_suppression_arr(input_audio, output_audio)
 
     record_property('Test name', test_case.get_test_name())
