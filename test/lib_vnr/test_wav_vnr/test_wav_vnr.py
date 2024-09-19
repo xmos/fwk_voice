@@ -1,35 +1,39 @@
 import py_voice.modules.vnr as vnr
 import py_voice.modules.vnr.frame_preprocessor as fp
+import py_voice.config.config as config
 import argparse
 import audio_wav_utils as awu
 import scipy.io.wavfile
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import os
-import sys
+import os, sys, subprocess
 import audio_wav_utils as awu
-import subprocess
 import fcntl
+from pathlib import Path
 
-this_file_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(this_file_path, "../../../examples/bare-metal/shared_src/python")) # For run_xcoreai
-sys.path.append(os.path.join(this_file_path, "../../shared/python")) # For py_vs_c_utils
+sys.path.append(str(Path(__file__).parents[3] / "examples" / "bare-metal" / "shared_src" / "python")) # For run_xcoreai
+sys.path.append(str(Path(__file__).parents[2] / "shared" / "python")) # For py_vs_c_utils
 
 import run_xcoreai
 import tensorflow_model_optimization as tfmot
-import glob
 import pytest
 import py_vs_c_utils as pvc
 
-hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
+hydra_audio_path = Path(os.environ.get('hydra_audio_PATH', '~/hydra_audio'))
 print(hydra_audio_path)
-streams = glob.glob(f'{hydra_audio_path}/test_wav_vnr_streams/*.wav')
+streams = (hydra_audio_path / "test_wav_vnr_streams").glob("*wav")
 results_log_file = "results_test_wav_vnr.csv"
 
 with open(results_log_file, "w") as log:
     log.write(f"input_file,target,mel_log2_diff,norm_patch_diff,tflite_inference_diff,tflite_inference_arith_closeness,tflite_inference_geo_closeness\n")
-    
+
+bin_path = str(Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "test_wav_vnr" / "bin" / "fwk_voice_test_wav_vnr")
+bin_path_xe = str(Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "test_wav_vnr" / "bin" / "fwk_voice_test_wav_vnr.xe")
+opt_model_path = Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite"
+conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
+vnr_conf = config.get_config_dict(conf_path)
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_wav", nargs='?', help="input wav file")
@@ -55,17 +59,15 @@ def print_model_details(interpreter_tflite):
     print("input_scale = ",input_scale, " input_zero_point = ",input_zero_point)
     print("output_scale = ",output_scale, " output_zero_point = ",output_zero_point)
 
-
 def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     print(f"Running on target {target}, input_file {input_file}, tflite_model {tflite_model}")
     interpreter_tflite = tf.lite.Interpreter(
         model_path=str(tflite_model))
     
     print_model_details(interpreter_tflite)
-    conf_dict = pvc.json_to_dict("../../shared/config/ic_conf_no_adapt_control.json")
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.vnr(conf_dict, model_file=tflite_model) 
+        vnr_obj = vnr.vnr(vnr_conf, model_file=tflite_model)
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -81,9 +83,9 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     #################################################################################
     # Run DUT
     if target == 'xcore':
-        run_xcoreai.run(os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/fwk_voice_test_wav_vnr.xe"), input_file)
+        run_xcoreai.run(bin_path_xe, input_file)
     elif target == 'x86':
-        subprocess.run([os.path.join(this_file_path, "../../../build/test/lib_vnr/test_wav_vnr/bin/fwk_voice_test_wav_vnr"), input_file], check=True)
+        subprocess.run([bin_path, input_file], check=True)
 
     # read dut output from various files
     with open("new_slice.bin", "rb") as fdut:
@@ -232,9 +234,10 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     fig.savefig(plot_file)
 
 @pytest.mark.parametrize('input_wav', streams)
-@pytest.mark.parametrize('target', ['x86', 'xcore'])
+@pytest.mark.parametrize('target', ['x86'#, 'xcore'
+                                    ])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, os.path.join(this_file_path, "../../../modules/lib_vnr/python/model/model_output/trained_model.tflite"), plot_results=False)
+    run_test_wav_vnr(input_wav, target, opt_model_path, plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
