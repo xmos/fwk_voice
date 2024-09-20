@@ -11,8 +11,7 @@ from pathlib import Path
 import py_voice.config.config as config
 
 VNR_MODEL_PATH_LOCAL = Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite"
-vnr_conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
-VNR_CONF = config.get_cofig_dict(vnr_conf_path)
+VNR_CONF_PATH = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
 
 # Grab a python config from a JSON file
 def json_to_dict(config_file):

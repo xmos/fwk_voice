@@ -43,7 +43,7 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
-        self.vnr_obj = vnr.vnr(pvc.VNR_CONF, model_file=pvc.VNR_MODEL_PATH_LOCAL) 
+        self.vnr_obj = vnr.vnr(pvc.VNR_CONF_PATH, model_file=pvc.VNR_MODEL_PATH_LOCAL) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 

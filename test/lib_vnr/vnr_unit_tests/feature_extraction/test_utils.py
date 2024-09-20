@@ -18,7 +18,7 @@ def get_model():
     return pvc.VNR_MODEL_PATH_LOCAL
 
 def get_vnr_conf():
-    return pvc.VNR_CONF
+    return pvc.VNR_CONF_PATH
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))

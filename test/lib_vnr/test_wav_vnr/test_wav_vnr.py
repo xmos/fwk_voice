@@ -63,7 +63,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     print_model_details(interpreter_tflite)
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.vnr(pvc.VNR_CONF, model_file=tflite_model)
+        vnr_obj = vnr.vnr(pvc.VNR_CONF_PATH, model_file=tflite_model)
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
