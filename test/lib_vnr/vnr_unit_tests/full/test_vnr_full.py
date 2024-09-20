@@ -39,8 +39,10 @@ def test_vnr_full(target, tflite_model, vnr_conf):
         new_x_frame = test_utils.int32_to_double(data, -31)
 
         # Ref VNR implementation
-        x_data, X_data = vnr_obj.buffered_fft(x_data, new_x_frame)
-        this_patch = vnr_obj.extract_features(X_data, hp=enable_highpass)
+        x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
+        x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
+        X_spect = np.fft.rfft(x_data, fp.FRAME_LEN)
+        this_patch = vnr_obj.extract_features(X_spect, hp=enable_highpass)
         ref_output_double = np.append(ref_output_double, vnr_obj.run(this_patch))
 
     exe_name = xe
