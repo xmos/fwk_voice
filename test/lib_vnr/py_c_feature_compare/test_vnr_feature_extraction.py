@@ -51,10 +51,9 @@ class vnr_feature_comparison:
         frame_int = pvc.float_to_int32(new_x_frame)
 
         # Ref
-        self.x_data = np.roll(self.x_data, -fp.FRAME_ADVANCE, axis = 0)
-        self.x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
+        self.x_data, X_data = self.vnr_obj.buffered_fft(self.x_data, new_x_frame)
         # Features
-        ref_features = self.vnr_obj.extract_features(self.x_data)
+        ref_features = self.vnr_obj.extract_features(X_data)
         # Inference
         ref_ie_output = self.vnr_obj.run(ref_features)
         ref_features = ref_features.flatten()

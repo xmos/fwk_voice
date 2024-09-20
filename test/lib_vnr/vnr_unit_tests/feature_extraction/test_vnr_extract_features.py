@@ -41,9 +41,8 @@ def test_vnr_extract_features(target, tflite_model, vnr_conf, verbose=False):
         new_x_frame = test_utils.int32_to_double(data, -31)
 
         # Ref form input frame implementation
-        x_data = np.roll(x_data, -fp.FRAME_ADVANCE, axis = 0)
-        x_data[fp.FRAME_LEN - fp.FRAME_ADVANCE:] = new_x_frame
-        normalised_patch = vnr_obj.extract_features(x_data, hp=enable_highpass)
+        x_data, X_data = vnr_obj.buffered_fft(x_data, new_x_frame)
+        normalised_patch = vnr_obj.extract_features(X_data, hp=enable_highpass)
         ref_normalised_output = np.append(ref_normalised_output, normalised_patch)
         
     ref_quantised_output = test_utils.quantise_patch(tflite_model, ref_normalised_output)
