@@ -8,9 +8,9 @@ this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_normalise_patch.xe')
 
-def test_vnr_priv_add_new_slice(target, tflite_model):
+def test_vnr_priv_add_new_slice(target, tflite_model, vnr_conf):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
+    vnr_obj = vnr.vnr(vnr_conf, model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.MEL_FILTERS #No. of int32 values sent to dut as input per frame

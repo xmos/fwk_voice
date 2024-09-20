@@ -5,7 +5,6 @@ import sys
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
-import tensorflow as tf
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
 xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_feature_quantise.xe')

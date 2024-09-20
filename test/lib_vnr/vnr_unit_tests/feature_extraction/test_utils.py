@@ -5,17 +5,20 @@ import xtagctl
 import os
 import tempfile
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../shared/python"))
-import py_vs_c_utils as pvc
 import scipy.io.wavfile
 import math
 import tensorflow as tf
 import subprocess
+from pathlib import Path
 
-thisfile_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(str(Path(__file__).parents[3] / "shared" / "python"))
+import py_vs_c_utils as pvc
 
 def get_model():
-    return os.path.join(thisfile_path, "../../../../modules/lib_vnr/python/model/model_output/trained_model.tflite")
+    return pvc.VNR_MODEL_PATH_LOCAL
+
+def get_vnr_conf():
+    return pvc.VNR_CONF
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))

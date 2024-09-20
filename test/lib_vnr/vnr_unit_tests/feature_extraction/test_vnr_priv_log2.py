@@ -19,12 +19,10 @@ def test_vnr_priv_log2(target):
 
     input_data = np.empty(0, dtype=np.int32)
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
-    min_int = -2**31
     max_int = 2**31
     test_frames = 2048
 
     ref_output_float = np.empty(0, dtype=np.float64)
-    ref_output_int = np.empty(0, dtype=np.int32)
     dut_output_float = np.empty(0, dtype=np.float64)
     for itt in range(0,test_frames):
         hr = np.random.randint(5)
@@ -46,12 +44,10 @@ def test_vnr_priv_log2(target):
     if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
         exe_name = os.path.splitext(xe)[0]
     op = test_utils.run_dut(input_data, "test_vnr_priv_log2", exe_name)
-    dut_output_int = op.astype(np.int32)
     dut_mant = op.astype(np.float64)
     dut_exp = -24 # dut output is always 8.24
     d = test_utils.int32_to_double(dut_mant, dut_exp)
     dut_output_float = np.append(dut_output_float, d)
-    ref_output_int = test_utils.double_to_int32(ref_output_float, -24)
 
     for fr in range(0, test_frames):
         dut = dut_output_float[fr*fp.MEL_FILTERS : (fr+1)*fp.MEL_FILTERS]

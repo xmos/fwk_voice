@@ -9,9 +9,9 @@ this_file_dir = os.path.dirname(os.path.realpath(__file__))
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/feature_extraction/bin/')
 xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_extract_features.xe')
 
-def test_vnr_extract_features(target, tflite_model, verbose=False):
+def test_vnr_extract_features(target, tflite_model, vnr_conf, verbose=False):
     np.random.seed(1243)
-    vnr_obj = vnr.vnr(model_file=tflite_model) 
+    vnr_obj = vnr.vnr(vnr_conf, model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = fp.FRAME_ADVANCE + 1#No. of int32 values sent to dut as input per frame

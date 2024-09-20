@@ -1,6 +1,5 @@
 import py_voice.modules.vnr as vnr
 import py_voice.modules.vnr.frame_preprocessor as fp
-import py_voice.config.config as config
 import argparse
 import audio_wav_utils as awu
 import scipy.io.wavfile
@@ -29,10 +28,7 @@ with open(results_log_file, "w") as log:
     log.write(f"input_file,target,mel_log2_diff,norm_patch_diff,tflite_inference_diff,tflite_inference_arith_closeness,tflite_inference_geo_closeness\n")
 
 bin_path = str(Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "test_wav_vnr" / "bin" / "fwk_voice_test_wav_vnr")
-bin_path_xe = str(Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "test_wav_vnr" / "bin" / "fwk_voice_test_wav_vnr.xe")
-opt_model_path = Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite"
-conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
-vnr_conf = config.get_config_dict(conf_path)
+bin_path_xe = bin_path + ".xe"
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -67,7 +63,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     print_model_details(interpreter_tflite)
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.vnr(vnr_conf, model_file=tflite_model)
+        vnr_obj = vnr.vnr(pvc.VNR_CONF, model_file=tflite_model)
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
     '''
@@ -237,7 +233,7 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
 @pytest.mark.parametrize('target', ['x86'#, 'xcore'
                                     ])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, opt_model_path, plot_results=False)
+    run_test_wav_vnr(input_wav, target, pvc.VNR_MODEL_PATH_LOCAL, plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()
