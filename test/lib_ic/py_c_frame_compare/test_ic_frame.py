@@ -7,6 +7,7 @@ import audio_wav_utils as awu
 import pytest
 import sys, os
 
+from build import ic_test_py
 from ic_test_py import ffi
 import ic_test_py.lib as ic_test_lib
 

@@ -9,6 +9,7 @@ import tempfile
 import py_voice.modules.vnr.frame_preprocessor as fp
 import py_voice.modules.vnr as vnr
 
+from build import vnr_test_py
 from vnr_test_py import ffi
 import vnr_test_py.lib as vnr_test_lib
 
