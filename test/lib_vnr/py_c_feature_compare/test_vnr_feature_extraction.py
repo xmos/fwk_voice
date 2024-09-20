@@ -6,6 +6,7 @@ import scipy.io.wavfile
 import audio_wav_utils as awu
 import sys, os
 import tempfile
+from pathlib import Path
 import py_voice.modules.vnr.frame_preprocessor as fp
 import py_voice.modules.vnr as vnr
 
@@ -13,12 +14,10 @@ from build import vnr_test_py
 from vnr_test_py import ffi
 import vnr_test_py.lib as vnr_test_lib
 
-package_dir = os.path.dirname(os.path.abspath(__file__))
-pvc_path = os.path.join(package_dir, '../../shared/python')
-sys.path.append(pvc_path)
-import py_vs_c_utils as pvc 
+sys.path.append(str(Path(__file__).parents[2] / "shared" / "python")) # For py_vs_c_utils
+import py_vs_c_utils as pvc
 
-input_file = os.path.join(package_dir, "../../../examples/bare-metal/vnr/test_stream_1.wav")
+input_file = str(Path(__file__).parents[3] / "examples" / "bare-metal" / "vnr" / "test_stream_1.wav")
 
 def bfp_s32_to_float(bfp_struct, data):
     
@@ -44,6 +43,7 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
+        print(f"json path {str(pvc.VNR_CONF_PATH)}")
         self.vnr_obj = vnr.vnr(pvc.VNR_CONF_PATH, model_file=pvc.VNR_MODEL_PATH_LOCAL) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()

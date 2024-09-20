@@ -3,7 +3,8 @@
     {
         "fs": 16000,
         "frame_advance": 240,
-        "proc_frame_length": 512
+        "proc_frame_length": 512,
+        "modules": ["ic"] 
     },
 
     "ic":
@@ -15,6 +16,6 @@
         "gamma_log2" : 1.0,
         "leakage" : 1.0,
         "vnr_model" : "../../../../py_voice/py_voice/data/vnr/model_output/trained_model.h5",
-        "adaption_config": "IC_ADAPTION_FORCE_ON"
+        "adaption_config": "ADAPTION_FORCE_ON"
     }
 }
