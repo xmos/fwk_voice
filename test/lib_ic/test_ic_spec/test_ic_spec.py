@@ -15,11 +15,14 @@ import audio_wav_utils as awu
 import pytest
 import numpy as np
 import filters
-from common_utils import json_to_dict
-import py_voice.modules.ic as ic
+from py_voice.modules import ic
+from py_voice.config import config
+from pathlib import Path
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_conf = config.get_config_dict(ap_config_file)
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
@@ -277,8 +280,8 @@ def check_delay(record_property, test_case, input_audio, output_audio):
 def test_all(test_input, model, record_property):
     test_case, input_audio = test_input
     print("\n{}: {}\n".format(test_case.name, model))
-    config_file = '../../shared/config/ic_conf_no_adapt_control.json'
-    ic_obj = ic.ic(json_to_dict(config_file))
+
+    ic_obj = ic.ic(ap_conf)
     output_audio = process_audio(ic_obj, model, input_audio, test_case.get_test_name())
     suppression_arr = get_suppression_arr(input_audio, output_audio)
 

@@ -8,12 +8,11 @@ import pytest
 import scipy.io.wavfile as wavfile
 
 import acoustic_performance_tests.core as aptc
-
 import room_acoustic_pipeline as rap
 from room_acoustic_pipeline import helpers
 
-
 import py_voice.test.ic.ic_test_helpers as ith
+from py_voice.config import config
 
 sys.path.append('../../shared/python/')
 import py_vs_c_utils as pvc
@@ -40,6 +39,10 @@ speech_pos = 3
 exe_dir = '../../../../build/test/lib_ic/test_bad_state/bin/'
 xe = os.path.join(exe_dir, 'fwk_voice_test_bad_state.xe')
 
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_conf = config.get_config_dict(ap_config_file)
+ap_conf["ic"]["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
+
 def run_xcore(conf_data, out_name):
     conf_data.astype(np.int32).tofile('conf.bin')
 
@@ -51,7 +54,6 @@ def run_xcore(conf_data, out_name):
     os.rename('output.wav',out_name)
     os.remove('conf.bin')
     return sr, out_data
-
 
 def flatten_complex_array(comp_array):
     h = comp_array.shape[0]
@@ -86,13 +88,10 @@ def test_bad_state(room, speech_level, noise_name):
     length_secs = 10
 
     # load config
-    conf_path = '../../shared/config/ic_conf_no_adapt_control.json'
-    ic_conf = pvc.json_to_dict(conf_path)
-    ic_conf["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
-    delay = ic_conf["y_channel_delay"]
-    phases = ic_conf["phases"]
-    proc_frame_length = ic_conf["proc_frame_length"]
-    frame_advance = ic_conf["frame_advance"]
+    delay = ap_conf["ic"]["y_channel_delay"]
+    phases = ap_conf["ic"]["phases"]
+    proc_frame_length = ap_conf["general"]["proc_frame_length"]
+    frame_advance = ap_conf["general"]["frame_advance"]
     f_bin_count = (proc_frame_length // 2) + 1
 
     speech_snr = gain + speech_level

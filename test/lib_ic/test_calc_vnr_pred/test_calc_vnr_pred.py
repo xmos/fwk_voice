@@ -7,17 +7,22 @@ this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../../lib_vnr/vnr_unit_tests/feature_extraction"))
 
 import test_utils # Use vnr test's test_utils
-import IC
-from common_utils import json_to_dict
+
 exe_dir = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_calc_vnr_pred/bin/')
 xe = os.path.join(exe_dir, 'fwk_voice_test_calc_vnr_pred.xe')
 
+from py_voice.modules import ic
+from py_voice.config import config
+from pathlib import Path
+
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_conf = config.get_config_dict(ap_config_file)
+
 def test_calc_vnr_pred(target, tflite_model, show_plot=False):
     np.random.seed(12345)
-    ic_parameters = json_to_dict("../../shared/config/ic_conf_no_adapt_control.json")
-    ic_parameters["adaption_config"] = "IC_ADAPTION_AUTO"
-    ic_parameters["vnr_model"] = str(tflite_model)
-    ifc = IC.adaptive_interference_canceller(**ic_parameters)
+    ap_conf["ic"]["adaption_config"] = "ADAPTION_AUTO"
+    ap_conf["ic"]["vnr_model"] = str(tflite_model)
+    ifc = ic.ic(ap_conf)
 
     # No. of int32 values sent to dut as input per frame
     input_words_per_frame = (1+(ifc.f_bin_count*2))*2 # Y_data exponent followed by ifc.f_bin_count complex values, followed by Error exponent followed by ifc.f_bin_count complex values
