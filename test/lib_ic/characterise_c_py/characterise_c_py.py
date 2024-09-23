@@ -90,9 +90,11 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
 
 def process_py(input_file, output_file, audio_dir="."):
+    output_file = os.path.abspath(os.path.join(audio_dir, output_file))
+    input_file = os.path.abspath(os.path.join(audio_dir, input_file))
 
     ic_obj = ic.ic(ap_conf)
-    ic_obj.process_file(audio_dir / input_file, audio_dir / output_file)
+    ic_obj.process_file(input_file, output_file)
 
 
 def process_c(input_file, output_file, audio_dir="."):
