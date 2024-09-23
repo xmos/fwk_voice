@@ -18,10 +18,9 @@ from pathlib import Path
 ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
 ap_conf = config.get_config_dict(ap_config_file)
 
-def test_calc_vnr_pred(target, tflite_model, show_plot=False):
+def test_calc_vnr_pred(target, show_plot=False):
     np.random.seed(12345)
     ap_conf["ic"]["adaption_config"] = "ADAPTION_AUTO"
-    ap_conf["ic"]["vnr_model"] = str(tflite_model)
     ifc = ic.ic(ap_conf)
 
     # No. of int32 values sent to dut as input per frame
@@ -118,4 +117,4 @@ def test_calc_vnr_pred(target, tflite_model, show_plot=False):
         
 
 if __name__ == "__main__":
-    test_calc_vnr_pred("xcore", test_utils.get_model(), show_plot=True)
+    test_calc_vnr_pred("x86", show_plot=True)
