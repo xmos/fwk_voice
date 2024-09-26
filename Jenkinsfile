@@ -56,9 +56,6 @@ pipeline {
           agent {
             label 'x86_64'
           }
-          environment {
-            XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
-          }
           stages {
             stage('Get view') {
               steps {
