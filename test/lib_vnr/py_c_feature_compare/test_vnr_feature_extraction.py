@@ -18,6 +18,8 @@ sys.path.append(str(Path(__file__).parents[2] / "shared" / "python")) # For py_v
 import py_vs_c_utils as pvc
 
 input_file = str(Path(__file__).parents[3] / "examples" / "bare-metal" / "vnr" / "test_stream_1.wav")
+vnr_model_path = str(Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite")
+vnr_conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
 
 def bfp_s32_to_float(bfp_struct, data):
     
@@ -43,8 +45,8 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
-        print(f"json path {str(pvc.VNR_CONF_PATH)}")
-        self.vnr_obj = vnr.vnr(pvc.VNR_CONF_PATH, model_file=pvc.VNR_MODEL_PATH_LOCAL) 
+        print(f"json path {str(vnr_conf_path)}")
+        self.vnr_obj = vnr.vnr(vnr_conf_path, model_file=vnr_model_path) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 

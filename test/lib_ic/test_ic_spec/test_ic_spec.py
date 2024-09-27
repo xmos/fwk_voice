@@ -28,9 +28,10 @@ this_file_dir = os.path.dirname(os.path.realpath(__file__))
 xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
 xe_files = ['py', xe_path]
 
-sample_rate = 16000
-proc_frame_length = 2**9 # = 512
-frame_advance = 240
+sample_rate = ap_conf["general"]["fs"]
+proc_frame_length = ap_conf["general"]["proc_frame_length"]
+frame_advance = ap_conf["general"]["frame_advance"]
+y_chan_delay = ap_conf["ic"]["y_channel_delay"]
 
 class TestCase(object):
     def __init__(self, name, h_x, h_y, aud_x=None, aud_y=None, dont_check=[], invert_check=[]):
@@ -78,7 +79,7 @@ class ICSpec(object):
     #
     # Unsure exactly why, but the output has an extra (proc_frame_len % frame_advance)
     # sample delay.
-    expected_delay = 600 + (proc_frame_length % frame_advance)
+    expected_delay = y_chan_delay + (proc_frame_length % frame_advance)
 
 test_vectors = [
 #    TestCase('Identical Mics', filters.Identity(), filters.Identity()),
@@ -98,14 +99,6 @@ test_vectors = [
 ]
 
 
-def write_input(test_name, input_data):
-    input_32bit = awu.convert_to_32_bit(input_data)
-    input_filename = os.path.abspath(os.path.join(input_folder, test_name + "-input.wav"))
-    if not os.path.exists(input_folder):
-        os.makedirs(input_folder)
-    scipy.io.wavfile.write(input_filename, sample_rate, input_32bit.T)
-
-
 def write_output(test_name, output, c_or_py):
     output_32bit = awu.convert_to_32_bit(output)
     output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-{}.wav".format(c_or_py)))
@@ -123,7 +116,6 @@ def process_py(ic_obj, input_data, test_name):
 
 
 def process_c(input_data, test_name, xe_name):
-    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-c.wav"))
     tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(test_name))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
@@ -151,18 +143,16 @@ def test_input(request):
     test_case = request.param
     test_name = test_case.get_test_name()
     # Generate Audio
-    noise = audio_generation.get_noise(duration=10, db=-20)
     audio_x, audio_y = filters.convolve(test_case.aud_x, test_case.aud_y,
                                         test_case.h_x, test_case.h_y)
     # Last two channels are not used
-    zeros = np.zeros(audio_y.shape)
     combined_data = np.vstack((audio_y, audio_x))
     if np.max(np.abs(audio_x)) > 1:
         warnings.warn("{}: max(abs(Mic 1)) == {}".format(test_name, np.max(np.abs(audio_x))))
     if np.max(np.abs(audio_y)) > 1:
         warnings.warn("{}: max(abs(Mic 0)) == {}".format(test_name, np.max(np.abs(audio_y))))
     # Write the input audio to file
-    input_32bit = awu.convert_to_32_bit(combined_data)
+    #input_32bit = awu.convert_to_32_bit(combined_data)
     return (test_case, combined_data)
 
 

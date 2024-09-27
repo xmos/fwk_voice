@@ -5,22 +5,6 @@ import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
 import sys
-import json
-import re
-from pathlib import Path
-
-VNR_MODEL_PATH_LOCAL = str(Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite")
-VNR_CONF_PATH = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
-
-# Grab a python config from a JSON file
-def json_to_dict(config_file):
-    datastore = None
-    with open(config_file, "r") as f:
-        input_str = f.read()
-        # Remove '//' comments
-        json_str = re.sub(r'//.*\n', '\n', input_str)
-        datastore = json.loads(json_str)
-    return datastore
 
 # Turn a float32 from C into an np float scalar
 def float_s32_to_float(float_s32):

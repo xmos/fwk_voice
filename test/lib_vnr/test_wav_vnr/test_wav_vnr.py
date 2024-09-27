@@ -29,6 +29,9 @@ with open(results_log_file, "w") as log:
 
 bin_path = str(Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "test_wav_vnr" / "bin" / "fwk_voice_test_wav_vnr")
 bin_path_xe = bin_path + ".xe"
+vnr_model_path = str(Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite")
+vnr_conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -63,19 +66,9 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     print_model_details(interpreter_tflite)
     
     with tfmot.quantization.keras.quantize_scope(): 
-        vnr_obj = vnr.vnr(pvc.VNR_CONF_PATH, model_file=tflite_model)
+        vnr_obj = vnr.vnr(vnr_conf_path, model_file=tflite_model)
     feature_patch_len = vnr_obj.mel_filters*fp.PATCH_WIDTH
     
-    '''
-    rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
-    wav_data, channel_count, file_length = awu.parse_audio(wav_file)
-    print(wav_data.dtype)
-    wav_data_32bit = awu.convert_to_32_bit(wav_data)
-    print(wav_data_32bit.dtype, wav_data_32bit.shape)
-    scipy.io.wavfile.write("test32.wav", rate, wav_data_32bit.T)
-    return
-    '''
-
     #################################################################################
     # Run DUT
     if target == 'xcore':
@@ -110,20 +103,19 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     #################################################################################
     # Reference feature extraction and inference
     #The number of samples of data in the frame
-    proc_frame_length = 2**9
-    frame_advance = 240
-    frame_buffer = np.zeros(3*proc_frame_length)
+    proc_frame_length = fp.FRAME_LEN
+    frame_advance = fp.FRAME_ADVANCE
+
     rate, wav_file = scipy.io.wavfile.read(input_file, 'r')
     wav_data, channel_count, file_length = awu.parse_audio(wav_file)
     file_length = (file_length // frame_advance) * frame_advance
     
     x_data = np.zeros(proc_frame_length)
 
-    ref_mel = np.empty(0, dtype=np.float64)
     ref_new_slice = np.empty(0, dtype=np.float64)
     ref_norm_patch = np.empty(0, dtype=np.float64)
     ref_tflite_output = np.empty(0, dtype=np.float64)
-    framecount = 0;
+    framecount = 0
     for frame_start in range(0, file_length, frame_advance):
         # buffer the input data into STFT slices
         new_x_frame = awu.get_frame(wav_data, frame_start, frame_advance)
@@ -230,10 +222,9 @@ def run_test_wav_vnr(input_file, target, tflite_model, plot_results=False):
     fig.savefig(plot_file)
 
 @pytest.mark.parametrize('input_wav', streams)
-@pytest.mark.parametrize('target', ['x86'#, 'xcore'
-                                    ])
+@pytest.mark.parametrize('target', ['x86', 'xcore'])
 def test_wav_vnr(input_wav, target):
-    run_test_wav_vnr(input_wav, target, pvc.VNR_MODEL_PATH_LOCAL, plot_results=False)
+    run_test_wav_vnr(input_wav, target, vnr_model_path, plot_results=False)
 
 if __name__ == "__main__":
     args = parse_arguments()

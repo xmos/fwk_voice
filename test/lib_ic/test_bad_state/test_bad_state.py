@@ -82,14 +82,15 @@ def form_conf_data(config, H_hat, num_words_H):
 def test_bad_state(room, speech_level, noise_name):
 
     # some constants:
-    fs = 16000
     length_secs = 10
 
     # load config
-    delay = ap_conf["ic"]["y_channel_delay"]
-    phases = ap_conf["ic"]["phases"]
+    fs = ap_conf["general"]["fs"]
     proc_frame_length = ap_conf["general"]["proc_frame_length"]
     frame_advance = ap_conf["general"]["frame_advance"]
+    
+    delay = ap_conf["ic"]["y_channel_delay"]
+    phases = ap_conf["ic"]["phases"]
     f_bin_count = (proc_frame_length // 2) + 1
 
     # make room pipeline spec

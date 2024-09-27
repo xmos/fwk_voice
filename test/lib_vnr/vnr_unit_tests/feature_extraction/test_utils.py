@@ -15,10 +15,10 @@ sys.path.append(str(Path(__file__).parents[3] / "shared" / "python"))
 import py_vs_c_utils as pvc
 
 def get_model():
-    return pvc.VNR_MODEL_PATH_LOCAL
+    return str(Path(__file__).parents[4] / "modules" / "lib_vnr" / "python" / "model" / "model_output" / "trained_model.tflite")
 
 def get_vnr_conf():
-    return pvc.VNR_CONF_PATH
+    return Path(__file__).parents[5] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
 
 def run_dut(input_data, test_name, xe):
     tmp_folder = tempfile.mkdtemp(dir=".", suffix=os.path.basename(test_name))
