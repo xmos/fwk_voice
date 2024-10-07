@@ -47,7 +47,7 @@ NOISE_DISTANCE = 1.5
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 IC_XE = os.path.join(this_file_dir, '../../../build/test/lib_ic/characterise_c_py/bin/fwk_voice_characterise_c_py.xe')
 
-ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_big_delta.json"
 ap_conf = config.get_config_dict(ap_config_file)
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces

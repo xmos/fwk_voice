@@ -4,7 +4,6 @@
 from builtins import zip
 from get_polar_response import get_polar_response
 import numpy as np
-import pytest
 
 ANGLE_ROI = 360
 ANGLE_STEP_SIZE = 20
@@ -14,7 +13,6 @@ NOISE_LEVEL = -20
 IC_DELAY = 180
 
 
-# @pytest.mark.parametrize
 def test_polar_reponse():
     angles, results_py = get_polar_response("pytest_audio",
                                          ANGLE_ROI,
@@ -27,7 +25,7 @@ def test_polar_reponse():
         all_pass = (np.array(attenuation) > 3).all()
         assert all_pass
 
-@pytest.mark.skip(reason="skipping for now as want to make sure other tests pass, will fix later")
+
 def test_compare_polar_reponse():
     angles, results = get_polar_response("pytest_audio",
                                          ANGLE_ROI,
