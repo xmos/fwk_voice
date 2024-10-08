@@ -1,25 +1,18 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import os
-import sys
 import numpy as np
-import matplotlib.pyplot as plt
 import subprocess
 from shutil import copyfile, rmtree
-from pathlib import Path
 
-import audio_wav_utils as awu
 from prepare_aec_input_file import prepare_input_file
 from delay_analyser import delay_analyser
 from delay_analyser import FRAME_ADVANCE 
 import tempfile
-import soundfile as sf
 import glob
 
 import xscope_fileio
 import xtagctl
-import io
-import re
 import subprocess
 
 

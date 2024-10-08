@@ -1,15 +1,12 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-import sys
 from impulse_3510 import do_simulation
-from delay_estimator_utils import apply_delay_changes, get_file_energy_stats, ema_filter, moving_average_filter, extract_audio_and_gt_section, do_delay_estimate
-from delay_estimator_utils import frame_advance, frame_size, input_file_fs, voice_sample_rate, frame_rate, aec_phases
+from delay_estimator_utils import apply_delay_changes
+from delay_estimator_utils import frame_advance, frame_size, input_file_fs, voice_sample_rate
 from shutil import copyfile
 import os
 import subprocess
-import matplotlib.pyplot as plt
 import numpy as np
-import soundfile as sf
 
 def prepare_input_file(input_audio_files, input_audio_dir, model_dir, output_audio_dir, far_end_delay_changes, max_seconds=False, volume_changes=None):
 

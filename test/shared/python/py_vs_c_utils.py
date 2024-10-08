@@ -5,18 +5,6 @@ import numpy as np
 import scipy.io.wavfile
 import audio_wav_utils as awu
 import sys
-import json
-import re
-
-# Grab a python config from a JSON file
-def json_to_dict(config_file):
-    datastore = None
-    with open(config_file, "r") as f:
-        input_str = f.read()
-        # Remove '//' comments
-        json_str = re.sub(r'//.*\n', '\n', input_str)
-        datastore = json.loads(json_str)
-    return datastore
 
 # Turn a float32 from C into an np float scalar
 def float_s32_to_float(float_s32):

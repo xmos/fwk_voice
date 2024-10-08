@@ -9,6 +9,10 @@ import test_utils
 def tflite_model():
     return test_utils.get_model()
 
+@pytest.fixture 
+def vnr_conf():
+    return test_utils.get_vnr_conf()
+
 def pytest_generate_tests(metafunc):
     if "target" in metafunc.fixturenames:
         metafunc.parametrize("target", ['x86', 'xcore'])

@@ -28,7 +28,7 @@ import run_xcoreai
 import socket
 import subprocess
 import signal
-from profile import parse_profiling_info, parse_profile_log
+from profile import parse_profiling_info
 
 # How long in seconds we would expect xrun to open a port for the host app
 # The firmware will have already been loaded so 5s is more than enough

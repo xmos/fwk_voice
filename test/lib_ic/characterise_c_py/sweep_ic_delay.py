@@ -3,13 +3,10 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-import sys
-import os
 import time
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime
 
 from get_polar_response import get_polar_response
 

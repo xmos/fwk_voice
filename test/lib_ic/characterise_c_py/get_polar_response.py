@@ -3,13 +3,10 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-import sys
-import os
 import time
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime
 
 from characterise_c_py import generate_test_audio, process_py, process_c,\
                                 get_attenuation, rt60_type

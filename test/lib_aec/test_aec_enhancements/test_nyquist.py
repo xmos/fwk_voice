@@ -7,23 +7,13 @@ The maximum attenuation is tested, as this should be higher with the Nyquist bin
 '''
 
 import os
-import sys
-
 import numpy as np
 import scipy.signal as spsig
 import scipy.io.wavfile
-import subprocess
-import shutil
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-
-from common_utils import json_to_dict
 import wav_test_functions as wtf
-import audio_wav_utils as awu
 import run_xc
-
-import pytest
 
 hydra_audio_path = os.environ.get('hydra_audio_PATH', '~/hydra_audio')
 

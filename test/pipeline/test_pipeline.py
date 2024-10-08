@@ -1,8 +1,7 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-import os, sys, shutil
-import pytest
+import os, sys
 from pipeline_test_utils import process_file, convert_keyword_wav, log_vnr
 from conftest import pipeline_input_dir, results_log_file, full_pipeline_run, quick_test_pass_thresholds, get_wav_info
 from run_sensory import run_sensory

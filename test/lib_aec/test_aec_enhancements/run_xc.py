@@ -4,13 +4,8 @@ import numpy as np
 import os
 import tempfile
 import shutil
-import subprocess
-import soundfile as sf
 import xscope_fileio
 import xtagctl
-import io
-from contextlib import redirect_stdout
-import re
 import scipy.io.wavfile
 import configparser
 import glob

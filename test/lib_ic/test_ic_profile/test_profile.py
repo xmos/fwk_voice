@@ -4,18 +4,14 @@ import numpy as np
 import os
 import tempfile
 import shutil
-import subprocess
 import scipy.io.wavfile
 import scipy.signal as spsig
 import xscope_fileio
 import xtagctl
-import io
 import glob
 import re
-import argparse
 import pytest
 import glob
-import sys
 
 ic_src_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), *"../../../examples/bare-metal/ic/src".split("/"))
 thread_speed_mhz = (600 / 5)

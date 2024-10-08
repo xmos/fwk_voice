@@ -32,7 +32,7 @@
  * @param[in] X Pointer to BFP structure containing the DFT output
  * @param[in] Flag to enable highpass filtering of MEL filtering output. When enabled, the first MEL output bin is scaled by VNR_MEL_HP_GAIN. 
  *
- * This function name matches with the corresponding function in py_vnr python model.
+ * This function name matches with the corresponding function in py_voice python model.
 */
 void vnr_priv_make_slice(uq8_24 *new_slice, const bfp_complex_s32_t *X, int32_t hp);
 
@@ -44,7 +44,7 @@ void vnr_priv_make_slice(uq8_24 *new_slice, const bfp_complex_s32_t *X, int32_t 
  * @param[inout] feature_buffers pointer to the feature patch buffer that is updated with the newest slice.
  * @param[in] new_slice New slice corresponding to the latest frame that is computed in vnr_priv_make_slice()
  *
- * This function name matches with the corresponding function in py_vnr python model.
+ * This function name matches with the corresponding function in py_voice python model.
  */
 void vnr_priv_add_new_slice(int32_t (*feature_buffers)[VNR_MEL_FILTERS], const int32_t *new_slice);
 
@@ -59,7 +59,7 @@ void vnr_priv_add_new_slice(int32_t (*feature_buffers)[VNR_MEL_FILTERS], const i
  * @param[out] normalised_patch_data Pointer to int32 array of size VNR_PATCH_WIDTH*VNR_MEL_FILTERS for returning the normalised patch in.
  * @param[in] feature_state Pointer to the vnr_feature_state_t feature structure to read the patch buffer from. 
  *
- * This function name matches with the corresponding function in py_vnr python model.
+ * This function name matches with the corresponding function in py_voice python model.
  */
 void vnr_priv_normalise_patch(bfp_s32_t *normalised_patch, int32_t *normalised_patch_data, const vnr_feature_state_t *feature_state);
 

@@ -1,4 +1,4 @@
-# python_version 3.7.6
+# python_version 3.10
 # pip_version 20.*
 #
 # The parse_version_from_requirements() function in the installPipfile.groovy
@@ -49,6 +49,4 @@ tensorflow_model_optimization==0.7.2
 # of its own setup.py file, then this list must include an entry for that
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
 -e ./../audio_test_tools/python
--e ./../py_vnr
--e ./../py_ic/py_ic
--e ./../py_aec/py_aec
+-e ./../py_voice

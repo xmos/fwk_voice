@@ -1,17 +1,11 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import os
-import sys
-
 import numpy as np
 import scipy.io.wavfile
-import subprocess
-import shutil
 import soundfile as sf
 
-from common_utils import json_to_dict
 import wav_test_functions as wtf
-import audio_wav_utils as awu
 import run_xc
 import pytest
 from pathlib import Path

@@ -54,10 +54,7 @@ pipeline {
             expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
           }
           agent {
-            label 'x86_64'
-          }
-          environment {
-            XCORE_SDK_PATH = "${WORKSPACE}/xcore_sdk"
+            label 'x86_64&&linux'
           }
           stages {
             stage('Get view') {
@@ -125,9 +122,6 @@ pipeline {
                   sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   // For IC characterisation we need some additional modules
                   sh "pip install pyroomacoustics"
-		              // For IC test_bad_state
-		              sh "pip install -e ${env.WORKSPACE}/room_acoustic_pipeline"
-		              sh "pip install -e ${env.WORKSPACE}/acoustic_performance_tests"
                 }
               }
             }
@@ -377,7 +371,6 @@ pipeline {
               viewEnv {
                 withVenv {
                   // This is a unit test for ic_calc_vnr_pred function.
-                  // It compares the avona output with py_ic model output
                   sh "pytest -n1 --junitxml=pytest_result.xml"
                 }
               }

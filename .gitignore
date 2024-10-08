@@ -26,6 +26,9 @@ filesystem_support/target-xn*
 **/*.pyc
 **/__pycache__/*
 
+# venv
+.venv
+
 # test cruft
 **/test_*.log
 

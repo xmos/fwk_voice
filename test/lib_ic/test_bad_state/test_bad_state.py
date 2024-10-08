@@ -7,14 +7,12 @@ import numpy as np
 import pytest
 import scipy.io.wavfile as wavfile
 
-import acoustic_performance_tests.core as aptc
+from py_voice.scripts.room_acoustic_pipeline.room_acoustic_pipeline import helpers
+import py_voice.scripts.room_acoustic_pipeline.room_acoustic_pipeline.core as rap
 
-import room_acoustic_pipeline as rap
-from room_acoustic_pipeline import helpers
+import py_voice.test.ic.ic_test_helpers as ith
+from py_voice.config import config
 
-
-sys.path.append('../../../../py_ic/tests/')
-import ic_test_helpers as ith
 sys.path.append('../../shared/python/')
 import py_vs_c_utils as pvc
 import xtagctl
@@ -40,6 +38,9 @@ speech_pos = 3
 exe_dir = '../../../../build/test/lib_ic/test_bad_state/bin/'
 xe = os.path.join(exe_dir, 'fwk_voice_test_bad_state.xe')
 
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_conf = config.get_config_dict(ap_config_file)
+
 def run_xcore(conf_data, out_name):
     conf_data.astype(np.int32).tofile('conf.bin')
 
@@ -51,7 +52,6 @@ def run_xcore(conf_data, out_name):
     os.rename('output.wav',out_name)
     os.remove('conf.bin')
     return sr, out_data
-
 
 def flatten_complex_array(comp_array):
     h = comp_array.shape[0]
@@ -82,31 +82,31 @@ def form_conf_data(config, H_hat, num_words_H):
 def test_bad_state(room, speech_level, noise_name):
 
     # some constants:
-    fs = 16000
     length_secs = 10
 
     # load config
-    conf_path = '../../shared/config/ic_conf_no_adapt_control.json'
-    ic_conf = pvc.json_to_dict(conf_path)
-    ic_conf["vnr_model"] = "../../modules/lib_vnr/python/model/model_output/model_qaware.tflite"
-    delay = ic_conf["y_channel_delay"]
-    phases = ic_conf["phases"]
-    proc_frame_length = ic_conf["proc_frame_length"]
-    frame_advance = ic_conf["frame_advance"]
+    fs = ap_conf["general"]["fs"]
+    proc_frame_length = ap_conf["general"]["proc_frame_length"]
+    frame_advance = ap_conf["general"]["frame_advance"]
+    
+    delay = ap_conf["ic"]["y_channel_delay"]
+    phases = ap_conf["ic"]["phases"]
     f_bin_count = (proc_frame_length // 2) + 1
 
-    speech_snr = gain + speech_level
-
     # make room pipeline spec
-    noise_spec, speech_spec, length_samps = aptc.make_rap_spec_ic(fs, room, 
-                                                                noise_name, noise_level, noise_pos,
-                                                                speech_name, speech_pos, speech_snr, 
-                                                                length_secs)
+    noise_spec, speech_spec, playback_spec, length_samps = rap.make_rap_spec(fs, room, 
+                                                                noise_name=noise_name,
+                                                                noise_level=noise_level,
+                                                                noise_pos=noise_pos,
+                                                                speech_name=speech_name,
+                                                                speech_pos=speech_pos,
+                                                                speech_snr=speech_level,
+                                                                length_secs=length_secs)
     noise_ir = np.load(imp_path / imp_list[noise_spec[2]])
     speech_ir = np.load(imp_path / imp_list[speech_spec[2]])
 
-    ideal_speech_cancellation_H = ith.calc_ideal_fd_filter(speech_ir, delay, phases, f_bin_count, proc_frame_length, frame_advance)
-    ideal_noise_cancellation_H = ith.calc_ideal_fd_filter(noise_ir, delay, phases, f_bin_count, proc_frame_length, frame_advance)
+    ideal_speech_cancellation_H = ith.calc_ideal_fd_filter(speech_ir, delay, phases, f_bin_count, proc_frame_length, frame_advance)[0, 0, :, :]
+    ideal_noise_cancellation_H = ith.calc_ideal_fd_filter(noise_ir, delay, phases, f_bin_count, proc_frame_length, frame_advance)[0, 0, :, :]
 
     # run room pipeline
     mic_sig, out_array, in_array = rap.room_sim(utterance=speech_spec, 
