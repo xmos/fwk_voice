@@ -45,7 +45,6 @@ def get_closeness_metric(ref, dut):
 
 class vnr_feature_comparison:
     def __init__(self):
-        print(f"json path {str(vnr_conf_path)}")
         self.vnr_obj = vnr.vnr(vnr_conf_path, model_file=vnr_model_path) 
         self.x_data = np.zeros(fp.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()

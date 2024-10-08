@@ -18,14 +18,14 @@ import py_vs_c_utils as pvc
 from py_voice.modules import ic
 from py_voice.config import config
 
-proc_frame_length = 512
-fd_length = proc_frame_length // 2 + 1
-frame_advance = 240
-num_phases = 10
-input_file = "../../../examples/bare-metal/ic/input.wav"
-output_file = "output.wav"
 ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
 ap_conf = config.get_config_dict(ap_config_file)
+
+proc_frame_length = ap_conf["general"]["proc_frame_length"]
+frame_advance = ap_conf["general"]["frame_advance"]
+
+input_file = "../../../examples/bare-metal/ic/input.wav"
+output_file = "output.wav"
 
 @pytest.fixture(params=[34])
 def pre_test_stuff(request):

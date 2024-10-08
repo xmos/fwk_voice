@@ -54,7 +54,7 @@ pipeline {
             expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
           }
           agent {
-            label 'x86_64'
+            label 'x86_64&&linux'
           }
           stages {
             stage('Get view') {
