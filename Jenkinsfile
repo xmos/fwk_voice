@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.32.0') _
+@Library('xmos_jenkins_shared_library@v0.34.0') _
 
 getApproval()
 
@@ -6,6 +6,11 @@ pipeline {
   agent none
 
   parameters {
+    string(
+      name: 'TOOLS_VERSION',
+      defaultValue: '15.2.1',
+      description: 'The XTC tools version'
+    )
     booleanParam(name: 'FULL_TEST_OVERRIDE',
                  defaultValue: false,
                  description: 'Force a full test. This increases the number of iterations/scope in some tests')
@@ -14,8 +19,8 @@ pipeline {
                  description: 'Enables pipelines characterisation test which takes 5.0hrs by itself. Normally run nightly')
   }
   environment {
-    REPO = 'sw_avona'
-    VIEW = getViewName(REPO)
+    REPO = 'fwk_voice'
+    XMOSDOC_VERSION = "v4.0"
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
@@ -32,7 +37,6 @@ pipeline {
       parallel {
         stage('Build Docs') {
           agent { label "docker" }
-          environment { XMOSDOC_VERSION = "v4.0" }
           steps {
             checkout scm
             sh 'git submodule update --init --recursive --depth 1'
@@ -59,12 +63,19 @@ pipeline {
           stages {
             stage('Get view') {
               steps {
-                xcorePrepareSandbox("${VIEW}", "${REPO}")
+                runningOn(env.NODE_NAME)
+
+                sh "git clone --depth 1 --branch v2.5.2 https://github.com/ThrowTheSwitch/Unity.git"
+
                 dir("${REPO}") {
-                  viewEnv {
-                    withVenv {
-                      sh "git submodule update --init --recursive --jobs 4"
-                    }
+                  checkout scm
+
+                  createVenv("requirements.txt")
+
+                  withVenv {
+                    // need numpy to generate aec tests
+                    sh "pip install numpy"
+                    sh "git submodule update --init --recursive --jobs 4"
                   }
                 }
               }
@@ -73,14 +84,14 @@ pipeline {
               steps {
                 // Do xcore files
                 dir("${REPO}/build") {
-                  viewEnv {
+                  withTools(params.TOOLS_VERSION) {
                     withVenv {
                       script {
                           if (env.FULL_TEST == "1") {
-                            sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                           }
                           else {
-                            sh 'cmake -S.. -DCMAKE_TOOLCHAIN_FILE=../xmos_cmake_toolchain/xs3a.cmake -DPython3_VIRTUALENV_FIND="ONLY" -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                           }
                       }
                       sh "make -j8"
@@ -112,17 +123,27 @@ pipeline {
       stages{
         stage('Get View') {
           steps {
-            xcorePrepareSandbox("${VIEW}", "${REPO}")
-            dir("${REPO}") {
-              viewEnv {
-                withVenv {
-                  sh "git submodule update --init --recursive --jobs 4"
 
-                  // Note xscopefileio is fetched by build so install in next stage
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                  // For IC characterisation we need some additional modules
-                  sh "pip install pyroomacoustics"
-                }
+            runningOn(env.NODE_NAME)
+
+            sh "git clone --depth 1 --branch v2.0.0 https://github0.xmos.com/xmos-int/xtagctl.git"
+            sh "git clone --depth 1 --branch new_pinned_versions https://github.com/xmos/audio_test_tools.git"
+            sh "git clone --depth 1 --branch main https://github.com/xmos/py_voice.git"
+            sh "git clone --depth 1 --branch main https://github.com/xmos/amazon_wwe.git"
+            sh "git clone --depth 1 --branch master https://github.com/xmos/sensory_sdk.git"
+
+            dir("${REPO}") {
+              checkout scm
+
+              createVenv("requirements.txt")
+
+              withVenv {
+                sh "git submodule update --init --recursive --jobs 4"
+                sh "pip install -r requirements.txt"
+                // Note xscope_fileio is fetched by build so install in next stage
+                sh "pip install -e ${env.WORKSPACE}/xtagctl"
+                // For IC characterisation we need some additional modules
+                sh "pip install pyroomacoustics"
               }
             }
           }
@@ -130,12 +151,12 @@ pipeline {
         stage('Make/get bins and libs'){
           steps {
             dir("${REPO}") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
-                    sh 'cmake -S.. -DPython3_FIND_VIRTUALENV="ONLY" -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
                     sh "make -j8"
 
                     // We need to put this here because it is not fetched until we build
@@ -162,9 +183,8 @@ pipeline {
           steps{
             dir("${REPO}") {
               sh 'rm -f ~/.xtag/acquired' // Hacky but ensure it always works even when previous failed run left lock file present
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv{
-                  sh "pip install -e ${env.WORKSPACE}/xtagctl"
                   sh "xtagctl reset_all XCORE-AI-EXPLORER"
                 }
               }
@@ -174,7 +194,7 @@ pipeline {
         stage('Examples') {
           steps {
             dir("${REPO}") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   dir("examples/bare-metal/aec_1_thread") {
                     sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
@@ -220,7 +240,7 @@ pipeline {
         stage('VNR test_wav_vnr') {
           steps {
             dir("${REPO}/test/lib_vnr/test_wav_vnr") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -233,7 +253,7 @@ pipeline {
         stage('VNR vnr_unit_tests') {
           steps {
             dir("${REPO}/test/lib_vnr/vnr_unit_tests") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
                 }
@@ -244,7 +264,7 @@ pipeline {
         stage('VNR Python C feature extraction equivalence') {
           steps {
             dir("${REPO}/test/lib_vnr/py_c_feature_compare") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "python build_vnr_feature_extraction.py"
                   sh "pytest -s --junitxml=pytest_result.xml"
@@ -257,7 +277,7 @@ pipeline {
         stage('NS profile test') {
           steps {
             dir("${REPO}/test/lib_ns/test_ns_profile") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -270,7 +290,7 @@ pipeline {
           steps {
             dir("${REPO}/test/lib_ns/compare_c_xc") {
               copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -282,7 +302,7 @@ pipeline {
         stage('NS ns_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ns/ns_unit_tests") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 1 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -294,7 +314,7 @@ pipeline {
         stage('IC ic_unit_tests') {
           steps {
             dir("${REPO}/test/lib_ic/ic_unit_tests") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -306,7 +326,7 @@ pipeline {
         stage('IC Python C equivalence') {
           steps {
             dir("${REPO}/test/lib_ic/py_c_frame_compare") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "python build_ic_frame_proc.py"
                   sh "pytest -s --junitxml=pytest_result.xml"
@@ -319,7 +339,7 @@ pipeline {
         stage('IC test profile') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_profile") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -331,7 +351,7 @@ pipeline {
         stage('IC test specification') {
           steps {
             dir("${REPO}/test/lib_ic/test_ic_spec") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   // This test compares the model and C implementation over a range of scenarious for:
                   // convergence_time, db_suppression, maximum noise added to input (to test for stability)
@@ -351,7 +371,7 @@ pipeline {
         stage('IC characterisation') {
           steps {
             dir("${REPO}/test/lib_ic/characterise_c_py") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   // This test compares the suppression performance across angles between model and C implementation
                   // and fails if they differ significantly. It requires that the C implementation run with fixed mu
@@ -368,7 +388,7 @@ pipeline {
         stage('IC test_calc_vnr_pred') {
           steps {
             dir("${REPO}/test/lib_ic/test_calc_vnr_pred") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   // This is a unit test for ic_calc_vnr_pred function.
                   sh "pytest -n1 --junitxml=pytest_result.xml"
@@ -380,7 +400,7 @@ pipeline {
         stage('IC test_bad_state') {
           steps {
             dir("${REPO}/test/lib_ic/test_bad_state") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio", "sensory_PATH=sensory_sdk"]) {
                     sh "pytest -s --junitxml=pytest_result.xml"
@@ -394,7 +414,7 @@ pipeline {
         stage('Stage B tests') {
           steps {
             dir("${REPO}/test/stage_b") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "pytest -n1"
@@ -407,7 +427,7 @@ pipeline {
         stage('ADEC de_unit_tests') {
           steps {
             dir("${REPO}/test/lib_adec/de_unit_tests") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -419,7 +439,7 @@ pipeline {
         stage('ADEC test_delay_estimator') {
           steps {
             dir("${REPO}/test/lib_adec/test_delay_estimator") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh 'mkdir -p ./input_wavs/'
@@ -437,7 +457,7 @@ pipeline {
         stage('ADEC Initial DE startup time test') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec_startup") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
@@ -450,7 +470,7 @@ pipeline {
         stage('ADEC test_adec') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "pytest -n 2 --junitxml=pytest_result.xml"
@@ -464,7 +484,7 @@ pipeline {
         stage('ADEC test_adec_profile') {
           steps {
             dir("${REPO}/test/lib_adec/test_adec_profile") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "pytest -n 1 --junitxml=pytest_result.xml"
@@ -478,7 +498,7 @@ pipeline {
         stage('AEC test_aec_enhancements') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_enhancements") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                     sh "./make_dirs.sh"
@@ -493,7 +513,7 @@ pipeline {
         stage('AEC aec_unit_tests') {
           steps {
             dir("${REPO}/test/lib_aec/aec_unit_tests") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -505,7 +525,7 @@ pipeline {
         stage('AEC test_aec_spec') {
           steps {
             dir("${REPO}/test/lib_aec/test_aec_spec") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "./make_dirs.sh"
                   script {
@@ -532,7 +552,7 @@ pipeline {
         stage('AGC tests') {
           steps {
             dir("${REPO}/test/lib_agc/test_process_frame") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest -n 2 --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -544,7 +564,7 @@ pipeline {
         stage('HPF test') {
           steps {
             dir("${REPO}/test/test_hpf") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   sh "pytest --junitxml=pytest_result.xml"
                   junit "pytest_result.xml"
@@ -558,7 +578,7 @@ pipeline {
             dir("${REPO}/test/pipeline") {
               withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
                 withEnv(["PIPELINE_FULL_RUN=${PIPELINE_FULL_RUN}", "SENSORY_PATH=${env.WORKSPACE}/sensory_sdk/", "AMAZON_WWE_PATH=${env.WORKSPACE}/amazon_wwe/"]) {
-                  viewEnv {
+                  withTools(params.TOOLS_VERSION) {
                     withVenv {
                       echo "PIPELINE_FULL_RUN set as " + env.PIPELINE_FULL_RUN
 
@@ -579,7 +599,7 @@ pipeline {
           }
           steps {
             dir("${REPO}/test/pipeline") {
-              viewEnv {
+              withTools(params.TOOLS_VERSION) {
                 withVenv {
                   copyArtifacts filter: '**/results_*.csv', fingerprintArtifacts: true, projectName: '../lib_audio_pipelines/master', selector: lastSuccessful()
                   runPython("python plot_results.py lib_audio_pipelines/tests/pipelines/results_lib_ap_prev_arch_xcore.csv results_Avona_prev_arch_xcore.csv --single-plot --ww-column='0_2 1_2' --figname=results_benchmark_prev_arch")
@@ -620,16 +640,5 @@ pipeline {
         }
       }
     }// stage xcore.ai Verification
-    stage('Update view files') {
-      agent {
-        label 'x86_64&&brew'
-      }
-      when {
-        expression { return currentBuild.currentResult == "SUCCESS" }
-      }
-      steps {
-        updateViewfiles()
-      }
-    }
   }
 }

@@ -6,6 +6,9 @@ set( CONFIG_XSCOPE_PATH ${CMAKE_SOURCE_DIR}/examples/bare-metal/shared_src/etc )
 include(etc/build_options.cmake)
 
 if ( ${FWK_VOICE_BUILD_TESTS} )
+
+    find_package( Python3 COMPONENTS NumPy )
+
     add_subdirectory( shared )
 
     add_subdirectory( lib_ns )
