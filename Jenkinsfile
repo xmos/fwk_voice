@@ -16,6 +16,11 @@ pipeline {
       defaultValue: '15.2.1',
       description: 'The XTC tools version'
     )
+    string(
+      name: 'XMOSDOC_VERSION',
+      defaultValue: 'v6.1.0',
+      description: 'The xmosdoc version'
+    )
     booleanParam(name: 'FULL_TEST_OVERRIDE',
                  defaultValue: false,
                  description: 'Force a full test. This increases the number of iterations/scope in some tests')
@@ -25,7 +30,6 @@ pipeline {
   }
   environment {
     REPO = 'fwk_voice'
-    XMOSDOC_VERSION = "v4.0"
     FULL_TEST = """${(params.FULL_TEST_OVERRIDE
                     || env.BRANCH_NAME == 'develop'
                     || env.BRANCH_NAME == 'main'
@@ -41,16 +45,14 @@ pipeline {
     stage('Build and Docs') {
       parallel {
         stage('Build Docs') {
-          agent { label "docker" }
+          agent {
+            label "documentation"
+          }
           steps {
             checkout scm
-            sh 'git submodule update --init --recursive --depth 1'
-            sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
-            sh """docker run -u "\$(id -u):\$(id -g)" \
-                --rm \
-                -v ${WORKSPACE}:/build \
-                ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v"""
-            archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
+            warnError("Docs") {
+              buildDocs()
+            }
           }
           post {
             cleanup {
@@ -70,7 +72,7 @@ pipeline {
               steps {
                 runningOn(env.NODE_NAME)
 
-                sh "git clone --depth 1 --branch v2.5.2 https://github.com/ThrowTheSwitch/Unity.git"
+                sh "git clone --depth 1 --branch v2.5.2 git@github.com:ThrowTheSwitch/Unity.git"
 
                 dir("${REPO}") {
                   checkout scm
@@ -131,11 +133,12 @@ pipeline {
 
             runningOn(env.NODE_NAME)
 
-            sh "git clone --depth 1 --branch v2.0.0 https://github0.xmos.com/xmos-int/xtagctl.git"
-            sh "git clone --depth 1 --branch new_pinned_versions https://github.com/xmos/audio_test_tools.git"
-            sh "git clone --depth 1 --branch main https://github.com/xmos/py_voice.git"
-            sh "git clone --depth 1 --branch main https://github.com/xmos/amazon_wwe.git"
-            sh "git clone --depth 1 --branch master https://github.com/xmos/sensory_sdk.git"
+            sh "git clone --depth 1 --branch v2.5.2 git@github.com:ThrowTheSwitch/Unity.git"
+            sh "git clone --depth 1 --branch v2.0.0 git@github0.xmos.com:xmos-int/xtagctl.git"
+            sh "git clone --depth 1 --branch new_pinned_versions git@github.com:xmos/audio_test_tools.git"
+            sh "git clone --depth 1 --branch main git@github.com:xmos/py_voice.git"
+            sh "git clone --depth 1 --branch main git@github.com:xmos/amazon_wwe.git"
+            sh "git clone --depth 1 --branch master git@github.com:xmos/sensory_sdk.git"
 
             dir("${REPO}") {
               checkout scm
