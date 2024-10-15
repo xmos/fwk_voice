@@ -4,7 +4,7 @@
 from __future__ import print_function
 from builtins import zip
 import pytest
-from compare_c_xc import get_attenuation_c_py
+from compare_c_py import get_attenuation_c_py
 import numpy as np
 
 @pytest.mark.parametrize("noise_band", [4000, 8000])

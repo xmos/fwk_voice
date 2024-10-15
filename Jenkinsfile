@@ -279,7 +279,7 @@ pipeline {
                       sh "pytest -n 1 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
-                    dir("compare_c_xc"){
+                    dir("compare_c_py"){
                       sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }
