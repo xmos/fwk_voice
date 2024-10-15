@@ -280,7 +280,6 @@ pipeline {
                       junit "pytest_result.xml"
                     }
                     dir("compare_c_xc"){
-                      copyArtifacts filter: '**/*.xe', fingerprintArtifacts: true, projectName: '../lib_noise_suppression/develop', selector: lastSuccessful()
                       sh "pytest -n 2 --junitxml=pytest_result.xml"
                       junit "pytest_result.xml"
                     }

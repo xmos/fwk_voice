@@ -2,26 +2,19 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from builtins import range
 import os
-
-package_dir = os.path.dirname(os.path.abspath(__file__))
-
-from audio_generation import get_band_limited_noise, write_data
+from audio_generation import get_band_limited_noise
 import time
 import numpy as np
-import scipy.io.wavfile as wavfile
-import audio_wav_utils as awu
 import argparse
-import glob
-import configparser
 import xtagctl
 import xscope_fileio
+from pathlib import Path
+import soundfile as sf
+from py_voice.modules.ns import ns
+import shutil
 
-parser = configparser.ConfigParser()
-parser.read("config.cfg")
-c_ns_xe = os.path.abspath(glob.glob(f'{parser.get("Binaries", "c_path")}/bin/*.xe')[0])
-xc_ns_xe = os.path.abspath(glob.glob(f'{parser.get("Binaries", "xc_path")}/bin/*.xe')[0])
-print(os.path.abspath(c_ns_xe))
-print(os.path.abspath(xc_ns_xe))
+c_ns_xe_path = Path(__file__).parents[3] / "build" / "test" / "lib_ns" / "test_wav_ns" / "bin" / "fwk_voice_test_wav_ns.xe"
+ns_conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "ns_only.json"
 
 X_CH_COUNT = 0
 Y_CH_COUNT = 1
@@ -31,39 +24,36 @@ SAMPLE_COUNT = 160080
 
 
 def generate_test_audio(filename, audio_dir, max_freq, db=-20, samples=SAMPLE_COUNT):
-    try:
-        os.makedirs(audio_dir)
-    except os.error as e:
-        pass
     noise = get_band_limited_noise(0, max_freq, samples=samples, db=db, sample_rate=SAMPLE_RATE)
-    write_data(noise, os.path.join(audio_dir, filename), sample_rate=SAMPLE_RATE)
+    sf.write(audio_dir / filename, noise, SAMPLE_RATE, "PCM_32")
 
+def process_xe(output_file, audio_dir, ns_xe):
 
-def process_xe(filemane, output_file, audio_dir, ns_xe):
+    prev_path = Path(__file__).parent
+    old_file = prev_path / audio_dir / "output.wav"
+    new_file = prev_path / audio_dir / output_file
 
-    prev_path = os.getcwd()
-    os.chdir(audio_dir)
+    os.chdir(str(audio_dir))
 
     with xtagctl.acquire("XCORE-AI-EXPLORER") as adapter_id:
         xscope_fileio.run_on_target(adapter_id, ns_xe)
 
-    old_file = os.path.join(prev_path, audio_dir, 'output.wav')
-    new_file = os.path.join(prev_path, audio_dir, output_file)
-    os.rename(old_file, new_file)
+    os.rename(str(old_file), str(new_file))
 
-    os.chdir(prev_path)  
+    os.chdir(str(prev_path))
 
+
+def process_py(input_file, output_file, audio_dir):
+    ns_obj = ns(ns_conf_path)
+    ns_obj.process_file(audio_dir / input_file, audio_dir / output_file)
 
 def get_attenuation(input_file, output_file, audio_dir="."):
-    in_rate, in_wav_file = wavfile.read(os.path.join(audio_dir, input_file))
-    out_rate, out_wav_file = wavfile.read(os.path.join(audio_dir, output_file))
-
-    in_wav_data, in_channel_count, in_file_length = awu.parse_audio(in_wav_file)
-    out_wav_data, out_channel_count, out_file_length = awu.parse_audio(out_wav_file)
+    in_wav_data, _ = sf.read(audio_dir / input_file)
+    out_wav_data, _ = sf.read(audio_dir / output_file)
 
     # Calculate EWM of audio power in 1s window
-    in_power = np.power(in_wav_data[0, :], 2)
-    out_power = np.power(out_wav_data[0, :], 2)
+    in_power = np.power(in_wav_data, 2)
+    out_power = np.power(out_wav_data, 2)
 
     attenuation = []
 
@@ -78,25 +68,28 @@ def get_attenuation(input_file, output_file, audio_dir="."):
     return attenuation
 
 
-def get_attenuation_c_xc(test_id, noise_band, noise_db):
+def get_attenuation_c_py(test_id, noise_band, noise_db):
     input_file = "input.wav" # Required by test_wav_ns.xe
 
     output_file_c = "output_c.wav"
-    output_file_xc = "output_xc.wav"
+    output_file_py = "output_py.wav"
 
-    audio_dir = test_id
+    audio_dir = Path(__file__).parent / test_id
+    audio_dir.mkdir(exist_ok=True)
     generate_test_audio(input_file, audio_dir, noise_band, db=noise_db)
 
-    process_xe(input_file, output_file_c, audio_dir, c_ns_xe)
-    process_xe(input_file, output_file_xc, audio_dir, xc_ns_xe)
+    process_xe(output_file_c, audio_dir, c_ns_xe_path)
+    process_py(input_file, output_file_py, audio_dir)
 
     attenuation_c = get_attenuation(input_file, output_file_c, audio_dir)
-    attenuation_xc = get_attenuation(input_file, output_file_xc, audio_dir)
+    attenuation_py = get_attenuation(input_file, output_file_py, audio_dir)
 
-    print("    C NS: {}".format(["%.2f"%item for item in attenuation_c]))
-    print("    XC NS: {}".format(["%.2f"%item for item in attenuation_xc]))
+    print("     C NS: {}".format(["%.2f"%item for item in attenuation_c]))
+    print("    PY NS: {}".format(["%.2f"%item for item in attenuation_py]))
 
-    return attenuation_c, attenuation_xc
+    shutil.rmtree(audio_dir)
+
+    return attenuation_c, attenuation_py
 
 
 def parse_arguments():
@@ -112,7 +105,7 @@ def parse_arguments():
 def main():
     start_time = time.time()
     args = parse_arguments()
-    get_attenuation_c_xc("test", args.noise_band, args.noise_level)
+    get_attenuation_c_py("test", args.noise_band, args.noise_level)
     print(("--- {0:.2f} seconds ---" .format(time.time() - start_time)))
 
 
