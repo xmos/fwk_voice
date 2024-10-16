@@ -1,3 +1,36 @@
+# Get path of xmos ai tools
+set(CMD "\
+import os; \
+import xmos_ai_tools.runtime as rt; \
+print(os.path.dirname(rt.__file__)) \
+")
+
+execute_process(
+    COMMAND python -c "${CMD}"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE XMOS_AITOOLSLIB_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Add tflite_micro 
+set(XMOS_AITOOLSLIB_PATH_CMAKE "${XMOS_AITOOLSLIB_PATH}/buildfiles/aitoolslib.cmake")
+
+if(XMOS_AITOOLSLIB_PATH STREQUAL "")
+    message(FATAL_ERROR "Path to XMOS AI tools NOT found")
+elseif(NOT EXISTS  ${XMOS_AITOOLSLIB_PATH_CMAKE})
+    message(FATAL_ERROR "Cmake file 'aitoolslib.cmake' NOT found in this path")
+else()
+    message(STATUS "\nFound python package xmos-ai-tools at: ${XMOS_AITOOLSLIB_PATH}")
+    include(${XMOS_AITOOLSLIB_PATH_CMAKE})
+    set(LIB_NAME tflite_micro)
+    add_library(${LIB_NAME} STATIC IMPORTED GLOBAL)
+    target_compile_definitions(${LIB_NAME} INTERFACE ${XMOS_AITOOLSLIB_DEFINITIONS})
+    set_target_properties(${LIB_NAME}  PROPERTIES
+        LINKER_LANGUAGE CXX
+        IMPORTED_LOCATION ${XMOS_AITOOLSLIB_LIBRARIES}
+        INTERFACE_INCLUDE_DIRECTORIES ${XMOS_AITOOLSLIB_INCLUDES})
+endif()
+
 
 ## VNR Inference
 add_library(fwk_voice_module_lib_vnr_inference STATIC)
@@ -15,7 +48,7 @@ target_link_libraries(fwk_voice_module_lib_vnr_inference
 
 target_link_libraries(fwk_voice_module_lib_vnr_inference
     PRIVATE
-	sdk::inferencing::lib_tflite_micro
+	tflite_micro
 	)
 
 add_library(fwk_voice::vnr::inference ALIAS fwk_voice_module_lib_vnr_inference)

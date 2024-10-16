@@ -81,6 +81,7 @@ pipeline {
                   withVenv {
                     // need numpy to generate aec tests
                     sh "pip install numpy"
+                    sh "pip install xmos-ai-tools==1.3.1"
                     sh "git submodule update --init --recursive --jobs 4"
                   }
                 }
@@ -94,10 +95,10 @@ pipeline {
                     withVenv {
                       script {
                           if (env.FULL_TEST == "1") {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON'
                           }
                           else {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
                           }
                       }
                       sh "make -j8"
@@ -161,7 +162,7 @@ pipeline {
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
-                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
                     sh "make -j8"
 
                     // We need to put this here because it is not fetched until we build

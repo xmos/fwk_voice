@@ -1,4 +1,4 @@
-#include "model/trained_model_xcore.cpp.h"
+#include "model/trained_model_xcore.tflite.h"
 #include "wrapper.h"
 
 // Flag to make sure a given model is initilised only once. This is needed because the model/trained_model_xcore.cpp file have one time initialised non-const global
