@@ -5,13 +5,21 @@ import shutil
 import sys
 import os
 import xmos_ai_tools.runtime as rt
-from extract_state import extract_pre_defs_vnr
 from cffi import FFI
+
+from extract_state import extract_pre_defs_vnr
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = "../../../../modules"
 XCORE_MATH = "../../../../build/fwk_voice_deps/lib_xcore_math"
 
+# TFLite Micro configuration
+TFLITE_MICRO_ROOT = os.path.dirname(rt.__file__)
+TFLITE_MICRO_LIB_DIR = f"{TFLITE_MICRO_ROOT}/lib"
+TFLITE_MICRO_INCLUDE = f"{TFLITE_MICRO_ROOT}/include"
+TFLITE_MICRO_LIB = f"host_xtflitemicro" # use the host platform
+
+# Flag, Include, Libraries
 FLAGS = [
     '-std=c++11',
     '-fPIC',
@@ -19,13 +27,7 @@ FLAGS = [
     '-DTF_LITE_STRIP_ERROR_STRINGS',     # Define TF_LITE_STRIP_ERROR_STRINGS
 ]
 
-# TFLite Micro configuration
-TFLITE_MICRO_ROOT = os.path.dirname(rt.__file__)
-TFLITE_MICRO_LIB = f"{TFLITE_MICRO_ROOT}/lib"
-TFLITE_MICRO_INCLUDE = f"{TFLITE_MICRO_ROOT}/include"
-TFLITE_MICRO_LIB_ST = f"host_xtflitemicro" # use the host platform
-
-INCLUDE_DIRS=[
+INCLUDE_DIRS = [
     f"{MODULE_ROOT}/lib_vnr/api/common",
     f"{MODULE_ROOT}/lib_vnr/api/features",
     f"{MODULE_ROOT}/lib_vnr/src/features",
@@ -37,17 +39,17 @@ INCLUDE_DIRS=[
 ]
 
 LIBRARY_DIRS = [
-        '../../../../build/modules/lib_vnr',
-        '../../../../build/test/lib_vnr',
-        '../../../../build/fwk_voice_deps/build',
-        TFLITE_MICRO_LIB  
-    ]
+    '../../../../build/modules/lib_vnr',
+    '../../../../build/test/lib_vnr',
+    '../../../../build/fwk_voice_deps/build',
+    TFLITE_MICRO_LIB_DIR  
+]
 
 LIBRARIES = [
     'fwk_voice_module_lib_vnr_inference', 
     'fwk_voice_module_lib_vnr_features', 
     'lib_xcore_math', 
-    TFLITE_MICRO_LIB_ST,
+    TFLITE_MICRO_LIB,
     'm', 
     'stdc++'
 ]  # on Unix, link with the math library. Linking order is important here for gcc compile on Linux!
