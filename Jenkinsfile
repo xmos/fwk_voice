@@ -101,7 +101,7 @@ pipeline {
                             sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
                           }
                       }
-                      sh "make -j8"
+                      sh "make -j$(nproc)"
                     }
                   }
                 }
@@ -163,7 +163,7 @@ pipeline {
                   dir("build") {
                     sh "cmake --version"
                     sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
-                    sh "make -j8"
+                    sh "make -j$(nproc)"
 
                     // We need to put this here because it is not fetched until we build
                     sh "pip install -e fwk_voice_deps/xscope_fileio"

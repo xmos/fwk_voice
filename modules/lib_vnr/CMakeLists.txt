@@ -31,6 +31,15 @@ else()
         INTERFACE_INCLUDE_DIRECTORIES ${XMOS_AITOOLSLIB_INCLUDES})
 endif()
 
+## Export model
+set(MODEL_IN_PATH python/model/model_output/trained_model.tflite)
+set(MODEL_OUT_PATH src/inference/model/trained_model_xcore.tflite)
+set(MODEL_N_CORES 1)
+set(MODEL_TH 0.50)
+
+execute_process(
+    COMMAND xcore-opt ${MODEL_IN_PATH} -tc ${MODEL_N_CORES} -o ${MODEL_OUT_PATH} --xcore-conv-err-threshold ${MODEL_TH}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## VNR Inference
 add_library(fwk_voice_module_lib_vnr_inference STATIC)
