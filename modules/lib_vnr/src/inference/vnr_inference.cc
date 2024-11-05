@@ -7,24 +7,20 @@
 #include "vnr_inference_priv.h"
 
 // Allocate all memory required by the inference engine
+static int8_t * in_buffer, * out_buffer;
 static vnr_model_quant_spec_t vnr_quant_state;
 
-
-// TODO: unsure why the stack can not be computed automatically here
-#pragma stackfunction 1000
 int32_t vnr_inference_init() {
 
-    int32_t ret = vnr_init();
+    int32_t ret = vnr_init(&vnr_quant_state);
 
-    // Initialise input quant and output dequant parameters
-    vnr_priv_init_quant_spec(&vnr_quant_state);
+    in_buffer = vnr_get_input();
+    out_buffer = vnr_get_output();
+
     return ret;
 }
 
-#pragma stackfunction 1000
 void vnr_inference(float_s32_t *vnr_output, bfp_s32_t *features) {
-    int8_t * in_buffer = vnr_get_input();
-    int8_t * out_buffer = vnr_get_output();
     // Quantise features to 8bit
     vnr_priv_feature_quantise(in_buffer, features, &vnr_quant_state);
 
