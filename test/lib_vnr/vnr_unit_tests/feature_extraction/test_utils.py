@@ -7,9 +7,10 @@ import tempfile
 import sys
 import scipy.io.wavfile
 import math
-import tensorflow as tf
 import subprocess
 from pathlib import Path
+
+from xmos_ai_tools.xinterpreters import TFLMHostInterpreter
 
 sys.path.append(str(Path(__file__).parents[3] / "shared" / "python"))
 import py_vs_c_utils as pvc
@@ -68,7 +69,8 @@ def get_closeness_metric(ref, dut):
     return arith_closeness, geo_closeness
 
 def quantise_patch(model_file, this_patch):
-    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
+    interpreter_tflite = TFLMHostInterpreter()
+    interpreter_tflite.set_model(model_path=model_file)
     # Get input and output tensors.
     input_details = interpreter_tflite.get_input_details()[0]
     output_details = interpreter_tflite.get_output_details()[0]
@@ -83,7 +85,8 @@ def quantise_patch(model_file, this_patch):
         return this_patch
 
 def dequantise_output(model_file, output_data):
-    interpreter_tflite = tf.lite.Interpreter(model_path=model_file)
+    interpreter_tflite = TFLMHostInterpreter()
+    interpreter_tflite.set_model(model_path=model_file)
     output_details = interpreter_tflite.get_output_details()[0]
     assert(output_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for dequantisation"
     output_scale, output_zero_point = output_details["quantization"]
