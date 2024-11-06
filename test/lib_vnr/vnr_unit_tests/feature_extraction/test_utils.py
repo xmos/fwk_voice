@@ -94,5 +94,4 @@ def dequantise_output(model_file, output_data):
         output_scale, output_zero_point = output_details["quantization"]
         output_data = output_data.astype(np.float64)
         output_data = (output_data - output_zero_point)*output_scale
-        interpreter_tflite.close()
         return output_data
