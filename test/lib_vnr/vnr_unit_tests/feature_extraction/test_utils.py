@@ -69,28 +69,30 @@ def get_closeness_metric(ref, dut):
     return arith_closeness, geo_closeness
 
 def quantise_patch(model_file, this_patch):
-    interpreter_tflite = TFLMHostInterpreter()
-    interpreter_tflite.set_model(model_path=model_file)
-    # Get input and output tensors.
-    input_details = interpreter_tflite.get_input_details()[0]
-    output_details = interpreter_tflite.get_output_details()[0]
-    # quantization spec
-    assert(input_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for quantisation"
-    if input_details["dtype"] in [np.int8, np.uint8]:
-        input_scale, input_zero_point = input_details["quantization"]
-        this_patch = this_patch / input_scale + input_zero_point
-        this_patch = np.round(this_patch)
-        this_patch = np.clip(this_patch, np.iinfo(input_details["dtype"]).min, np.iinfo(input_details["dtype"]).max)
-        this_patch = this_patch.astype(input_details["dtype"])
-        return this_patch
+    with TFLMHostInterpreter() as interpreter_tflite: # important to close interpreter to avoid OOM error
+        interpreter_tflite.set_model(model_path=model_file)
+        #interpreter_tflite = tflite.Interpreter(model_path=model_file) # old method
+        # Get input and output tensors.
+        input_details = interpreter_tflite.get_input_details()[0]
+        output_details = interpreter_tflite.get_output_details()[0]
+        # quantization spec
+        assert(input_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for quantisation"
+        if input_details["dtype"] in [np.int8, np.uint8]:
+            input_scale, input_zero_point = input_details["quantization"]
+            this_patch = this_patch / input_scale + input_zero_point
+            this_patch = np.round(this_patch)
+            this_patch = np.clip(this_patch, np.iinfo(input_details["dtype"]).min, np.iinfo(input_details["dtype"]).max)
+            this_patch = this_patch.astype(input_details["dtype"])
+            return this_patch
 
 def dequantise_output(model_file, output_data):
-    interpreter_tflite = TFLMHostInterpreter()
-    interpreter_tflite.set_model(model_path=model_file)
-    output_details = interpreter_tflite.get_output_details()[0]
-    assert(output_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for dequantisation"
-    output_scale, output_zero_point = output_details["quantization"]
-    output_data = output_data.astype(np.float64)
-    output_data = (output_data - output_zero_point)*output_scale
-    return output_data
-
+    with TFLMHostInterpreter() as interpreter_tflite: # important to close interpreter to avoid OOM error
+        interpreter_tflite.set_model(model_path=model_file)
+        #interpreter_tflite = tflite.Interpreter(model_path=model_file) # old method
+        output_details = interpreter_tflite.get_output_details()[0]
+        assert(output_details["dtype"] in [np.int8, np.uint8]), "Error: Need 8bit model for dequantisation"
+        output_scale, output_zero_point = output_details["quantization"]
+        output_data = output_data.astype(np.float64)
+        output_data = (output_data - output_zero_point)*output_scale
+        interpreter_tflite.close()
+        return output_data
