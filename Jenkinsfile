@@ -79,8 +79,9 @@ pipeline {
 
                   createVenv("requirements.txt")
                   withVenv {
-                    // need numpy to generate aec tests, 
-                    sh "pip install xmos-ai-tools==1.3.1"
+                    // need ai_tools for the build
+                    // need numpy to generate aec tests, will get in from ai_tools
+                    sh "pip install -r requirements.txt"
                     sh "git submodule update --init --recursive --jobs 4"
                   }
                 }
@@ -141,14 +142,12 @@ pipeline {
             dir("${REPO}") {
               checkout scm
 
-              createVenv("requirements.txt")
+              createVenv("requirements_test.txt")
               withVenv {
                 sh "git submodule update --init --recursive --jobs 4"
-                sh "pip install -r requirements.txt"
+                sh "pip install -r requirements_test.txt"
                 // Note xscope_fileio is fetched by build so install in next stage
                 sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                // For IC characterisation we need some additional modules
-                sh "pip install pyroomacoustics"
               }
             }
           }
