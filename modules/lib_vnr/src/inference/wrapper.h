@@ -15,7 +15,6 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void vnr_priv_init_quant_spec(vnr_model_quant_spec_t * quant_spec);
     int32_t vnr_init(vnr_model_quant_spec_t * quant_spec);
     int8_t* vnr_get_input();
     int8_t* vnr_get_output();
