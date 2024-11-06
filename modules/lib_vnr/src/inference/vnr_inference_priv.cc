@@ -4,17 +4,7 @@
 #include <string.h>
 #include "vnr_defines.h"
 #include "vnr_inference_priv.h"
-#include "model/vnr_quant_spec_defines.h"
 #include "xmath/xmath.h"
-
-void vnr_priv_init_quant_spec(vnr_model_quant_spec_t *quant_spec)
-{
-    quant_spec->input_scale_inv = f64_to_float_s32(VNR_INPUT_SCALE_INV); //from interpreter_tflite.get_input_details()[0] call in python 
-    quant_spec->input_zero_point = f64_to_float_s32(VNR_INPUT_ZERO_POINT);
-
-    quant_spec->output_scale = f64_to_float_s32(VNR_OUTPUT_SCALE); //from interpreter_tflite.get_output_details()[0] call in python 
-    quant_spec->output_zero_point = f64_to_float_s32(VNR_OUTPUT_ZERO_POINT);
-}
 
 #define Q24_EXP (-24)
 void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_model_quant_spec_t *quant_spec) {
