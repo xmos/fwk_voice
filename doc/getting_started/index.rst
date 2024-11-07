@@ -5,7 +5,7 @@ QUICK START
 Requirements
 ------------
 
-* XTC Tools 15.2.1 or higher
+* XTC Tools 15.3.0
 * CMake 3.20 or higher
 * Python 3.10 or higher
 
@@ -24,6 +24,12 @@ procedure is currently supported on MacOS, Linux and Windows.
 
      cd fwk_voice
      git submodule update --init --recursive
+
+#. Create a python environment and install `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_
+
+   .. code-block:: console
+
+      pip install -r requirements.txt
 
 #. Create a build directory
 
