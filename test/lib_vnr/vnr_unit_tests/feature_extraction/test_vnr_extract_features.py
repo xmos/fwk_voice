@@ -47,7 +47,7 @@ def test_vnr_extract_features(target, tflite_model, vnr_conf, verbose=False):
         normalised_patch = vnr_obj.extract_features(X_spect, hp=enable_highpass)
         ref_normalised_output = np.append(ref_normalised_output, normalised_patch)
 
-    model_in_details, _ = test_utils(tflite_model)
+    model_in_details, _ = test_utils.get_model_details(tflite_model)
     ref_quantised_output = test_utils.quantise_patch(ref_normalised_output, model_in_details)
     exe_name = xe
     if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
