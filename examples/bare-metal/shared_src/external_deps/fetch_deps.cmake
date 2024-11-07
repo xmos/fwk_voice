@@ -1,9 +1,6 @@
 ## fetch dependencies that are required to build or test modules and examples
 include(FetchContent)
 
-# all this should be removed when converting to xcommon_cmake
-cmake_policy(SET CMP0169 OLD)
-
 FetchContent_Declare(
     xcore_math
     GIT_REPOSITORY https://github.com/xmos/lib_xcore_math.git

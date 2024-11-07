@@ -22,6 +22,7 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent
     output_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)/4 # 96 int8 values
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
+    model_in_details, _ = test_utils.get_model_details(tflite_model)
 
     min_int = -2**31
     max_int = 0 # Normalised features are all negative with a max of 0
@@ -35,7 +36,7 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
         input_data = np.append(input_data, data)
         # Ref implementation
         this_patch = test_utils.int32_to_double(data, exp)
-        quant_patch = test_utils.quantise_patch(tflite_model, this_patch)
+        quant_patch = test_utils.quantise_patch(this_patch, model_in_details)
         ref_output = np.append(ref_output, quant_patch)
     exe_name = xe
     if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
