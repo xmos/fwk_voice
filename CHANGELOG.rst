@@ -1,6 +1,13 @@
 XMOS Voice Framework Change Log
 ===============================
 
+0.8.0
+-----
+
+  * CHANGED: Tools version from 15.2.1 to 15.3.0
+  * CHANGED: Updated xmos-ai-tools version from 0.1.8 to 1.3.1
+  * CHANGED: Updated lib_xcore_math version from 2.1.1 to 2.4.0
+
 0.7.0
 -----
 
