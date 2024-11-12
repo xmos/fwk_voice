@@ -13,12 +13,12 @@ pipeline {
   parameters {
     string(
       name: 'TOOLS_VERSION',
-      defaultValue: '15.2.1',
+      defaultValue: '15.3.0',
       description: 'The XTC tools version'
     )
     string(
       name: 'XMOSDOC_VERSION',
-      defaultValue: 'v6.1.0',
+      defaultValue: 'v6.1.3',
       description: 'The xmosdoc version'
     )
     booleanParam(name: 'FULL_TEST_OVERRIDE',
@@ -76,13 +76,11 @@ pipeline {
 
                 dir("${REPO}") {
                   checkout scm
+                  sh "git submodule update --init --recursive --jobs 4"
 
-                  createVenv("requirements.txt")
-                  withVenv {
-                    // need numpy to generate aec tests
-                    sh "pip install numpy"
-                    sh "git submodule update --init --recursive --jobs 4"
-                  }
+                  // need ai_tools for the build
+                  // need numpy to generate aec tests, will get in from ai_tools
+                  createVenv(reqFile: "requirements.txt")
                 }
               }
             }
@@ -94,13 +92,13 @@ pipeline {
                     withVenv {
                       script {
                           if (env.FULL_TEST == "1") {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON'
                           }
                           else {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
                           }
                       }
-                      sh "make -j8"
+                      sh 'make -j$(nproc)'
                     }
                   }
                 }
@@ -140,15 +138,12 @@ pipeline {
 
             dir("${REPO}") {
               checkout scm
+              sh "git submodule update --init --recursive --jobs 4"
 
-              createVenv("requirements.txt")
+              createVenv(reqFile: "requirements_test.txt")
               withVenv {
-                sh "git submodule update --init --recursive --jobs 4"
-                sh "pip install -r requirements.txt"
                 // Note xscope_fileio is fetched by build so install in next stage
                 sh "pip install -e ${env.WORKSPACE}/xtagctl"
-                // For IC characterisation we need some additional modules
-                sh "pip install pyroomacoustics"
               }
             }
           }
@@ -161,8 +156,8 @@ pipeline {
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
-                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DFETCHCONTENT_UPDATES_DISCONNECTED=ON'
-                    sh "make -j8"
+                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
+                    sh 'make -j$(nproc)'
 
                     // We need to put this here because it is not fetched until we build
                     sh "pip install -e fwk_voice_deps/xscope_fileio"

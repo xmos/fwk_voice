@@ -1,7 +1,7 @@
 ---
 project: fwk_voice
 title: XCORE Voice Framework
-version: 0.7.0
+version: 0.8.0
 
 documentation:
   exclude_patterns_path: doc/exclude_patterns.inc

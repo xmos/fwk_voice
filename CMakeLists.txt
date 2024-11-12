@@ -9,11 +9,12 @@ project(fwk_voice)
 
 enable_language(CXX C ASM)
 
+find_package( Python3 COMPONENTS Interpreter )
+
 ## Add libs and apps
 add_subdirectory( modules )
 
 if(PROJECT_IS_TOP_LEVEL)
-    find_package( Python3 COMPONENTS Interpreter )
 
     ## Compile flags for C/C++ for all apps (for all platforms)
     list(APPEND   COMPILE_FLAGS        -Os -MMD -g)

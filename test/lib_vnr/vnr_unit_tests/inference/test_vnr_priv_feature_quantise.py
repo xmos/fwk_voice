@@ -2,20 +2,27 @@ import numpy as np
 import py_voice.modules.vnr.frame_preprocessor as fp
 import os
 import sys
-this_file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
+from pathlib import Path
+
+# Paths definition
+this_file_dir = Path(__file__).parent.absolute()
+feature_path = this_file_dir.parent / "feature_extraction"
+build_path = (this_file_dir.parents[3] / "build").absolute()
+exe_dir = build_path / "test/lib_vnr/vnr_unit_tests/inference/bin"
+xe = exe_dir / "fwk_voice_test_vnr_priv_feature_quantise.xe"
+
+# import test utils
+sys.path.append(feature_path)
 import test_utils
 
-exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
-xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_feature_quantise.xe')
 
 def test_vnr_priv_feature_quantise(target, tflite_model):
     np.random.seed(1243)
-
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)+1 # 96 mantissas and 1 exponent
     output_words_per_frame = (fp.PATCH_WIDTH * fp.MEL_FILTERS)/4 # 96 int8 values
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
+    model_in_details, _ = test_utils.get_model_details(tflite_model)
 
     min_int = -2**31
     max_int = 0 # Normalised features are all negative with a max of 0
@@ -29,9 +36,8 @@ def test_vnr_priv_feature_quantise(target, tflite_model):
         input_data = np.append(input_data, data)
         # Ref implementation
         this_patch = test_utils.int32_to_double(data, exp)
-        quant_patch = test_utils.quantise_patch(tflite_model, this_patch)
+        quant_patch = test_utils.quantise_patch(this_patch, model_in_details)
         ref_output = np.append(ref_output, quant_patch)
-
     exe_name = xe
     if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
         exe_name = os.path.splitext(xe)[0]

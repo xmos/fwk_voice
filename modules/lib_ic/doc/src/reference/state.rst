@@ -3,6 +3,6 @@
 `lib_ic` API State Structure
 ============================
 
- .. doxygengroup:: ic_state
-     :members:
+.. doxygengroup:: ic_state
+    :members:
      

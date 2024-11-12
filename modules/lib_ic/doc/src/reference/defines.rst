@@ -3,6 +3,6 @@
 `lib_ic` API Definitions
 ========================
 
- .. doxygengroup:: ic_defines
-     :members:
+.. doxygengroup:: ic_defines
+    :members:
      
