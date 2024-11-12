@@ -46,7 +46,7 @@ def extract_xcore_math_vnr():
     #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
     #  subtle changes to the header.  
     EXTERN_C_LINE_NUM=2
-    if vnr_state[EXTERN_C_LINE_NUM] == 'extern "C" {\n':
+    if 'extern "C"' in vnr_state[EXTERN_C_LINE_NUM]:
         del vnr_state[EXTERN_C_LINE_NUM]
         del vnr_state[-1]
 

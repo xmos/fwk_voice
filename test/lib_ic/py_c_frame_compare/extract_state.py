@@ -50,7 +50,7 @@ def extract_xcore_math():
     #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
     #  subtle changes to the header.  
     EXTERN_C_LINE_NUM=2
-    if ic_state[EXTERN_C_LINE_NUM] == 'extern "C" {\n':
+    if 'extern "C"' in ic_state[EXTERN_C_LINE_NUM]:
         del ic_state[EXTERN_C_LINE_NUM]
         del ic_state[-1]
 

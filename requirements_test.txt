@@ -18,7 +18,7 @@
 # pip-install this one as editable using this repository's setup.py file.  The
 # same modules should appear in the setup.py list as given below.
 
-pyroomacoustics
+pyroomacoustics==0.8.2
 numpy==1.21.6
 pytest==7.1.2
 pytest-xdist==2.5.0

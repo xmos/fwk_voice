@@ -15,7 +15,7 @@ Requirements
 ************
 
 ``lib_vnr`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning and building ``fwk_voice`` apply. It depends on ``lib_xcore_math``
-and an `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ python package.
+and the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ python package.
 
 API Structure
 *************
@@ -57,6 +57,7 @@ into ``fwk_voice/modules/lib_vnr/src/inference/model/``. Those generated files w
 
 The process described above only generates an optimised model that would run on a single core.
 
-Also worth mentioning is, since the feature extraction code is fixed and compiled as part of the VNR module,
-any new models replacing the existing one should have the same set of input features,
-input and output size and data types as the existing model.
+Any new models replacing the existing one should have the same set of input features,
+input and output size, and data types as the existing model.
+If changes to the features are made, the feature extraction code must be updated.
+Note that the VNR is used to control the IC behavior, and so its performance may also change.

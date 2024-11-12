@@ -76,14 +76,11 @@ pipeline {
 
                 dir("${REPO}") {
                   checkout scm
+                  sh "git submodule update --init --recursive --jobs 4"
 
-                  createVenv("requirements.txt")
-                  withVenv {
-                    // need ai_tools for the build
-                    // need numpy to generate aec tests, will get in from ai_tools
-                    sh "pip install -r requirements.txt"
-                    sh "git submodule update --init --recursive --jobs 4"
-                  }
+                  // need ai_tools for the build
+                  // need numpy to generate aec tests, will get in from ai_tools
+                  createVenv(reqFile: "requirements.txt")
                 }
               }
             }
@@ -141,11 +138,10 @@ pipeline {
 
             dir("${REPO}") {
               checkout scm
+              sh "git submodule update --init --recursive --jobs 4"
 
-              createVenv("requirements_test.txt")
+              createVenv(reqFile: "requirements_test.txt")
               withVenv {
-                sh "git submodule update --init --recursive --jobs 4"
-                sh "pip install -r requirements_test.txt"
                 // Note xscope_fileio is fetched by build so install in next stage
                 sh "pip install -e ${env.WORKSPACE}/xtagctl"
               }
