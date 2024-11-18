@@ -51,7 +51,7 @@ pipeline {
           steps {
             checkout scm
             warnError("Docs") {
-              buildDocs()
+              buildDocs(archiveZipOnly: true)
             }
           }
           post {
