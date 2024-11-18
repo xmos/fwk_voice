@@ -7,6 +7,6 @@ Framework of voice processing libraries for XCORE.AI.
 .. toctree::
    :maxdepth: 2
 
-   ./doc/getting_started/index
-   ./doc/user_guide/index
+   .getting_started/index
+   .user_guide/index
    
