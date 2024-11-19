@@ -60,3 +60,4 @@ XMOS Voice Framework Change Log
 -----
 
   * Initial version with support for AEC and AGC libraries.
+

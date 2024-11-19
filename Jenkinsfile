@@ -18,7 +18,7 @@ pipeline {
     )
     string(
       name: 'XMOSDOC_VERSION',
-      defaultValue: 'v6.1.3',
+      defaultValue: 'v6.2.0',
       description: 'The xmosdoc version'
     )
     booleanParam(name: 'FULL_TEST_OVERRIDE',
@@ -51,7 +51,7 @@ pipeline {
           steps {
             checkout scm
             warnError("Docs") {
-              buildDocs()
+              buildDocs(archiveZipOnly: true)
             }
           }
           post {
