@@ -3,6 +3,6 @@
 `lib_vnr` feature extraction #defines and data structure definitions
 ====================================================================
 
- .. doxygengroup:: vnr_features_state
-     :members:
+.. doxygengroup:: vnr_features_state
+    :members:
      

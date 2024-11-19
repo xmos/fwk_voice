@@ -6,47 +6,32 @@ from builtins import object
 import xscope_fileio
 import xtagctl
 import tempfile
-import sys
 import os
 import warnings
 
-#py_env = os.environ.copy()
-#sys.path += [os.path.join(os.environ['XMOS_ROOT'], dep) for dep in [
-#                            "audio_test_tools/python",
-#                            "lib_interference_canceller/python",
-#                            "lib_vad/python",
-#                            "lib_audio_pipelines/python",
-#                            ]
-#                         ]
-#py_env['PYTHONPATH'] += ':' + ':'.join(sys.path)
-
-from scipy.signal import convolve
 import scipy.io.wavfile
 import audio_generation
 import audio_wav_utils as awu
 import pytest
-import subprocess
 import numpy as np
 import filters
-from common_utils import json_to_dict
+from py_voice.modules import ic
+from py_voice.config import config
+from pathlib import Path
 
 input_folder = os.path.abspath("input_wavs")
 output_folder = os.path.abspath("output_wavs")
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
+ap_conf = config.get_config_dict(ap_config_file)
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 xe_path = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_ic_spec/bin/fwk_voice_test_ic_spec.xe')
-try:
-    import test_wav_ic
-    xe_files = ['py', xe_path]
-except ModuleNotFoundError:
-    print("No python IC found, using C version only")
-    print(f"Please install py_ic at path {os.environ['XMOS_ROOT']} to support model testing")
-    xe_files = [xe_path]
+xe_files = ['py', xe_path]
 
-
-sample_rate = 16000
-proc_frame_length = 2**9 # = 512
-frame_advance = 240
+sample_rate = ap_conf["general"]["fs"]
+proc_frame_length = ap_conf["general"]["proc_frame_length"]
+frame_advance = ap_conf["general"]["frame_advance"]
+y_chan_delay = ap_conf["ic"]["y_channel_delay"]
 
 class TestCase(object):
     def __init__(self, name, h_x, h_y, aud_x=None, aud_y=None, dont_check=[], invert_check=[]):
@@ -94,7 +79,7 @@ class ICSpec(object):
     #
     # Unsure exactly why, but the output has an extra (proc_frame_len % frame_advance)
     # sample delay.
-    expected_delay = 600 + (proc_frame_length % frame_advance)
+    expected_delay = y_chan_delay + (proc_frame_length % frame_advance)
 
 test_vectors = [
 #    TestCase('Identical Mics', filters.Identity(), filters.Identity()),
@@ -114,14 +99,6 @@ test_vectors = [
 ]
 
 
-def write_input(test_name, input_data):
-    input_32bit = awu.convert_to_32_bit(input_data)
-    input_filename = os.path.abspath(os.path.join(input_folder, test_name + "-input.wav"))
-    if not os.path.exists(input_folder):
-        os.makedirs(input_folder)
-    scipy.io.wavfile.write(input_filename, sample_rate, input_32bit.T)
-
-
 def write_output(test_name, output, c_or_py):
     output_32bit = awu.convert_to_32_bit(output)
     output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-{}.wav".format(c_or_py)))
@@ -130,21 +107,15 @@ def write_output(test_name, output, c_or_py):
     scipy.io.wavfile.write(output_filename, sample_rate, output_32bit.T)
 
 
-def process_py(input_data, test_name):
+def process_py(ic_obj, input_data, test_name):
 
-    file_length = input_data.shape[1]
+    output, metadata = ic_obj.process_array(input_data)
 
-    config_file = '../../shared/config/ic_conf_no_adapt_control.json'
-
-    ic_parameters = json_to_dict(config_file)
-
-    output, Mu, Input_vnr_pred, Control_flag = test_wav_ic.test_data(input_data, 16000, file_length, ic_parameters, verbose=False)
     write_output(test_name, output, 'py')
     return output
 
 
 def process_c(input_data, test_name, xe_name):
-    output_filename = os.path.abspath(os.path.join(output_folder, test_name + "-output-c.wav"))
     tmp_folder = tempfile.mkdtemp(suffix=os.path.basename(test_name))
     prev_path = os.getcwd()
     os.chdir(tmp_folder)
@@ -172,24 +143,22 @@ def test_input(request):
     test_case = request.param
     test_name = test_case.get_test_name()
     # Generate Audio
-    noise = audio_generation.get_noise(duration=10, db=-20)
     audio_x, audio_y = filters.convolve(test_case.aud_x, test_case.aud_y,
                                         test_case.h_x, test_case.h_y)
     # Last two channels are not used
-    zeros = np.zeros(audio_y.shape)
     combined_data = np.vstack((audio_y, audio_x))
     if np.max(np.abs(audio_x)) > 1:
         warnings.warn("{}: max(abs(Mic 1)) == {}".format(test_name, np.max(np.abs(audio_x))))
     if np.max(np.abs(audio_y)) > 1:
         warnings.warn("{}: max(abs(Mic 0)) == {}".format(test_name, np.max(np.abs(audio_y))))
     # Write the input audio to file
-    input_32bit = awu.convert_to_32_bit(combined_data)
+    #input_32bit = awu.convert_to_32_bit(combined_data)
     return (test_case, combined_data)
 
 
-def process_audio(model, input_audio, test_name):
+def process_audio(ic_obj, model, input_audio, test_name):
     if model == 'py':
-        return process_py(input_audio, test_name)
+        return process_py(ic_obj, input_audio, test_name)
     else:
         return process_c(input_audio, test_name, model)
 
@@ -264,8 +233,6 @@ def check_stability(record_property, test_case, suppression_arr):
     return check
 
 
-import matplotlib.pyplot as plt
-
 def check_delay(record_property, test_case, input_audio, output_audio):
     """ Verify that the IC is correctly delaying the input
 
@@ -303,7 +270,9 @@ def check_delay(record_property, test_case, input_audio, output_audio):
 def test_all(test_input, model, record_property):
     test_case, input_audio = test_input
     print("\n{}: {}\n".format(test_case.name, model))
-    output_audio = process_audio(model, input_audio, test_case.get_test_name())
+
+    ic_obj = ic.ic(ap_conf)
+    output_audio = process_audio(ic_obj, model, input_audio, test_case.get_test_name())
     suppression_arr = get_suppression_arr(input_audio, output_audio)
 
     record_property('Test name', test_case.get_test_name())

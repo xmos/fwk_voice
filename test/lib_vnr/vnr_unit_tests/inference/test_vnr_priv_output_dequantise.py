@@ -1,25 +1,22 @@
 import numpy as np
-import data_processing.frame_preprocessor as fp
-import py_vnr.vnr as vnr
 import os
 import sys
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(this_file_dir, "../feature_extraction"))
 import test_utils
-import tensorflow as tf
-import math
+
 
 exe_dir = os.path.join(this_file_dir, '../../../../build/test/lib_vnr/vnr_unit_tests/inference/bin/')
 xe = os.path.join(exe_dir, 'fwk_voice_test_vnr_priv_output_dequantise.xe')
 
 def test_vnr_priv_output_dequantise(target, tflite_model):
     np.random.seed(1243)
-    vnr_obj = vnr.Vnr(model_file=tflite_model) 
 
     input_data = np.empty(0, dtype=np.int32)
     input_words_per_frame = 1 # 1 int32 value out of which only the 1st byte is relevant since inference output is a single byte
     output_words_per_frame = 2 # 1 float_s32_t value
     input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))
+    _, model_out_details = test_utils.get_model_details(tflite_model)
 
     min_int = -128
     max_int = 127
@@ -32,7 +29,7 @@ def test_vnr_priv_output_dequantise(target, tflite_model):
 
         # Reference dequantise implementation
         data = data.astype(dtype=np.int8)
-        dequant_output = test_utils.dequantise_output(tflite_model, data)
+        dequant_output = test_utils.dequantise_output(data, model_out_details)
         ref_output_double = np.append(ref_output_double, dequant_output)
 
     exe_name = xe

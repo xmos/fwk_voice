@@ -1,9 +1,7 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import configparser
-import subprocess
 import os.path
-import numpy as np
 from aec_test_utils import get_h_hat_impulse_response
 from plot_test import plot_test, plot_impulseresponse_test
 import shutil

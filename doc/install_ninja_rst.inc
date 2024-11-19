@@ -1,7 +1,6 @@
-It is highly recommended to use `Ninja` as the make system under
-Windows. Not only has `Ninja` been observed to be faster than MSVC `nmake`, it also
-works around an XMOS tools bug where certain path names may cause an issue with
-the XMOS compiler under Windows.  This firmware has been tested with `Ninja` version v1.11.1.
+It is recommended to use `Ninja` or `xmake` as the make system under Windows.
+`Ninja` has been observed to be faster than `xmake`, however `xmake` comes natively with XTC tools.
+This firmware has been tested with `Ninja` version v1.11.1.
 
 To install `Ninja`, follow these steps:
 

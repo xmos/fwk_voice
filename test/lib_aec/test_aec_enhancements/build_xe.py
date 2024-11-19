@@ -2,7 +2,6 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 import configparser
 import subprocess
-import glob
 
 parser = configparser.ConfigParser()
 parser.read("parameters.cfg")

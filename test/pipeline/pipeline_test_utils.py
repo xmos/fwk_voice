@@ -44,15 +44,15 @@ def process_x86(bin_file, input_file, output_file):
     return stdout
 
 def process_python(input_file, output_file, arch):
-    config_file = os.path.join(thisfile_path, "py_pipeline/config/two_mic_stereo.json")
+    config_file = os.path.join(thisfile_path, "py_pipeline/config/prev_arch.json")
     if arch == 'aec_ic_prev_arch':
-        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True, disable_agc=True)
+        wav_pipeline.test_file(input_file, output_file, config_file, disable_ns=True, disable_agc=True)
     elif arch == 'aec_ic_ns_prev_arch':
-        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_agc=True)
+        wav_pipeline.test_file(input_file, output_file, config_file, disable_agc=True)
     elif arch == 'aec_ic_agc_prev_arch':
-        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file), disable_ns=True)
+        wav_pipeline.test_file(input_file, output_file, config_file, disable_ns=True)
     elif arch == 'aec_ic_ns_agc_prev_arch':
-        wav_pipeline.test_file(input_file, output_file, wav_pipeline.json_to_dict(config_file))
+        wav_pipeline.test_file(input_file, output_file, config_file)
     stdo = ""
     return stdo
 

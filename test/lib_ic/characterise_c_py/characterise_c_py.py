@@ -16,10 +16,9 @@ import argparse
 import pyroomacoustics as pra
 import scipy
 
-try:
-    import test_wav_ic as twic
-except ModuleNotFoundError:
-    print(f"Please install py_ic at root of project to support model testing")
+from py_voice.modules import ic
+from py_voice.config import config
+from pathlib import Path
 
 import xtagctl, xscope_fileio
 
@@ -47,6 +46,9 @@ NOISE_DISTANCE = 1.5
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 IC_XE = os.path.join(this_file_dir, '../../../build/test/lib_ic/characterise_c_py/bin/fwk_voice_characterise_c_py.xe')
+
+ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_big_delta.json"
+ap_conf = config.get_config_dict(ap_config_file)
 
 # Use Sabine's Eq to calc average absorption factor of room surfaces
 def get_absorption(x, y, z, rt60):
@@ -88,12 +90,11 @@ def generate_test_audio(filename, audio_dir, max_freq, db, angle_theta, rt60, sa
 
 
 def process_py(input_file, output_file, audio_dir="."):
+    output_file = os.path.abspath(os.path.join(audio_dir, output_file))
+    input_file = os.path.abspath(os.path.join(audio_dir, input_file))
 
-    config_file = '../../shared/config/ic_conf_big_delta.json'
-
-    twic.test_file(os.path.join(audio_dir, input_file),
-                          os.path.join(audio_dir, output_file),
-                          config_file)
+    ic_obj = ic.ic(ap_conf)
+    ic_obj.process_file(input_file, output_file)
 
 
 def process_c(input_file, output_file, audio_dir="."):
@@ -151,6 +152,7 @@ def get_attenuation_c_py(test_id, noise_band, noise_db, angle_theta, rt60):
 
     audio_dir = test_id
     generate_test_audio(input_file, audio_dir, noise_band, noise_db, angle_theta, rt60)
+
     process_py(input_file, output_file_py, audio_dir)
     process_c(input_file, output_file_c, audio_dir)
 

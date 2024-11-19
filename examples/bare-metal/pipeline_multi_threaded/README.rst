@@ -50,6 +50,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
 
     .. code-block:: console
     
+        pip install -r requirements.txt
         cmake --toolchain ../xmos_cmake_toolchain/xs3a.cmake ..
         make fwk_voice_example_bare_metal_pipeline_multi_thread
 
@@ -58,6 +59,7 @@ Run the following commands in the fwk_voice/build folder to build the firmware f
     .. code-block:: console
 
         # make sure you have the patch command available
+        pip install -r requirements.txt
         cmake -G "Ninja" --toolchain  ../xmos_cmake_toolchain/xs3a.cmake ..
         ninja fwk_voice_example_bare_metal_pipeline_multi_thread
 

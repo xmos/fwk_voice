@@ -1,8 +1,7 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-import pytest
-import os, re, sys
+import os
 import subprocess
 
 hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")

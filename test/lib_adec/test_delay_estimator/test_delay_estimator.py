@@ -3,24 +3,18 @@
 from builtins import range
 from builtins import object
 import tempfile
-import sys
 import os
 import warnings
 
-from scipy.signal import convolve
 import scipy.io.wavfile
 import audio_generation
 import audio_wav_utils as awu
 import pytest
-import subprocess
 import numpy as np
 
 import filters
 import xscope_fileio
 import xtagctl
-import io
-from contextlib import redirect_stdout
-import re
 import glob
 
 input_folder = os.path.abspath("input_wavs")

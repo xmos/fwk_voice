@@ -13,7 +13,7 @@ static vnr_model_quant_spec_t vnr_quant_spec;
 
 void test_init()
 {
-    vnr_priv_init_quant_spec(&vnr_quant_spec);
+    vnr_init(&vnr_quant_spec);
 }
 
 void test(int32_t *output, int32_t *input)

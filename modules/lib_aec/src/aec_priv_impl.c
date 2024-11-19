@@ -793,31 +793,12 @@ void aec_priv_create_output(
     overlap->hr = error->hr;
     overlap->exp = error->exp;
 }
-extern void vtb_inv_X_energy_asm(uint32_t *inv_X_energy,
-        unsigned shr,
-        unsigned count);
 
 void aec_priv_calc_inverse(
         bfp_s32_t *input)
 {
-#if 1
     //82204 cycles. 2 x-channels, single thread, but get rids of voice_toolbox dependency on vtb_inv_X_energy_asm (36323 cycles)
     bfp_s32_inverse(input, input);
-
-#else //36323 cycles. 2 x-channels, single thread
-    int32_t min_element = vect_s32_min(
-                                input->data,
-                                input->length);
- 
-    // HR_S32() gets headroom of a single int32_t
-    //old aec would calculate shr as HR_S32(min_element) + 2. Since VPU deals with only signed numbers, increase shr by 1 to account for sign bit in the result of the inverse function.
-    int input_shr = HR_S32(min_element) + 2 + 1;
-    //vtb_inv_X_energy
-    input->exp = (-input->exp - 32); //TODO work out this mysterious calculation
-    input->exp -= (32 - input_shr);
-    vtb_inv_X_energy_asm((uint32_t *)input->data, input_shr, input->length);
-    input->hr = 0;
-#endif
 }
 
 
