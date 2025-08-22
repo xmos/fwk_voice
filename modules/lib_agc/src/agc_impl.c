@@ -4,6 +4,7 @@
 #include "agc_defines.h"
 #include "xmath/xmath.h"
 #include <agc_api.h>
+#include <aec_state.h>
 
 void agc_init(agc_state_t *agc, agc_config_t *config)
 {
@@ -22,6 +23,7 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->lc_gain = f32_to_float_s32(1);
     agc->lc_far_bg_power_est = f32_to_float_s32(0.01F);
     agc->lc_corr_val = f32_to_float_s32(0);
+    agc->vad_low_count = 0;
 }
 
 // Returns the mantissa for the input float shifted to an exponent of parameter exp
@@ -64,13 +66,12 @@ void agc_process_frame(agc_state_t *agc,
                        const int32_t input[AGC_FRAME_ADVANCE],
                        agc_meta_data_t *meta_data)
 {
-    int vnr_flag = meta_data->vnr_flag;
+    int vnr_flag;
 
     if (agc->config.adapt_on_vnr == 0) {
         vnr_flag = 1;
-    }
-    else{
-        int vnr_flag = float_s32_gt(meta_data->vnr_flag, agc->config.vnr_threshold);
+    } else {
+        vnr_flag = float_s32_gt(meta_data->vnr_flag, agc->config.vnr_threshold);
     }
 
     bfp_s32_t input_bfp;
@@ -166,7 +167,7 @@ void agc_process_frame(agc_state_t *agc,
     }
 
     if (agc->config.lc_enabled) {
-        if meta_data->ref_active_flag > LOW_REF {
+        if (meta_data->ref_active_flag > LOW_REF) {
             agc->lc_far_power_est = meta_data->aec_ref_power;
         }
         else{
@@ -177,47 +178,48 @@ void agc_process_frame(agc_state_t *agc,
             agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
         }
 
+        // speech_detect_alpha = 0.5;
         // bool speech_detect = false;
         // if (speech_detect){
         //     speech_detect_alpha = 0.5;
         //     if meta_data->vnr > agc->config.vnr_threshold{
-        //         agc->lc_near_power_est = speech_detect_alpha*self.lc_near_power_est + (1 - alpha) * frame_power;
+        //     agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, speech_detect_alpha);
         //     }
         //     else{
         //         agc->lc_near_power_est *= speech_detect_alpha;
         //     }
         // }
         // else
-        {
-            agc->lc_near_power_est = speech_detect_alpha*self.lc_near_power_est + (1 - alpha) * frame_power;
-        }
+        // {
+        //     agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, speech_detect_alpha);
+        // }
 
-        if meta_data->vnr < agc->config.vad_low{
+        // TODO: Improve speech detection in loss control logic
+        if (float_s32_gt(agc->config.vnr_low, meta_data->vnr_flag)) {
             agc->vad_low_count += 1;
-        }
-        else{
+        } else {
             agc->vad_low_count = 0;
         }
 
-        if agc->vad_low_count > agc->config.vad_low_count_limit{
-            agc->lc_near_power_est = frame_power;
+        if (agc->vad_low_count >= agc->config.vad_low_count_limit) {
+            agc->lc_near_bg_power_est = frame_power;
             agc->vad_low_count = 0;
         }
 
-        if agc->lc_near_bg_power_est > frame_power{
+        if (float_s32_gt(agc->lc_near_bg_power_est, frame_power)) {
             agc->lc_near_bg_power_est = frame_power;
         }
 
-        if(agc->lc_near_bg_power_est < AGC_LC_NEAR_BG_POWER_EST_MIN){
-            agc->lc_near_bg_power_est = AGC_LC_NEAR_BG_POWER_EST_MIN;
+        // Ensure minimum background power estimate
+        if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_near_bg_power_est)) {
+            agc->lc_near_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
         }
 
         // Update far-end activity timer
         agc->lc_corr_val = meta_data->aec_corr_factor;
-        if agc->lc_corr_val > agc->config.lc_corr_threshold{
+        if (float_s32_gt(agc->lc_corr_val, agc->config.lc_corr_threshold)) {
             agc->lc_t_far = agc->config.lc_n_frame_far;
-        }
-        else{
+        } else {
             if (agc->lc_t_far > 0) {
                 --agc->lc_t_far;
             }

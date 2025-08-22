@@ -88,9 +88,11 @@ typedef struct {
     float_s32_t lc_gain_silence;
     /** Loss control gain to apply when far-end activity only is detected. */
     float_s32_t lc_gain_min;
-
+    /** VNR threshold for voice activity detection. */
     float_s32_t vnr_threshold;
+    /** Low VNR threshold for background estimation. */
     float_s32_t vnr_low;
+    /** Frame count limit for low VNR detection. */
     int vad_low_count_limit;
 } agc_config_t;
 

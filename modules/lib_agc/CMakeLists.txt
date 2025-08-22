@@ -10,6 +10,8 @@ target_sources(fwk_voice_module_lib_agc
 target_include_directories(fwk_voice_module_lib_agc
     PUBLIC
         api
+    PRIVATE
+        ../lib_aec/api
 )
 
 target_compile_options(fwk_voice_module_lib_agc
