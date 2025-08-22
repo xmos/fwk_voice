@@ -47,7 +47,7 @@ void test_input_output() {
         float_s32_t in_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
 
         // Set meta-data to random values
-        md.vnr_flag = pseudo_rand_uint8(&seed) & 1;    // Boolean
+        md.vnr_flag = (float_s32_t){(pseudo_rand_uint8(&seed) & 1) ? 0x40000000 : 0, -30};    // Boolean (1.0 or 0.0 in float_s32_t format)
         md.aec_ref_power = float_s32_mul(in_power, scale);
         md.aec_corr_factor = (float_s32_t){pseudo_rand_uint32(&seed), -32};
 

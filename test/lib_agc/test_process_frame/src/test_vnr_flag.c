@@ -29,7 +29,7 @@ void test_vnr_flag() {
     agc_init(&agc_vnr0, &conf_vnr0);
 
     agc_meta_data_t md_vnr0;
-    md_vnr0.vnr_flag = 0;
+    md_vnr0.vnr_flag = (float_s32_t){0, -30};  // 0.0 in float_s32_t format
     md_vnr0.aec_ref_power = AGC_META_DATA_NO_AEC;
     md_vnr0.aec_corr_factor = AGC_META_DATA_NO_AEC;
 
@@ -42,7 +42,7 @@ void test_vnr_flag() {
     agc_init(&agc_vnr1, &conf_vnr1);
 
     agc_meta_data_t md_vnr1;
-    md_vnr1.vnr_flag = 1;
+    md_vnr1.vnr_flag = (float_s32_t){0x40000000, -30};  // 1.0 in float_s32_t format
     md_vnr1.aec_ref_power = AGC_META_DATA_NO_AEC;
     md_vnr1.aec_corr_factor = AGC_META_DATA_NO_AEC;
 
