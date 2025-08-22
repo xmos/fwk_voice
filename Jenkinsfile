@@ -142,8 +142,15 @@ pipeline {
 
               createVenv(reqFile: "requirements_test.txt")
               withVenv {
+                // Upgrade pip and setuptools to handle deprecated develop command
+                sh "pip install --upgrade pip setuptools wheel"
+                // Install dependencies separately to avoid setuptools develop issues
+                sh "pip install pyroomacoustics==0.8.2 numpy==1.21.6 pytest==7.1.2 pytest-xdist==2.5.0 keras==2.8.0 matplotlib==3.5.1 scipy==1.7.3 soundfile==0.12.1 webrtcvad==2.0.10 h5py==3.6.0 xmos-ai-tools==1.3.1"
+                // Install editable packages using modern approach
+                sh "pip install -e ${env.WORKSPACE}/audio_test_tools/python --use-pep517"
+                sh "pip install -e ${env.WORKSPACE}/py_voice --use-pep517"
                 // Note xscope_fileio is fetched by build so install in next stage
-                sh "pip install -e ${env.WORKSPACE}/xtagctl"
+                sh "pip install -e ${env.WORKSPACE}/xtagctl --use-pep517"
               }
             }
           }

@@ -43,5 +43,5 @@ xmos-ai-tools==1.3.1
 # If this repository uses the setup functionality (e.g., script entry points)
 # of its own setup.py file, then this list must include an entry for that
 # setup.py file, e.g., '-e .' or '-e ./python' (without the quotes).
--e ./../audio_test_tools/python
--e ./../py_voice
+# Note: audio_test_tools and py_voice are installed separately in Jenkinsfile
+# to avoid setuptools develop deprecation issues
