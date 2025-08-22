@@ -194,7 +194,7 @@ typedef struct {
  *
  * @ingroup agc_defs
  */
-#define AGC_META_DATA_NO_VNR 0u
+#define AGC_META_DATA_NO_VNR (float_s32_t){0, 0}
 
 /**
  * If the application has VNR, `adapt_on_vnr` can be enabled in the configuration. This
@@ -210,7 +210,7 @@ typedef struct {
  *
  * @ingroup agc_defs
  */
-#define AGC_META_DATA_NO_AEC (float_s32_t){0, 0, 0}
+#define AGC_META_DATA_NO_AEC (float_s32_t){0, 0}
 
 /**
  * @brief Perform AGC processing on a frame of input data
