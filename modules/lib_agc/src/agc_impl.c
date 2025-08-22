@@ -69,6 +69,9 @@ void agc_process_frame(agc_state_t *agc,
     if (agc->config.adapt_on_vnr == 0) {
         vnr_flag = 1;
     }
+    else{
+        int vnr_flag = float_s32_gt(meta_data->vnr_flag, agc->config.vnr_threshold);
+    }
 
     bfp_s32_t input_bfp;
     bfp_s32_init(&input_bfp, (int32_t *)input, FRAME_EXP, AGC_FRAME_ADVANCE, 1);
@@ -84,6 +87,7 @@ void agc_process_frame(agc_state_t *agc,
         float_s32_t min_sample = float_s32_abs(bfp_s32_min(&input_bfp));
         float_s32_t max_abs_value;
 
+        
         if (float_s32_gte(max_sample, min_sample)) {
             max_abs_value = max_sample;
         } else {
@@ -140,16 +144,14 @@ void agc_process_frame(agc_state_t *agc,
         agc->lc_far_power_est = float_s32_ema(agc->lc_far_power_est, meta_data->aec_ref_power, AGC_ALPHA_LC_EST_INC);
     }
 
-    float_s32_t far_bg_power_est = float_s32_mul(agc->config.lc_bg_power_gamma, agc->lc_far_bg_power_est);
-    if (float_s32_gte(far_bg_power_est, agc->lc_far_power_est)) {
-        agc->lc_far_bg_power_est = agc->lc_far_power_est;
-    } else {
-        agc->lc_far_bg_power_est = far_bg_power_est;
-    }
+    // float_s32_t far_bg_power_est = float_s32_mul(agc->config.lc_bg_power_gamma, agc->lc_far_bg_power_est);
+    // if (float_s32_gte(far_bg_power_est, agc->lc_far_power_est)) {
+    //     agc->lc_far_bg_power_est = agc->lc_far_power_est;
+    // } else {
+    //     agc->lc_far_bg_power_est = far_bg_power_est;
+    // }
 
-    if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_far_bg_power_est)) {
-        agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
-    }
+
 
     if (float_s32_gte(agc->lc_near_power_est, frame_power)) {
         agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_DEC);
@@ -164,15 +166,58 @@ void agc_process_frame(agc_state_t *agc,
     }
 
     if (agc->config.lc_enabled) {
-        if (float_s32_gt(meta_data->aec_corr_factor, agc->lc_corr_val)) {
-            agc->lc_corr_val = meta_data->aec_corr_factor;
-        } else {
-            agc->lc_corr_val = float_s32_ema(agc->lc_corr_val, meta_data->aec_corr_factor, AGC_ALPHA_LC_CORR);
+        if meta_data->ref_active_flag > LOW_REF {
+            agc->lc_far_power_est = meta_data->aec_ref_power;
+        }
+        else{
+            agc->lc_far_bg_power_est = meta_data->aec_ref_power;
         }
 
-        if (float_s32_gt(agc->lc_far_power_est, float_s32_mul(agc->config.lc_far_delta, agc->lc_far_bg_power_est))) {
+        if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_far_bg_power_est)) {
+            agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
+        }
+
+        // bool speech_detect = false;
+        // if (speech_detect){
+        //     speech_detect_alpha = 0.5;
+        //     if meta_data->vnr > agc->config.vnr_threshold{
+        //         agc->lc_near_power_est = speech_detect_alpha*self.lc_near_power_est + (1 - alpha) * frame_power;
+        //     }
+        //     else{
+        //         agc->lc_near_power_est *= speech_detect_alpha;
+        //     }
+        // }
+        // else
+        {
+            agc->lc_near_power_est = speech_detect_alpha*self.lc_near_power_est + (1 - alpha) * frame_power;
+        }
+
+        if meta_data->vnr < agc->config.vad_low{
+            agc->vad_low_count += 1;
+        }
+        else{
+            agc->vad_low_count = 0;
+        }
+
+        if agc->vad_low_count > agc->config.vad_low_count_limit{
+            agc->lc_near_power_est = frame_power;
+            agc->vad_low_count = 0;
+        }
+
+        if agc->lc_near_bg_power_est > frame_power{
+            agc->lc_near_bg_power_est = frame_power;
+        }
+
+        if(agc->lc_near_bg_power_est < AGC_LC_NEAR_BG_POWER_EST_MIN){
+            agc->lc_near_bg_power_est = AGC_LC_NEAR_BG_POWER_EST_MIN;
+        }
+
+        // Update far-end activity timer
+        agc->lc_corr_val = meta_data->aec_corr_factor;
+        if agc->lc_corr_val > agc->config.lc_corr_threshold{
             agc->lc_t_far = agc->config.lc_n_frame_far;
-        } else {
+        }
+        else{
             if (agc->lc_t_far > 0) {
                 --agc->lc_t_far;
             }
@@ -180,15 +225,9 @@ void agc_process_frame(agc_state_t *agc,
 
         float_s32_t delta = (agc->lc_t_far > 0) ? agc->config.lc_near_delta_far_active : agc->config.lc_near_delta;
 
+        // Update near-end activity timer
         if (float_s32_gt(agc->lc_near_power_est, float_s32_mul(delta, agc->lc_near_bg_power_est))) {
-            if (agc->lc_t_far == 0 || (agc->lc_t_far > 0 &&
-                                       float_s32_gt(agc->config.lc_corr_threshold, agc->lc_corr_val))) {
-                // Near-end speech only or double talk
-                agc->lc_t_near = agc->config.lc_n_frame_near;
-            } else {
-                // Far-end speech only
-                // Do nothing
-            }
+            agc->lc_t_near = agc->config.lc_n_frame_near;
         } else {
             // Silence
             if (agc->lc_t_near > 0) {

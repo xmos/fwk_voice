@@ -88,6 +88,10 @@ typedef struct {
     float_s32_t lc_gain_silence;
     /** Loss control gain to apply when far-end activity only is detected. */
     float_s32_t lc_gain_min;
+
+    float_s32_t vnr_threshold;
+    float_s32_t vnr_low;
+    int vad_low_count_limit;
 } agc_config_t;
 
 /**
@@ -127,6 +131,9 @@ typedef struct {
     float_s32_t lc_far_bg_power_est;
     /** EWMA of the far-end correlation for detecting double-talk. */
     float_s32_t lc_corr_val;
+
+
+    int vad_low_count;
 } agc_state_t;
 
 /**
@@ -167,12 +174,15 @@ void agc_init(agc_state_t *agc, agc_config_t *config);
  */
 typedef struct {
     /** Boolean to indicate the detection of voice activity in the current frame. */
-    int vnr_flag;
+    float_s32_t vnr_flag;
     /** The power of the most powerful reference channel. */
     float_s32_t aec_ref_power;
     /** Correlation factor between the microphone input and the AEC's estimated microphone
      *  signal. */
     float_s32_t aec_corr_factor;
+    /** Flag to indicate if the reference signal is currently active */
+    int32_t ref_active_flag;
+
 } agc_meta_data_t;
 
 /**
@@ -198,7 +208,7 @@ typedef struct {
  *
  * @ingroup agc_defs
  */
-#define AGC_META_DATA_NO_AEC (float_s32_t){0, 0}
+#define AGC_META_DATA_NO_AEC (float_s32_t){0, 0, 0}
 
 /**
  * @brief Perform AGC processing on a frame of input data

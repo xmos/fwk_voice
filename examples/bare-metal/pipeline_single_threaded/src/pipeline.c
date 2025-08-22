@@ -133,8 +133,8 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
         printf("VNR OUTPUT PRED: %ld %d\n", state->output_vnr_pred.mant, state->output_vnr_pred.exp);
         printf("VNR INPUT PRED: %ld %d\n", state->input_vnr_pred.mant, state->input_vnr_pred.exp);
 #endif
-    float_s32_t agc_vnr_threshold = f32_to_float_s32(VNR_AGC_THRESHOLD);
-    md.vnr_pred_flag = float_s32_gt(state->output_vnr_pred, agc_vnr_threshold);
+    // float_s32_t agc_vnr_threshold = f32_to_float_s32(VNR_AGC_THRESHOLD);
+    md.vnr_pred_flag = state->output_vnr_pred;
    
     ic_adapt(&state->ic_state, state->input_vnr_pred);
 
@@ -161,6 +161,7 @@ void pipeline_process_frame_tile1(pipeline_state_tile1_t *state, pipeline_metada
     agc_meta_data_t agc_md;
     agc_md.aec_ref_power = md.max_ref_energy;
     agc_md.vnr_flag = md.vnr_pred_flag;
+    agc_md.ref_active_flag = md.ref_active_flag;
 
     for(int ch=0; ch<AP_MAX_Y_CHANNELS; ch++) {
         agc_md.aec_corr_factor = md.aec_corr_factor[ch];
