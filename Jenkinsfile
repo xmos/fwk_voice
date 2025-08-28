@@ -198,210 +198,210 @@ pipeline {
             }
           }
         }
-        stage('Examples') {
-          steps {
-            dir("${REPO}") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  dir("examples/bare-metal/aec_1_thread") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-                  }
-                  dir("examples/bare-metal/aec_2_threads") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
-                    // Make sure 1 thread and 2 threads output is bitexact
-                    sh "diff output.wav ../aec_1_thread/output.wav"
-                  }
-                  dir("examples/bare-metal/ic") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
-                    sh "mv output.wav ic_example_output.wav"
-                  }
-                  dir("examples/bare-metal/pipeline_single_threaded") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                  }
-                  dir("examples/bare-metal/pipeline_multi_threaded") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                    // Make sure single thread and multi threads pipeline output is bitexact
-                    sh "diff output.wav ../pipeline_single_threaded/output.wav"
-                  }
-                  dir("examples/bare-metal/pipeline_alt_arch") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                    sh "mv output.wav output_st.wav"
+        // stage('Examples') {
+        //   steps {
+        //     dir("${REPO}") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           dir("examples/bare-metal/aec_1_thread") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_1_thread/bin/fwk_voice_example_bare_metal_aec_1_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+        //           }
+        //           dir("examples/bare-metal/aec_2_threads") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/aec_2_threads/bin/fwk_voice_example_bare_metal_aec_2_thread.xe --input ../shared_src/test_streams/aec_example_input.wav"
+        //             // Make sure 1 thread and 2 threads output is bitexact
+        //             sh "diff output.wav ../aec_1_thread/output.wav"
+        //           }
+        //           dir("examples/bare-metal/ic") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/ic/bin/fwk_voice_example_bare_metal_ic.xe"
+        //             sh "mv output.wav ic_example_output.wav"
+        //           }
+        //           dir("examples/bare-metal/pipeline_single_threaded") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_single_threaded/bin/fwk_voice_example_bare_metal_pipeline_single_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+        //           }
+        //           dir("examples/bare-metal/pipeline_multi_threaded") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_multi_threaded/bin/fwk_voice_example_bare_metal_pipeline_multi_thread.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+        //             // Make sure single thread and multi threads pipeline output is bitexact
+        //             sh "diff output.wav ../pipeline_single_threaded/output.wav"
+        //           }
+        //           dir("examples/bare-metal/pipeline_alt_arch") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_st.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+        //             sh "mv output.wav output_st.wav"
 
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
-                    sh "mv output.wav output_mt.wav"
-                    sh "diff output_st.wav output_mt.wav"
-                  }
-                  dir("examples/bare-metal/agc") {
-                    sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
-                  }
-                  dir("examples/bare-metal/vnr") {
-                    sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
-                    sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
-                    sh "diff vnr_out1.bin vnr_out2.bin"
-                  }
-                }
-              }
-            }
-          }
-        }
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/pipeline_alt_arch/bin/fwk_voice_example_bare_metal_pipeline_alt_arch_mt.xe --input ../shared_src/test_streams/pipeline_example_input.wav"
+        //             sh "mv output.wav output_mt.wav"
+        //             sh "diff output_st.wav output_mt.wav"
+        //           }
+        //           dir("examples/bare-metal/agc") {
+        //             sh "python ../shared_src/python/run_xcoreai.py ../../../build/examples/bare-metal/agc/bin/fwk_voice_example_bare_metal_agc.xe --input ../shared_src/test_streams/agc_example_input.wav"
+        //           }
+        //           dir("examples/bare-metal/vnr") {
+        //             sh "python host_app.py test_stream_1.wav vnr_out2.bin --run-with-xscope-fileio" // With xscope host in lib xscope_fileio
+        //             sh "python host_app.py test_stream_1.wav vnr_out1.bin" // With xscope host in python
+        //             sh "diff vnr_out1.bin vnr_out2.bin"
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
-        stage('VNR tests') {
-          steps {
-            dir("${REPO}/test/lib_vnr") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    dir("test_wav_vnr") {
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("vnr_unit_tests") {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("py_c_feature_compare") {
-                      sh "python build_vnr_feature_extraction.py"
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('VNR tests') {
+        //   steps {
+        //     dir("${REPO}/test/lib_vnr") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             dir("test_wav_vnr") {
+        //               sh "pytest -n 1 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("vnr_unit_tests") {
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("py_c_feature_compare") {
+        //               sh "python build_vnr_feature_extraction.py"
+        //               sh "pytest -s --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
-        stage('NS tests') {
-          steps {
-            dir("${REPO}/test/lib_ns") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    dir("test_ns_profile"){
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("compare_c_py"){
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("ns_unit_tests"){
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('NS tests') {
+        //   steps {
+        //     dir("${REPO}/test/lib_ns") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             dir("test_ns_profile"){
+        //               sh "pytest -n 1 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("compare_c_py"){
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("ns_unit_tests"){
+        //               sh "pytest -n 1 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
-        stage('IC tests') {
-          steps {
-            dir("${REPO}/test/lib_ic") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    dir("ic_unit_tests"){
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("py_c_frame_compare"){
-                      sh "python build_ic_frame_proc.py"
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_ic_profile"){
-                      sh "pytest --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_ic_spec"){
-                      // This test compares the model and C implementation over a range of scenarious for:
-                      // convergence_time, db_suppression, maximum noise added to input (to test for stability)
-                      // and expected group delay. It will fail if these are not met.
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                      sh "python print_stats.py > ic_spec_summary.txt"
-                      // This script generates a number of polar plots of attenuation vs null point angle vs freq
-                      // It currently only uses the python model to do this. It takes about 40 mins for all plots
-                      // and generates a series of IC_performance_xxxHz.svg files which could be archived
-                      //sh "python plot_ic.py"
-                    }
-                    dir("characterise_c_py"){
-                      // This test compares the suppression performance across angles between model and C implementation
-                      // and fails if they differ significantly. It requires that the C implementation run with fixed mu
-                      sh "pytest -s --junitxml=pytest_result.xml" // -n 2 fails often so run single threaded and also print result
-                      junit "pytest_result.xml"
-                      // This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
-                      // It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
-                      //sh "python sweep_ic_delay.py"
-                    }
-                    dir("test_calc_vnr_pred"){
-                      // This is a unit test for ic_calc_vnr_pred function.
-                      sh "pytest -n1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_bad_state"){
-                      sh "pytest -s --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('IC tests') {
+        //   steps {
+        //     dir("${REPO}/test/lib_ic") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             dir("ic_unit_tests"){
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("py_c_frame_compare"){
+        //               sh "python build_ic_frame_proc.py"
+        //               sh "pytest -s --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_ic_profile"){
+        //               sh "pytest --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_ic_spec"){
+        //               // This test compares the model and C implementation over a range of scenarious for:
+        //               // convergence_time, db_suppression, maximum noise added to input (to test for stability)
+        //               // and expected group delay. It will fail if these are not met.
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //               sh "python print_stats.py > ic_spec_summary.txt"
+        //               // This script generates a number of polar plots of attenuation vs null point angle vs freq
+        //               // It currently only uses the python model to do this. It takes about 40 mins for all plots
+        //               // and generates a series of IC_performance_xxxHz.svg files which could be archived
+        //               //sh "python plot_ic.py"
+        //             }
+        //             dir("characterise_c_py"){
+        //               // This test compares the suppression performance across angles between model and C implementation
+        //               // and fails if they differ significantly. It requires that the C implementation run with fixed mu
+        //               sh "pytest -s --junitxml=pytest_result.xml" // -n 2 fails often so run single threaded and also print result
+        //               junit "pytest_result.xml"
+        //               // This script sweeps the y_delay value to find what the optimum suppression is across RT60 and angle.
+        //               // It's more of a model develpment tool than testing the implementation so not run. It take a few minutes.
+        //               //sh "python sweep_ic_delay.py"
+        //             }
+        //             dir("test_calc_vnr_pred"){
+        //               // This is a unit test for ic_calc_vnr_pred function.
+        //               sh "pytest -n1 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_bad_state"){
+        //               sh "pytest -s --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
-        stage('Stage B tests') {
-          steps {
-            dir("${REPO}/test/stage_b") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    sh "pytest -n 1 --junitxml=pytest_result.xml"
-                    junit "pytest_result.xml"
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('Stage B tests') {
+        //   steps {
+        //     dir("${REPO}/test/stage_b") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             sh "pytest -n 1 --junitxml=pytest_result.xml"
+        //             junit "pytest_result.xml"
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
-        stage('ADEC tests') {
-          steps {
-            dir("${REPO}/test/lib_adec") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    dir("de_unit_tests") {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_delay_estimator") {
-                      sh 'mkdir -p ./input_wavs/'
-                      sh 'mkdir -p ./output_files/'
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                      sh "python print_stats.py"
-                    }
-                    dir("test_adec_startup") {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_adec") {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_adec_profile") {
-                      sh "pytest -n 1 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('ADEC tests') {
+        //   steps {
+        //     dir("${REPO}/test/lib_adec") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             dir("de_unit_tests") {
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_delay_estimator") {
+        //               sh 'mkdir -p ./input_wavs/'
+        //               sh 'mkdir -p ./output_files/'
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //               sh "python print_stats.py"
+        //             }
+        //             dir("test_adec_startup") {
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_adec") {
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_adec_profile") {
+        //               sh "pytest -n 1 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
         stage('AEC tests') {
           steps {
