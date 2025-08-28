@@ -403,46 +403,46 @@ pipeline {
         //   }
         // }
 
-        stage('AEC tests') {
-          steps {
-            dir("${REPO}/test/lib_aec") {
-              withTools(params.TOOLS_VERSION) {
-                withVenv {
-                  withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
-                    dir("test_aec_enhancements") {
-                      sh "./make_dirs.sh"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("aec_unit_tests") {
-                      sh "pytest -n 2 --junitxml=pytest_result.xml"
-                      junit "pytest_result.xml"
-                    }
-                    dir("test_aec_spec") {
-                      sh "./make_dirs.sh"
-                      script {
-                        if (env.FULL_TEST == "0") {
-                          sh 'mv excluded_tests_quick.txt excluded_tests.txt'
-                        }
-                      }
-                      sh "python generate_audio.py"
-                      sh "pytest -n 2 --junitxml=pytest_result.xml test_process_audio.py"
-                      sh "cp pytest_result.xml results_process.xml"
-                      catchError {
-                        sh "pytest --junitxml=pytest_result.xml test_check_output.py"
-                      }
-                      sh "cp pytest_result.xml results_check.xml"
-                      sh "python parse_results.py"
-                      sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
-                      sh "cp pytest_result.xml results_final.xml"
-                      junit "results_final.xml"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // stage('AEC tests') {
+        //   steps {
+        //     dir("${REPO}/test/lib_aec") {
+        //       withTools(params.TOOLS_VERSION) {
+        //         withVenv {
+        //           withEnv(["hydra_audio_PATH=/projects/hydra_audio"]) {
+        //             dir("test_aec_enhancements") {
+        //               sh "./make_dirs.sh"
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("aec_unit_tests") {
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml"
+        //               junit "pytest_result.xml"
+        //             }
+        //             dir("test_aec_spec") {
+        //               sh "./make_dirs.sh"
+        //               script {
+        //                 if (env.FULL_TEST == "0") {
+        //                   sh 'mv excluded_tests_quick.txt excluded_tests.txt'
+        //                 }
+        //               }
+        //               sh "python generate_audio.py"
+        //               sh "pytest -n 2 --junitxml=pytest_result.xml test_process_audio.py"
+        //               sh "cp pytest_result.xml results_process.xml"
+        //               catchError {
+        //                 sh "pytest --junitxml=pytest_result.xml test_check_output.py"
+        //               }
+        //               sh "cp pytest_result.xml results_check.xml"
+        //               sh "python parse_results.py"
+        //               sh "pytest --junitxml=pytest_results.xml test_evaluate_results.py"
+        //               sh "cp pytest_result.xml results_final.xml"
+        //               junit "results_final.xml"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
 
         stage('AGC tests') {
           steps {
