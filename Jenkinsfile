@@ -131,7 +131,7 @@ pipeline {
 
             sh "git clone --depth 1 --branch v2.5.2 git@github.com:ThrowTheSwitch/Unity.git"
             sh "git clone --depth 1 --branch v2.0.0 git@github0.xmos.com:xmos-int/xtagctl.git"
-            sh "git clone --depth 1 --branch new_pinned_versions git@github.com:xmos/audio_test_tools.git"
+            sh "git clone --depth 1 --branch develop git@github.com:xmos/audio_test_tools.git"
             sh "git clone --depth 1 --branch main git@github.com:xmos/py_voice.git"
             sh "git clone --depth 1 --branch main git@github.com:xmos/amazon_wwe.git"
             sh "git clone --depth 1 --branch master git@github.com:xmos/sensory_sdk.git"
@@ -147,7 +147,7 @@ pipeline {
                 // Install dependencies separately to avoid setuptools develop issues
                 sh "pip install pyroomacoustics==0.8.2 numpy==1.21.6 pytest==7.1.2 pytest-xdist==2.5.0 keras==2.8.0 matplotlib==3.5.1 scipy==1.7.3 soundfile==0.12.1 webrtcvad==2.0.10 h5py==3.6.0 xmos-ai-tools==1.3.1"
                 // Install editable packages using modern approach
-                sh "pip install -e ${env.WORKSPACE}/audio_test_tools/python --use-pep517"
+                sh "pip install ${env.WORKSPACE}/audio_test_tools/python"
                 sh "pip install -e ${env.WORKSPACE}/py_voice --use-pep517"
                 // Note xscope_fileio is fetched by build so install in next stage
                 sh "pip install -e ${env.WORKSPACE}/xtagctl --use-pep517"
