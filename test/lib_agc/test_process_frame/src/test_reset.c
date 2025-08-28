@@ -27,6 +27,7 @@ void test_reset() {
     md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
+    md.ref_active_flag = 0;
 
     // Random seed
     unsigned seed = 8895;

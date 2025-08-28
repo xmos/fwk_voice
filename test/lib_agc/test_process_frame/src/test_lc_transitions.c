@@ -23,30 +23,35 @@ struct lc_test_params {
     float correlation;    // The aec_corr_factor to set in the AGC meta-data
     float power_scale;    // Proportion of the total frame energy that is set as the far power
     float silence_scale;  // Factor to scale the input frame as "silence" requires a small input
+    int ref_active;
 };
 
 #define PARAMS_NEAR (struct lc_test_params){ \
     .correlation = TEST_LC_NEAR_CORR, \
     .power_scale = TEST_LC_NEAR_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE \
+    .ref_active = 0
     }
 
 #define PARAMS_FAR (struct lc_test_params){ \
     .correlation = TEST_LC_FAR_CORR, \
     .power_scale = TEST_LC_FAR_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE \
+    .ref_active = 1
     }
 
 #define PARAMS_DOUBLE_TALK (struct lc_test_params){ \
     .correlation = TEST_LC_DT_CORR, \
     .power_scale = TEST_LC_DT_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE \
+    .ref_active = 1
     }
 
 #define PARAMS_SILENCE (struct lc_test_params){ \
     .correlation = TEST_LC_SILENCE_CORR, \
     .power_scale = TEST_LC_SILENCE_POWER_SCALE, \
     .silence_scale = TEST_LC_SILENCE_SCALE \
+    .ref_active = 0
     }
 
 // Random seed
@@ -78,6 +83,8 @@ static void perform_transition(agc_state_t *agc, struct lc_test_params *params, 
 
         md.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(params->power_scale));
         md.aec_corr_factor = f32_to_float_s32(params->correlation);
+        md.ref_active_flag = params->ref_active;
+
         agc_process_frame(agc, output, input, &md);
 
         // Return here if successfully transitioned to the expected state
