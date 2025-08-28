@@ -37,7 +37,7 @@ void test_loss_control() {
     agc_meta_data_t md_near;
     md_near.vnr_flag = AGC_META_DATA_NO_VNR;
     md_near.aec_corr_factor = f32_to_float_s32(TEST_LC_NEAR_CORR);
-    md_near.ref_active_flag = 1;
+    md_near.ref_active_flag = 0;
 
     agc_state_t agc_far;
     agc_config_t conf_far = AGC_PROFILE_COMMS;

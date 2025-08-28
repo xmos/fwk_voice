@@ -29,29 +29,29 @@ struct lc_test_params {
 #define PARAMS_NEAR (struct lc_test_params){ \
     .correlation = TEST_LC_NEAR_CORR, \
     .power_scale = TEST_LC_NEAR_POWER_SCALE, \
-    .silence_scale = TEST_LC_NON_SILENCE_SCALE \
-    .ref_active = 0
+    .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
+    .ref_active = 0 \
     }
 
 #define PARAMS_FAR (struct lc_test_params){ \
     .correlation = TEST_LC_FAR_CORR, \
     .power_scale = TEST_LC_FAR_POWER_SCALE, \
-    .silence_scale = TEST_LC_NON_SILENCE_SCALE \
-    .ref_active = 1
+    .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
+    .ref_active = 1 \
     }
 
 #define PARAMS_DOUBLE_TALK (struct lc_test_params){ \
     .correlation = TEST_LC_DT_CORR, \
     .power_scale = TEST_LC_DT_POWER_SCALE, \
-    .silence_scale = TEST_LC_NON_SILENCE_SCALE \
-    .ref_active = 1
+    .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
+    .ref_active = 1 \
     }
 
 #define PARAMS_SILENCE (struct lc_test_params){ \
     .correlation = TEST_LC_SILENCE_CORR, \
     .power_scale = TEST_LC_SILENCE_POWER_SCALE, \
-    .silence_scale = TEST_LC_SILENCE_SCALE \
-    .ref_active = 0
+    .silence_scale = TEST_LC_SILENCE_SCALE, \
+    .ref_active = 0 \
     }
 
 // Random seed
