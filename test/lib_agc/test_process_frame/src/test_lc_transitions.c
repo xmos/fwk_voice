@@ -24,34 +24,39 @@ struct lc_test_params {
     float power_scale;    // Proportion of the total frame energy that is set as the far power
     float silence_scale;  // Factor to scale the input frame as "silence" requires a small input
     int ref_active;
+    float vnr;
 };
 
 #define PARAMS_NEAR (struct lc_test_params){ \
     .correlation = TEST_LC_NEAR_CORR, \
     .power_scale = TEST_LC_NEAR_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
-    .ref_active = 0 \
+    .ref_active = 0, \
+    .vnr = 1.0f \
     }
 
 #define PARAMS_FAR (struct lc_test_params){ \
     .correlation = TEST_LC_FAR_CORR, \
     .power_scale = TEST_LC_FAR_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
-    .ref_active = 1 \
+    .ref_active = 1, \
+    .vnr = 0.0f \
     }
 
 #define PARAMS_DOUBLE_TALK (struct lc_test_params){ \
     .correlation = TEST_LC_DT_CORR, \
     .power_scale = TEST_LC_DT_POWER_SCALE, \
     .silence_scale = TEST_LC_NON_SILENCE_SCALE, \
-    .ref_active = 1 \
+    .ref_active = 1, \
+    .vnr = 1.0f \
     }
 
 #define PARAMS_SILENCE (struct lc_test_params){ \
     .correlation = TEST_LC_SILENCE_CORR, \
     .power_scale = TEST_LC_SILENCE_POWER_SCALE, \
     .silence_scale = TEST_LC_SILENCE_SCALE, \
-    .ref_active = 0 \
+    .ref_active = 0, \
+    .vnr = 0.0f \
     }
 
 // Random seed
@@ -84,6 +89,7 @@ static void perform_transition(agc_state_t *agc, struct lc_test_params *params, 
         md.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(params->power_scale));
         md.aec_corr_factor = f32_to_float_s32(params->correlation);
         md.ref_active_flag = params->ref_active;
+        md.vnr_flag = f32_to_float_s32(params->vnr);
 
         agc_process_frame(agc, output, input, &md);
 
@@ -103,45 +109,61 @@ void test_lc_transitions() {
     conf.adapt_on_vnr = 0;
 
     for (unsigned iter = 0; iter < (1<<10)/F; ++iter) {
+        printf("Starting iteration %u\n", iter);
         agc_init(&agc, &conf);
 
         // Far-end only
+        printf("Test 1: Far-end transition\n");
         perform_transition(&agc, &PARAMS_FAR, conf.lc_gain_min);
 
         // Silence
+        printf("Test 2: Silence transition\n");
         perform_transition(&agc, &PARAMS_SILENCE, conf.lc_gain_silence);
 
         // Double-talk
+        printf("Test 3: Double-talk transition\n");
         perform_transition(&agc, &PARAMS_DOUBLE_TALK, conf.lc_gain_double_talk);
 
         // Silence
+        printf("Test 4: Silence transition\n");
         perform_transition(&agc, &PARAMS_SILENCE, conf.lc_gain_silence);
 
         // Near-end only
+        printf("Test 5: Near-end transition\n");
         perform_transition(&agc, &PARAMS_NEAR, conf.lc_gain_max);
 
         // Silence
+        printf("Test 6: Silence transition\n");
         perform_transition(&agc, &PARAMS_SILENCE, conf.lc_gain_silence);
 
         // Far-end only
+        printf("Test 7: Far-end transition\n");
         perform_transition(&agc, &PARAMS_FAR, conf.lc_gain_min);
 
         // Double-talk
+        printf("Test 8: Double-talk transition\n");
         perform_transition(&agc, &PARAMS_DOUBLE_TALK, conf.lc_gain_double_talk);
 
         // Near-end only
+        printf("Test 9: Near-end transition\n");
         perform_transition(&agc, &PARAMS_NEAR, conf.lc_gain_max);
 
         // Double-talk
+        printf("Test 10: Double-talk transition\n");
         perform_transition(&agc, &PARAMS_DOUBLE_TALK, conf.lc_gain_double_talk);
 
         // Silence
+        printf("Test 11: Silence transition\n");
         perform_transition(&agc, &PARAMS_SILENCE, conf.lc_gain_silence);
 
         // Far-end only
+        printf("Test 12: Far-end transition\n");
         perform_transition(&agc, &PARAMS_FAR, conf.lc_gain_min);
 
         // Near-end only
+        printf("Test 13: Near-end transition\n");
         perform_transition(&agc, &PARAMS_NEAR, conf.lc_gain_max);
+        
+        printf("Completed iteration %u\n", iter);
     }
 }
