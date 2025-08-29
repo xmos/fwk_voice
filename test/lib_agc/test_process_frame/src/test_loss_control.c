@@ -95,31 +95,27 @@ void test_loss_control() {
             float_s32_t input_energy = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
 
             md_near.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_NEAR_POWER_SCALE));
-            // agc_process_frame(&agc_near, output_near, input, &md_near);
-            // printf("Near-end lc_gain: %f\n", float_s32_to_float(agc_near.lc_gain));
+            agc_process_frame(&agc_near, output_near, input, &md_near);
 
             md_far.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_FAR_POWER_SCALE));
-            // agc_process_frame(&agc_far, output_far, input, &md_far);
-            // printf("Far-end lc_gain: %f\n", float_s32_to_float(agc_far.lc_gain));
+            agc_process_frame(&agc_far, output_far, input, &md_far);
 
             md_double_talk.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_DT_POWER_SCALE));
             agc_process_frame(&agc_double_talk, output_double_talk, input, &md_double_talk);
-            printf("dt lc_gain: %f\n", float_s32_to_float(agc_double_talk.lc_gain));
 
             bfp_s32_scale(&input_bfp, &input_bfp, scale_silence);
             bfp_s32_use_exponent(&input_bfp, FRAME_EXP);
 
             input_energy = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
             md_silence.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_SILENCE_POWER_SCALE));
-            // agc_process_frame(&agc_silence, output_silence, input, &md_silence);
-            // printf("Silence lc_gain: %f\n", float_s32_to_float(agc_near.lc_gain));
+            agc_process_frame(&agc_silence, output_silence, input, &md_silence);
 
         }
 
-        // TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_near.lc_gain_max), float_s32_to_float(agc_near.lc_gain));
-        // TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_far.lc_gain_min), float_s32_to_float(agc_far.lc_gain));
+        TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_near.lc_gain_max), float_s32_to_float(agc_near.lc_gain));
+        TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_far.lc_gain_min), float_s32_to_float(agc_far.lc_gain));
         TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_double_talk.lc_gain_double_talk), float_s32_to_float(agc_double_talk.lc_gain));
-        // TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_silence.lc_gain_silence), float_s32_to_float(agc_silence.lc_gain));
+        TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_silence.lc_gain_silence), float_s32_to_float(agc_silence.lc_gain));
 
         bfp_s32_headroom(&output_near_bfp);
         float_s32_t output_near_energy = float_s64_to_float_s32(bfp_s32_energy(&output_near_bfp));
@@ -128,10 +124,11 @@ void test_loss_control() {
         bfp_s32_headroom(&output_double_talk_bfp);
         float_s32_t output_double_talk_energy = float_s64_to_float_s32(bfp_s32_energy(&output_double_talk_bfp));
 
+        // printf("Near energy: %f, DT energy: %f\n", float_s32_to_float(output_near_energy), float_s32_to_float(output_double_talk_energy));
+        // printf("Far energy: %f\n", float_s32_to_float(output_far_energy));
         // This test assumes: lc_gain_near > lc_gain_double_talk > lc_gain_far
         TEST_ASSERT(float_s32_gt(output_near_energy, output_double_talk_energy));
-        printf("Near energy: %f, DT energy: %f\n", float_s32_to_float(output_near_energy), float_s32_to_float(output_double_talk_energy));
-        printf("Far energy: %f\n", float_s32_to_float(output_far_energy));
+
         TEST_ASSERT(float_s32_gt(output_double_talk_energy, output_far_energy));
     }
 }

@@ -58,7 +58,7 @@
     .lc_gamma_inc = f32_to_float_s32(2.0), \
     .lc_gamma_dec = f32_to_float_s32(0.1), \
     .lc_bg_power_gamma = f32_to_float_s32(1.01), \
-    .lc_near_delta_far_active = f32_to_float_s32(20000), \
+    .lc_near_delta_far_active = f32_to_float_s32(19500), \
     .lc_near_delta = f32_to_float_s32(2000), \
     .lc_far_delta = f32_to_float_s32(10), \
     .lc_gain_max = f32_to_float_s32(1), \
