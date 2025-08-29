@@ -4,7 +4,6 @@
 #include "agc_defines.h"
 #include "xmath/xmath.h"
 #include <agc_api.h>
-#include <aec_state.h>
 
 void agc_init(agc_state_t *agc, agc_config_t *config)
 {
@@ -167,7 +166,7 @@ void agc_process_frame(agc_state_t *agc,
     }
 
     if (agc->config.lc_enabled) {
-        if (meta_data->ref_active_flag > LOW_REF) {
+        if (meta_data->ref_active_flag) {
             agc->lc_far_power_est = meta_data->aec_ref_power;
         }
         else{

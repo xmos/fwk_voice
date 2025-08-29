@@ -3,7 +3,6 @@
 #include "test_process_frame.h"
 #include "xmath/xmath.h"
 #include <pseudo_rand.h>
-#include <aec_state.h>
 
 // Frames of random data are created and processed by four independent instances of the AGC
 // (with one input being scaled to provide low input energy for the "silence" scenario).
@@ -38,7 +37,7 @@ void test_loss_control() {
     agc_meta_data_t md_near;
     md_near.vnr_flag = AGC_META_DATA_NO_VNR;
     md_near.aec_corr_factor = f32_to_float_s32(TEST_LC_NEAR_CORR);
-    md_near.ref_active_flag = LOW_REF;
+    md_near.ref_active_flag = 0;  // Near-end: reference not active
 
     agc_state_t agc_far;
     agc_config_t conf_far = AGC_PROFILE_COMMS;
@@ -47,7 +46,7 @@ void test_loss_control() {
     agc_meta_data_t md_far;
     md_far.vnr_flag = AGC_META_DATA_NO_VNR;
     md_far.aec_corr_factor = f32_to_float_s32(TEST_LC_FAR_CORR);
-    md_far.ref_active_flag = LOW_REF + 1;
+    md_far.ref_active_flag = 1;  // Far-end: reference active
 
     agc_state_t agc_double_talk;
     agc_config_t conf_double_talk = AGC_PROFILE_COMMS;
@@ -56,7 +55,7 @@ void test_loss_control() {
     agc_meta_data_t md_double_talk;
     md_double_talk.vnr_flag = AGC_META_DATA_NO_VNR;
     md_double_talk.aec_corr_factor = f32_to_float_s32(TEST_LC_DT_CORR);
-    md_double_talk.ref_active_flag = LOW_REF + 1;
+    md_double_talk.ref_active_flag = 1;  // Double-talk: reference active
 
     agc_state_t agc_silence;
     agc_config_t conf_silence = AGC_PROFILE_COMMS;
@@ -65,7 +64,7 @@ void test_loss_control() {
     agc_meta_data_t md_silence;
     md_silence.vnr_flag = AGC_META_DATA_NO_VNR;
     md_silence.aec_corr_factor = f32_to_float_s32(TEST_LC_SILENCE_CORR);
-    md_silence.ref_active_flag = LOW_REF;
+    md_silence.ref_active_flag = 0;  // Silence: reference not active
 
     // Scale the input by 0.5 to avoid the AGC adaption upper threshold
     float_s32_t scale = f32_to_float_s32(0.5);
