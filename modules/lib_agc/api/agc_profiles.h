@@ -51,7 +51,7 @@
     .lc_gain_min = f32_to_float_s32(0), \
     .vnr_threshold = f32_to_float_s32(0.8),\
     .vnr_low = f32_to_float_s32(0.2),\
-    .vad_low_count_limit = 17, \
+    .vnr_low_count_limit = 17, \
     }
 
 /**
@@ -86,7 +86,7 @@
     .lc_gain_min = f32_to_float_s32(0), \
     .vnr_threshold = f32_to_float_s32(0.8),\
     .vnr_low = f32_to_float_s32(0.2),\
-    .vad_low_count_limit = 17, \
+    .vnr_low_count_limit = 17, \
     }
 
 

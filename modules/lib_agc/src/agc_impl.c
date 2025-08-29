@@ -22,7 +22,7 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->lc_gain = f32_to_float_s32(1);
     agc->lc_far_bg_power_est = f32_to_float_s32(0.001F);
     agc->lc_corr_val = f32_to_float_s32(0);
-    agc->vad_low_count = 0;
+    agc->vnr_low_count = 0;
 }
 
 // Returns the mantissa for the input float shifted to an exponent of parameter exp
@@ -171,14 +171,14 @@ void agc_process_frame(agc_state_t *agc,
             // }
 
         if (float_s32_gt(agc->config.vnr_low, meta_data->vnr_flag)) {
-            agc->vad_low_count += 1;
+            agc->vnr_low_count += 1;
         } else {
-            agc->vad_low_count = 0;
+            agc->vnr_low_count = 0;
         }
 
-        if (agc->vad_low_count >= agc->config.vnr_low_count_limit) {
+        if (agc->vnr_low_count >= agc->config.vnr_low_count_limit) {
             agc->lc_near_bg_power_est = frame_power;
-            agc->vad_low_count = 0;
+            agc->vnr_low_count = 0;
         }
 
         if (float_s32_gt(agc->lc_near_bg_power_est, frame_power)) {

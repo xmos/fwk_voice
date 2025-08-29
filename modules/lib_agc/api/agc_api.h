@@ -135,7 +135,7 @@ typedef struct {
     float_s32_t lc_corr_val;
 
 
-    int vad_low_count;
+    int vnr_low_count;
 } agc_state_t;
 
 /**
