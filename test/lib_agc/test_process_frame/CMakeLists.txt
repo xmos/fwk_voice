@@ -47,7 +47,9 @@ foreach(testfile ${TEST_SOURCES})
 
 
     target_include_directories(fwk_voice_agc_${TESTNAME}
-        PRIVATE src)
+        PRIVATE 
+            src
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/lib_aec/api)
 
     target_link_libraries(fwk_voice_agc_${TESTNAME} 
         PUBLIC
