@@ -136,20 +136,21 @@ void agc_process_frame(agc_state_t *agc,
     bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
 
     if (agc->config.lc_enabled) {
+
+        // if reference is active, update the far power, otherwise far background power
         if (meta_data->ref_active_flag) {
             agc->lc_far_power_est = meta_data->aec_ref_power;
         }
         else{
             agc->lc_far_bg_power_est = meta_data->aec_ref_power;
         }
-
         if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_far_bg_power_est)) {
             agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
         }
 
         float_s32_t frame_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
 
-        // TODO: Improve speech detection in loss control logic
+        // TODO: Improve near end speech detection 
         // speech_detect_alpha = 0.5;
         // bool speech_detect = false;
         // if (speech_detect){
@@ -163,6 +164,7 @@ void agc_process_frame(agc_state_t *agc,
         // }
         // else
         // {
+        // Update near power estimate
         if (float_s32_gte(agc->lc_near_power_est, frame_power)) {
             agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_DEC);
         } else {
@@ -170,17 +172,18 @@ void agc_process_frame(agc_state_t *agc,
         }
             // }
 
+        // Update the low VNR counter
         if (float_s32_gt(agc->config.vnr_low, meta_data->vnr_flag)) {
             agc->vnr_low_count += 1;
         } else {
             agc->vnr_low_count = 0;
         }
 
+        // If VNR has been low a while, update the near background power estimate
         if (agc->vnr_low_count >= agc->config.vnr_low_count_limit) {
             agc->lc_near_bg_power_est = frame_power;
             agc->vnr_low_count = 0;
         }
-
         if (float_s32_gt(agc->lc_near_bg_power_est, frame_power)) {
             agc->lc_near_bg_power_est = frame_power;
         }
@@ -190,7 +193,7 @@ void agc_process_frame(agc_state_t *agc,
             agc->lc_near_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
         }
 
-        // Update far-end activity timer
+        // If the far-end correlation is high, start the far-end activity timer
         agc->lc_corr_val = meta_data->aec_corr_factor;
         if (float_s32_gt(agc->lc_corr_val, agc->config.lc_corr_threshold)) {
             agc->lc_t_far = agc->config.lc_n_frame_far;
@@ -200,9 +203,10 @@ void agc_process_frame(agc_state_t *agc,
             }
         }
 
+        // If there is far end, require a higher level of near end before starting timer
         float_s32_t delta = (agc->lc_t_far > 0) ? agc->config.lc_near_delta_far_active : agc->config.lc_near_delta;
 
-        // Update near-end activity timer
+        // If the near end energy is much higher than the background, start the near end timer
         if (float_s32_gt(agc->lc_near_power_est, float_s32_mul(delta, agc->lc_near_bg_power_est))) {
             agc->lc_t_near = agc->config.lc_n_frame_near;
         } else {
@@ -212,7 +216,7 @@ void agc_process_frame(agc_state_t *agc,
             }
         }
 
-        // Adapt loss control gain
+        // Adapt loss control gain based on recent near/far end activity
         float_s32_t lc_target_gain;
         if (agc->lc_t_far <= 0 && agc->lc_t_near > 0) {
             // Near-end only
