@@ -61,7 +61,7 @@
     .lc_near_delta_far_active = f32_to_float_s32(19500), \
     .lc_near_delta = f32_to_float_s32(2000), \
     .lc_far_delta = f32_to_float_s32(10), \
-    .lc_gain_max = f32_to_float_s32(1), \
+    .lc_gain_max = f32_to_float_s32(1.0f), \
     .lc_gain_double_talk = f32_to_float_s32(0.25), \
     .lc_gain_silence = f32_to_float_s32(0.05), \
     .lc_gain_min = f32_to_float_s32(0.01), \
