@@ -93,7 +93,7 @@ typedef struct {
     /** Low VNR threshold for background estimation. */
     float_s32_t vnr_low;
     /** Frame count limit for low VNR detection. */
-    int vad_low_count_limit;
+    int vnr_low_count_limit;
 } agc_config_t;
 
 /**

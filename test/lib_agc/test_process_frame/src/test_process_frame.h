@@ -39,6 +39,36 @@
     .lc_gain_min = f32_to_float_s32(0.022387), \
     }
 
+#define AGC_PROFILE_TEAMS (agc_config_t){ \
+    .gain_dec = f32_to_float_s32(0.98804), \
+    .max_gain = f32_to_float_s32(1000), \
+    .min_gain = f32_to_float_s32(0), \
+    .gain_inc = f32_to_float_s32(1.0034), \
+    .adapt = 1, \
+    .adapt_on_vnr = 1, \
+    .soft_clipping = 1, \
+    .vnr_threshold = f32_to_float_s32(0.7), \
+    .gain = f32_to_float_s32(10), \
+    .upper_threshold = f32_to_float_s32(0.5), \
+    .lower_threshold = f32_to_float_s32(0.5), \
+    .lc_enabled = 1, \
+    .lc_n_frame_near = 10, \
+    .lc_n_frame_far = 2, \
+    .lc_corr_threshold = f32_to_float_s32(0.9), \
+    .lc_gamma_inc = f32_to_float_s32(2.0), \
+    .lc_gamma_dec = f32_to_float_s32(0.1), \
+    .lc_bg_power_gamma = f32_to_float_s32(1.01), \
+    .lc_near_delta_far_active = f32_to_float_s32(20000), \
+    .lc_near_delta = f32_to_float_s32(2000), \
+    .lc_far_delta = f32_to_float_s32(10), \
+    .lc_gain_max = f32_to_float_s32(1), \
+    .lc_gain_double_talk = f32_to_float_s32(0.25), \
+    .lc_gain_silence = f32_to_float_s32(0.05), \
+    .lc_gain_min = f32_to_float_s32(0.01), \
+    .vnr_low = f32_to_float_s32(0.2), \
+    .vnr_low_count_limit = 17, \
+    }
+
 // Set F to an integer greater than 1 to speedup testing (by reducing iterations) by a factor of F times
 #undef F
 #if SPEEDUP_FACTOR
@@ -54,7 +84,7 @@
 #define TEST_LC_NEAR_POWER_SCALE 0.1
 #define TEST_LC_FAR_CORR 0.995
 #define TEST_LC_FAR_POWER_SCALE 0.95
-#define TEST_LC_DT_CORR 0.5
+#define TEST_LC_DT_CORR 0.91
 #define TEST_LC_DT_POWER_SCALE 0.5
 #define TEST_LC_SILENCE_CORR 0
 #define TEST_LC_SILENCE_POWER_SCALE 0.5
