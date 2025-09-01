@@ -189,8 +189,8 @@ void agc_process_frame(agc_state_t *agc,
         }
 
         // Ensure minimum background power estimate
-        if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_near_bg_power_est)) {
-            agc->lc_near_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
+        if (float_s32_gte(AGC_LC_NEAR_BG_POWER_EST_MIN, agc->lc_near_bg_power_est)) {
+            agc->lc_near_bg_power_est = AGC_LC_NEAR_BG_POWER_EST_MIN;
         }
 
         // If the far-end correlation is high, start the far-end activity timer
