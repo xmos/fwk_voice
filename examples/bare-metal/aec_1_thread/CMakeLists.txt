@@ -16,7 +16,7 @@ target_include_directories(fwk_voice_example_bare_metal_aec_1_thread
 
 target_link_libraries(fwk_voice_example_bare_metal_aec_1_thread
     PUBLIC
-        fwk_voice::example::aec2thread
+        fwk_voice::example::aec_proc_frame
         lib_xcore_math
         fwk_voice::example::fileutils
 )

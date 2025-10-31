@@ -15,7 +15,7 @@ target_include_directories(fwk_voice_example_bare_metal_aec_2_thread
 )
 target_link_libraries(fwk_voice_example_bare_metal_aec_2_thread
     PUBLIC
-        fwk_voice::example::aec2thread
+        fwk_voice::example::aec_proc_frame
         fwk_voice::example::fileutils
 )
 

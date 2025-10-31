@@ -20,14 +20,6 @@
 #define VNR_AGC_THRESHOLD (0.5)
 #define PRINT_VNR_PREDICTION (0)
 
-extern void aec_process_frame_2threads(
-        aec_state_t *main_state,
-        aec_state_t *shadow_state,
-        int32_t (*output_main)[AEC_FRAME_ADVANCE],
-        int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
-
 DECLARE_JOB(pipeline_stage_1, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_2, (chanend_t, chanend_t));
 DECLARE_JOB(pipeline_stage_3, (chanend_t, chanend_t));

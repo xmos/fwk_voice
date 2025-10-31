@@ -2,7 +2,7 @@
 #include "pipeline_state.h"
 #include "stage_1.h"
 
-extern void aec_process_frame_2threads(
+extern void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
@@ -133,7 +133,7 @@ void stage_1_process_frame(stage_1_state_t *state, int32_t (*output_frame)[AP_FR
 #endif
 
     /** AEC*/
-    aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, output_frame, NULL, input_y, input_x);
+    aec_process_frame(&state->aec_main_state, &state->aec_shadow_state, output_frame, NULL, input_y, input_x);
 
     /** Update metadata*/
     *max_ref_energy = aec_calc_max_input_energy(input_x, state->aec_main_state.shared_state->num_x_channels);

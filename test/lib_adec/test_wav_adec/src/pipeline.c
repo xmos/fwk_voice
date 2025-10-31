@@ -16,7 +16,7 @@
 #include "profile.h"
 #endif
 
-extern void aec_process_frame_2threads(
+extern void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
@@ -125,7 +125,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     int32_t aec_output_shadow[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     // Writing main filter output to output_data directly
 
-    aec_process_frame_2threads(&state->aec_main_state, &state->aec_shadow_state, output_data, aec_output_shadow, input_y_data, input_x_data);
+    aec_process_frame(&state->aec_main_state, &state->aec_shadow_state, output_data, aec_output_shadow, input_y_data, input_x_data);
 
     prof(7, "end_aec_process_frame");
     

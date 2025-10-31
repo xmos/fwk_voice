@@ -2,37 +2,20 @@
 add_subdirectory(external_deps)
 
 ######
-# add_library(fwk_voice_example_shared_src_aec_1_thread INTERFACE)
-# target_sources(fwk_voice_example_shared_src_aec_1_thread
-#     INTERFACE
-#         aec/aec_process_frame_1thread.c
-# )
-# target_include_directories(fwk_voice_example_shared_src_aec_1_thread
-#     INTERFACE
-#         aec
-# )
-# target_link_libraries(fwk_voice_example_shared_src_aec_1_thread
-#     INTERFACE
-#         fwk_voice::aec
-# )
-# add_library(fwk_voice::example::aec1thread ALIAS fwk_voice_example_shared_src_aec_1_thread)
-
-
-######
-add_library(fwk_voice_example_shared_src_aec_2_thread INTERFACE)
-target_sources(fwk_voice_example_shared_src_aec_2_thread
+add_library(fwk_voice_example_shared_src_aec_proc_frame INTERFACE)
+target_sources(fwk_voice_example_shared_src_aec_proc_frame
     INTERFACE
-        aec/aec_process_frame_2threads.c
+        aec/aec_process_frame.c
 )
-target_include_directories(fwk_voice_example_shared_src_aec_2_thread
+target_include_directories(fwk_voice_example_shared_src_aec_proc_frame
     INTERFACE
         aec
 )
-target_link_libraries(fwk_voice_example_shared_src_aec_2_thread
+target_link_libraries(fwk_voice_example_shared_src_aec_proc_frame
     INTERFACE
         fwk_voice::aec
 )
-add_library(fwk_voice::example::aec2thread ALIAS fwk_voice_example_shared_src_aec_2_thread)
+add_library(fwk_voice::example::aec_proc_frame ALIAS fwk_voice_example_shared_src_aec_proc_frame)
 
 ######
 add_library(fwk_voice_example_shared_src_delay_buffer  INTERFACE)
@@ -56,6 +39,9 @@ target_include_directories(fwk_voice_example_shared_src_stage_1
     INTERFACE
         pipeline_stage_1
 )
+target_link_libraries(fwk_voice_example_shared_src_stage_1
+    INTERFACE
+        fwk_voice::example::aec_proc_frame)
 add_library(fwk_voice::example::stage_1 ALIAS fwk_voice_example_shared_src_stage_1)
 
 ######

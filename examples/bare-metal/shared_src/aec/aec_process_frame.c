@@ -326,7 +326,7 @@ void filter_adapt_task(par_tasks_t *s, aec_state_t *main_state, aec_state_t *sha
 }
 
 static unsigned X_energy_recalc_bin = 0;
-void aec_process_frame_2threads(
+void aec_process_frame(
         aec_state_t *main_state,
         aec_state_t *shadow_state,
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
