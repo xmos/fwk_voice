@@ -25,6 +25,7 @@ void test_no_gain() {
     md.vnr_flag = AGC_META_DATA_NO_VNR;
     md.aec_ref_power = AGC_META_DATA_NO_AEC;
     md.aec_corr_factor = AGC_META_DATA_NO_AEC;
+    md.ref_active_flag = 0;
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {

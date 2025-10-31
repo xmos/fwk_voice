@@ -79,12 +79,11 @@ void ic_calc_vnr_pred(ic_state_t *state,
  * on each frame.
  *
  * @param[inout] state pointer to IC state structure
- * @param[in] vnr VNR Voice-to-Noise ratio estimation
  *
  * @ingroup ic_func
  */
-void ic_adapt(ic_state_t *state,
-                      float_s32_t vnr);
+// TODO: remove vnr parameter and get from state->vnr_pred_state
+void ic_adapt(ic_state_t *state);
 
 #ifdef __XC__
 #error PLEASE CALL IC FROM C TO AVOID STRUCT INCOMPATIBILITY ISSUES

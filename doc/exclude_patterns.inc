@@ -4,3 +4,4 @@ test
 CHANGELOG.rst
 LICENSE.rst
 **README*
+xmos_cmake_toolchain/**

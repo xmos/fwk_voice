@@ -16,12 +16,14 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->lc_t_far = 0;
     agc->lc_t_near = 0;
 
-    agc->lc_near_power_est = f32_to_float_s32(0.00001F);
-    agc->lc_far_power_est = f32_to_float_s32(0.01F);
-    agc->lc_near_bg_power_est = f32_to_float_s32(0.01F);
-    agc->lc_gain = f32_to_float_s32(1);
-    agc->lc_far_bg_power_est = f32_to_float_s32(0.01F);
+    agc->lc_near_power_est = f32_to_float_s32(0.001F);
+    agc->lc_far_power_est = f32_to_float_s32(0.001F);
+    agc->lc_near_bg_power_est = f32_to_float_s32(0.001F);
+    agc->lc_gain = agc->config.lc_gain_silence;
+    agc->lc_far_bg_power_est = f32_to_float_s32(0.001F);
     agc->lc_corr_val = f32_to_float_s32(0);
+    agc->lc_vnr_low_count = 0;
+    agc->frame_count = 0;
 }
 
 // Returns the mantissa for the input float shifted to an exponent of parameter exp
@@ -64,10 +66,12 @@ void agc_process_frame(agc_state_t *agc,
                        const int32_t input[AGC_FRAME_ADVANCE],
                        agc_meta_data_t *meta_data)
 {
-    int vnr_flag = meta_data->vnr_flag;
+    int vnr_flag;
 
     if (agc->config.adapt_on_vnr == 0) {
         vnr_flag = 1;
+    } else {
+        vnr_flag = float_s32_gt(meta_data->vnr_flag, agc->config.vnr_threshold);
     }
 
     bfp_s32_t input_bfp;
@@ -103,6 +107,7 @@ void agc_process_frame(agc_state_t *agc,
         unsigned exceed_threshold = float_s32_gte(gained_max_abs_value, agc->config.upper_threshold);
 
         if (exceed_threshold || vnr_flag) {
+            // Only adapt if the gained max abs value exceeds the upper threshold or if VNR indicates voice activity
             unsigned peak_rising = float_s32_gte(agc->x_fast, agc->x_peak);
             if (peak_rising) {
                 agc->x_peak = float_s32_ema(agc->x_peak, agc->x_fast, AGC_ALPHA_PEAK_RISE);
@@ -112,10 +117,13 @@ void agc_process_frame(agc_state_t *agc,
 
             float_s32_t gained_pk = float_s32_mul(agc->x_peak, agc->config.gain);
             unsigned near_only = (agc->lc_t_near != 0) && (agc->lc_t_far == 0);
+
             if (float_s32_gte(gained_pk, agc->config.upper_threshold)) {
+                // reduce gain if above upper threshold
                 agc->config.gain = float_s32_mul(agc->config.gain_dec, agc->config.gain);
             } else if (float_s32_gte(agc->config.lower_threshold, gained_pk) &&
                        (agc->config.lc_enabled == 0 || near_only != 0)) {
+                // increase gain if below lower threshold and LC is either disabled or near-end only
                 agc->config.gain = float_s32_mul(agc->config.gain_inc, agc->config.gain);
             }
 
@@ -129,48 +137,58 @@ void agc_process_frame(agc_state_t *agc,
         }
     }
 
-    float_s32_t frame_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
-    bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
-
-    // Update loss control state
-
-    if (float_s32_gte(agc->lc_far_power_est, meta_data->aec_ref_power)) {
-        agc->lc_far_power_est = float_s32_ema(agc->lc_far_power_est, meta_data->aec_ref_power, AGC_ALPHA_LC_EST_DEC);
-    } else {
-        agc->lc_far_power_est = float_s32_ema(agc->lc_far_power_est, meta_data->aec_ref_power, AGC_ALPHA_LC_EST_INC);
+    // Startup delay to mute the output at boot
+    agc->frame_count += 1;
+    if (agc->frame_count < agc->config.startup_delay) {
+        bfp_s32_set(&output_bfp, 0, -1024);
     }
-
-    float_s32_t far_bg_power_est = float_s32_mul(agc->config.lc_bg_power_gamma, agc->lc_far_bg_power_est);
-    if (float_s32_gte(far_bg_power_est, agc->lc_far_power_est)) {
-        agc->lc_far_bg_power_est = agc->lc_far_power_est;
-    } else {
-        agc->lc_far_bg_power_est = far_bg_power_est;
-    }
-
-    if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_far_bg_power_est)) {
-        agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
-    }
-
-    if (float_s32_gte(agc->lc_near_power_est, frame_power)) {
-        agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_DEC);
-    } else {
-        agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_INC);
-    }
-
-    if (float_s32_gt(agc->lc_near_bg_power_est, agc->lc_near_power_est)) {
-        agc->lc_near_bg_power_est = float_s32_ema(agc->lc_near_bg_power_est, agc->lc_near_power_est, AGC_ALPHA_LC_BG_POWER_EST_DEC);
-    } else {
-        agc->lc_near_bg_power_est = float_s32_mul(agc->config.lc_bg_power_gamma, agc->lc_near_bg_power_est);
+    else {
+        bfp_s32_scale(&output_bfp, &input_bfp, agc->config.gain);
     }
 
     if (agc->config.lc_enabled) {
-        if (float_s32_gt(meta_data->aec_corr_factor, agc->lc_corr_val)) {
-            agc->lc_corr_val = meta_data->aec_corr_factor;
-        } else {
-            agc->lc_corr_val = float_s32_ema(agc->lc_corr_val, meta_data->aec_corr_factor, AGC_ALPHA_LC_CORR);
+
+        // if reference is active, update the far power, otherwise far background power
+        if (meta_data->ref_active_flag) {
+            agc->lc_far_power_est = meta_data->aec_ref_power;
+        }
+        else {
+            agc->lc_far_bg_power_est = meta_data->aec_ref_power;
+        }
+        if (float_s32_gte(AGC_LC_FAR_BG_POWER_EST_MIN, agc->lc_far_bg_power_est)) {
+            agc->lc_far_bg_power_est = AGC_LC_FAR_BG_POWER_EST_MIN;
         }
 
-        if (float_s32_gt(agc->lc_far_power_est, float_s32_mul(agc->config.lc_far_delta, agc->lc_far_bg_power_est))) {
+        // near power is smoothed input power
+        float_s32_t frame_power = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
+        agc->lc_near_power_est = float_s32_ema(agc->lc_near_power_est, frame_power, AGC_ALPHA_LC_EST_DEC);
+
+        // Update the low VNR counter
+        if (float_s32_gt(agc->config.lc_vnr_low, meta_data->vnr_flag)) {
+            agc->lc_vnr_low_count += 1;
+        } else {
+            agc->lc_vnr_low_count = 0;
+        }
+
+        // If VNR has been low a while, and there's not ref correlation, 
+        // update the near background power estimate
+        agc->lc_corr_val = meta_data->aec_corr_factor;
+        if ((agc->lc_vnr_low_count >= agc->config.lc_vnr_low_count_limit) && 
+            (float_s32_gt(agc->config.lc_corr_threshold, agc->lc_corr_val))){
+            agc->lc_near_bg_power_est = float_s32_ema(agc->lc_near_bg_power_est, frame_power, AGC_ALPHA_LC_NEAR_BG_EST);
+        }
+        if (float_s32_gt(agc->lc_near_bg_power_est, frame_power)) {
+            // if current frame is lower than the background estimate, set the background to current frame
+            agc->lc_near_bg_power_est = frame_power;
+        }
+
+        // Ensure minimum background power estimate
+        if (float_s32_gte(AGC_LC_NEAR_BG_POWER_EST_MIN, agc->lc_near_bg_power_est)) {
+            agc->lc_near_bg_power_est = AGC_LC_NEAR_BG_POWER_EST_MIN;
+        }
+
+        // If the far-end correlation is high, start the far-end activity timer
+        if (float_s32_gt(agc->lc_corr_val, agc->config.lc_corr_threshold)) {
             agc->lc_t_far = agc->config.lc_n_frame_far;
         } else {
             if (agc->lc_t_far > 0) {
@@ -178,17 +196,12 @@ void agc_process_frame(agc_state_t *agc,
             }
         }
 
+        // If there is far end, require a higher level of near end before starting timer
         float_s32_t delta = (agc->lc_t_far > 0) ? agc->config.lc_near_delta_far_active : agc->config.lc_near_delta;
 
+        // If the near end energy is much higher than the background, start the near end timer
         if (float_s32_gt(agc->lc_near_power_est, float_s32_mul(delta, agc->lc_near_bg_power_est))) {
-            if (agc->lc_t_far == 0 || (agc->lc_t_far > 0 &&
-                                       float_s32_gt(agc->config.lc_corr_threshold, agc->lc_corr_val))) {
-                // Near-end speech only or double talk
-                agc->lc_t_near = agc->config.lc_n_frame_near;
-            } else {
-                // Far-end speech only
-                // Do nothing
-            }
+            agc->lc_t_near = agc->config.lc_n_frame_near;
         } else {
             // Silence
             if (agc->lc_t_near > 0) {
@@ -196,7 +209,7 @@ void agc_process_frame(agc_state_t *agc,
             }
         }
 
-        // Adapt loss control gain
+        // Adapt loss control gain based on recent near/far end activity
         float_s32_t lc_target_gain;
         if (agc->lc_t_far <= 0 && agc->lc_t_near > 0) {
             // Near-end only
@@ -222,10 +235,13 @@ void agc_process_frame(agc_state_t *agc,
         bfp_s32_t lc_scale_bfp;
         bfp_s32_init(&lc_scale_bfp, lc_scale, lc_target_gain.exp, AGC_FRAME_ADVANCE, 0);
         bfp_s32_set(&lc_scale_bfp, lc_target_gain.mant, lc_target_gain.exp);
-        // Add some headroom to avoid changing the exponent when gradually transitioning from
-        // previous lc_gain to lc_target_gain. Anyway, 32 bits of precision is unnecessary.
-        bfp_s32_shl(&lc_scale_bfp, &lc_scale_bfp, -8);
-        lc_scale_bfp.exp += 8;
+
+        if (float_s32_gt(lc_target_gain, agc->lc_gain)) {
+            // Add some headroom to avoid changing the exponent when gradually transitioning from
+            // previous lc_gain to lc_target_gain. Anyway, 32 bits of precision is unnecessary.
+            bfp_s32_shl(&lc_scale_bfp, &lc_scale_bfp, -8);
+            lc_scale_bfp.exp += 8;
+        }
 
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
             if (float_s32_gt(agc->lc_gain, lc_target_gain)) {
@@ -233,13 +249,13 @@ void agc_process_frame(agc_state_t *agc,
                 if (float_s32_gt(lc_target_gain, agc->lc_gain)) {
                     agc->lc_gain = lc_target_gain;
                 }
-                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_target_gain.exp);
+                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_scale_bfp.exp);
             } else if (float_s32_gt(lc_target_gain, agc->lc_gain)) {
                 agc->lc_gain = float_s32_mul(agc->lc_gain, agc->config.lc_gamma_inc);
                 if (float_s32_gt(agc->lc_gain, lc_target_gain)) {
                     agc->lc_gain = lc_target_gain;
                 }
-                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_target_gain.exp);
+                lc_scale[idx] = use_exp_float(agc->lc_gain, lc_scale_bfp.exp);
             } else {
                 break;
             }

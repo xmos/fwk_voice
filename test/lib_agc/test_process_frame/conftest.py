@@ -80,11 +80,11 @@ class UnityTestExecutable(pytest.Item):
         if isinstance(excinfo.value, UnityTestException):
             return '\n'.join([str(self.parent).strip('<>'),
                               '{}:{}:{}()'.format(
-                                    excinfo.value[1]['test_source'],
-                                    excinfo.value[1]['line_number'],
-                                    excinfo.value[1]['test_case']),
+                                    excinfo.value.args[1]['test_source'],
+                                    excinfo.value.args[1]['line_number'],
+                                    excinfo.value.args[1]['test_case']),
                               'Failure reason:',
-                              excinfo.value[1]['failure_reason']])
+                              excinfo.value.args[1]['failure_reason']])
         else:
             return str(excinfo.value)
 

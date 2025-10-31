@@ -16,13 +16,17 @@
 
 void test_loss_control() {
     int32_t input[AGC_FRAME_ADVANCE];
+    int32_t input_far[AGC_FRAME_ADVANCE];
+    int32_t input_silence[AGC_FRAME_ADVANCE];
     int32_t output_near[AGC_FRAME_ADVANCE];
     int32_t output_far[AGC_FRAME_ADVANCE];
     int32_t output_double_talk[AGC_FRAME_ADVANCE];
     int32_t output_silence[AGC_FRAME_ADVANCE];
-    bfp_s32_t input_bfp, output_near_bfp, output_far_bfp, output_double_talk_bfp;
+    bfp_s32_t input_bfp, input_far_bfp, input_silence_bfp, output_near_bfp, output_far_bfp, output_double_talk_bfp;
 
     bfp_s32_init(&input_bfp, input, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
+    bfp_s32_init(&input_far_bfp, input_far, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
+    bfp_s32_init(&input_silence_bfp, input_silence, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
     bfp_s32_init(&output_near_bfp, output_near, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
     bfp_s32_init(&output_far_bfp, output_far, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
     bfp_s32_init(&output_double_talk_bfp, output_double_talk, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
@@ -31,51 +35,62 @@ void test_loss_control() {
     unsigned seed = 38480;
 
     agc_state_t agc_near;
-    agc_config_t conf_near = AGC_PROFILE_COMMS;
+    agc_config_t conf_near = AGC_PROFILE_XCV_COMMS;
     conf_near.adapt_on_vnr = 0;
 
     agc_meta_data_t md_near;
-    md_near.vnr_flag = AGC_META_DATA_NO_VNR;
+    md_near.vnr_flag = f32_to_float_s32(1.0f);
     md_near.aec_corr_factor = f32_to_float_s32(TEST_LC_NEAR_CORR);
+    md_near.ref_active_flag = 0;  // Near-end: reference not active
 
     agc_state_t agc_far;
-    agc_config_t conf_far = AGC_PROFILE_COMMS;
+    agc_config_t conf_far = AGC_PROFILE_XCV_COMMS;
     conf_far.adapt_on_vnr = 0;
 
     agc_meta_data_t md_far;
     md_far.vnr_flag = AGC_META_DATA_NO_VNR;
     md_far.aec_corr_factor = f32_to_float_s32(TEST_LC_FAR_CORR);
+    md_far.ref_active_flag = 1;  // Far-end: reference active
 
     agc_state_t agc_double_talk;
-    agc_config_t conf_double_talk = AGC_PROFILE_COMMS;
+    agc_config_t conf_double_talk = AGC_PROFILE_XCV_COMMS;
     conf_double_talk.adapt_on_vnr = 0;
 
     agc_meta_data_t md_double_talk;
-    md_double_talk.vnr_flag = AGC_META_DATA_NO_VNR;
+    md_double_talk.vnr_flag = f32_to_float_s32(1.0f);
     md_double_talk.aec_corr_factor = f32_to_float_s32(TEST_LC_DT_CORR);
+    md_double_talk.ref_active_flag = 1;  // Double-talk: reference active
 
     agc_state_t agc_silence;
-    agc_config_t conf_silence = AGC_PROFILE_COMMS;
+    agc_config_t conf_silence = AGC_PROFILE_XCV_COMMS;
     conf_silence.adapt_on_vnr = 0;
 
     agc_meta_data_t md_silence;
     md_silence.vnr_flag = AGC_META_DATA_NO_VNR;
     md_silence.aec_corr_factor = f32_to_float_s32(TEST_LC_SILENCE_CORR);
+    md_silence.ref_active_flag = 0;  // Silence: reference not active
 
     // Scale the input by 0.5 to avoid the AGC adaption upper threshold
     float_s32_t scale = f32_to_float_s32(0.5);
+    float_s32_t scale_aec_residual = f32_to_float_s32(TEST_LC_AEC_RESIDUAL_SCALE);
     float_s32_t scale_silence = f32_to_float_s32(TEST_LC_SILENCE_SCALE);
 
     unsigned num_frames = conf_near.lc_n_frame_far;
     if (num_frames < conf_near.lc_n_frame_near) {
-        num_frames = conf_near.lc_n_frame_near;
+        num_frames = conf_near.lc_n_frame_near + 30;
+    }
+    if (num_frames < conf_near.lc_vnr_low_count_limit + conf_near.lc_n_frame_near) {
+        num_frames = conf_near.lc_vnr_low_count_limit + conf_near.lc_n_frame_near + 30;
     }
 
-    for (unsigned iter = 0; iter < (1<<10)/F; ++iter) {
+    for (unsigned iter = 0; iter < (1<<7)/F; ++iter) {
         agc_init(&agc_near, &conf_near);
         agc_init(&agc_far, &conf_far);
         agc_init(&agc_double_talk, &conf_double_talk);
         agc_init(&agc_silence, &conf_silence);
+
+        // Set initial near background power estimates to non-zero values
+        agc_far.lc_near_bg_power_est = f32_to_float_s32(TEST_LC_SILENCE_SCALE);
 
         for (unsigned frame = 0; frame < num_frames; ++frame) {
             for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {
@@ -84,24 +99,26 @@ void test_loss_control() {
             bfp_s32_headroom(&input_bfp);
             bfp_s32_scale(&input_bfp, &input_bfp, scale);
             bfp_s32_use_exponent(&input_bfp, FRAME_EXP);
-
             float_s32_t input_energy = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
+
+            bfp_s32_scale(&input_far_bfp, &input_bfp, scale_aec_residual);
+            float_s32_t input_far_energy = float_s64_to_float_s32(bfp_s32_energy(&input_far_bfp));
+
+            bfp_s32_scale(&input_silence_bfp, &input_bfp, scale_silence);
+            float_s32_t input_silence_energy = float_s64_to_float_s32(bfp_s32_energy(&input_silence_bfp));
 
             md_near.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_NEAR_POWER_SCALE));
             agc_process_frame(&agc_near, output_near, input, &md_near);
 
-            md_far.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_FAR_POWER_SCALE));
-            agc_process_frame(&agc_far, output_far, input, &md_far);
+            md_far.aec_ref_power = float_s32_mul(input_far_energy, f32_to_float_s32(TEST_LC_FAR_POWER_SCALE));
+            agc_process_frame(&agc_far, output_far, input_far, &md_far);
 
             md_double_talk.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_DT_POWER_SCALE));
             agc_process_frame(&agc_double_talk, output_double_talk, input, &md_double_talk);
 
-            bfp_s32_scale(&input_bfp, &input_bfp, scale_silence);
-            bfp_s32_use_exponent(&input_bfp, FRAME_EXP);
+            md_silence.aec_ref_power = float_s32_mul(input_silence_energy, f32_to_float_s32(TEST_LC_SILENCE_POWER_SCALE));
+            agc_process_frame(&agc_silence, output_silence, input_silence, &md_silence);
 
-            input_energy = float_s64_to_float_s32(bfp_s32_energy(&input_bfp));
-            md_silence.aec_ref_power = float_s32_mul(input_energy, f32_to_float_s32(TEST_LC_SILENCE_POWER_SCALE));
-            agc_process_frame(&agc_silence, output_silence, input, &md_silence);
         }
 
         TEST_ASSERT_EQUAL_FLOAT(float_s32_to_float(conf_near.lc_gain_max), float_s32_to_float(agc_near.lc_gain));
@@ -118,6 +135,7 @@ void test_loss_control() {
 
         // This test assumes: lc_gain_near > lc_gain_double_talk > lc_gain_far
         TEST_ASSERT(float_s32_gt(output_near_energy, output_double_talk_energy));
+
         TEST_ASSERT(float_s32_gt(output_double_talk_energy, output_far_energy));
     }
 }

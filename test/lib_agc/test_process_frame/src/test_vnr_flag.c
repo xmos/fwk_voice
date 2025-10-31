@@ -21,7 +21,7 @@ void test_vnr_flag() {
     unsigned seed = 62336;
 
     agc_state_t agc_vnr0;
-    agc_config_t conf_vnr0 = AGC_PROFILE_COMMS;
+    agc_config_t conf_vnr0 = AGC_PROFILE_XCV_COMMS;
     // Set the upper and lower threshold to one so that AGC adaption with VNR always gains
     conf_vnr0.lower_threshold = f32_to_float_s32(1);
     conf_vnr0.upper_threshold = f32_to_float_s32(1);
@@ -29,12 +29,13 @@ void test_vnr_flag() {
     agc_init(&agc_vnr0, &conf_vnr0);
 
     agc_meta_data_t md_vnr0;
-    md_vnr0.vnr_flag = 0;
+    md_vnr0.vnr_flag = f32_to_float_s32(0.0);  // 0.0 in float_s32_t format
     md_vnr0.aec_ref_power = AGC_META_DATA_NO_AEC;
     md_vnr0.aec_corr_factor = AGC_META_DATA_NO_AEC;
+    md_vnr0.ref_active_flag = 0;
 
     agc_state_t agc_vnr1;
-    agc_config_t conf_vnr1 = AGC_PROFILE_COMMS;
+    agc_config_t conf_vnr1 = AGC_PROFILE_XCV_COMMS;
     // Set the upper and lower threshold to one so that AGC adaption with VNR always gains
     conf_vnr1.lower_threshold = f32_to_float_s32(1);
     conf_vnr1.upper_threshold = f32_to_float_s32(1);
@@ -42,9 +43,10 @@ void test_vnr_flag() {
     agc_init(&agc_vnr1, &conf_vnr1);
 
     agc_meta_data_t md_vnr1;
-    md_vnr1.vnr_flag = 1;
+    md_vnr1.vnr_flag = f32_to_float_s32(1.0);  // 1.0 in float_s32_t format
     md_vnr1.aec_ref_power = AGC_META_DATA_NO_AEC;
     md_vnr1.aec_corr_factor = AGC_META_DATA_NO_AEC;
+    md_vnr1.ref_active_flag = 0;
 
     // Scale the input to allow room to apply the max gain
     float_s32_t scale = float_s32_div(f32_to_float_s32(1), conf_vnr0.max_gain);

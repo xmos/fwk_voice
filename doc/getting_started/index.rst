@@ -5,7 +5,7 @@ QUICK START
 Requirements
 ------------
 
-* XTC Tools 15.3.0
+* XTC Tools 15.3.1
 * CMake 3.20 or higher
 * Python 3.10 or higher
 

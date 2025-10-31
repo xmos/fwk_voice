@@ -30,7 +30,7 @@ void test(int32_t *output, int32_t *input)
     float_s32_t input_vnr_pred, output_vnr_pred;
     ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
     // Write to output buffer
-    memcpy(&output[0], &input_vnr_pred, sizeof(float_s32_t));
-    memcpy(&output[2], &output_vnr_pred, sizeof(float_s32_t));
+    memcpy(&output[0], &(ic_state.vnr_pred_state.input_vnr_pred), sizeof(float_s32_t));
+    memcpy(&output[2], &(ic_state.vnr_pred_state.output_vnr_pred), sizeof(float_s32_t));
 }
 

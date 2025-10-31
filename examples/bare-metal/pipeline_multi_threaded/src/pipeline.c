@@ -96,7 +96,6 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Initialise IC and VNR
     ic_state_t DWORD_ALIGNED ic_state;
     float_s32_t input_vnr_pred, output_vnr_pred;
-    float_s32_t agc_vnr_threshold = f32_to_float_s32(VNR_AGC_THRESHOLD);
     ic_init(&ic_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -128,13 +127,13 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
         printf("VNR OUTPUT PRED: %ld %d\n", output_vnr_pred.mant, output_vnr_pred.exp);
         printf("VNR INPUT PRED: %ld %d\n", input_vnr_pred.mant, input_vnr_pred.exp);
 #endif
-        md.vnr_pred_flag = float_s32_gt(output_vnr_pred, agc_vnr_threshold);
+        md.vnr_pred_flag = input_vnr_pred;
 
         // Transferring metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
 
         // Adapting the IC
-        ic_adapt(&ic_state, input_vnr_pred);
+        ic_adapt(&ic_state);
 
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){
@@ -203,7 +202,9 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
+        agc_md.aec_corr_factor = md.aec_corr_factor[0]; // Using the first channel's AEC correlation factor for all channels
         agc_md.vnr_flag = md.vnr_pred_flag;
+        agc_md.ref_active_flag = md.ref_active_flag;
 
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], (AP_MAX_Y_CHANNELS * AP_FRAME_ADVANCE));

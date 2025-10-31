@@ -13,7 +13,7 @@ FetchContent_Populate(xcore_math)
 FetchContent_Declare(
     xscope_fileio
     GIT_REPOSITORY https://github.com/xmos/xscope_fileio.git
-    GIT_TAG        2ad04971103f8ca4558d1d2fc903c2a6047b95ba
+    GIT_TAG        v1.3.1
     GIT_SHALLOW    FALSE
     SOURCE_DIR     ${CMAKE_BINARY_DIR}/fwk_voice_deps/xscope_fileio
 )

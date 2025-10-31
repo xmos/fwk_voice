@@ -10,8 +10,8 @@ For more details, refer to :ref:`agc_overview`.
    :maxdepth: 1
    :caption: Contents:
 
-   src/getting_started
    src/overview
+   src/getting_started
    src/reference/index
 
 

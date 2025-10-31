@@ -43,24 +43,37 @@ typedef struct {
      *  be performed when voice activity is detected. This must be disabled if the application
      *  doesn't have a VNR. */
     int adapt_on_vnr;
+    /** VNR threshold for voice activity detection. A higher value will
+     *  only adapt the AGC on clean speech. A lower value will adapt the
+     *  AGC on noisy speech, but may also adapt to more non-speech signals. */
+    float_s32_t vnr_threshold;
     /** Boolean to enable soft-clipping of the output frame. */
     int soft_clipping;
-    /** The current gain to be applied, not including loss control. */
+    /** The current gain to be applied, not including loss control. When
+     * `adapt` is false, this gain will be applied to every frame. When
+     * `adapt` is true, the initial value of this gain will be applied to
+     * the first frame and then it will be adapted on subsequent frames.*/
     float_s32_t gain;
-    /** The maximum gain allowed when adaption is enabled. */
+    /** The maximum gain allowed when adaption is enabled. This can be
+     *  used to prevent the AGC amplifying very quiet signals.*/
     float_s32_t max_gain;
     /** The minimum gain allowed when adaption is enabled. */
     float_s32_t min_gain;
-    /** The upper limit for the gained peak of the frame when adaption is enabled. */
+    /** The target maximum peak level of the AGC output. If the AGC output
+     *  goes above this level, the gain is reduced. */
     float_s32_t upper_threshold;
-    /** The lower limit for the gained peak of the frame when adaption is enabled. */
+    /** The target minimum peak level of the AGC output. If the AGC output
+     *  goes below this level, the gain is increased. */
     float_s32_t lower_threshold;
     /** Factor by which to increase the gain during adaption. */
     float_s32_t gain_inc;
     /** Factor by which to decrease the gain during adaption. */
     float_s32_t gain_dec;
-    /** Boolean to enable loss control. This must be disabled if the application doesn't have
-     *  an AEC. */
+    /** Number of frames to mute the output at startup. */
+    uint32_t startup_delay;
+    /** Boolean to enable loss control. The loss control applies additional
+     *  attenuation when there is no near end speech. This must be disabled 
+     *  if the application doesn't have an AEC or VNR. */
     int lc_enabled;
     /** Number of frames required to consider far-end audio active. */
     int lc_n_frame_far;
@@ -76,18 +89,35 @@ typedef struct {
     float_s32_t lc_gamma_dec;
     /** Delta multiplier used when only far-end activity is detected. */
     float_s32_t lc_far_delta;
-    /** Delta multiplier used when only near-end activity is detected. */
+    /** Delta multiplier used when only near-end activity is detected.
+     *  How many times louder the near-end signal must be than the background
+     *  noise when there is no far-end playback. If the 
+     *  near end speech is not heard during silence, reduce this value. If 
+     *  too much non-speech background noise is heard, increase this value. */
     float_s32_t lc_near_delta;
-    /** Delta multiplier used when both near-end and far-end activity is detected. */
+    /** Delta multiplier used when both near-end and far-end activity is
+     *  detected. How many times louder the near end signal must be
+     *  above the residual far-end speech (after the AEC) to be detected
+     *  during double talk. If the near end speech is not heard during
+     *  double talk, reduce this value. If there is too much breakthrough
+     *  of residual far-end echo when there is no near-end speech present,
+     *  increase this value. */
     float_s32_t lc_near_delta_far_active;
     /** Loss control gain to apply when near-end activity only is detected. */
     float_s32_t lc_gain_max;
-    /** Loss control gain to apply when double-talk is detected. */
+    /** Loss control gain to apply when double-talk is detected. Reducing this
+     *  value will reduce the level of the near-end speech during double-talk,
+     *  but may help to reduce the level of residual far-end echo that is heard. */
     float_s32_t lc_gain_double_talk;
     /** Loss control gain to apply when silence is detected. */
     float_s32_t lc_gain_silence;
     /** Loss control gain to apply when far-end activity only is detected. */
     float_s32_t lc_gain_min;
+    /** Low VNR threshold for background estimation. */
+    float_s32_t lc_vnr_low;
+    /** Frame count limit for low VNR detection. */
+    int lc_vnr_low_count_limit;
+
 } agc_config_t;
 
 /**
@@ -127,6 +157,10 @@ typedef struct {
     float_s32_t lc_far_bg_power_est;
     /** EWMA of the far-end correlation for detecting double-talk. */
     float_s32_t lc_corr_val;
+    /** Counter of how many frames the VNR has been low for. */
+    int lc_vnr_low_count;
+    /** Frame counter since initialisation, used for startup delay */
+    uint32_t frame_count;
 } agc_state_t;
 
 /**
@@ -166,13 +200,15 @@ void agc_init(agc_state_t *agc, agc_config_t *config);
  * @ingroup agc_defs
  */
 typedef struct {
-    /** Boolean to indicate the detection of voice activity in the current frame. */
-    int vnr_flag;
+    /** Estimated voice-to-noise ratio in the current frame. */
+    float_s32_t vnr_flag;
     /** The power of the most powerful reference channel. */
     float_s32_t aec_ref_power;
     /** Correlation factor between the microphone input and the AEC's estimated microphone
      *  signal. */
     float_s32_t aec_corr_factor;
+    /** Flag to indicate if the reference signal is currently active */
+    int32_t ref_active_flag;
 } agc_meta_data_t;
 
 /**
@@ -182,7 +218,7 @@ typedef struct {
  *
  * @ingroup agc_defs
  */
-#define AGC_META_DATA_NO_VNR 0u
+#define AGC_META_DATA_NO_VNR (float_s32_t){0, 0}
 
 /**
  * If the application has VNR, `adapt_on_vnr` can be enabled in the configuration. This

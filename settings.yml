@@ -1,6 +1,6 @@
 project: fwk_voice
 title: XCORE Voice Framework
-version: 0.8.1
+version: 0.9.0
 
 documentation:
   root_doc: doc/index.rst
