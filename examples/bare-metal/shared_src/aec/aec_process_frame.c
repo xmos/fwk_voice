@@ -39,46 +39,44 @@ DECLARE_JOB(filter_adapt_task, (par_tasks_t*, aec_state_t*, aec_state_t*, int, i
 #error Not a valid number of AEC threads
 #endif
 
-#define LAUNCH_THREADS1(api_name, par_struct, ...)          \
+#if (AEC_THREAD_COUNT == 1)
+#define LAUNCH_THREADS(api_name, par_struct, ...)           \
 PAR_JOBS(                                                   \
     PJOB(api_name, (par_struct[0], __VA_ARGS__))            \
 );
-
-#define LAUNCH_THREADS2(api_name, par_struct, ...)          \
+#elif (AEC_THREAD_COUNT == 2)
+#define LAUNCH_THREADS(api_name, par_struct, ...)           \
 PAR_JOBS(                                                   \
     PJOB(api_name, (par_struct[0], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[1], __VA_ARGS__))            \
 );
-
-#define LAUNCH_THREADS3(api_name, par_struct, ...)          \
+#elif (AEC_THREAD_COUNT == 3)
+#define LAUNCH_THREADS(api_name, par_struct, ...)           \
 PAR_JOBS(                                                   \
     PJOB(api_name, (par_struct[0], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[1], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[2], __VA_ARGS__))            \
 );
-
-#define LAUNCH_THREADS4(api_name, par_struct, ...)          \
+#elif (AEC_THREAD_COUNT == 4)
+#define LAUNCH_THREADS(api_name, par_struct, ...)           \
 PAR_JOBS(                                                   \
     PJOB(api_name, (par_struct[0], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[1], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[2], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[3], __VA_ARGS__))            \
 );
-
-#define LAUNCH_THREADS5(api_name, par_struct, ...)          \
+#elif (AEC_THREAD_COUNT == 5)
+#define LAUNCH_THREADS(api_name, par_struct, ...)           \
 PAR_JOBS(                                                   \
     PJOB(api_name, (par_struct[0], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[1], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[2], __VA_ARGS__)),           \
     PJOB(api_name, (par_struct[3], __VA_ARGS__)),           \
-    PJOB(api_name, (par_struct[3], __VA_ARGS__))            \
+    PJOB(api_name, (par_struct[4], __VA_ARGS__))            \
 );
+#endif // AEC_THREAD_COUNT
 
-#define GET_LAUNCH_N(N) LAUNCH_THREADS ## N
-#define LAUNCH_N_THREADS(N, api_name, par_struct, ...) GET_LAUNCH_N(N) (api_name, par_struct,  __VA_ARGS__)
-#define LAUNCH_TASK_THREADS(api_name, par_struct, ...) LAUNCH_N_THREADS(AEC_THREAD_COUNT, api_name, par_struct,  __VA_ARGS__)
-
-#endif
+#endif // __XS3A__
 
 void calc_time_domain_ema_energy_task(par_tasks_and_channels_t* s, aec_state_t *state, int32_t *output, int passes, int channels, enum e_td_ema type) {
     for(int i=0; i<passes; i++) {
@@ -345,11 +343,11 @@ void aec_process_frame(
     // Calculate Exponential moving average (EMA) energy of the mic and reference input.
 
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)
-    LAUNCH_TASK_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)
+    LAUNCH_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA)
+    LAUNCH_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA)
     #else
     calc_time_domain_ema_energy_task(tdist.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_EMA);
-    calc_time_domain_ema_energy_task(tdist.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, X_EMA);
+    calc_time_domain_ema_energy_task(tdist.par_1_tasks_and_channels[0], main_state, NULL, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_EMA);
     #endif
 
 
@@ -364,11 +362,11 @@ void aec_process_frame(
      * as well.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(fft_task, tdist.par_1_tasks_and_channels, main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT)
-    LAUNCH_TASK_THREADS(fft_task, tdist.par_1_tasks_and_channels, main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT)
+    LAUNCH_THREADS(fft_task, tdist.par_1_tasks_and_channels, main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT)
+    LAUNCH_THREADS(fft_task, tdist.par_1_tasks_and_channels, main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT)
     #else
     fft_task(tdist.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, Y_FFT);
-    fft_task(tdist.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, X_FFT);
+    fft_task(tdist.par_1_tasks_and_channels[0], main_state, shadow_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_FFT);
     #endif
 
     // Calculate sum of X energy over X FIFO phases for all num_x_channels reference channels for main and shadow filter.   
@@ -384,7 +382,7 @@ void aec_process_frame(
      * of frames in the X FIFO.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(update_X_energy_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin)
+    LAUNCH_THREADS(update_X_energy_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin)
     #else
     update_X_energy_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, X_energy_recalc_bin);
     #endif
@@ -404,7 +402,7 @@ void aec_process_frame(
      * It is later used to time smooth the X_energy while calculating the normalisation spectrum
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(update_X_fifo_task, tdist.par_1_tasks_and_channels, main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels)
+    LAUNCH_THREADS(update_X_fifo_task, tdist.par_1_tasks_and_channels, main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels)
     #else
     update_X_fifo_task(tdist.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_x_channels);
     #endif
@@ -422,7 +420,7 @@ void aec_process_frame(
      * For shadow filter, shadow_state->Error[ch] and shadow_state->Y_hat[ch] are updated. 
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_Error_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)
+    LAUNCH_THREADS(calc_Error_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)
     #else
     calc_Error_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
     #endif
@@ -433,7 +431,7 @@ void aec_process_frame(
      * done only for main filter.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(ifft_task, tdist.par_3_tasks_and_channels, main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)
+    LAUNCH_THREADS(ifft_task, tdist.par_3_tasks_and_channels, main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)
     #else
     ifft_task(tdist.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels);
     #endif
@@ -441,7 +439,7 @@ void aec_process_frame(
     // Calculate average coherence and average slow moving coherence between mic and estimated mic time domain signals
     // main_state->shared_state->coh_mu_state[ch].coh and main_state->shared_state->coh_mu_state[ch].coh_slow are updated
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_coh_task, tdist.par_1_tasks_and_channels, main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels)
+    LAUNCH_THREADS(calc_coh_task, tdist.par_1_tasks_and_channels, main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels)
     #else
     calc_coh_task(tdist.par_1_tasks_and_channels[0], main_state, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels);
     #endif
@@ -452,7 +450,7 @@ void aec_process_frame(
      * which is needed for subsequent processing of the shadow filter even when output is not generated.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_output_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)
+    LAUNCH_THREADS(calc_output_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels)
     #else
     calc_output_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, (int32_t*)output_main, (int32_t*)output_shadow, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels);
     #endif
@@ -462,7 +460,7 @@ void aec_process_frame(
      * so not calling this function to calculate shadow filter error EMA energy.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)
+    LAUNCH_THREADS(calc_time_domain_ema_energy_task, tdist.par_1_tasks_and_channels, main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA)
     #else
     calc_time_domain_ema_energy_task(tdist.par_1_tasks_and_channels[0], main_state, (int32_t*)output_main, AEC_1_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_EMA);
     #endif
@@ -472,7 +470,7 @@ void aec_process_frame(
      * main_state->Error[ch] and shadow_state->Error[ch] are updated.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(fft_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT)
+    LAUNCH_THREADS(fft_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT)
     #else
     fft_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_y_channels, ERROR_FFT);
     #endif
@@ -483,7 +481,7 @@ void aec_process_frame(
      * updated.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_freq_domain_energy_task, tdist.par_3_tasks_and_channels, main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)
+    LAUNCH_THREADS(calc_freq_domain_energy_task, tdist.par_3_tasks_and_channels, main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels)
     #else
     calc_freq_domain_energy_task(tdist.par_3_tasks_and_channels[0], main_state, shadow_state, AEC_3_TASKS_AND_CHANNELS_PASSES, num_y_channels);
     #endif
@@ -507,7 +505,7 @@ void aec_process_frame(
      * main_state->inv_X_energy[ch] and shadow_state->inv_X_energy[ch] is updated.
      */
     #if defined(__XS3A__)
-    LAUNCH_TASK_THREADS(calc_normalisation_spectrum_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels)
+    LAUNCH_THREADS(calc_normalisation_spectrum_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels)
     #else
     calc_normalisation_spectrum_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels);
     #endif
@@ -518,7 +516,7 @@ void aec_process_frame(
         // T is a function of state->mu, state->Error and state->inv_X_energy.
         // main_state->T[ch] and shadow_state->T[ch] are updated.
         #if defined(__XS3A__)
-        LAUNCH_TASK_THREADS(calc_T_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych)
+        LAUNCH_THREADS(calc_T_task, tdist.par_2_tasks_and_channels, main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych)
         #else
         calc_T_task(tdist.par_2_tasks_and_channels[0], main_state, shadow_state, AEC_2_TASKS_AND_CHANNELS_PASSES, num_x_channels, ych);
         #endif
@@ -526,7 +524,7 @@ void aec_process_frame(
         // Update filters
         // main_state->H_hat and shadow_state->H_hat are updated.
         #if defined(__XS3A__)
-        LAUNCH_TASK_THREADS(filter_adapt_task, tdist.par_2_tasks, main_state, shadow_state, AEC_2_TASKS_PASSES, ych)
+        LAUNCH_THREADS(filter_adapt_task, tdist.par_2_tasks, main_state, shadow_state, AEC_2_TASKS_PASSES, ych)
         #else
         filter_adapt_task(tdist.par_2_tasks[0], main_state, shadow_state, AEC_2_TASKS_PASSES, ych);
         #endif
