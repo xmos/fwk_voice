@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "wrapper.h"
+
 #include "vnr_inference_api.h"
 #include "vnr_inference_priv.h"
 
@@ -12,7 +13,7 @@ static vnr_model_quant_spec_t vnr_quant_state;
 
 int32_t vnr_inference_init() {
 
-    int32_t ret = vnr_init(&vnr_quant_state);
+    int32_t ret = vnr_init_spec(&vnr_quant_state);
 
     in_buffer = vnr_get_input();
     out_buffer = vnr_get_output();

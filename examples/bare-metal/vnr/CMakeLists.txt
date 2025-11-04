@@ -21,8 +21,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     )
     target_link_libraries(fwk_voice_example_bare_metal_vnr 
         PUBLIC
-            fwk_voice::vnr::features
-            fwk_voice::vnr::inference
+            fwk_voice::vnr
             fwk_voice::example::profile_xcore
             )
 
@@ -51,8 +50,7 @@ target_sources(fwk_voice_example_bare_metal_vnr_fileio PRIVATE src/with_fileio/v
 
 target_link_libraries(fwk_voice_example_bare_metal_vnr_fileio 
     PUBLIC
-        fwk_voice::vnr::features
-        fwk_voice::vnr::inference
+        fwk_voice::vnr
         fwk_voice::example::fileutils
         )
 

@@ -15,8 +15,7 @@ void test_init()
 {
     vnr_input_state_init(&vnr_input_state);
     vnr_feature_state_init(&vnr_feature_state);
-
-    vnr_init(&vnr_quant_spec);
+    vnr_init_spec(&vnr_quant_spec);
 }
 
 void test(int32_t *output, int32_t *input)

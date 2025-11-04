@@ -87,3 +87,16 @@ target_link_libraries(fwk_voice_module_lib_vnr_features
 )
 
 add_library(fwk_voice::vnr::features ALIAS fwk_voice_module_lib_vnr_features)
+
+## VNR standalone module
+add_library(fwk_voice_module_lib_vnr STATIC)
+target_sources(fwk_voice_module_lib_vnr PRIVATE src/vnr.cpp)
+target_include_directories(fwk_voice_module_lib_vnr PUBLIC api)
+target_compile_options(fwk_voice_module_lib_vnr PRIVATE -Os -g)
+target_link_libraries(fwk_voice_module_lib_vnr
+    PUBLIC
+        fwk_voice::vnr::features
+        fwk_voice::vnr::inference
+        lib_xcore_math
+)
+add_library(fwk_voice::vnr ALIAS fwk_voice_module_lib_vnr)

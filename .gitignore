@@ -39,3 +39,4 @@ test/**/*.png
 .DS_Store
 
 **/*.swp
+examples/bare-metal/vnr/input.wav

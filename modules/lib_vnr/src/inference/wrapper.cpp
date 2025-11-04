@@ -13,7 +13,7 @@ void vnr_priv_init_quant_spec(vnr_model_quant_spec_t * quant_spec) {
     quant_spec->output_zero_point = (float_s32_t){model_output_zeropoint(0), 0};
 }
 
-int32_t vnr_init(vnr_model_quant_spec_t * quant_spec) {
+int32_t vnr_init_spec(vnr_model_quant_spec_t * quant_spec) {
     if(!model_initialised)
     {
         model_initialised = 1;

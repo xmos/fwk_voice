@@ -1,7 +1,10 @@
-#ifndef __VNR_FEATURES_API_H__
-#define __VNR_FEATURES_API_H__
+#pragma once
 
 #include "vnr_features_state.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @page page_vnr_features_api_h vnr_features_api.h
@@ -89,4 +92,7 @@ void vnr_extract_features(vnr_feature_state_t *vnr_feature_state,
         int32_t feature_patch_data[VNR_PATCH_WIDTH * VNR_MEL_FILTERS],
         const bfp_complex_s32_t *X);
 
+
+#ifdef __cplusplus
+}
 #endif
