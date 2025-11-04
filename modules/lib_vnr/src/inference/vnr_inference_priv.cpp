@@ -7,6 +7,7 @@
 #include "xmath/xmath.h"
 
 #define Q24_EXP (-24)
+
 void vnr_priv_feature_quantise(int8_t *quantised_patch, bfp_s32_t *normalised_patch, const vnr_model_quant_spec_t *quant_spec) {
     // this_patch = this_patch / input_scale + input_zero_point        
     bfp_s32_scale(normalised_patch, normalised_patch, quant_spec->input_scale_inv); // normalised_patch gets overwritten here!

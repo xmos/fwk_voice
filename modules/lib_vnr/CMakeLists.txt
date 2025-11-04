@@ -46,7 +46,7 @@ add_custom_command(
 ## VNR Inference
 add_library(fwk_voice_module_lib_vnr_inference STATIC)
 
-file(GLOB_RECURSE VNR_INFERENCE_SOURCES src/inference/*.cc src/inference/*.cpp)
+file(GLOB_RECURSE VNR_INFERENCE_SOURCES src/inference/*.cpp)
 
 target_sources(fwk_voice_module_lib_vnr_inference PRIVATE ${MODEL_OUT_PATH}.cpp ${VNR_INFERENCE_SOURCES})
 

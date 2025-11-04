@@ -35,6 +35,6 @@ void vnr_extract_features(vnr_feature_state_t *vnr_feature_state,
 {
     uq8_24 new_slice[VNR_MEL_FILTERS];
     vnr_priv_make_slice(new_slice, X, vnr_feature_state->config.enable_highpass);
-    vnr_priv_add_new_slice(vnr_feature_state->feature_buffers, new_slice);
+    vnr_priv_add_new_slice(vnr_feature_state->feature_buffers, (const int32_t *)new_slice);
     vnr_priv_normalise_patch(feature_patch, feature_patch_data, (const vnr_feature_state_t*)vnr_feature_state);
 }
