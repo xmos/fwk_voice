@@ -234,7 +234,8 @@ void aec_calc_coherence(
     bfp_s32_t temp;
     bfp_s32_init(&temp, state->shared_state->prev_y[ch].data, state->shared_state->prev_y[ch].exp, AEC_FRAME_ADVANCE, 1);
 
-    aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params);
+    aec_priv_calc_coherence(coh_mu_state_ptr, &temp, &y_hat_subset, &state->shared_state->config_params,
+            state->shared_state->ref_active_flag, state->shared_state->num_y_channels);
 }
 
 void aec_calc_output(
@@ -332,8 +333,11 @@ void aec_compare_filters_and_calc_mu(
 
     coherence_mu_params_t *coh_mu_state_ptr = main_state->shared_state->coh_mu_state;
     coherence_mu_config_params_t *coh_mu_conf_ptr = &main_state->shared_state->config_params.coh_mu_conf;
+    aec_priv_calc_erle(main_state, main_state->shared_state->shadow_filter_params.shadow_flag,
+            coh_mu_state_ptr, coh_mu_conf_ptr);
     aec_priv_calc_coherence_mu(coh_mu_state_ptr, coh_mu_conf_ptr, main_state->shared_state->sum_X_energy,
-            main_state->shared_state->shadow_filter_params.shadow_flag, main_state->shared_state->num_y_channels, main_state->shared_state->num_x_channels);
+            main_state->shared_state->shadow_filter_params.shadow_flag, main_state->shared_state->num_y_channels, main_state->shared_state->num_x_channels,
+            main_state->shared_state->ref_active_flag);
     
     //calculate delta. Done here instead of aec_l2_calc_inv_X_energy_denom() since max_X_energy across all x-channels is needed in delta computation.
     //aec_l2_calc_inv_X_energy_denom() is called per x channel

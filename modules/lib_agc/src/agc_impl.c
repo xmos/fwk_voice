@@ -26,6 +26,16 @@ void agc_init(agc_state_t *agc, agc_config_t *config)
     agc->frame_count = 0;
 }
 
+agc_meta_data_t agc_meta_data_init()
+{
+    agc_meta_data_t md;
+    md.vnr_flag = AGC_META_DATA_NO_VNR;
+    md.aec_ref_power = AGC_META_DATA_NO_AEC;
+    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
+    md.ref_active_flag = AGC_META_DATA_NO_REF;
+    return md;
+}
+
 // Returns the mantissa for the input float shifted to an exponent of parameter exp
 static int32_t use_exp_float(float_s32_t fl, exponent_t exp)
 {

@@ -100,7 +100,8 @@ foreach( testfile ${TEST_SOURCES} )
                 "-DUNITY_SUPPORT_64"
                 "-Wno-xcore-fptrgroup"
                 "-report"
-                "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}")
+                "-DSPEEDUP_FACTOR=${TEST_SPEEDUP_FACTOR}"
+                "-DXMATH_BFP_DEBUG_CHECK_LENGTHS")
 
         target_link_options(fwk_voice_${TESTNAME}
             PRIVATE

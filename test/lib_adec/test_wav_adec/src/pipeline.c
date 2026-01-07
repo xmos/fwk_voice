@@ -124,6 +124,8 @@ void pipeline_process_frame(pipeline_state_t *state,
     prof(4, "start_is_frame_active");
     // Calculate far_end active
     int is_ref_active = aec_detect_input_activity(input_x_data, state->ref_active_threshold, state->aec_main_state.shared_state->num_x_channels);
+    state->aec_main_state.shared_state->ref_active_flag = is_ref_active;
+
     prof(5, "end_is_frame_active");
 
     //printf("frame %d\n",framenum);

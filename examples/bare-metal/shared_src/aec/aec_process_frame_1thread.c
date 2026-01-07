@@ -175,6 +175,11 @@ void aec_process_frame_1thread(
         
         // main_state->shared_state->overall_Y[ch] is updated
         aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+
+        // main_state->shared_state->overall_Yhat[ch] is updated
+        aec_calc_freq_domain_energy(&main_state->shared_state->overall_Yhat[ch], &main_state->Y_hat[ch]);
+        main_state->shared_state->overall_Yhat[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
+
     }
 
     // Compare and update filters. Calculate adaption step_size mu

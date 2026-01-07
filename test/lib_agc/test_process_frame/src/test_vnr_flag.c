@@ -28,11 +28,7 @@ void test_vnr_flag() {
     conf_vnr0.lc_enabled = 0;
     agc_init(&agc_vnr0, &conf_vnr0);
 
-    agc_meta_data_t md_vnr0;
-    md_vnr0.vnr_flag = f32_to_float_s32(0.0);  // 0.0 in float_s32_t format
-    md_vnr0.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md_vnr0.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md_vnr0.ref_active_flag = 0;
+    agc_meta_data_t md_vnr0 = agc_meta_data_init();
 
     agc_state_t agc_vnr1;
     agc_config_t conf_vnr1 = AGC_PROFILE_XCV_COMMS;

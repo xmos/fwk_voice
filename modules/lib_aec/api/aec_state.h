@@ -55,16 +55,22 @@ typedef struct {
     float_s32_t coh_thresh_slow;
     /** Adaption frozen if coh below coh_thresh_abs.*/
     float_s32_t coh_thresh_abs;
+    /** ERLE threshold */
+    float_s32_t erle_thresh;
+    /** ERLE alpha when bigger */
+    uq2_30 erle_alpha_rise;
+    /** ERLE alpha when smaller */
+    uq2_30 erle_alpha_fall;
     /** Scalefactor for scaling the calculated mu.*/
     float_s32_t mu_scalar;
     /** Parameter to avoid divide by 0 in coh calculation.*/
     float_s32_t eps;
     /** -20dB threshold*/
     float_s32_t thresh_minus20dB;
-    /** X_energy threshold used for determining if the signal has enough reference energy for sensible coherence mu calculation*/ 
-    float_s32_t x_energy_thresh;
     /** Number of frames after low coherence, adaption frozen for.*/
     unsigned mu_coh_time;
+    /** Number of frames after low erle, adaption frozen for.*/
+    unsigned mu_erle_time;
     /** Number of frames after shadow filter use, the adaption is fast for*/
     unsigned mu_shad_time;
     /** Filter adaption mode. Auto, force ON or force OFF*/
@@ -85,9 +91,6 @@ typedef struct {
     float_s32_t shadow_reset_thresh;
     /** threshold for turning off shadow filter reset if reference delay is large*/
     float_s32_t shadow_delay_thresh;
-    /** X energy threshold used for deciding whether the system has enough reference energy for main and shadow filter
-     * comparison to make sense*/
-    float_s32_t x_energy_thresh;
     /** fixed mu value used during shadow filter adaption.*/
     float_s32_t shadow_mu;
     /** Number of times shadow filter needs to be better before it gets copied to main filter.*/
@@ -141,7 +144,10 @@ typedef struct {
     float_s32_t coh; ///< Moving average coherence
     float_s32_t coh_slow; ///< Slow moving average coherence
 
-    int32_t mu_coh_count; ///< Counter for tracking number of frames coherence has been low for.
+    float_s32_t erle; ///< Current ERLE
+    float_s32_t mov_erle; ///< Slow moving average ERLE
+
+    int32_t mu_coh_timer; ///< Timer for tracking number of frames adaption is frozen for.
     int32_t mu_shad_count; ///< Counter for tracking number of frames shadow filter has been used in
     float_s32_t coh_mu[AEC_LIB_MAX_X_CHANNELS]; ///< Coherence mu
 }coherence_mu_params_t;
@@ -223,10 +229,17 @@ typedef struct {
      * bins. Stored in a y channels array with every value stored as a 32bit integer mantissa and exponent.*/
     float_s32_t overall_Y[AEC_LIB_MAX_Y_CHANNELS];
 
+    /** Energy of the estimated mic input spectrum. This is calculated by calculating the energy per bin and summing across all
+     * bins. Stored in a y channels array with every value stored as a 32bit integer mantissa and exponent.*/
+    float_s32_t overall_Yhat[AEC_LIB_MAX_Y_CHANNELS];
+
     /** Sum of the X_energy across all bins for a given x channel. Stored in a x channels array with every value stored
      * as a 32bit integer mantissa and exponent.*/ 
     float_s32_t sum_X_energy[AEC_LIB_MAX_X_CHANNELS]; 
     
+    /** Reference active flag. Indicates if the reference signal is active or not for any x channel.*/
+    int32_t ref_active_flag;
+
     /** Structure containing coherence mu calculation related parameters.*/
     coherence_mu_params_t coh_mu_state[AEC_LIB_MAX_Y_CHANNELS];
 

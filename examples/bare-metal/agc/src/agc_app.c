@@ -65,7 +65,7 @@ void agc_task(const char *input_file_name, const char *output_file_name) {
 
     // Initialise the meta-data. Since this application has neither VNR nor AEC, the meta-data will be
     // constant and can use these pre-defined values to make clear the absence of VNR and AEC.
-    agc_meta_data_t md = {AGC_META_DATA_NO_VNR, AGC_META_DATA_NO_AEC, AGC_META_DATA_NO_AEC};
+    agc_meta_data_t md = agc_meta_data_init();
 
     for (unsigned bl = 0; bl < block_count; ++bl) {
         long input_location =  wav_get_frame_start(&input_header_struct, bl * AGC_FRAME_ADVANCE, input_header_size);

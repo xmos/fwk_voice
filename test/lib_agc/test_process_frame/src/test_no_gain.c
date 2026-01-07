@@ -21,11 +21,7 @@ void test_no_gain() {
     conf.gain = f32_to_float_s32(1);
     agc_init(&agc, &conf);
 
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
-    md.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md.ref_active_flag = 0;
+    agc_meta_data_t md = agc_meta_data_init();
 
     for (unsigned iter = 0; iter < (1<<12)/F; ++iter) {
         for (unsigned idx = 0; idx < AGC_FRAME_ADVANCE; ++idx) {

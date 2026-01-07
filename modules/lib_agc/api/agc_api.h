@@ -211,6 +211,16 @@ typedef struct {
     int32_t ref_active_flag;
 } agc_meta_data_t;
 
+
+/**
+ * @brief Initialise AGC meta data structure
+ * 
+ * Set the AGC meta data values to indicate no VNR, no AEC and no reference signal.
+ * 
+ * @ingroup agc_func
+ */
+agc_meta_data_t agc_meta_data_init();
+
 /**
  * If the application has no VNR, `adapt_on_vnr` must be disabled in the configuration. This
  * pre-processor definition can be assigned to the `vnr_flag` in `agc_meta_data_t` in that
@@ -236,6 +246,16 @@ typedef struct {
  */
 #define AGC_META_DATA_NO_AEC (float_s32_t){0, 0}
 
+
+/**
+ * If the application has no reference signal, this pre-processor definition can be assigned to the
+ * `ref_active_flag` in `agc_meta_data_t` to make it clear in the code that there is no reference
+ * signal.
+ *
+ * @ingroup agc_defs
+ */
+#define AGC_META_DATA_NO_REF 0
+
 /**
  * @brief Perform AGC processing on a frame of input data
  *
@@ -253,10 +273,7 @@ typedef struct {
  * @code{.c}
  *      int32_t input[AGC_FRAME_ADVANCE];
         int32_t output[AGC_FRAME_ADVANCE];
-        agc_meta_data md;
-        md.vnr_flag = AGC_META_DATA_NO_VNR;
-        md.aec_ref_power = AGC_META_DATA_NO_AEC;
-        md.aec_corr_factor = AGC_META_DATA_NO_AEC;
+        agc_meta_data_t md = agc_meta_data_init();
         agc_process_frame(&agc, output, input, &md);
  * @endcode
  *

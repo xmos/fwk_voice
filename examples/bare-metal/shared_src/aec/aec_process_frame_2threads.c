@@ -408,6 +408,9 @@ void calc_freq_domain_energy_task(par_tasks_and_channels_t *s, aec_state_t *main
         if(is_active) {
             if(task == 0) {
                 aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
+                // main_state->shared_state->overall_Yhat[ch] is updated
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Yhat[ch], &main_state->Y_hat[ch]);
+                main_state->shared_state->overall_Yhat[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
             }
             else if(task == 1){
                 aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);

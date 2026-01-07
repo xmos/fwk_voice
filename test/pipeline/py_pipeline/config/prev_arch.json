@@ -26,7 +26,8 @@
         "delta_exp": -38,
         "shadow_delta_exp": -3,
         "leakage": 1.0,
-        "freq_smooth": true
+        "freq_smooth": true,
+        "low_ref_threshold": -60
     },
 "ic":
     {
@@ -67,9 +68,10 @@
         "gain_inc": 1.197,
         "gain_dec": 0.87,
         "adapt": 1,
-        "adapt_on_vad": 1,
+        "adapt_on_vnr": 1,
         "soft_clipping": 1,
         "vad_threshold": 0.5,
+        "vnr_threshold": 0.5,
         "upper_threshold": 0.7079,
         "lower_threshold": 0.1905,
         "lc_enabled": 0,
@@ -79,12 +81,15 @@
         "lc_gamma_inc": 0,
         "lc_gamma_dec": 0,
         "lc_bg_power_gamma": 0,
-        "lc_near_delta_far_act": 0,
         "lc_near_delta": 0,
+        "lc_near_delta_far_active": 0,
         "lc_far_delta": 0,
         "lc_gain_max": 0,
-        "lc_gain_dt": 0,
+        "lc_gain_double_talk": 0,
         "lc_gain_silence": 0,
-        "lc_gain_min": 0
+        "lc_gain_min": 0,
+        "lc_vnr_low": 0.2,
+        "lc_vnr_low_count_limit": 17,
+        "startup_delay": 0
     }
 }

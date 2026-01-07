@@ -107,6 +107,10 @@ void test_bfp_complex_s32_l2_unify_exponent() {
         }
         //check headroom
         for(int sb=0; sb<NUM_SUBGROUPS; sb++) {
+            if (unified[sb].length == 0){
+                printf("iter %d, subgroup %d has zero length\n", iter, sb);
+                continue;
+            }
             int actual_headroom = bfp_complex_s32_headroom(&unified[sb]);
             //printf("hr: dut %d, actual %d\n", unified[sb].hr, actual_headroom);
             if(unified[sb].hr > actual_headroom) {
@@ -207,6 +211,10 @@ void test_bfp_s32_l2_unify_exponent() {
         }
         //check headroom
         for(int sb=0; sb<NUM_SUBGROUPS; sb++) {
+            if (unified[sb].length == 0){
+                printf("iter %d, subgroup %d has zero length\n", iter, sb);
+                continue;
+            }
             int actual_headroom = bfp_s32_headroom(&unified[sb]);
             //printf("hr: dut %d, actual %d\n", unified[sb].hr, actual_headroom);
             if(unified[sb].hr > actual_headroom) {

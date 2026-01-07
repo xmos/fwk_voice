@@ -70,7 +70,7 @@ void tx(chanend_t c_pcm_in_a, chanend_t c_wavheader_a, const char* input_file_na
         file_read (&input_file, (uint8_t*)&input_read_buffer[0], bytes_per_frame* AP_FRAME_ADVANCE);
         // Deinterleave and copy to a [channels][240] array
         for(unsigned f=0; f<AP_FRAME_ADVANCE; f++){
-            for(unsigned ch=0; ch<(AP_MAX_Y_CHANNELS + AP_MAX_Y_CHANNELS); ch++){
+            for(unsigned ch=0; ch<(AP_MAX_Y_CHANNELS + AP_MAX_X_CHANNELS); ch++){
                 unsigned i =(f * (AP_MAX_Y_CHANNELS+AP_MAX_X_CHANNELS)) + ch;
                 frame[ch][f] = input_read_buffer[i];
             }

@@ -13,6 +13,7 @@
 #include "fileio.h"
 #include "wav_utils.h"
 
+#define REF_ACTIVE_THRESHOLD_dB (-60) // Reference input level above which it is considered active
 
 extern void aec_process_frame_1thread(
         aec_state_t *main_state,
@@ -107,6 +108,12 @@ void aec_task(const char *input_file_name, const char *output_file_name) {
         /* Reuse mic data memory for main filter output
          * Reuse ref data memory for shadow filter output.
          */
+
+        /** Detect if there's activity on the reference channels*/
+        int32_t ref_active_flag;
+        ref_active_flag = aec_detect_input_activity(frame_x, f64_to_float_s32(pow(10, REF_ACTIVE_THRESHOLD_dB/20.0)), main_state.shared_state->num_x_channels);
+        main_state.shared_state->ref_active_flag = ref_active_flag;
+
         aec_process_frame_1thread(&main_state, &shadow_state, frame_y, frame_x, frame_y, frame_x);
         
         // Create interleaved output that can be written to wav file
