@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.21)
+include($ENV{XMOS_CMAKE_PATH}/xcommon.cmake)
+project(test_aec_xccm)
+
+set(APP_HW_TARGET XK-EVK-XU316)
+set(XMOS_SANDBOX_DIR ${CMAKE_CURRENT_LIST_DIR}/../../../../)
+set(APP_DEPENDENT_MODULES "lib_aec")
+set(XMOS_DEP_DIR_lib_aec ${XMOS_SANDBOX_DIR}/fwk_voice/modules)
+
+set(APP_COMPILER_FLAGS_default_sched_1thr -DNUM_THREADS=1)
+set(APP_COMPILER_FLAGS_default_sched_2thr -DNUM_THREADS=2)
+XMOS_REGISTER_APP()
+unset(APP_COMPILER_FLAGS_default_sched_1thr)
+unset(APP_COMPILER_FLAGS_default_sched_2thr)
+
+set(AEC_SCHEDULE_CONFIG "2 1 1 20 10")
+set(AEC_SCHEDULE_AUTOGEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/custom_sched1_src.autogen")
+set(APP_COMPILER_FLAGS_custom_sched_1 -DCUSTOM_SCHEDULE=1)
+XMOS_REGISTER_APP()
+unset(APP_COMPILER_FLAGS_custom_sched_1)
+
+set(AEC_SCHEDULE_CONFIG "1 1 1 30 10")
+set(AEC_SCHEDULE_AUTOGEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/custom_sched2_src.autogen")
+set(APP_COMPILER_FLAGS_custom_sched_2 -DCUSTOM_SCHEDULE=1)
+XMOS_REGISTER_APP()
+unset(APP_COMPILER_FLAGS_custom_sched_2)
