@@ -12,7 +12,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# Add tflite_micro 
+# Add tflite_micro
 set(XMOS_AITOOLSLIB_PATH_CMAKE "${XMOS_AITOOLSLIB_PATH}/buildfiles/aitoolslib.cmake")
 
 if(XMOS_AITOOLSLIB_PATH STREQUAL "")

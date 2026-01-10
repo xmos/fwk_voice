@@ -30,6 +30,7 @@ if(PROJECT_IS_TOP_LEVEL)
     endif()
 
     add_compile_options( ${COMPILE_FLAGS} )
+    include(modules/lib_aec/schedule.cmake)
     add_subdirectory( examples )
 
     add_subdirectory( test )

@@ -4,7 +4,7 @@
 #define AEC_DEFINES_H
 
 #ifdef __aec_conf_h_exists__
-    #include "aec_config.h"
+    #include "aec_conf.h"
 #endif
 
 #ifndef AEC_MAIN_FILTER_PHASES

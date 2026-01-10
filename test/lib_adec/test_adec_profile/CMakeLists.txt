@@ -12,33 +12,13 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
     string( REPLACE " " "_" CONFIG_STR ${BUILD_CONFIG} )
     message( STATUS "test_adec_profile ${CONFIG_STR}" )
 
-    ## Generate schedule for given config
-    set( AUTOGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen_${CONFIG_STR} )
-    set( AUTOGEN_SOURCES ${AUTOGEN_DIR}/aec_task_distribution.c )
-    set( AUTOGEN_INCLUDES ${AUTOGEN_DIR}/aec_config.h)
-    set( GEN_SCHEDULE_SCRIPT_BYPRODUCTS ${AUTOGEN_SOURCES} ${AUTOGEN_INCLUDES} )
-    unset( GEN_SCHEDULE_SCRIPT_ARGS)
-    list( APPEND GEN_SCHEDULE_SCRIPT_ARGS --out-dir ${AUTOGEN_DIR})
-    list( APPEND GEN_SCHEDULE_SCRIPT_ARGS --config ${BUILD_CONFIG})
-    file( MAKE_DIRECTORY ${AUTOGEN_DIR})
-    add_custom_command(
-        OUTPUT ${GEN_SCHEDULE_SCRIPT_BYPRODUCTS}
-        COMMAND ${Python3_EXECUTABLE} ${GEN_SCHEDULE_SCRIPT} ${GEN_SCHEDULE_SCRIPT_ARGS}
-        COMMENT "Generating AEC task distribution and top level config" )
-
     file( GLOB_RECURSE SOURCES_APP  ${CMAKE_CURRENT_SOURCE_DIR}/../test_wav_adec/src/*.c )
     file( GLOB SOURCES_AEC_PROCESS_FRAME  ${SHARED_SRC_PATH}/aec/*.c )
 
 #######
     add_executable(fwk_voice_test_adec_profile_${CONFIG_STR})
 
-    target_sources(fwk_voice_test_adec_profile_${CONFIG_STR}
-        PRIVATE
-            ${AUTOGEN_SOURCES})
-
-    target_include_directories(fwk_voice_test_adec_profile_${CONFIG_STR}
-        PRIVATE
-            ${AUTOGEN_DIR})
+    generate_schedule(fwk_voice_test_adec_profile_${CONFIG_STR} ${BUILD_CONFIG})
 
     target_link_libraries(fwk_voice_test_adec_profile_${CONFIG_STR}
         PUBLIC
@@ -48,8 +28,7 @@ foreach( BUILD_CONFIG ${TEST_ADEC_PROFILE_BUILD_CONFIG} )
 
     target_compile_definitions(fwk_voice_test_adec_profile_${CONFIG_STR}
         PRIVATE
-            PROFILE_PROCESSING=1
-            __aec_conf_h_exists__)
+            PROFILE_PROCESSING=1)
 
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         target_compile_options(fwk_voice_test_adec_profile_${CONFIG_STR}
