@@ -15,9 +15,11 @@ void aec_init(
         const aec_task_distribution_t *tdist
     )
 {
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES)); // TODO - this will go away once AEC_LIB_MAX_PHASES is no longer hardocoded
+    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES)); // TODO - this will go away once AEC_LIB_MAX_PHASES is no longer hardocoded
+    assert(tdist);
     aec_priv_main_init(&aec_state->main_state, &aec_state->shared_state, (uint8_t*)&aec_state->main_mem_pool, num_y_channels, num_x_channels, num_main_filter_phases);
     aec_priv_shadow_init(&aec_state->shadow_state, &aec_state->shared_state, (uint8_t*)&aec_state->shadow_mem_pool, num_shadow_filter_phases);
-    assert(tdist);
     aec_state->shared_state.tdist = tdist;
 }
 

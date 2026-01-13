@@ -84,8 +84,8 @@ void aec_process_frame(
         aec_state_t *aec_state,
         int32_t (*output_main)[AEC_FRAME_ADVANCE],
         int32_t (*output_shadow)[AEC_FRAME_ADVANCE],
-        const int32_t (*y_data)[AEC_FRAME_ADVANCE],
-        const int32_t (*x_data)[AEC_FRAME_ADVANCE]);
+        int32_t (*y_data)[AEC_FRAME_ADVANCE],
+        int32_t (*x_data)[AEC_FRAME_ADVANCE]);
 
 /** @brief Detect activity on input channels.
  *

@@ -72,9 +72,6 @@ void parse_runtime_args(int *runtime_args_arr) {
 #define Q1_30(f) ((int32_t)((double)(INT_MAX>>1) * f))
 void pipeline_wrapper(const char *input_file_name, const char* output_file_name)
 {
-    //check validity of compile time configuration
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_MAIN_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
-    assert((AEC_MAX_Y_CHANNELS * AEC_MAX_X_CHANNELS * AEC_SHADOW_FILTER_PHASES) <= (AEC_LIB_MAX_PHASES));
     //Initialise default values of runtime arguments
     runtime_args[Y_CHANNELS] = AEC_MAX_Y_CHANNELS;
     runtime_args[X_CHANNELS] = AEC_MAX_X_CHANNELS;
