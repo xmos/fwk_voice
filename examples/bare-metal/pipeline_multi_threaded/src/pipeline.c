@@ -13,9 +13,9 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"
-#include "ic_api.h"
-#include "ns_api.h"
-#include "agc_api.h"
+#include "ic.h"
+#include "ns.h"
+#include "agc.h"
 
 #define VNR_AGC_THRESHOLD (0.5)
 #define PRINT_VNR_PREDICTION (0)

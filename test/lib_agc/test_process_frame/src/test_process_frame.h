@@ -3,7 +3,7 @@
 #ifndef AGC_UNIT_TESTS_
 #define AGC_UNIT_TESTS_
 
-#include <agc_api.h>
+#include <agc.h>
 #include "unity.h"
 
 #define FRAME_EXP -31

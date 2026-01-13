@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include <ns_api.h>
+#include <ns.h>
 
 #include <fileio.h>
 
@@ -38,7 +38,7 @@ void ns_task(const char *input_file_name, const char *output_file_name){
 
     //Initialise noise suppressor
     prof(0, "start_ns_init");
-    
+
     ns_state_t DWORD_ALIGNED ch1_state;
 
     ns_init(&ch1_state);

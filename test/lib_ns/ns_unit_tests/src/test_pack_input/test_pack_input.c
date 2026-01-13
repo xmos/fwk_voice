@@ -9,7 +9,7 @@
 #include "xmath/xmath.h"
 #include <math.h>
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -34,7 +34,7 @@ TEST(ns_priv_pack_input, case0){
 
     int32_t input_int [NS_FRAME_ADVANCE];
     float_s32_t input_fl;
-    
+
 
     for(int i = 0; i < 1; i++){
         bfp_s32_t curr;

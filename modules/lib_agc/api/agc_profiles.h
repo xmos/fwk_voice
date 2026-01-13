@@ -12,7 +12,7 @@
  * These profiles can be used to initialise the `agc_config_t` data
  * for use with `agc_init()`.
  *
- * This header is automatically included by `agc_api.h`.
+ * This header is automatically included by `agc.h`.
  */
 
 /**

@@ -1,13 +1,13 @@
 NS Header Files
 ===============
 
-.. _ns_api_h:
+.. _ns_h:
 
-`ns_api.h`
+`ns.h`
 -----------
 
-.. doxygenpage:: page_ns_api_h
-  
+.. doxygenpage:: page_ns_h
+
 
 .. _ns_state_h:
 
@@ -15,4 +15,3 @@ NS Header Files
 -------------
 
 .. doxygenpage:: page_ns_state_h
-  

@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "xmath/xmath.h"
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -49,12 +49,12 @@ TEST(ns_priv_update_p, case0){
 
         ns_state_t state;
         ns_init(&state);
-        
+
         alpha_p = 0.2;
         delta = 1.5;
 
         for(int v = 0; v < NS_PROC_FRAME_BINS; v++){
-            
+
             S_int[v] = pseudo_rand_int(&seed, 0x1bbbbbbb, 0x7fffffff);
             S_fl.mant = S_int[v];
             S_fl.exp = EXP;
@@ -99,7 +99,7 @@ TEST(ns_priv_update_p, case0){
             double t = fabs(expected[v] - actual);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }

@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "xmath/xmath.h"
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -56,7 +56,7 @@ TEST(ns_priv_update_lambda_hat, case0){
             adt_fl.exp = EXP;
             adt_db = float_s32_to_double(adt_fl);
 
-            expected[v] = expected[v] * adt_db + (1.0 - adt_db) * (abs_Y_db * abs_Y_db); 
+            expected[v] = expected[v] * adt_db + (1.0 - adt_db) * (abs_Y_db * abs_Y_db);
         }
 
         bfp_s32_t abs_Y_bfp;
@@ -78,7 +78,7 @@ TEST(ns_priv_update_lambda_hat, case0){
             double t = fabs(expected[v] - actual);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }

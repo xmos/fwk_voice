@@ -23,4 +23,4 @@ On GitHub
 API
 ***
 
-To use the functions in this library in an application, include :ref:`ic_api_h` in the application source file
+To use the functions in this library in an application, include :ref:`ic_h` in the application source file

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ic_api.h"
+#include "ic.h"
 #include "ic_low_level.h"
 
 ic_state_t ic_state;

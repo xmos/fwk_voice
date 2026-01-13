@@ -9,7 +9,7 @@
 #include "xmath/xmath.h"
 #include <math.h>
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -43,7 +43,7 @@ TEST(ns_priv_form_output, case0){
     double act_overlap;
 
     for(int i = 0; i < 100; i++){
-        
+
         bfp_s32_t overlap, frame;
         bfp_s32_init(&overlap, overlap_int, EXP, NS_FRAME_ADVANCE, 0);
         bfp_s32_init(&frame, frame_int, EXP, NS_PROC_FRAME_LENGTH, 0);
@@ -57,7 +57,7 @@ TEST(ns_priv_form_output, case0){
         bfp_s32_headroom(&overlap);
 
         for(int j = 0; j < 5; j++){
-            
+
             for(int v = 0; v < NS_PROC_FRAME_LENGTH; v++){
                 frame_int[v] = pseudo_rand_int(&seed, INT_MIN, INT_MAX)/2;
                 frame_fl.mant = frame_int[v];
@@ -88,7 +88,7 @@ TEST(ns_priv_form_output, case0){
             double t = fabs(ex_output[v] - act_output);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }
@@ -109,7 +109,7 @@ TEST(ns_priv_form_output, case0){
             double t = fabs(ex_overlap[v] - act_overlap);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }

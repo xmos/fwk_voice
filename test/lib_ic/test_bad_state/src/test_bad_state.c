@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include "ic_api.h"
+#include "ic.h"
 
 static ic_state_t DWORD_ALIGNED ic_state;
 
@@ -15,13 +15,13 @@ void test_init(int32_t conf, int32_t * H_data)
     ic_state.ic_adaption_controller_state.adaption_controller_config.adaption_config = conf;
     ic_state.ic_adaption_controller_state.adaption_controller_config.enable_adaption = 1;
     ic_state.config_params.bypass = 0;
-    
+
     // Set leakage_alpha to 1.0 for FORCE_OFF mode to prevent decay
     if(conf == IC_ADAPTION_FORCE_OFF) {
         ic_state.leakage_alpha.mant = (1 << 30);  // 1.0 in Q30 format
         ic_state.leakage_alpha.exp = -30;
     }
-    
+
     int indx = 0;
     for(int ph = 0; ph < IC_FILTER_PHASES; ph++){
         // Copy the filter data directly

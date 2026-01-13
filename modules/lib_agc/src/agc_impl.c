@@ -3,7 +3,7 @@
 #include <limits.h>
 #include "agc_defines.h"
 #include "xmath/xmath.h"
-#include <agc_api.h>
+#include <agc.h>
 
 void agc_init(agc_state_t *agc, agc_config_t *config)
 {
@@ -170,10 +170,10 @@ void agc_process_frame(agc_state_t *agc,
             agc->lc_vnr_low_count = 0;
         }
 
-        // If VNR has been low a while, and there's not ref correlation, 
+        // If VNR has been low a while, and there's not ref correlation,
         // update the near background power estimate
         agc->lc_corr_val = meta_data->aec_corr_factor;
-        if ((agc->lc_vnr_low_count >= agc->config.lc_vnr_low_count_limit) && 
+        if ((agc->lc_vnr_low_count >= agc->config.lc_vnr_low_count_limit) &&
             (float_s32_gt(agc->config.lc_corr_threshold, agc->lc_corr_val))){
             agc->lc_near_bg_power_est = float_s32_ema(agc->lc_near_bg_power_est, frame_power, AGC_ALPHA_LC_NEAR_BG_EST);
         }

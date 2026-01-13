@@ -9,7 +9,7 @@
 #include "xmath/xmath.h"
 #include <math.h>
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -115,7 +115,7 @@ TEST(ns_priv_subtract_lambda_from_frame, case0){
             double t = fabs(expected[v] - actual);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }

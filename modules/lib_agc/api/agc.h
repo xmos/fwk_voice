@@ -7,7 +7,7 @@
 #include <agc_profiles.h>
 
 /**
- * @page page_agc_api_h agc_api.h
+ * @page page_agc_h agc.h
  *
  * This header should be included in application source code to gain access to the
  * lib_agc public functions API.
@@ -72,7 +72,7 @@ typedef struct {
     /** Number of frames to mute the output at startup. */
     uint32_t startup_delay;
     /** Boolean to enable loss control. The loss control applies additional
-     *  attenuation when there is no near end speech. This must be disabled 
+     *  attenuation when there is no near end speech. This must be disabled
      *  if the application doesn't have an AEC or VNR. */
     int lc_enabled;
     /** Number of frames required to consider far-end audio active. */
@@ -91,8 +91,8 @@ typedef struct {
     float_s32_t lc_far_delta;
     /** Delta multiplier used when only near-end activity is detected.
      *  How many times louder the near-end signal must be than the background
-     *  noise when there is no far-end playback. If the 
-     *  near end speech is not heard during silence, reduce this value. If 
+     *  noise when there is no far-end playback. If the
+     *  near end speech is not heard during silence, reduce this value. If
      *  too much non-speech background noise is heard, increase this value. */
     float_s32_t lc_near_delta;
     /** Delta multiplier used when both near-end and far-end activity is
@@ -222,8 +222,8 @@ typedef struct {
 
 /**
  * If the application has VNR, `adapt_on_vnr` can be enabled in the configuration. This
- * define is used to covert VNR value from uint8_t to boolean.  
- * 
+ * define is used to covert VNR value from uint8_t to boolean.
+ *
  */
 #define AGC_VNR_THRESHOLD 205
 

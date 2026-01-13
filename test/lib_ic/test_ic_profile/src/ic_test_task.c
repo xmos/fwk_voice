@@ -15,7 +15,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "ic_api.h"
+#include "ic.h"
 #include "fileio.h"
 
 #define INPUT_CHANNELS (IC_Y_CHANNELS + IC_X_CHANNELS)
@@ -48,16 +48,16 @@ void ic_task(const char *input_file_name, const char *output_file_name) {
     prof(0, "start_ic_init");
     ic_state_t state;
     ic_init(&state);
-    prof(1, "end_ic_init"); 
+    prof(1, "end_ic_init");
 
     #if DISABLE_ADAPTION_CONTROLLER
     state.ic_adaption_controller_state.adaption_controller_config.adaption_config = IC_ADAPTION_FORCE_ON;
     state.leakage_alpha = f32_to_float_s32(1.0); //From test_wav_ic
     #endif
 
-    
+
     for(unsigned b=0;b<block_count;b++){
-        // Python makes sure that, Y and X frames interleaved accordingly 
+        // Python makes sure that, Y and X frames interleaved accordingly
         file_read(&input_file, (uint8_t*)frame_y, sizeof(int32_t) * IC_FRAME_ADVANCE);
         file_read(&input_file, (uint8_t*)frame_x, sizeof(int32_t) * IC_FRAME_ADVANCE);
 
@@ -96,7 +96,7 @@ void main_tile0(chanend_t c_cross_tile, chanend_t xscope_chan)
 {
 #if TEST_WAV_XSCOPE
     xscope_io_init(xscope_chan);
-#endif 
+#endif
     ic_task(IN_WAV_FILE_NAME, OUT_WAV_FILE_NAME);
 }
 #else //Linux build

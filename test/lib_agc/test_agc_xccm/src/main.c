@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "agc_api.h"
+#include "agc.h"
 
 int main()
 {

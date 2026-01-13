@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include "ic_api.h"
+#include "ic.h"
 
 static ic_state_t DWORD_ALIGNED ic_state;
 void test_init()

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
-#include "vnr_api.h"
+#include "vnr.h"
 
 static vnr_state_t vnr;
 

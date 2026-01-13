@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 #include "aec.h"
-#include "ic_api.h"
-#include "ns_api.h"
+#include "ic.h"
+#include "ns.h"
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 #include "stage_1.h"

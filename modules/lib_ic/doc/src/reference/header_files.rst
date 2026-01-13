@@ -9,7 +9,7 @@
 ---------------
 
 .. doxygenpage:: page_ic_defines_h
-  
+
 
 .. _ic_state_h:
 
@@ -17,16 +17,16 @@
 -------------
 
 .. doxygenpage:: page_ic_state_h
-  
 
 
-.. _ic_api_h:
 
-`ic_api.h`
+.. _ic_h:
+
+`ic.h`
 ------------
 
-.. doxygenpage:: page_ic_api_h
-  
+.. doxygenpage:: page_ic_h
+
 
 
 

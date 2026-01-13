@@ -87,7 +87,7 @@ ffibuilder.cdef(predefs)
 # Contains the C source necessary to allow the cdefs to work
 ffibuilder.set_source("ic_vnr_test_py",  # name of the output C extension
 """
-    #include "ic_api.h"
+    #include "ic.h"
     #include "ic_low_level.h"
     int test_init(void);
     ic_state_t test_get_ic_state(void);

@@ -15,7 +15,7 @@ AGC Parameters
 
 The key AGC parameters are highlighted below:
 
-.. Descriptions extracted from agc_api.h struct documentation to avoid duplication
+.. Descriptions extracted from agc.h struct documentation to avoid duplication
 
 * :c:member:`agc_config_t.adapt` - Boolean to enable AGC adaption; if enabled, the gain to apply will adapt based on the peak of the input frame and the upper/lower threshold parameters.
 * :c:member:`agc_config_t.vnr_threshold` - VNR threshold for voice activity detection. A higher value will only adapt the AGC on clean speech. A lower value will adapt the AGC on noisy speech, but may also adapt to more non-speech signals.

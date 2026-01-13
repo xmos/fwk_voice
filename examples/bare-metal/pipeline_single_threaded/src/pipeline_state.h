@@ -5,7 +5,7 @@
 #include "stage_1.h"
 #include "ic_state.h"
 #include "ns_state.h"
-#include "agc_api.h"
+#include "agc.h"
 
 typedef struct {
     float_s32_t max_ref_energy;

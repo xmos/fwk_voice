@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "xmath/xmath.h"
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 
@@ -72,7 +72,7 @@ TEST(ns_priv_update_alpha_d_tilde, case0){
             double t = fabs(expected[v] - actual);
 
             if (t > abs_diff){
-                abs_diff = t; 
+                abs_diff = t;
                 id = v;
             }
         }

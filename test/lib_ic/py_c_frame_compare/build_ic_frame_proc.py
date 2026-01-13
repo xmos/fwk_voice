@@ -73,7 +73,7 @@ predefs +
 # Contains the C source necessary to allow the cdefs to work
 ffibuilder.set_source("ic_test_py",  # name of the output C extension
 """
-    #include "ic_api.h"
+    #include "ic.h"
     void test_init(void);
     ic_state_t test_get_state(void);
     void test_filter(int32_t y_data[IC_FRAME_ADVANCE], int32_t x_data[IC_FRAME_ADVANCE], int32_t output[IC_FRAME_ADVANCE]);

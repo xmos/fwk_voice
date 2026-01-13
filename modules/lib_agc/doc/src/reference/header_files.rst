@@ -1,13 +1,13 @@
 AGC Header Files
 ================
 
-.. _agc_api_h:
+.. _agc_h:
 
-`agc_api.h`
+`agc.h`
 -----------
 
-.. doxygenpage:: page_agc_api_h
-  
+.. doxygenpage:: page_agc_h
+
 
 .. _agc_profiles_h:
 
@@ -15,4 +15,4 @@ AGC Header Files
 ----------------
 
 .. doxygenpage:: page_agc_profiles_h
-  
+

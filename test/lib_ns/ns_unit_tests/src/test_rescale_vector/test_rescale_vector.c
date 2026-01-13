@@ -9,7 +9,7 @@
 #include "xmath/xmath.h"
 #include <math.h>
 
-#include <ns_api.h>
+#include <ns.h>
 #include <ns_priv.h>
 #include <unity.h>
 

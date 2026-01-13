@@ -1,7 +1,7 @@
 // Copyright 2025 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "vnr_api.h"
+#include "vnr.h"
 
 void vnr_state_init(vnr_state_t *vnr)
 {

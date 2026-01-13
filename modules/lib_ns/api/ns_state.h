@@ -6,11 +6,11 @@
 #include "xmath/xmath.h"
 
 /**
- * @page page_ns_state_h ns_state.h 
- * 
+ * @page page_ns_state_h ns_state.h
+ *
  * This header contains definitions for data structure and defines.
- * 
- * This header is automatically included by `ns_api.h`
+ *
+ * This header is automatically included by `ns.h`
  */
 
 /**
@@ -34,7 +34,7 @@
  * NS_PROC_FRAME_BINS spectrum values represent the bins from DC to Nyquist.
  *
  * @ingroup ns_defs
- */   
+ */
 #define NS_PROC_FRAME_BINS        ((NS_PROC_FRAME_LENGTH / 2) + 1)
 
 /** The exponent used internally to keep q1.31 format.
@@ -44,19 +44,19 @@
 #define NS_INT_EXP (-31)
 
 /** The length of the window applied in time domain
- * 
+ *
  * @ingroup ns_defs
  */
 #define NS_WINDOW_LENGTH (480)
 
-/** 
+/**
  * @brief NS state structure
- * 
+ *
  * This structure holds the current state of the NS instance and members are updated each
  * time that `ns_process_frame()` runs. Many of these members are exponentially-weighted
- * moving averages (EWMA) which influence the behaviour of the NS filter. 
- * The user should not directly modify any of these members. 
- * 
+ * moving averages (EWMA) which influence the behaviour of the NS filter.
+ * The user should not directly modify any of these members.
+ *
  * @ingroup ns_defs
  */
 typedef struct {

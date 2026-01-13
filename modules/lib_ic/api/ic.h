@@ -6,8 +6,8 @@
 #include "ic_state.h"
 
 /**
- * @page page_ic_api_h ic_api.h
- * 
+ * @page page_ic_h ic.h
+ *
  * lib_ic public functions API.
  *
  * @ingroup ic_header_file
@@ -16,7 +16,7 @@
 /**
  * @defgroup ic_func     High Level API Functions
  * @defgroup ic_low_level_func   Low Level API Functions
- */ 
+ */
 
 /**
  * @brief Initialise IC and VNR data structures and set parameters according to ic_defines.h
@@ -24,7 +24,7 @@
  * This is the first function that must called after creating an ic_state_t instance.
  *
  * @param[inout] state pointer to IC state structure
- * @returns Error status of the VNR inference engine initialisation that is done as part of ic_init. 0 if no error, one of TfLiteStatus error enum values in case of error. 
+ * @returns Error status of the VNR inference engine initialisation that is done as part of ic_init. 0 if no error, one of TfLiteStatus error enum values in case of error.
  * @ingroup ic_func
  */
 int32_t ic_init(ic_state_t *state);
@@ -36,12 +36,12 @@ int32_t ic_init(ic_state_t *state);
  * This should be called once per new frame of IC_FRAME_ADVANCE samples.
  * The y_data array contains the microphone data that is to have the
  * noise subtracted from it and x_data is the noise reference source which
- * is internally delayed before being fed into the adaptive filter. 
- * Note that the y_data input array is internally delayed by the call to 
+ * is internally delayed before being fed into the adaptive filter.
+ * Note that the y_data input array is internally delayed by the call to
  * ic_filter() and so contains the delayed y_data afterwards.
  * Typically it does not matter which mic channel is connected to x or y_data
  * as long as the separation is appropriate. The performance of this filter
- * has been optimised for a 71mm mic separation distance. 
+ * has been optimised for a 71mm mic separation distance.
  *
  * @param[inout] state pointer to IC state structure
  * @param[inout] y_data array reference of mic 0 input buffer. Modified during call

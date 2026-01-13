@@ -1,8 +1,8 @@
 Noise Suppression Library
 =========================
 
-``lib_ns`` is a library which performs Noise Suppression (NS), by estimating the noise and 
-subtracting it from frame. ``lib_ns`` library functions make use of functionality 
+``lib_ns`` is a library which performs Noise Suppression (NS), by estimating the noise and
+subtracting it from frame. ``lib_ns`` library functions make use of functionality
 provided in ``lib_xcore_math`` to perform DSP operations. For more details, refer to :ref:`ns_overview`.
 
 .. toctree::
@@ -22,5 +22,5 @@ On GitHub
 API
 ***
 
-To use the functions in this library in an application, include :ref:`ns_api_h` in the application source file.
+To use the functions in this library in an application, include :ref:`ns_h` in the application source file.
 

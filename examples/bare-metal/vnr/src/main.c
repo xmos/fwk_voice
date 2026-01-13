@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "vnr_api.h"
+#include "vnr.h"
 
 int32_t pseudo_rand(int* state)
 {
