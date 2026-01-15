@@ -22,13 +22,15 @@ elseif(NOT EXISTS  ${XMOS_AITOOLSLIB_PATH_CMAKE})
 else()
     message(STATUS "Found python package xmos-ai-tools at: ${XMOS_AITOOLSLIB_PATH}")
     include(${XMOS_AITOOLSLIB_PATH_CMAKE})
-    set(TFLM_LIB_NAME tflite_micro)
-    add_library(${TFLM_LIB_NAME} STATIC IMPORTED GLOBAL)
-    target_compile_definitions(${TFLM_LIB_NAME} INTERFACE ${XMOS_AITOOLSLIB_DEFINITIONS})
-    set_target_properties(${TFLM_LIB_NAME}  PROPERTIES
-        LINKER_LANGUAGE CXX
-        IMPORTED_LOCATION ${XMOS_AITOOLSLIB_LIBRARIES}
-        INTERFACE_INCLUDE_DIRECTORIES ${XMOS_AITOOLSLIB_INCLUDES})
+    if(NOT TARGET tflite_micro)
+        set(TFLM_LIB_NAME tflite_micro)
+        add_library(${TFLM_LIB_NAME} STATIC IMPORTED GLOBAL)
+        target_compile_definitions(${TFLM_LIB_NAME} INTERFACE ${XMOS_AITOOLSLIB_DEFINITIONS})
+        set_target_properties(${TFLM_LIB_NAME}  PROPERTIES
+            LINKER_LANGUAGE CXX
+            IMPORTED_LOCATION ${XMOS_AITOOLSLIB_LIBRARIES}
+            INTERFACE_INCLUDE_DIRECTORIES ${XMOS_AITOOLSLIB_INCLUDES})
+    endif()
 endif()
 
 ## Export model

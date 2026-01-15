@@ -8,11 +8,11 @@
 import subprocess
 
 xcore_math_types_api_dir = "../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
-lib_ic_api_dir = "../../modules/lib_ic/api/"
-lib_ic_src_dir = "../../modules/lib_ic/src/"
-lib_vnr_api_dir = "../../modules/lib_vnr/api/"
-lib_vnr_model_dir = "../../modules/lib_vnr/src/model"
-lib_vnr_src_dir = "../../modules/lib_vnr/src/"
+lib_ic_api_dir = "../../lib_voice/api/ic/"
+lib_ic_src_dir = "../../lib_voice/src/ic"
+lib_vnr_api_dir = "../../lib_voice/api/vnr/"
+lib_vnr_model_dir = "../../lib_voice/src/vnr/model"
+lib_vnr_src_dir = "../../lib_voice/src/vnr/"
 state = []
 
 def extract_section(line, pp, filenames):
@@ -44,10 +44,10 @@ def extract_xcore_math():
                 state.append(line)
 
     # really hacky way to work-around CFFI's lack of support for `extern "C"`
-    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the 
-    #  closing bracket is the last line.  However, this may not make the parsing of 
-    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
-    #  subtle changes to the header.  
+    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the
+    #  closing bracket is the last line.  However, this may not make the parsing of
+    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by
+    #  subtle changes to the header.
     EXTERN_C_LINE_NUM=2
     if 'extern "C"' in state[EXTERN_C_LINE_NUM]:
         del state[EXTERN_C_LINE_NUM]
@@ -57,7 +57,7 @@ def extract_pre_defs():
     #Grab xcore_math types
     extract_xcore_math()
 
-    #Grab just ic_state related lines from the C pre-processed 
+    #Grab just ic_state related lines from the C pre-processed
     subprocess.call(f"gcc -E ic_vnr_test.c -o ic_vnr_test.i -I {lib_ic_api_dir} -I {lib_ic_src_dir} -I {xcore_math_types_api_dir} -I {lib_vnr_api_dir} -I {lib_vnr_model_dir} -I {lib_vnr_src_dir}".split())
 
     with open("ic_vnr_test.i") as pp:
@@ -67,7 +67,7 @@ def extract_pre_defs():
         while not end_of_file:
             if line == "":
                 end_of_file = True
-                break 
+                break
             if line.startswith("#"):
                 line = extract_section(line, pp, ["ic_state.h", "vnr_state.h"])
                 continue

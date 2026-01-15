@@ -8,17 +8,17 @@
 import subprocess
 
 xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
-lib_ic_api_dir = "../../../modules/lib_ic/api/"
-lib_vnr_api_dir = "../../../modules/lib_vnr/api/"
-lib_vnr_model_dir = "../../../modules/lib_vnr/src/model"
-lib_vnr_src_dir = "../../../modules/lib_vnr/src/"
+lib_ic_api_dir = "../../../lib_voice/api/ic/"
+lib_vnr_api_dir = "../../../lib_voice/api/vnr/"
+lib_vnr_model_dir = "../../../lib_voice/src/vnr/model"
+lib_vnr_src_dir = "../../../lib_voice/src/vnr/"
 ic_state = []
 
 def extract_section(line, pp):
     log_ic_state = False
     if  ("ic_state.h" in line) or ("vnr_state.h" in line):
         log_ic_state = True
-    
+
     if log_ic_state:
         print("log_ic_state True for line = ",line)
     else:
@@ -42,10 +42,10 @@ def extract_xcore_math():
                 ic_state.append(line)
 
     # really hacky way to work-around CFFI's lack of support for `extern "C"`
-    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the 
-    #  closing bracket is the last line.  However, this may not make the parsing of 
-    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
-    #  subtle changes to the header.  
+    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the
+    #  closing bracket is the last line.  However, this may not make the parsing of
+    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by
+    #  subtle changes to the header.
     EXTERN_C_LINE_NUM=2
     if 'extern "C"' in ic_state[EXTERN_C_LINE_NUM]:
         del ic_state[EXTERN_C_LINE_NUM]
@@ -55,7 +55,7 @@ def extract_pre_defs():
     #Grab xcore_math types
     extract_xcore_math()
 
-    #Grab just ic_state related lines from the C pre-processed 
+    #Grab just ic_state related lines from the C pre-processed
     subprocess.call(f"gcc -E ic_test.c -o ic_test.i -I {lib_ic_api_dir} -I {xcore_math_types_api_dir} -I {lib_vnr_api_dir} -I {lib_vnr_src_dir} -I {lib_vnr_model_dir}".split())
 
     with open("ic_test.i") as pp:
@@ -65,7 +65,7 @@ def extract_pre_defs():
         while not end_of_file:
             if line == "":
                 end_of_file = True
-                break 
+                break
             if line.startswith("#"):
                 line = extract_section(line, pp)
                 continue
@@ -77,4 +77,4 @@ if __name__ == "__main__":
     extract_pre_defs()
     for line in ic_state:
         print(line, end="")
-        
+

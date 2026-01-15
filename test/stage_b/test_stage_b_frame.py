@@ -17,7 +17,7 @@ pvc_path = os.path.join(package_dir, '../shared/python')
 hydra_audio_base_dir = os.path.expanduser("~/hydra_audio/")
 
 sys.path.append(pvc_path)
-import py_vs_c_utils as pvc 
+import py_vs_c_utils as pvc
 
 from py_voice.modules import ic
 from py_voice.core.fdaf_core import adaption_state
@@ -25,7 +25,7 @@ from py_voice.config import config
 from pathlib import Path
 
 ap_config_file = Path(__file__).parents[1] / "shared" / "config" / "ic_conf_no_adapt_control.json"
-tflite_model = os.path.join(package_dir, "../../modules/lib_vnr/python/model/trained_model.tflite")
+tflite_model = os.path.join(package_dir, "../../lib_voice/python/model/trained_model.tflite")
 input_file = "input.wav"
 output_file = "output.wav"
 
@@ -58,8 +58,8 @@ class stage_b_comparison:
 
         self.x_data = np.zeros(self.proc_frame_length, dtype=np.float64)
 
-        err = ic_vnr_test_lib.test_init() 
-        
+        err = ic_vnr_test_lib.test_init()
+
         #Logging
         self.ic_state = None
         self.py_vnr = None
@@ -91,7 +91,7 @@ class stage_b_comparison:
 def test_frame_compare(test_config):
 
     test_config["ic"]["adaption_config"] = 'ADAPTION_AUTO'
-    test_config["ic"]["vnr_model"] = "../../modules/lib_vnr/python/model/trained_model.tflite"
+    test_config["ic"]["vnr_model"] = "../../lib_voice/python/model/trained_model.tflite"
     sbc = stage_b_comparison(test_config)
 
     frame_advance = sbc.frame_advance
@@ -114,7 +114,7 @@ def test_frame_compare(test_config):
 
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py
         output_wav_data[1, frame_start: frame_start + frame_advance] = output_c
-        
+
     #Write a copy of the output for post analysis if needed
     scipy.io.wavfile.write(output_file, input_rate, pvc.float_to_int32(output_wav_data.T))
 
@@ -141,7 +141,7 @@ def get_ad_conf(int):
 
 #Check equivalence of adaption controller
 def test_adaption_controller(test_config):
-    
+
     ic_obj = ic.ic(test_config)
     ic_vnr_test_lib.test_init()
 
@@ -151,7 +151,7 @@ def test_adaption_controller(test_config):
     ad_config_vect = np.hstack((ad_config_vect, np.random.randint(low = 0, high = 3, size = (5000), dtype = np.int32)))
 
     for vnr, fast_ratio, ad_config in zip(vnr_vect, fast_ratio_vect, ad_config_vect):
-        
+
         ic_obj.fast_ratio = fast_ratio
         ic_obj.adaption_config = get_ad_conf(ad_config)
         ic_obj.input_vnr_pred = vnr
@@ -160,7 +160,7 @@ def test_adaption_controller(test_config):
         py_leakage = ic_obj.leakage
         py_counter = ic_obj.adapt_counter
         py_flag = ic_obj.control_flag
-        
+
         ic_vnr_test_lib.test_control_system(vnr, ad_config, fast_ratio)
         ic_state = ic_vnr_test_lib.test_get_ic_state()
         c_mu = pvc.float_s32_to_float(ic_state.mu[0][0])

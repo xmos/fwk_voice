@@ -5,7 +5,7 @@ import py_voice.modules.vnr as vnr
 import test_utils
 from run_dut import run_dut
 
-tflite_model = Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "trained_model.tflite"
+tflite_model = Path(__file__).parents[3] / "lib_voice" / "python" / "model" / "trained_model.tflite"
 vnr_conf = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
 bin_dir_path = Path(__file__).parents[3] / "build" / "test" / "lib_vnr" / "vnr_unit_tests" / "bin"
 
@@ -25,7 +25,7 @@ def dequantise(model_details):
     def _dequantise(output_data):
         return test_utils.dequantise_output(output_data, model_details[1])
 
-    return _dequantise 
+    return _dequantise
 
 @pytest.fixture
 def vnr_obj():

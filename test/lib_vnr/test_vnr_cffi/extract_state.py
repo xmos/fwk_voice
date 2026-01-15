@@ -8,9 +8,9 @@
 import subprocess
 
 xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
-lib_vnr_api_dir = "../../../modules/lib_vnr/api/"
-lib_vnr_model_dir = "../../../modules/lib_vnr/src/model"
-lib_vnr_src_dir = "../../../modules/lib_vnr/src/"
+lib_vnr_api_dir = "../../../lib_voice/api/vnr"
+lib_vnr_model_dir = "../../../lib_voice/src/vnr/model"
+lib_vnr_src_dir = "../../../lib_voice/src/vnr/"
 vnr_state = []
 
 def extract_section_vnr(line, pp):
@@ -37,10 +37,10 @@ def extract_xcore_math_vnr():
                 vnr_state.append(line)
 
     # really hacky way to work-around CFFI's lack of support for `extern "C"`
-    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the 
-    #  closing bracket is the last line.  However, this may not make the parsing of 
-    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by 
-    #  subtle changes to the header.  
+    #  this is fragile because it assumes the extern "C" is on line #2.  And, that the
+    #  closing bracket is the last line.  However, this may not make the parsing of
+    #  the lib_xcore_math types.h file any more fragile.  The parsing can be broken by
+    #  subtle changes to the header.
     EXTERN_C_LINE_NUM=2
     if 'extern "C"' in vnr_state[EXTERN_C_LINE_NUM]:
         del vnr_state[EXTERN_C_LINE_NUM]
@@ -50,7 +50,7 @@ def extract_pre_defs_vnr():
     #Grab xcore_math types
     extract_xcore_math_vnr()
 
-    #Grab just vnr_feature_state related lines from the C pre-processed 
+    #Grab just vnr_feature_state related lines from the C pre-processed
     subprocess.call(f"gcc -E vnr_test.c -o vnr_test.i -I {lib_vnr_api_dir} -I {lib_vnr_model_dir} -I {lib_vnr_src_dir} -I {xcore_math_types_api_dir}".split())
 
     with open("vnr_test.i") as pp:
@@ -60,16 +60,16 @@ def extract_pre_defs_vnr():
         while not end_of_file:
             if line == "":
                 end_of_file = True
-                break 
+                break
             if line.startswith("#"):
                 line = extract_section_vnr(line, pp)
                 continue
             line = pp.readline()
 
     return "".join(vnr_state)
- 
+
 if __name__ == "__main__":
     extract_pre_defs_vnr()
     for line in vnr_state:
         print(line, end="")
-        
+

@@ -13,9 +13,8 @@ To fetch `fwk_voice` and use `lib_vnr`, the `CMakeLists.txt` should look somethi
 
   set(APP_HW_TARGET XK-EVK-XU316)
   set(XMOS_SANDBOX_DIR ${CMAKE_CURRENT_LIST_DIR}/../../)
-  set(APP_DEPENDENT_MODULES "lib_vnr")
-
-  set(XMOS_DEP_DIR_lib_vnr ${XMOS_SANDBOX_DIR}/fwk_voice/modules)
+  set(XMOS_DEP_DIR_lib_voice ${XMOS_SANDBOX_DIR}/fwk_voice)
+  set(APP_DEPENDENT_MODULES "lib_voice")
   if(NOT EXISTS ${XMOS_SANDBOX_DIR}/fwk_voice)
   include(FetchContent)
   FetchContent_Declare(

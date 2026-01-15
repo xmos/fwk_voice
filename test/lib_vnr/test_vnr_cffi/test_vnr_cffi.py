@@ -19,11 +19,11 @@ print(hydra_audio_path)
 streams = (hydra_audio_path / "test_wav_vnr_streams").glob("*wav")
 streams = [str(s) for s in streams]
 
-vnr_model_path = str(Path(__file__).parents[3] / "modules" / "lib_vnr" / "python" / "model" / "trained_model.tflite")
+vnr_model_path = str(Path(__file__).parents[3] / "lib_voice" / "python" / "model" / "trained_model.tflite")
 vnr_conf_path = Path(__file__).parents[4] / "py_voice" / "py_voice" / "config" / "components" / "vnr_only.json"
 
 def bfp_s32_to_float(bfp_struct, data):
-    
+
     # bfp_s32_t in  ffi is stored as x[0], x[1] address, x[2] exp, x[3] hr, x[4] len. where x is an int32 array
     exp = bfp_struct[2]
     len = bfp_struct[4]
@@ -32,7 +32,7 @@ def bfp_s32_to_float(bfp_struct, data):
 
 class vnr_feature_comparison:
     def __init__(self):
-        self.vnr_obj = vnr.vnr(vnr_conf_path, model_file=vnr_model_path) 
+        self.vnr_obj = vnr.vnr(vnr_conf_path, model_file=vnr_model_path)
         self.x_data = np.zeros(vnr.FRAME_LEN, dtype=np.float64)
         err = vnr_test_lib.test_init()
 
@@ -48,19 +48,19 @@ class vnr_feature_comparison:
         # Inference
         ref_ie_output = self.vnr_obj.run(ref_features)
         ref_features = ref_features.flatten()
-        
+
         # DUT
         dut_x_data = ffi.cast("int32_t *", ffi.from_buffer(frame_int[0].data))
         dut_features_bfp = np.zeros((20), dtype=np.int32)
         dut_features_bfp_ptr = ffi.cast("bfp_s32_t *", ffi.from_buffer(dut_features_bfp.data))
         dut_features_data = np.zeros((vnr.PATCH_WIDTH * vnr.MEL_FILTERS), dtype=np.int32)
-        dut_features_data_ptr = ffi.cast("int32_t *", ffi.from_buffer(dut_features_data.data))        
-        # Features       
+        dut_features_data_ptr = ffi.cast("int32_t *", ffi.from_buffer(dut_features_data.data))
+        # Features
         vnr_test_lib.test_vnr_features(dut_features_bfp_ptr, dut_features_data_ptr, dut_x_data)
         dut_features = bfp_s32_to_float(dut_features_bfp, dut_features_data)
         # Inference
         dut_ie_output = vnr_test_lib.test_vnr_inference(dut_features_bfp_ptr)
-        
+
         return ref_features, dut_features, ref_ie_output[0], dut_ie_output
 
 @pytest.mark.parametrize("input_file", streams)
@@ -82,7 +82,7 @@ def test_frame_features(input_file):
         dut_features_output = np.append(dut_features_output, dut_features)
         ref_ie_output = np.append(ref_ie_output, ref_ie)
         dut_ie_output = np.append(dut_ie_output, dut_ie)
-    
+
     # Compare features
     arith_closeness_features, geo_closeness_features = pvc.get_closeness_metric(ref_features_output, dut_features_output)
     print(f"Features: arith_closeness {arith_closeness_features}, geo_closeness {geo_closeness_features}")

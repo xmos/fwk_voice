@@ -6,7 +6,15 @@ find_program(PYTHON_EXE python NO_CACHE)
 message(STATUS "PYTHON_EXE = ${PYTHON_EXE}")
 message(STATUS "AEC_SCHEDULE_CONFIG = ${AEC_SCHEDULE_CONFIG}")
 
-set(GEN_SCHEDULE_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/../../test/shared/python/generate_task_distribution_scheme.py")
+
+# Resolve script path relative to this file, to avoid depending on CMAKE_SOURCE_DIR
+get_filename_component(GEN_SCHEDULE_SCRIPT
+  "${XMOS_SANDBOX_DIR}/fwk_voice/test/shared/python/generate_task_distribution_scheme.py"
+  REALPATH
+)
+if (NOT EXISTS "${GEN_SCHEDULE_SCRIPT}")
+  message(FATAL_ERROR "AEC schedule generator not found at: ${GEN_SCHEDULE_SCRIPT}")
+endif()
 if(AEC_SCHEDULE_AUTOGEN_DIR)
   set(AUTOGEN_DIR "${AEC_SCHEDULE_AUTOGEN_DIR}")
 else()

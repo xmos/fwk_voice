@@ -10,7 +10,7 @@ from cffi import FFI
 from extract_state import extract_pre_defs_vnr
 
 # One more ../ than necessary - builds in the 'build' folder
-MODULE_ROOT = Path("../../../../modules")
+MODULE_ROOT = Path("../../../../lib_voice")
 XCORE_MATH = Path("../../../../build/fwk_voice_deps/lib_xcore_math")
 
 # TFLite Micro configuration
@@ -28,25 +28,24 @@ FLAGS = [
 ]
 
 INCLUDE_DIRS = [
-    str(MODULE_ROOT / "lib_vnr" / "api"),
-    str(MODULE_ROOT / "lib_vnr" / "src"), 
-    str(MODULE_ROOT / "lib_vnr" / "src" / "model"),
+    str(MODULE_ROOT / "api" / "vnr"),
+    str(MODULE_ROOT / "src" / "vnr"),
+    str(MODULE_ROOT / "src" / "vnr" / "model"),
     str(XCORE_MATH / "lib_xcore_math" / "api"),
     str(TFLITE_MICRO_INCLUDE)
 ]
 
 LIBRARY_DIRS = [
-    '../../../../build/modules/lib_vnr',
-    '../../../../build/test/lib_vnr',
+    '../../../../build/lib_voice/',
     '../../../../build/fwk_voice_deps/build',
     str(TFLITE_MICRO_LIB_DIR)
 ]
 
 LIBRARIES = [
-    'fwk_voice_module_lib_vnr', 
-    'lib_xcore_math', 
+    'fwk_voice_module_lib_vnr',
+    'lib_xcore_math',
     str(TFLITE_MICRO_LIB),
-    'm', 
+    'm',
     'stdc++'
 ]  # on Unix, link with the math library. Linking order is important here for gcc compile on Linux!
 
@@ -72,7 +71,7 @@ predefs +
 ffibuilder.set_source("vnr_test_py",  # name of the output C extension
 """
     #include "vnr_features_api.h"
-    #include "vnr_inference_api.h" 
+    #include "vnr_inference_api.h"
     //#include "tensorflow/lite/micro/kernels/micro_ops.h"
     int test_init(void);
     vnr_feature_state_t test_get_feature_state(void);

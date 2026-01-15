@@ -12,7 +12,7 @@ enable_language(CXX C ASM)
 find_package( Python3 COMPONENTS Interpreter )
 
 ## Add libs and apps
-add_subdirectory( modules )
+add_subdirectory( lib_voice )
 
 if(PROJECT_IS_TOP_LEVEL)
 

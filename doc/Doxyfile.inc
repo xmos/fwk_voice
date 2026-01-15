@@ -4,22 +4,22 @@ PROJECT_NAME = Avona
 PROJECT_BRIEF = "Avona Reference Design"
 
 # AEC module
-INPUT += ../modules/lib_aec/api
+INPUT += ../lib_voice/api/aec
 
 # NS module
-INPUT += ../modules/lib_ns/api
+INPUT += ../lib_voice/api/ns
 
 # AGC module
-INPUT += ../modules/lib_agc/api
+INPUT += ../lib_voice/api/agc
 
 # ADEC module
-INPUT += ../modules/lib_adec/api
+INPUT += ../lib_voice/api/adec
 
 # IC module
-INPUT += ../modules/lib_ic/api
+INPUT += ../lib_voice/api/ic
 
 # VNR module
-INPUT += ../modules/lib_vnr/api
+INPUT += ../lib_voice/api/vnr
 
 PREDEFINED             = C_API= EXTERN_C= DWORD_ALIGNED=
 
