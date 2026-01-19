@@ -84,18 +84,30 @@ pipeline {
                 }
               }
             }
-            stage('CMake') {
+            stage('xcommon-cmake build') {
               steps {
-                // Do xcore files
+                dir("${REPO}") {
+                  checkout scm
+                    withTools(params.TOOLS_VERSION) {
+                      withVenv {
+                        xcoreBuild(buildDir: "build_xcommon_cmake", archiveBins: false)
+                      }
+                    }
+                }
+              }
+            }
+            stage('Custom CMake build') {
+              steps {
+                // Do custom cmake, xcore build
                 dir("${REPO}/build") {
                   withTools(params.TOOLS_VERSION) {
                     withVenv {
                       script {
                           if (env.FULL_TEST == "1") {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
                           }
                           else {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
                           }
                       }
                       sh 'make -j$(nproc)'
@@ -156,7 +168,7 @@ pipeline {
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
-                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON'
+                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
                     sh 'make -j$(nproc)'
 
                     // We need to put this here because it is not fetched until we build
@@ -172,27 +184,6 @@ pipeline {
                   }
                   dir("test/stage_b") {
                     sh "python build_c_code.py"
-                  }
-                  // test VNR xcommon_cmake build
-                  dir("test/lib_vnr/test_vnr_xccm") {
-                    xcoreBuild(archiveBins: false)
-                  }
-                  // test NS xcommon_cmake build
-                  dir("test/lib_ns/test_ns_xccm") {
-                    xcoreBuild(archiveBins: false)
-                  }
-                  // test AGC xcommon_cmake build
-                  dir("test/lib_agc/test_agc_xccm") {
-                    xcoreBuild(archiveBins: false)
-                  }
-                  dir("test/lib_aec/test_aec_xccm") {
-                    xcoreBuild(archiveBins: false)
-                  }
-                  dir("test/lib_ic/test_ic_xccm") {
-                    xcoreBuild(archiveBins: false)
-                  }
-                  dir("test/lib_adec/test_stage1_xccm") {
-                    xcoreBuild(archiveBins: false)
                   }
                   unstash 'cmake_build_xcore'
                 }

@@ -1,3 +1,7 @@
+
+option(USING_CUSTOM_CMAKE "Enable legacy custom CMake build" OFF)
+
+if(USING_CUSTOM_CMAKE)
 cmake_minimum_required(VERSION 3.21)
 
 ## Disable in-source build.
@@ -47,4 +51,10 @@ if(PROJECT_IS_TOP_LEVEL)
 
     set( CONFIG_XSCOPE_PATH ${CMAKE_SOURCE_DIR}/test/shared/file_utils)
     add_subdirectory( test )
+endif()
+else()
+cmake_minimum_required(VERSION 3.21)
+include($ENV{XMOS_CMAKE_PATH}/xcommon.cmake)
+project(fwk_voice)
+add_subdirectory(test)
 endif()
