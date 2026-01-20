@@ -93,9 +93,6 @@
 /** Initial value for the input VNR prediction.
  * @ingroup ic_defines */
 #define IC_INIT_INPUT_VNR_PRED			    0.5 // From python model
-/** Initial value for the output VNR prediction.
- * @ingroup ic_defines */
-#define IC_INIT_OUTPUT_VNR_PRED                      0.5 // From python model
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////Parameters below are fixed and are not designed to be configurable - DO NOT EDIT///////

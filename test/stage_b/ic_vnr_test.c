@@ -26,8 +26,8 @@ void test_adapt(float_s32_t vnr){
 
 float_s32_t test_vnr(){
 
-    float_s32_t input_vnr_pred, output_vnr_pred;
-    ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
+    float_s32_t input_vnr_pred;
+    ic_calc_vnr_pred(&ic_state, &input_vnr_pred);
 
     return ic_state.vnr_pred_state.input_vnr_pred;
 }

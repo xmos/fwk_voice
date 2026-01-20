@@ -16,6 +16,7 @@ void aec_init(
     )
 {
     assert(tdist);
+    assert(tdist->thread_count <= 3); // hardcoded in PAR_THREADS_PJOBS macro
     aec_priv_main_init(&aec_state->main_state, &aec_state->shared_state, (uint8_t*)&aec_state->main_mem_pool, num_y_channels, num_x_channels, num_main_filter_phases);
     aec_priv_shadow_init(&aec_state->shadow_state, &aec_state->shared_state, (uint8_t*)&aec_state->shadow_mem_pool, num_shadow_filter_phases);
     aec_state->shared_state.tdist = tdist;

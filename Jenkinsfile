@@ -311,7 +311,7 @@ pipeline {
                       }
                       dir("test_calc_vnr_pred"){
                         // This is a unit test for ic_calc_vnr_pred function.
-                        sh "pytest -n1 --junitxml=pytest_result.xml"
+                        sh "pytest -n 2 --junitxml=pytest_result.xml"
                         junit "pytest_result.xml"
                       }
                       dir("test_bad_state"){

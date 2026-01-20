@@ -1,33 +1,25 @@
 import numpy as np
-import os
-import matplotlib.pyplot as plt
 import py_vs_c_utils as pvc
 from run_dut import run_dut
-
-this_file_dir = os.path.dirname(os.path.realpath(__file__))
-exe_dir = os.path.join(this_file_dir, '../../../build/test/lib_ic/test_calc_vnr_pred/bin/')
-xe = os.path.join(exe_dir, 'fwk_voice_test_calc_vnr_pred.xe')
-
 from py_voice.modules import ic
 from py_voice.config import config
 from pathlib import Path
 
+xe = Path(__file__).parents[3]/ "build" / "test" / "lib_ic" / "test_calc_vnr_pred" / "bin" / "fwk_voice_test_calc_vnr_pred.xe"
 ap_config_file = Path(__file__).parents[2] / "shared" / "config" / "ic_conf_no_adapt_control.json"
 ap_conf = config.get_config_dict(ap_config_file)
 
-def test_calc_vnr_pred(target, show_plot=False):
+def test_calc_vnr_pred(target):
     np.random.seed(12345)
     ap_conf["ic"]["adaption_config"] = "ADAPTION_AUTO"
     ifc = ic.ic(ap_conf)
 
     # No. of int32 values sent to dut as input per frame
     input_words_per_frame = (1+(ifc.f_bin_count*2))*2 # Y_data exponent followed by ifc.f_bin_count complex values, followed by Error exponent followed by ifc.f_bin_count complex values
-    output_words_per_frame = 2*2 # DUT outputs 2 float_s32_t values. input_vnr_pred followed by output_vnr_pred
-    input_data = np.empty(0, dtype=np.int32)
-    input_data = np.append(input_data, np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32))    
+    output_words_per_frame = 2 # DUT outputs 1 float_s32_t value -> input_vnr_pred
+    input_data = np.array([input_words_per_frame, output_words_per_frame], dtype=np.int32)
     
     ref_input_vnr_pred = np.empty(0, dtype=np.float64)
-    ref_output_vnr_pred = np.empty(0, dtype=np.float64)
     test_frames = 2048
     min_int = -2**31
     max_int = 2**31
@@ -58,60 +50,22 @@ def test_calc_vnr_pred(target, show_plot=False):
         Error_ap = Error_ap.reshape((1, len(Error_ap))) # Reference Error values
 
         # Call Reference calc_vnr_pred()
-        input_vnr_pred, output_vnr_pred = ifc.calc_vnr_pred(Error_ap)
+        _, _ = ifc.calc_vnr_pred(Error_ap)
         ref_input_vnr_pred = np.append(ref_input_vnr_pred, ifc.input_vnr_pred[0])
-        ref_output_vnr_pred = np.append(ref_output_vnr_pred, ifc.output_vnr_pred[0])
     
     # Run DUT
-    exe_name = xe
-    if(target == "x86"): #Remove the .xe extension from the xe name to get the x86 executable
-        exe_name = os.path.splitext(xe)[0]
-    op, _ = run_dut(input_data, exe_name)
-    # Parse Output from DUT. Inteleaved: input_pred_mant, input_pred_exp, output_pred_mant, output_pred_exp, input_pred_mant,..
-    mants = op[0::2]
-    input_pred_mants = mants[0::2]
-    output_pred_mants = mants[1::2]
-    exps = op[1::2]
-    input_pred_exps = exps[0::2]
-    output_pred_exps = exps[1::2]
-    dut_input_vnr_pred = input_pred_mants.astype(np.float64) * (2.0 ** input_pred_exps) 
-    dut_output_vnr_pred = output_pred_mants.astype(np.float64) * (2.0 ** output_pred_exps) 
+    op, _ = run_dut(input_data, xe, target)
+
+    dut_input_vnr_pred = pvc.float_s32_arr_to_double(op)
     
     # Compare dut-ref
-    input_vnr_pred_diff = np.max(np.abs(ref_input_vnr_pred - dut_input_vnr_pred))
-    output_vnr_pred_diff = np.max(np.abs(ref_output_vnr_pred - dut_output_vnr_pred))
-    print(f"input_vnr_pred diff = {input_vnr_pred_diff}")
-    print(f"output_vnr_pred diff = {output_vnr_pred_diff}")
-    assert(input_vnr_pred_diff < 0.005) 
-    assert(output_vnr_pred_diff < 0.005) 
+    np.testing.assert_allclose(dut_input_vnr_pred, ref_input_vnr_pred, rtol=0, atol=0.005)
+    print(f"input_vnr_pred diff = {np.max(np.abs(ref_input_vnr_pred - dut_input_vnr_pred))}")
     
     input_vnr_arith_closeness, input_vnr_geo_closeness = pvc.get_closeness_metric(ref_input_vnr_pred, dut_input_vnr_pred)    
-    output_vnr_arith_closeness, output_vnr_geo_closeness = pvc.get_closeness_metric(ref_output_vnr_pred, dut_output_vnr_pred)    
     print(f"input_vnr_arith_closeness {input_vnr_arith_closeness}, input_vnr_geo_closeness {input_vnr_geo_closeness}")  
-    print(f"output_vnr_arith_closeness {output_vnr_arith_closeness}, output_vnr_geo_closeness {output_vnr_geo_closeness}")  
     assert(input_vnr_arith_closeness > 0.90)
     assert(input_vnr_geo_closeness > 0.90)
-    assert(output_vnr_arith_closeness > 0.90)
-    assert(output_vnr_geo_closeness > 0.90)
-    
-    # Plot
-    fig,ax = plt.subplots(2)
-    fig.set_size_inches(20, 10)
-    ax[0].set_title('input_vnr_pred')
-    ax[0].plot(ref_input_vnr_pred, label="ref")
-    ax[0].plot(dut_input_vnr_pred, label="dut")
-    ax[0].legend(loc="upper right")
-
-    ax[1].set_title('output_vnr_pred')
-    ax[1].plot(ref_output_vnr_pred, label="ref")
-    ax[1].plot(dut_output_vnr_pred, label="dut")
-    ax[1].legend(loc="upper right")
-    fig_instance = plt.gcf()
-    if show_plot:
-        plt.show()
-    fig.savefig(f"plot_{target}_test_calc_vnr_pred.png")
-
-        
 
 if __name__ == "__main__":
-    test_calc_vnr_pred("x86", show_plot=True)
+    test_calc_vnr_pred("native")

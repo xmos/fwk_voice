@@ -34,8 +34,6 @@ void test_init(int32_t conf, int32_t * H_data)
 
 void test(int32_t * output, int32_t * y_frame, int32_t * x_frame)
 {
-    float_s32_t input_vnr_pred, output_vnr_pred;
-    ic_filter(&ic_state, y_frame, x_frame, output);
-    ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
-    ic_adapt(&ic_state);
+    float_s32_t input_vnr_pred;
+    ic_process_frame(&ic_state, y_frame, x_frame, output, &input_vnr_pred);
 }

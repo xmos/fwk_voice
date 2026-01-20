@@ -99,7 +99,7 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
     pipeline_metadata_t md;
     // Initialise IC and VNR
     ic_state_t DWORD_ALIGNED ic_state;
-    float_s32_t input_vnr_pred, output_vnr_pred;
+    float_s32_t input_vnr_pred;
     ic_init(&ic_state);
 
     int32_t DWORD_ALIGNED frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
@@ -122,22 +122,16 @@ void pipeline_stage_2(chanend_t c_frame_in, chanend_t c_frame_out) {
             ic_state.config_params.bypass = 0;
         }
 #endif
-        /** IC*/
+        /** IC and VNR */
         // Calculating the ASR channel
-        ic_filter(&ic_state, frame[0], frame[1], frame[0]);
-        // VNR
-        ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
+        ic_process_frame(&ic_state, frame[0], frame[1], frame[0], &input_vnr_pred);
 #if PRINT_VNR_PREDICTION
-        printf("VNR OUTPUT PRED: %ld %d\n", output_vnr_pred.mant, output_vnr_pred.exp);
         printf("VNR INPUT PRED: %ld %d\n", input_vnr_pred.mant, input_vnr_pred.exp);
 #endif
         md.vnr_pred_flag = input_vnr_pred;
 
         // Transferring metadata
         chan_out_buf_byte(c_frame_out, (uint8_t*)&md, sizeof(pipeline_metadata_t));
-
-        // Adapting the IC
-        ic_adapt(&ic_state);
 
         // Copy IC output to the other channel
         for(int v = 0; v < AP_FRAME_ADVANCE; v++){

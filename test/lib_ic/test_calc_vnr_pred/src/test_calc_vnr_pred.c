@@ -27,10 +27,9 @@ void test(int32_t *output, int32_t *input)
     memcpy(ic_state.Error_bfp[0].data, &input[1 + (1 + 2*ic_state.Y_bfp[0].length)], ic_state.Error_bfp[0].length*sizeof(complex_s32_t));
     ic_state.Error_bfp[0].hr = bfp_complex_s32_headroom(&ic_state.Error_bfp[0]);
 
-    float_s32_t input_vnr_pred, output_vnr_pred;
-    ic_calc_vnr_pred(&ic_state, &input_vnr_pred, &output_vnr_pred);
+    float_s32_t input_vnr_pred;
+    ic_calc_vnr_pred(&ic_state, &input_vnr_pred);
     // Write to output buffer
-    memcpy(&output[0], &(ic_state.vnr_pred_state.input_vnr_pred), sizeof(float_s32_t));
-    memcpy(&output[2], &(ic_state.vnr_pred_state.output_vnr_pred), sizeof(float_s32_t));
+    memcpy(output, &(ic_state.vnr_pred_state.input_vnr_pred), sizeof(float_s32_t));
 }
 

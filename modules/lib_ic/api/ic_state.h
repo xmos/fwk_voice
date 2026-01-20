@@ -142,9 +142,8 @@ typedef struct {
 
 // Struct to keep VNR predictions and the EMA alpha
 typedef struct {
-    vnr_feature_state_t feature_state[2];
+    vnr_feature_state_t feature_state;
     float_s32_t input_vnr_pred;
-    float_s32_t output_vnr_pred;
     q2_30 pred_alpha_q30;
 }vnr_pred_state_t;
 

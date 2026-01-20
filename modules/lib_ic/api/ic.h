@@ -29,6 +29,25 @@
  */
 int32_t ic_init(ic_state_t *state);
 
+/**
+ * @brief Filter one frame of audio data inside the IC, calculate VNR prediction, adapt the IC
+ * 
+ * Runs `ic_filter`, `ic_calc_vnr_pred` and `ic_adapt`.
+ * 
+ * @param[inout] state pointer to IC state structure
+ * @param[inout] y_data array reference of mic 0 input buffer. Modified during call
+ * @param[in] x_data array reference of mic 1 input buffer
+ * @param[out] output array reference containing IC processed output buffer
+ * @param[out] input_vnr_pred voice to noise estimate of the IC input
+ *
+ * @ingroup ic_func
+ */
+ void ic_process_frame(
+        ic_state_t *state,
+        int32_t y_data[IC_FRAME_ADVANCE],
+        int32_t x_data[IC_FRAME_ADVANCE],
+        int32_t output[IC_FRAME_ADVANCE],
+        float_s32_t *input_vnr_pred);
 
 /**
  * @brief Filter one frame of audio data inside the IC
@@ -62,14 +81,12 @@ void ic_filter(ic_state_t *state,
  * to ic_adapt and to the AGC.
  *
  * @param[inout] state pointer to IC state structure
- * @param[inout] input_vnr_pred voice to noise estimate of the IC input
- * @param[inout] output_vnr_pred voice to noise estimate of the IC output
+ * @param[out]   input_vnr_pred voice to noise estimate of the IC input
  *
  * @ingroup ic_func
  */
 void ic_calc_vnr_pred(ic_state_t *state,
-		      float_s32_t * input_vnr_pred,
-		      float_s32_t * output_vnr_pred);
+		      float_s32_t * input_vnr_pred);
 
 /**
  * @brief Adapts the IC filter according to previous frame's statistics and VNR input
@@ -82,7 +99,6 @@ void ic_calc_vnr_pred(ic_state_t *state,
  *
  * @ingroup ic_func
  */
-// TODO: remove vnr parameter and get from state->vnr_pred_state
 void ic_adapt(ic_state_t *state);
 
 #ifdef __XC__
