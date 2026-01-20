@@ -25,7 +25,7 @@ from py_voice.config import config
 from pathlib import Path
 
 ap_config_file = Path(__file__).parents[1] / "shared" / "config" / "ic_conf_no_adapt_control.json"
-tflite_model = os.path.join(package_dir, "../../lib_voice/python/model/trained_model.tflite")
+tflite_model = os.path.join(package_dir, "../../lib_voice/src/vnr/model/trained_model.tflite")
 input_file = "input.wav"
 output_file = "output.wav"
 
@@ -91,7 +91,7 @@ class stage_b_comparison:
 def test_frame_compare(test_config):
 
     test_config["ic"]["adaption_config"] = 'ADAPTION_AUTO'
-    test_config["ic"]["vnr_model"] = "../../lib_voice/python/model/trained_model.tflite"
+    test_config["ic"]["vnr_model"] = "../../lib_voice/src/vnr/model/trained_model.tflite"
     sbc = stage_b_comparison(test_config)
 
     frame_advance = sbc.frame_advance

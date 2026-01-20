@@ -35,7 +35,7 @@ endif()
 
 ## Export model
 set(MODEL_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/src.autogen/vnr_model/)
-set(MODEL_IN_PATH ${CMAKE_CURRENT_LIST_DIR}/python/model/trained_model.tflite)
+set(MODEL_IN_PATH ${CMAKE_CURRENT_LIST_DIR}/src/vnr/model/trained_model.tflite)
 set(MODEL_OUT_PATH ${MODEL_OUT_DIR}/trained_model_xcore.tflite)
 set(MODEL_N_CORES 1)
 set(MODEL_TH 0.50)
