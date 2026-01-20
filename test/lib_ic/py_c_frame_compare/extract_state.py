@@ -7,7 +7,7 @@
 
 import subprocess
 
-xcore_math_types_api_dir = "../../../build/fwk_voice_deps/lib_xcore_math/lib_xcore_math/api"
+xcore_math_types_api_dir = "../../../../lib_xcore_math/lib_xcore_math/api"
 lib_ic_api_dir = "../../../lib_voice/api/ic/"
 lib_vnr_api_dir = "../../../lib_voice/api/vnr/"
 lib_vnr_model_dir = "../../../lib_voice/src/vnr/model"

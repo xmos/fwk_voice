@@ -11,7 +11,7 @@ from extract_state import extract_pre_defs_vnr
 
 # One more ../ than necessary - builds in the 'build' folder
 MODULE_ROOT = Path("../../../../lib_voice")
-XCORE_MATH = Path("../../../../build/fwk_voice_deps/lib_xcore_math")
+XCORE_MATH = Path("../../../../../lib_xcore_math")
 
 # TFLite Micro configuration
 TFLITE_MICRO_ROOT = Path(rt.__file__).parent
@@ -37,7 +37,7 @@ INCLUDE_DIRS = [
 
 LIBRARY_DIRS = [
     '../../../../build/lib_voice/',
-    '../../../../build/fwk_voice_deps/build',
+    '../../../../build/lib_xcore_math',
     str(TFLITE_MICRO_LIB_DIR)
 ]
 

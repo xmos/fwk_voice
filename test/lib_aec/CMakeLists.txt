@@ -2,7 +2,7 @@
 ## Defines for tests
 
 ## The unit test apps
-if(USING_CUSTOM_CMAKE)
+if(USE_CUSTOM_CMAKE)
     if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         add_subdirectory( test_aec_enhancements )
         add_subdirectory( test_aec_spec )

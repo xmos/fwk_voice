@@ -1,5 +1,5 @@
 
-if(USING_CUSTOM_CMAKE)
+if(USE_CUSTOM_CMAKE)
     add_subdirectory(vnr_unit_tests)
 
     add_subdirectory(test_vnr_profile)

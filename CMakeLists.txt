@@ -1,7 +1,7 @@
 
-option(USING_CUSTOM_CMAKE "Enable legacy custom CMake build" OFF)
+option(USE_CUSTOM_CMAKE "Enable legacy custom CMake build" OFF)
 
-if(USING_CUSTOM_CMAKE)
+if(USE_CUSTOM_CMAKE)
 cmake_minimum_required(VERSION 3.21)
 
 ## Disable in-source build.
@@ -27,17 +27,8 @@ if(PROJECT_IS_TOP_LEVEL)
     message( STATUS "System name ${CMAKE_SYSTEM_NAME}" )
 
     ## Fetch lib_xcore_math
-    set(XCORE_MATH_PATH ${CMAKE_BINARY_DIR}/fwk_voice_deps)
-    include(FetchContent)
-    FetchContent_Declare(
-        xcore_math
-        GIT_REPOSITORY https://github.com/xmos/lib_xcore_math.git
-        GIT_TAG        develop
-        GIT_SHALLOW    FALSE
-        SOURCE_DIR     ${XCORE_MATH_PATH}/lib_xcore_math
-    )
-    FetchContent_Populate(xcore_math)
-    add_subdirectory(${XCORE_MATH_PATH}/lib_xcore_math/lib_xcore_math ${XCORE_MATH_PATH}/build)
+    set(XCORE_MATH_PATH ${CMAKE_SOURCE_DIR}/..)
+    add_subdirectory(${XCORE_MATH_PATH}/lib_xcore_math/lib_xcore_math ${CMAKE_BINARY_DIR}/lib_xcore_math)
 
     ## Platform-specific C/C++ compile flags
     if(CMAKE_SYSTEM_NAME STREQUAL XCORE_XS3A)

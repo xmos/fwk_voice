@@ -1,4 +1,4 @@
-if(USING_CUSTOM_CMAKE)
+if(USE_CUSTOM_CMAKE)
     add_subdirectory(test_process_frame)
 else()
     cmake_minimum_required(VERSION 3.21)

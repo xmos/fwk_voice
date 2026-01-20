@@ -104,10 +104,10 @@ pipeline {
                     withVenv {
                       script {
                           if (env.FULL_TEST == "1") {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DFWK_VOICE_BUILD_TESTS=ON -DUSE_CUSTOM_CMAKE=ON'
                           }
                           else {
-                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
+                            sh 'cmake -S.. --toolchain=../xmos_cmake_toolchain/xs3a.cmake -DTEST_SPEEDUP_FACTOR=4 -DFWK_VOICE_BUILD_TESTS=ON -DUSE_CUSTOM_CMAKE=ON'
                           }
                       }
                       sh 'make -j$(nproc)'
@@ -165,10 +165,11 @@ pipeline {
             dir("${REPO}") {
               withTools(params.TOOLS_VERSION) {
                 withVenv {
+                  xcoreBuild(buildDir: "build_xcommon_cmake", archiveBins: false) // To fetch lib_xcore_math
                   // Build x86 versions locally as we had problems with moving bins and libs over from previous build due to brew
                   dir("build") {
                     sh "cmake --version"
-                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DUSING_CUSTOM_CMAKE=ON'
+                    sh 'cmake -S.. -DTEST_WAV_ADEC_BUILD_CONFIG="1 2 2 10 5" -DFWK_VOICE_BUILD_TESTS=ON -DUSE_CUSTOM_CMAKE=ON'
                     sh 'make -j$(nproc)'
 
                     // We need to put this here because it is not fetched until we build

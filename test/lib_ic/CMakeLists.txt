@@ -2,7 +2,7 @@
 ## Defines for tests
 
 ## The unit test apps
-if(USING_CUSTOM_CMAKE)
+if(USE_CUSTOM_CMAKE)
     add_subdirectory( test_calc_vnr_pred )
     add_subdirectory( characterise_c_py )
     add_subdirectory( test_ic_profile )
