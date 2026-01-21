@@ -2,6 +2,8 @@
 XMOS Voice Framework DSP Library
 ================================
 
+Warning: This repository has been deprecated and moved to `lib_voice <https://www.github.com/xmos/lib_voice>`_. :warning:
+
 This is the XMOS Voice Framework DSP library which contains high-performance audio processing algorithms, optimized for xcore.ai.
 
 ******************
