@@ -9,9 +9,6 @@
 #include "pipeline_config.h"
 #include "pipeline_state.h"
 
-#define VNR_AGC_THRESHOLD (0.5)
-#define PRINT_VNR_PREDICTION (0)
-
 void pipeline_tile0_init(pipeline_state_tile0_t *state) {
     memset(state, 0, sizeof(pipeline_state_tile0_t));
 
