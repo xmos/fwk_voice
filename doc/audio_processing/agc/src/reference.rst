@@ -1,14 +1,14 @@
-#############
+
 API Reference
-#############
+-------------
 
 AGC API Functions
-=================
+^^^^^^^^^^^^^^^^^
 
 .. doxygengroup:: agc_func
-    
+
 AGC Pre-Defined Profiles and Parameters
-=======================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Three pre-defined profiles are provided in `agc_profiles.h` to configure the AGC for different applications:
 
@@ -20,7 +20,7 @@ These profiles can be used to configure the AGC instance by passing them to the
 .. _agc_profiles:
 
 AGC Parameters
-**************
+^^^^^^^^^^^^^^
 
 The key AGC parameters are highlighted below:
 
@@ -44,8 +44,8 @@ Other AGC parameters are described in the `agc_profiles.h` header file,
 and are described in detail in :c:struct:`agc_config_t`.
 
 AGC API Structure Definitions
-=============================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygengroup:: agc_defs
     :members:
-    
+

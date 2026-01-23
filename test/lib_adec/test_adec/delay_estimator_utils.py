@@ -228,7 +228,7 @@ def do_delay_estimate(input_audio_file):
   file_delay_changes = [(voice_sample_rate * 0, voice_sample_rate * -delay_estimator_offset)]
   apply_delay_changes(input_audio_file, delay_estimate_audio_file, file_delay_changes)
   test_file(delay_estimate_audio_file, delay_file, 2)
-  estimate = np.fromfile(delay_file, dtype=np.float, count=-1, sep="\n")
+  estimate = np.fromfile(delay_file, dtype=np.float64, count=-1, sep="\n")
   return (delay_estimator_offset * voice_sample_rate) - estimate
 
 if __name__ == '__main__':

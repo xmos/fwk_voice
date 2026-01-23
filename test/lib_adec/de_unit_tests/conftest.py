@@ -1,16 +1,15 @@
 # Copyright 2022 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 from builtins import str
-import os.path
 import pytest
 import subprocess
 import xtagctl
 
 
-def pytest_collect_file(parent, path):
-    if(path.ext == ".xe"):
-        print('path = ',path)
-        return UnityTestSource.from_parent(parent, fspath=path)
+def pytest_collect_file(parent, file_path):
+    if(file_path.suffix == ".xe"):
+        print('path = ',file_path)
+        return UnityTestSource.from_parent(parent, path=file_path)
 
 class UnityTestSource(pytest.File):
     def collect(self):

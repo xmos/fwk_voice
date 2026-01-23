@@ -1,7 +1,7 @@
 .. _agc_overview:
 
 AGC Overview
-************
+------------
 
 The ``lib_agc`` library provides an API to implement Automatic Gain Control within
 an application. The AGC algorithm can dynamically adapt the audio gain,
@@ -30,7 +30,7 @@ An optional soft clipping stage is applied at the end of the AGC to
 avoid hard clipping of the output signal during sudden loud sounds.
 
 AGC Application
-***************
+---------------
 
 The AGC takes as input a frame of data from an audio channel. This could be the
 microphone input or the output of another module in the application.
@@ -40,7 +40,7 @@ of data, which is 240 samples at 16kHz input sampling frequency. Input data is
 expected to be in a fixed-point 32-bit 1.31 format.
 
 Before processing any frames, the application must configure and initialise the
-AGC instance by calling ``agc_init()``. Several parameter sets are provided in 
+AGC instance by calling ``agc_init()``. Several parameter sets are provided in
 `agc_profiles.h` which can be used to configure the AGC for different
 applications. Details on the profiles and key parameters are provided in :ref:`agc_profiles`.
 
@@ -57,14 +57,14 @@ are required, an independent instance of the AGC must be run for each channel.
 
 
 AGC Logic
-*********
+---------
 
 The internal logic of the AGC algorithm is represented in the flow chart
 shown in :numref:`agc_logic`. This diagram illustrates the main decision points and processing
 steps performed for each input frame. It shows how the AGC determines
 whether to adapt the gain based on voice activity, applies peak and
 threshold checks, manages loss control, and optionally performs soft
-clipping. 
+clipping.
 
 .. _agc_logic:
 

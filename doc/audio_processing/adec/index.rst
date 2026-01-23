@@ -1,5 +1,5 @@
-Automatic Delay Estimation and Correction Library
-=================================================
+Automatic Delay Estimation and Correction
+=========================================
 
 ``lib_adec`` is a library which provides functions for measuring and correcting delay offsets between the reference
 and loudspeaker signals.

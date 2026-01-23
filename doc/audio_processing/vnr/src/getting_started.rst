@@ -1,7 +1,7 @@
 .. _getting_started:
 
 Repository Structure
-********************
+--------------------
 
 * ``modules/lib_vnr`` - The ``lib_vnr`` library directory within ``https://github.com/xmos/fwk_voice/``.
   Within ``lib_vnr``:
@@ -12,24 +12,25 @@ Repository Structure
 
 
 Requirements
-************
+------------
 
 ``lib_vnr`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning and building ``fwk_voice`` apply. It depends on ``lib_xcore_math``
 and the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ python package.
 
 API Structure
-*************
+-------------
+
 The API is split into 2 layers: high-level and low-level. While the high-level API should suffice for the most users,
 a more advanced user might find that they want to use the low-level API.
 
 The low-level API is split into 2 parts: feature extraction and inference. The feature extraction API processes an input audio frame to extract features that are input to the inference stage.
-The inference API has functions for running inference using the VNR TensorFlow Lite model to predict the speech to noise ratio. 
-Both feature extraction and inference APIs have initialisation functions that are called only once at device initialisation and processing functions that are called every frame.  
+The inference API has functions for running inference using the VNR TensorFlow Lite model to predict the speech to noise ratio.
+Both feature extraction and inference APIs have initialisation functions that are called only once at device initialisation and processing functions that are called every frame.
 The performance requirement is relative low, around 5 MIPS for initialisation and 3 MIPS for processing, and as such is supplied as a single threaded implementation only.
 
 
 Getting and Building
-********************
+--------------------
 
 The VNR estimator module is obtained as part of the parent ``fwk_voice`` repo clone. It is present in ``fwk_voice/modules/lib_vnr``
 
@@ -37,16 +38,16 @@ Both the feature extraction and the inference components of ``lib_vnr`` are comp
 The application can link against ``libfwk_voice_module_lib_vnr.a`` and add ``lib_vnr/api`` as include directories.
 
 VNR Inference Model
-*******************
+-------------------
 
-The VNR estimator module uses a neural network model to predict the SNR of speech in noise for incoming data. The model used is a pre trained TensorFlow Lite model 
-that has been optimised for the XCORE architecture using the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ xformer. 
-The optimised model is compiled as part of the VNR Inference Engine. Changing the model at runtime is not supported. 
-If changing to a different model, the application needs to generate the model related files and recompile. 
+The VNR estimator module uses a neural network model to predict the SNR of speech in noise for incoming data. The model used is a pre trained TensorFlow Lite model
+that has been optimised for the XCORE architecture using the `xmos-ai-tools <https://pypi.org/project/xmos-ai-tools/>`_ xformer.
+The optimised model is compiled as part of the VNR Inference Engine. Changing the model at runtime is not supported.
+If changing to a different model, the application needs to generate the model related files and recompile.
 This process is automated through the build system, as described below.
 
 Integrating a TensorFlow Lite model into the VNR module
-=======================================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To integrate the new TensorFlow Lite model into the VNR module:
 

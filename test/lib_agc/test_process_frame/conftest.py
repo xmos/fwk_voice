@@ -5,10 +5,10 @@ import subprocess
 import xtagctl
 
 
-def pytest_collect_file(parent, path):
-    if(path.ext == ".xe"):
-        print('path = ', path)
-        return UnityTestSource.from_parent(parent, fspath=path)
+def pytest_collect_file(parent, file_path):
+    if(file_path.suffix == ".xe"):
+        print('path = ', file_path)
+        return UnityTestSource.from_parent(parent, path=file_path)
 
 class UnityTestSource(pytest.File):
     def collect(self):

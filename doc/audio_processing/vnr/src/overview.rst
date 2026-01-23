@@ -1,7 +1,7 @@
 .. _vnr_overview:
 
 VNR Overview
-************
+------------
 
 The VNR (Voice to Noise Ratio) estimator predicts the signal to noise ratio of a speech signal in noise, using a pre-trained neural network.
 The VNR neural network model outputs a value between 0 and 1, with 1 indicating the strongest speech, and 0,
@@ -22,13 +22,13 @@ The pre-trained, optimised for XCORE TensorFlow Lite model, that is used for VNR
 There's no support for providing a new model to the inference engine at run time.
 
 Basic Usage
-***********
+-----------
 
 To use the high-level API, the user would need to initialise the VNR state by calling ``vnr_state_init()``.
 Then for each frame, ``vnr_process_frame()`` will update VNR's internal state and produce an output prediction.
 
 Advanced Usage
-**************
+--------------
 
 The low-level VNR API is split into 2 parts: feature extraction and inference.
 This is done to allow multiple sets of features to use the same inference engine.

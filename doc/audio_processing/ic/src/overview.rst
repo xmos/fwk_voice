@@ -1,15 +1,15 @@
 .. _ic_overview:
 
 IC Overview
-***********
+-----------
 
 The Interference Canceller (IC) suppresses static noise from point sources such as cooker hoods, washing machines,
 or radios for which there is no reference audio signal available. When the Voice to Noise Ratio estimator (VNR) input
-indicates the absence of voice, the IC adapts to remove noise from point sources in the environment. When the VNR 
+indicates the absence of voice, the IC adapts to remove noise from point sources in the environment. When the VNR
 signal indicates the presence of voice, the IC suspends adaptation which allows the voice source to be passed but
 maintains suppression of the interfering noise sources which have been previously adapted to.
 
-It can offer much greater, and automatic, cancellation of broad-band noise sources when compared to beam forming 
+It can offer much greater, and automatic, cancellation of broad-band noise sources when compared to beam forming
 techniques.
 
 It is designed to work at a sample rate of 16kHz and has a fixed configuration of two input microphones and a single
@@ -21,7 +21,7 @@ microphones for any present noise sources. Since the transfer function includes 
 sources, applying this filter to the mic input allows any signals originating from the noise source to be cancelled.
 
 The IC uses an adaptive filter which continually adapts to the acoustic environment to accommodate changes in the room
-created by events such as doors opening or closing and people moving about. However, it will hold the current transfer 
+created by events such as doors opening or closing and people moving about. However, it will hold the current transfer
 function in the presence of voice meaning it does not adapt to desired audio sources, which can be a person speaking.
 
 The cancellation is performed on a frame by frame basis. Each frame is made of 15msec chunks of data, which is 240
@@ -44,6 +44,6 @@ but, as with all normalised LMS based architectures, will be slower to converge 
 
 Before starting the IC processing the user must call ic_init() to initialise the IC. If the configuration parameters are
 to be set to non-defaults please modify these after ic_init() or in the :ref:`ic_defines` file.
-Once the IC is initialised, the library functions can be called in a order to perform interference cancellation on 
+Once the IC is initialised, the library functions can be called in a order to perform interference cancellation on
 a frame by frame basis.
 

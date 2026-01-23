@@ -1,5 +1,5 @@
-Voice To Noise Ratio Estimator Library
-=======================================
+Voice To Noise Ratio estimator
+==============================
 
 ``lib_vnr`` is a library which estimates the ratio of speech signal in noise for an input audio stream.
 ``lib_vnr`` library functions uses ``lib_xcore_math`` to perform DSP using low-level optimised operations, and ``lib_tflite_micro`` and ``lib_nn`` to perform inference using an optimised TensorFlow Lite model.
@@ -13,7 +13,7 @@ Voice To Noise Ratio Estimator Library
    src/reference
 
 On GitHub
-*********
+---------
 
 ``lib_vnr`` is present as part of ``fwk_voice``. Get the latest version of ``fwk_voice`` from
 ``https://github.com/xmos/fwk_voice``. The ``lib_vnr`` module can be found in the `modules/lib_vnr` directory in ``fwk_voice``.

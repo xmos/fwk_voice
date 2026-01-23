@@ -2,17 +2,41 @@
 fwk_voice: Voice processing framework
 #####################################
 
-************
-Introduction
-************
+********
+Overview
+********
 
-``fwk_voice`` is a collection of DSP components that can be used to build a front-end voice processing pipeline.
+``fwk_voice`` is a collection of DSP components used to build a front-end voice processing pipeline.
 
+At its core, the framework provides high-performance audio processing algorithms that are combined
+into a configurable pipeline. The pipeline takes input from a pair of microphones and applies
+a sequence of signal processing stages to extract a clean voice signal from complex acoustic environments.
+An optional reference signal from a host system can be provided to enable Acoustic Echo Cancellation (AEC),
+removing echo from the microphone signal.
+
+The pipeline produces two output streams: one optimized for Automatic Speech Recognition (ASR)
+systems and another suitable for voice communications.
+
+``fwk_voice`` includes a flexible audio routing infrastructure and supports a range of
+digital inputs and outputs, allowing it to be integrated into a wide variety of system configurations.
+The pipeline can be configured at startup and adjusted during operation via a set configuration parameters.
+All source code is provided, enabling full customization and the integration of additional audio processing algorithms.
+
+***************************
+Voice Processing Components
+***************************
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
-   audio_processing/index
+   audio_processing/aec/index
+   audio_processing/ns/index
+   audio_processing/agc/index
+   audio_processing/adec/index
+   audio_processing/stage1/index
+   audio_processing/ic/index
+   audio_processing/vnr/index
+
 
 ********
 Examples

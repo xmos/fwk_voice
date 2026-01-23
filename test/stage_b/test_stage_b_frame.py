@@ -109,7 +109,7 @@ def test_frame_compare(test_config):
         input_frame = awu.get_frame(input_wav_data, frame_start, frame_advance)[0:2,:]
 
         output_py, output_c = sbc.process_frame(input_frame, frame_start // frame_advance)
-        mu_log[frame_start//frame_advance, :] = np.array([sbc.ic.main_filter.mu, pvc.float_s32_to_float(sbc.ic_state.mu[0][0])])
+        mu_log[frame_start//frame_advance, :] = np.array([sbc.ic.main_filter.mu[0, 0], pvc.float_s32_to_float(sbc.ic_state.mu[0][0])])
         vnr_log[frame_start//frame_advance, :] = np.array([sbc.py_vnr, sbc.c_vnr])
 
         output_wav_data[0, frame_start: frame_start + frame_advance] = output_py

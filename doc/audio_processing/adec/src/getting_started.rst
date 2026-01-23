@@ -10,9 +10,9 @@ Repository Structure
 Getting and Building
 ********************
 
-``lib_adec`` is included as part of the ``fwk_voice`` github repository
-and all requirements for cloning and building ``fwk_voice`` apply. ``lib_adec`` is compiled as a static library as part of
-overall ``fwk_voice`` build. To include ``lib_adec`` in an application as a static library, the generated ``libfwk_voice_module_lib_adec.a`` can then be linked into the application. Be sure to also add ``lib_adec/api`` as an include directory for the application.
+``lib_adec`` is part of the ``fwk_voice`` repository and is provided as a CMake interface component,
+with its source compiled as part of the consuming application. To use, link the ``fwk_voice::adec`` target in
+the application's CMakeLists.txt and include ``adec.h`` in the application.
 
 
 

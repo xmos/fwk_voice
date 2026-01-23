@@ -1,5 +1,5 @@
 Repository Structure
-********************
+--------------------
 
 * ``modules/lib_agc`` - The actual ``lib_agc`` library directory within ``https://github.com/xmos/fwk_voice/``.
   Within ``lib_agc``
@@ -10,7 +10,7 @@ Repository Structure
 
 
 Requirements
-************
+------------
 
 ``lib_agc`` is included as part of the ``fwk_voice`` github repository and all requirements for cloning
 and building ``fwk_voice`` apply. ``lib_agc`` is compiled as a static library as part of the overall
@@ -18,7 +18,7 @@ and building ``fwk_voice`` apply. ``lib_agc`` is compiled as a static library as
 
 
 Getting and Building
-********************
+--------------------
 
 This module is part of the parent ``fwk_voice`` repo clone. It is compiled as a static library as part of
 ``fwk_voice`` compilation process.

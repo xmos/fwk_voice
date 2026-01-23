@@ -1,8 +1,8 @@
 XMOS Voice Framework Change Log
 ===============================
 
-UNRELEASED
-----------
+0.9.0
+-----
 
   * ADDED: `xcommon_cmake` support for all modules
   * ADDED: `lib_stage1` module
@@ -17,9 +17,10 @@ UNRELEASED
   * CHANGED: Merged `fwk_voice::vnr::features` and `fwk_voice::vnr::inference` cmake targets into `fwk_voice::vnr`
   * CHANGED: Moved the VNR model into `modules/lib_vnr/python/model/trained_model.tflite`
   * CHANGED: Moved the VNR MEL generation script into `modules/lib_vnr/python/gen_mel_filters.py`
-  * CHANGED: `ic_calc_vnr_pred` now only calculates and outputs an input VNR prediction 
+  * CHANGED: `ic_calc_vnr_pred` now only calculates and outputs an input VNR prediction
   * CHANGED: Updated AGC and Loss Control algorithms
   * CHANGED: Renamed all module top-level headers from `<module>_api.h` to `<module>.h`
+  * CHANGED: Required python version to 3.11
   * REMOVED: IC example
   * REMOVED: AGC example
   * REMOVED: Multithreaded pipeline example

@@ -3,17 +3,16 @@
 import os
 import numpy as np
 import subprocess
+from pathlib import Path
 from shutil import copyfile, rmtree
 
 from prepare_aec_input_file import prepare_input_file
 from delay_analyser import delay_analyser
 from delay_analyser import FRAME_ADVANCE 
 import tempfile
-import glob
 
 import xscope_fileio
 import xtagctl
-import subprocess
 
 
 source_wav_file_rate = 48000
@@ -36,9 +35,10 @@ def generate_random_delay_changes(number, spacing, min_s, max_s):
 
 def run_test(pipeline_config, info, path_to_regression_files, input_audio_files, far_end_delay_changes, test_length_s=70, run_target="xcore", volume_changes=None, run_x86=False):
   if run_target == "xcore":
-    test_exe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/*.xe')[0])
+    xe_files = (Path(__file__).parents[3] / "build" / "test" / "lib_adec" / "test_adec" / "bin").glob('*.xe')
+    test_exe = str(next(xe_files).resolve())
   elif run_target == "x86":
-    test_exe =os.path.abspath(glob.glob(f'../../../build/test/lib_adec/test_adec/bin/test_adec')[0])
+    test_exe = str((Path(__file__).parents[3] / "build" / "test" / "lib_adec" / "test_adec" / "bin" / "test_adec").resolve())
   else:
     assert(False)
   tmp_dir = tempfile.mkdtemp(prefix='tmp_', dir='.')
