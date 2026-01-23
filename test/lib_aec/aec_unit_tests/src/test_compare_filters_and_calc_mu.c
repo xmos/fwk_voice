@@ -206,7 +206,7 @@ void main_to_shadow_filter_copy_fp(shadow_filt_params_fp_t *params, int y_ch) {
     }
 }
 
-#define NUM_MU_CHECKPOINTS (15)
+#define NUM_MU_CHECKPOINTS (16)
 int checkpoints_mu[NUM_MU_CHECKPOINTS] = {0};
 
 void calc_erle_fp(
@@ -348,9 +348,18 @@ void calc_coherence_mu_fp(
                 }
                 else{
                     //# slow coherence is low, filter has not converged.
-                    checkpoints_mu[11] |= 1;
-                    for(int xch=0; xch<params->x_channels; xch++) {
-                        params->coh_mu[ch][xch] = 1.0;
+                    if (params->coh[ch] > cfg->coh_thresh_abs) {
+                        checkpoints_mu[15] |= 1;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 0.0;
+                        }
+                    }
+                    else{
+                        //# slow coherence is low, filter has not converged.
+                        checkpoints_mu[11] |= 1;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 0.0;
+                        }
                     }
                 }
             }
