@@ -23,8 +23,6 @@ static inline void consumer(int32_t frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANC
     printf("frame done\n");
 }
 
-#define REF_ACTIVE_THRESHOLD_dB (-60) // Reference input level above which it is considered active
-
 int main() {
 
     #if AEC_THREADS == 1
@@ -43,10 +41,6 @@ int main() {
     aec_init(&aec_state,
             AEC_MAX_Y_CHANNELS, AEC_MAX_X_CHANNELS,
             AEC_MAIN_FILTER_PHASES, AEC_SHADOW_FILTER_PHASES, &tdist);
-
-    int32_t ref_active_flag;
-    ref_active_flag = aec_detect_input_activity(frame_x, f64_to_float_s32(pow(10, REF_ACTIVE_THRESHOLD_dB/20.0)), aec_state.main_state.shared_state->num_x_channels);
-    aec_state.main_state.shared_state->ref_active_flag = ref_active_flag;
 
     for(unsigned b = 0; b < 5; b++){
         producer(frame_y, frame_x);

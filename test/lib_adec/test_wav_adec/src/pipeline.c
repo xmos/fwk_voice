@@ -99,13 +99,6 @@ void pipeline_process_frame(pipeline_state_t *state,
     }
     prof(19, "end_switch_aec_config");
 
-    prof(4, "start_is_frame_active");
-    // Calculate far_end active
-    int is_ref_active = aec_detect_input_activity(input_x_data, state->ref_active_threshold, state->aec_state.main_state.shared_state->num_x_channels);
-    state->aec_state.main_state.shared_state->ref_active_flag = is_ref_active;
-
-    prof(5, "end_is_frame_active");
-
     //printf("frame %d\n",framenum);
 
     /** AEC*/
@@ -132,8 +125,7 @@ void pipeline_process_frame(pipeline_state_t *state,
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_state.main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_state.main_state.error_ema_energy[0];
     adec_in.from_aec.shadow_flag_ch0 = state->aec_state.main_state.shared_state->shadow_filter_params.shadow_flag[0];
-    // Directly from app
-    adec_in.far_end_active_flag = is_ref_active;
+    adec_in.far_end_active_flag = state->aec_state.main_state.shared_state->ref_active_flag;
 
     // Log current mode for printing later
 #ifdef ENABLE_ADEC_DEBUG_PRINTS

@@ -109,12 +109,10 @@ void stage1_process_frame(stage1_t *state, int32_t (*output_frame)[AEC_FRAME_ADV
             delay_state_ptr
             );
 
-    /** Detect if there's activity on the reference channels*/
-    *ref_active_flag = aec_detect_input_activity(input_x, state->ref_active_threshold, state->aec_state.main_state.shared_state->num_x_channels);
-    state->aec_state.main_state.shared_state->ref_active_flag = *ref_active_flag;
-
     /** Alt-arch controller logic*/
 #if ALT_ARCH_MODE
+    /** Detect if there's activity on the reference channels*/
+    *ref_active_flag = aec_detect_input_activity(input_x, state->ref_active_threshold, state->aec_state.main_state.shared_state->num_x_channels);
     alt_arch_controller(state, ref_active_flag);
 #endif
 
@@ -141,8 +139,7 @@ void stage1_process_frame(stage1_t *state, int32_t (*output_frame)[AEC_FRAME_ADV
     adec_in.from_aec.y_ema_energy_ch0 = state->aec_state.main_state.shared_state->y_ema_energy[0];
     adec_in.from_aec.error_ema_energy_ch0 = state->aec_state.main_state.error_ema_energy[0];
     adec_in.from_aec.shadow_flag_ch0 = state->aec_state.main_state.shared_state->shadow_filter_params.shadow_flag[0];
-    // Directly from app
-    adec_in.far_end_active_flag = *ref_active_flag;
+    adec_in.far_end_active_flag = state->aec_state.main_state.shared_state->ref_active_flag;
 
     adec_output_t adec_output;
     adec_process_frame(

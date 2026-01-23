@@ -7,6 +7,9 @@
 enum e_td_ema {Y_EMA, X_EMA, ERROR_EMA};
 enum e_fft {Y_FFT, X_FFT, ERROR_FFT};
 
+#define REF_ACTIVE_THRESHOLD_dB (-60) // Reference input level above which it is considered active
+#define REF_ACTIVE_THRESHOLD = f64_to_float_s32(pow(10, REF_ACTIVE_THRESHOLD_dB/20.0));
+
 #ifdef __XS3A__
 #include <xcore/parallel.h>
 DECLARE_JOB(calc_time_domain_ema_energy_task, (const aec_par_tasks_and_channels_t*, aec_filter_state_t *, int32_t*, int, int, enum e_td_ema));
@@ -322,6 +325,8 @@ void aec_process_frame(
     aec_filter_state_t *main_state = &aec_state->main_state;
     aec_filter_state_t *shadow_state = &aec_state->shadow_state;
     const aec_task_distribution_t *tdist = aec_state->shared_state.tdist;
+
+    main_state->shared_state->ref_active_flag = aec_detect_input_activity(frame_x, REF_ACTIVE_THRESHOLD, main_state->shared_state->num_x_channels);;
 
     // Read number of mic and reference channels. These are specified as part of the configuration when aec_init() is called.
     int num_y_channels = main_state->shared_state->num_y_channels; //Number of mic channels
