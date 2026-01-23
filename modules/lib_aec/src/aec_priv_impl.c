@@ -517,6 +517,7 @@ void aec_priv_calc_coherence_mu(
                         }
                     }
                     else {
+                        // # we will be here until the first shadow filter copy
                         for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
                             coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
                         }
@@ -540,7 +541,7 @@ void aec_priv_calc_coherence_mu(
                 )
             {
                 for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
-                    coh_mu_state[y_ch].coh_mu[x_ch] = f64_to_float_s32(0);
+                    coh_mu_state[y_ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
                 }
             }
         }

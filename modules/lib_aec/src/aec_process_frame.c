@@ -204,10 +204,8 @@ void calc_freq_domain_energy_task(const aec_par_tasks_and_channels_t *s, aec_fil
                 aec_calc_freq_domain_energy(&main_state->shared_state->overall_Yhat[ch], &main_state->Y_hat[ch]);
                 main_state->shared_state->overall_Yhat[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
             }
-            else if(task == 1){
-                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
-            }
             else {
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
                 if(shadow_state != NULL) {
                     aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
                 }
@@ -496,9 +494,9 @@ void aec_process_frame(
      */
     PAR_THREADS_PJOBS(
         calc_freq_domain_energy_task,
-        tdist->par_3_tasks_and_channels,
+        tdist->par_2_tasks_and_channels,
         tdist->thread_count,
-        main_state, shadow_state, tdist->passes_for_3_tasks_and_channels, num_y_channels
+        main_state, shadow_state, tdist->passes_for_2_tasks_and_channels, num_y_channels
     );
 
     // Compare and update filters. Calculate adaption step_size mu
