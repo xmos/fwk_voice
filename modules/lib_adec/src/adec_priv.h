@@ -17,7 +17,7 @@
 #define ADEC_MODEL_TO_XCORE_SCALE_BITS          8                //TODO - work out why xcore phase magnitudes are this much bigger than the model
 
 #define ADEC_AEC_DELAY_EST_TIME_MS              5000             //How long after mode change with far end present we need to be sure AEC is converged
-#define ADEC_DELAY_EST_MODE_TIME_MS             3000             //How long in delay estimator mode with far end present we need to be sure DE is converged
+#define ADEC_DELAY_EST_MODE_TIME_MS             2000             //How long in delay estimator mode with far end present we need to be sure DE is converged
 #define ADEC_AEC_ESTIMATE_MIN_MS                20               //Do not restart AEC if delay is smaller than this (no point as we have most of tail anyhow)
 #define ADEC_DE_DELAY_OFFSET_SAMPS              (ADEC_DE_DELAY_SAMPS - 1)//Delay offset applied before we run delay estimator for correct window positioning
 #define ADEC_DE_DELAY_HEADROOM_SAMPS            240              //Number of samples padding to ensure that mics are always after reference. 240 = one phase
