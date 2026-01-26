@@ -351,7 +351,7 @@ void calc_coherence_mu_fp(
                     if (params->coh[ch] > cfg->coh_thresh_abs) {
                         checkpoints_mu[15] |= 1;
                         for(int xch=0; xch<params->x_channels; xch++) {
-                            params->coh_mu[ch][xch] = 0.0;
+                            params->coh_mu[ch][xch] = 1.0;
                         }
                     }
                     else{
