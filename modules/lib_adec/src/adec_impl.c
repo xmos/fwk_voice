@@ -17,7 +17,6 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
   adec_state->peak_phase_energy_trend_gain_q24 = FLOAT_TO_Q24(ADEC_PEAK_PHASE_ENERGY_TREND_GAIN);
   adec_state->erle_bad_gain_q24 = FLOAT_TO_Q24(ADEC_ERLE_BAD_GAIN);
 
-  adec_state->peak_to_average_ratio_valid_flag = 0;
   adec_state->max_peak_to_average_ratio_since_reset = f64_to_float_s32(1.0);
 
   float_s32_t v = ADEC_PEAK_TO_AVERAGE_GOOD_AEC;
@@ -42,14 +41,10 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
 
 static void start_de_cycle(adec_state_t *state, adec_output_t *adec_output) {
     // Request transition to DE mode from stage 1.
-    // Set the delay value so we can see forwards/backwards
     adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
     adec_output->delay_estimator_enabled_flag = 1;
 
-  // Python reference resets AEC state when switching into DE mode. Without this, the
-  // delay estimator may repeatedly trigger because the AEC filter is still adapted to
-  // the previous delay configuration.
-  adec_output->reset_aec_flag = 1;
+    adec_output->reset_aec_flag = 1;
 
     state->mode = ADEC_DELAY_ESTIMATOR_MODE;
     state->gated_milliseconds_since_mode_change = 0;
@@ -69,45 +64,11 @@ void adec_process_frame(
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
-
-  //The XC AEC, despite being reset, sometimes starts up with some odd phase energies which make it
-  //appear there is a strong pk:ave before it converges. These erode as it converges and a genuine peak
-  //forms later. So we have logic to ensure that the pk:ave is not descending at first
-  //before rising back up. We apply a some filtering (moving average) to reduce noise and init to a large value (1000),
-  //so we are sure the numbers drop at first.
-  //Previously we used a total phase energy threshold but this was difficult to set (depends on relative far/near levels).
-  //Following that a hysteresis was used but that sometimes didn't trigger, so now we look for a +ve trend.
-  //This all takes 892 cyc in the sim which could be 1427 cyc in device (62.5MHz) so about 14us
-
-  // Shift them along
-  for(int i = ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i > 0; i--){
-    state->peak_to_average_ratio_history[i] = state->peak_to_average_ratio_history[i - 1];
-  }
-  state->peak_to_average_ratio_history[0] = adec_in->from_de.peak_to_average_ratio;
-
-  float_s32_t last_n_total = f64_to_float_s32(0.0);
-  for(int i = 0; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH; i++){
-    last_n_total = float_s32_add(last_n_total, state->peak_to_average_ratio_history[i]);
-  }
-
-  float_s32_t penultimate_n_total = f64_to_float_s32(0.0);
-  for(int i = 1; i < ADEC_PEAK_TO_AVERAGE_HISTORY_DEPTH + 1; i++){
-    penultimate_n_total = float_s32_add(penultimate_n_total, state->peak_to_average_ratio_history[i]);
-  }
-
-  // Note we look for last_n_total > penultimate_n_total so !(penultimate_n_total >= last_n_total)
-  // As we want upwards trend not flat
-  if (!float_s32_gte(penultimate_n_total, last_n_total)){
-    if (state->peak_to_average_ratio_valid_flag != 1) {
-#ifdef ENABLE_ADEC_DEBUG_PRINTS
-        printf("***WERE ON THE UP MY FRIEND.. ***\n");
-#endif
-    }
-    state->peak_to_average_ratio_valid_flag = 1;
-  }
-  else{
-    // Still descending. Wait for now.
-  }
+  // Python's AEC-mode delay correction uses the main AEC filter's peak:average ratio.
+  // The xcore implementation's available pk:avg signal is noisier in some scenarios
+  // (e.g. phase-energy-spreading tests), so use a slightly more conservative threshold
+  // for triggering *AEC-mode* delay corrections.
+  const float_s32_t aec_peak_to_average_delay_correction_threshold = f32_to_float_s32(6.0);
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
   if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset)){
@@ -141,6 +102,7 @@ void adec_process_frame(
   switch(state->mode){
     case(ADEC_NORMAL_AEC_MODE):
         if (adec_in->from_aec.shadow_flag_ch0 > EQUAL) {
+          // # if the shadow filter triggers, reset the goodness metrics, but not toggles, flag_counter etc.
           reset_stuff_on_AEC_mode_start(state, 0);
           ++state->shadow_flag_counter;
           state->convergence_counter = 0;
@@ -155,12 +117,13 @@ void adec_process_frame(
         //In normal AEC mode, check to see if we have converged but have left significant tail on the table
         //But only change mode if the delay change is big enough - else reset of AEC not worth it
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
-          (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->aec_peak_to_average_good_aec_threshold)) &&
-          // (state->peak_to_average_ratio_valid_flag == 1) &&
+          (adec_in->from_aec.shadow_flag_ch0 == EQUAL) &&
+          (state->sf_copy_flag) &&
+          (float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_delay_correction_threshold)) &&
           (adec_in->from_de.measured_delay_samples > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (!state->adec_config.bypass)){
 
-          //We have a new estimate RELATIVE to current delay settings
+          // # delay_estimate_s tells us how late the near is, so negate before setting far
           state->last_measured_delay += adec_in->from_de.measured_delay_samples;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("AEC MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.measured_delay_samples); //+ve means MIC delay
@@ -182,7 +145,7 @@ void adec_process_frame(
             printf("force_de_cycle_trigger\n");
 #endif
             // Trigger a DE cycle
-            start_de_cycle(state, adec_output);
+            _cycle(state, adec_output);
             break;
         }
 
@@ -205,9 +168,13 @@ void adec_process_frame(
                    )
                           );
 
-          if ((state->agm_q24 < 0 || watchdog_triggered) &&
-               (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
-                state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT)) {
+          // After a delay change/reset, allow the AEC some time to settle before
+          // allowing another DE cycle. Without this holdoff, the goodness metric can
+          // dip negative transiently and cause AEC<->DE ping-pong.
+          if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
+              (state->agm_q24 < 0 || watchdog_triggered) &&
+              (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
+            state->convergence_counter >= ADEC_CONVERGENCE_COUNTER_LIMIT)) {
 
             if (!state->adec_config.bypass) {
                 // Trigger a DE cycle
@@ -222,8 +189,19 @@ void adec_process_frame(
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
           float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold)){
 
-          //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
+          // We have come from DE mode with a new estimate and need to reset AEC + adjust delay.
+          // Python reference comment: "positive delay_estimate means reference is late".
+          //
+          // Python reference formula:
+          //   delay_estimate_s = delay_estimator_offset_near_s - peak_phase * seconds_per_phase
+          // In sample-domain terms this is:
+          //   signed_delay_samples = measured_delay_samples - offset_near_samples
           //so switch back to AEC normal mode + set delay from fresh
+          // Python reference (py_voice/modules/adec.py) models the DE-mode mic pre-delay as exactly
+          // `delay_estimator_offset_near_s * Fs` = 0.15s * 16k = 2400 samples.
+          // The C pipeline requests `ADEC_DE_DELAY_OFFSET_SAMPS` (2399) to avoid delay-line wrap,
+          // but the DE output itself is phase-quantised (multiples of AEC_FRAME_ADVANCE), so the
+          // correct reference-point for converting peak position to a signed delay is 2400.
           state->last_measured_delay = adec_in->from_de.measured_delay_samples - ADEC_DE_DELAY_SAMPS;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.measured_delay_samples); //+ve means MIC delay

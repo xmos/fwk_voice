@@ -40,14 +40,13 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
   adec_state->peak_power_history_idx = 0;
   adec_state->peak_power_history_valid = 0;
 
-  adec_state->peak_to_average_ratio_valid_flag = 0;
   adec_state->max_peak_to_average_ratio_since_reset = f64_to_float_s32(1.0);
 
-  adec_state->gated_milliseconds_since_mode_change = 0;
-
   if (set_toggle) {
+    adec_state->gated_milliseconds_since_mode_change = 0;
     adec_state->sf_copy_flag = 0;
     adec_state->shadow_flag_counter = 0;
+    adec_state->convergence_counter = 0;
   }
 }
 

@@ -385,6 +385,12 @@ void aec_reset_state(aec_state_t *aec_state){
     //Main H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*main_phases; ph++) {
+            // Clear mantissas as well as metadata. Setting only exp/hr can leave
+            // stale filter coefficients that immediately influence shadow logic.
+            if(main_state->H_hat[ch][ph].data && main_state->H_hat[ch][ph].length) {
+                memset(main_state->H_hat[ch][ph].data, 0,
+                       main_state->H_hat[ch][ph].length * sizeof(main_state->H_hat[ch][ph].data[0]));
+            }
             main_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             main_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
@@ -392,6 +398,10 @@ void aec_reset_state(aec_state_t *aec_state){
     //Shadow H_hat
     for(int ch=0; ch<y_channels; ch++) {
         for(int ph=0; ph<x_channels*shadow_phases; ph++) {
+            if(shadow_state->H_hat[ch][ph].data && shadow_state->H_hat[ch][ph].length) {
+                memset(shadow_state->H_hat[ch][ph].data, 0,
+                       shadow_state->H_hat[ch][ph].length * sizeof(shadow_state->H_hat[ch][ph].data[0]));
+            }
             shadow_state->H_hat[ch][ph].exp = AEC_ZEROVAL_EXP;
             shadow_state->H_hat[ch][ph].hr = AEC_ZEROVAL_HR;
         }
@@ -399,18 +409,64 @@ void aec_reset_state(aec_state_t *aec_state){
     //X_fifo
     for(int ch=0; ch<x_channels; ch++) {
         for(int ph=0; ph<main_phases; ph++) {
+            if(shared_state->X_fifo[ch][ph].data && shared_state->X_fifo[ch][ph].length) {
+                memset(shared_state->X_fifo[ch][ph].data, 0,
+                       shared_state->X_fifo[ch][ph].length * sizeof(shared_state->X_fifo[ch][ph].data[0]));
+            }
             shared_state->X_fifo[ch][ph].exp = AEC_ZEROVAL_EXP;
             shared_state->X_fifo[ch][ph].hr = AEC_ZEROVAL_HR;
         }
     }
     //X_energy, sigma_XX
     for(int ch=0; ch<x_channels; ch++) {
+        if(main_state->X_energy[ch].data && main_state->X_energy[ch].length) {
+            memset(main_state->X_energy[ch].data, 0,
+                   main_state->X_energy[ch].length * sizeof(main_state->X_energy[ch].data[0]));
+        }
         main_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
         main_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
+
+        if(shadow_state->X_energy[ch].data && shadow_state->X_energy[ch].length) {
+            memset(shadow_state->X_energy[ch].data, 0,
+                   shadow_state->X_energy[ch].length * sizeof(shadow_state->X_energy[ch].data[0]));
+        }
         shadow_state->X_energy[ch].exp = AEC_ZEROVAL_EXP;
         shadow_state->X_energy[ch].hr = AEC_ZEROVAL_HR;
+
+        if(shared_state->sigma_XX[ch].data && shared_state->sigma_XX[ch].length) {
+            memset(shared_state->sigma_XX[ch].data, 0,
+                   shared_state->sigma_XX[ch].length * sizeof(shared_state->sigma_XX[ch].data[0]));
+        }
         shared_state->sigma_XX[ch].exp = AEC_ZEROVAL_EXP;
         shared_state->sigma_XX[ch].hr = AEC_ZEROVAL_HR;
+    }
+
+    // Clear time-domain overlap and key EMA/control state to match the intent of a
+    // full AEC restart used by the Python reference reset_all_aec().
+    for(int ch=0; ch<y_channels; ch++) {
+        if(main_state->overlap[ch].data && main_state->overlap[ch].length) {
+            memset(main_state->overlap[ch].data, 0,
+                   main_state->overlap[ch].length * sizeof(main_state->overlap[ch].data[0]));
+        }
+        main_state->error_ema_energy[ch].mant = 0;
+        main_state->error_ema_energy[ch].exp = 0;
+        shared_state->y_ema_energy[ch].mant = 0;
+        shared_state->y_ema_energy[ch].exp = 0;
+
+        // Reset shadow filter status bookkeeping.
+        shared_state->shadow_filter_params.shadow_flag[ch] = EQUAL;
+        shared_state->shadow_filter_params.shadow_reset_count[ch] = 0;
+        shared_state->shadow_filter_params.shadow_better_count[ch] = 0;
+    }
+
+    for(int ch=0; ch<x_channels; ch++) {
+        shared_state->x_ema_energy[ch].mant = 0;
+        shared_state->x_ema_energy[ch].exp = 0;
+
+        for(int ych=0; ych<y_channels; ych++) {
+            main_state->mu[ych][ch].mant = 0;
+            main_state->mu[ych][ch].exp = 0;
+        }
     }
 }
 
