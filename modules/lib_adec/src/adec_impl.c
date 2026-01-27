@@ -105,8 +105,7 @@ void adec_process_frame(
   }
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
-  if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset)
-    && (state->peak_to_average_ratio_valid_flag == 1)){
+  if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset)){
     state->max_peak_to_average_ratio_since_reset = adec_in->from_de.peak_to_average_ratio;
   }
 
@@ -194,12 +193,12 @@ void adec_process_frame(
               printf("less than 2\n");
 #endif
           }
-          unsigned watchdog_triggered = (
-                       (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
-                      && ((float_s32_gte(state->aec_peak_to_average_good_aec_threshold, state->max_peak_to_average_ratio_since_reset)) ||
-                          ((state->peak_to_average_ratio_valid_flag == 1) && (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio)) )
-                         )
-                                        );
+            unsigned watchdog_triggered = (
+                   (state->gated_milliseconds_since_mode_change > (ADEC_PK_AVE_POOR_WATCHDOG_SECONDS * 1000))
+                  && ((float_s32_gte(state->aec_peak_to_average_good_aec_threshold, state->max_peak_to_average_ratio_since_reset)) ||
+                    (float_s32_gte(aec_peak_to_average_ruined_aec_threshold, adec_in->from_de.peak_to_average_ratio))
+                   )
+                          );
 
           if ((state->agm_q24 < 0 || watchdog_triggered) &&
                (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
@@ -216,8 +215,7 @@ void adec_process_frame(
     case(ADEC_DELAY_ESTIMATOR_MODE):
         //track peak to average ratio and minimum time with far end energy to know when to change
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
-          float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold) &&
-          (state->peak_to_average_ratio_valid_flag == 1)){
+          float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold)){
 
           //We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
