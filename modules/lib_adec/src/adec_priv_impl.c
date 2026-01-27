@@ -221,7 +221,9 @@ q8_24 calculate_aec_goodness_metric(adec_state_t *state, q8_24 log2erle_q24, flo
   if (log2erle_q24 < state->erle_bad_bits_q24){
     //This value will be negative when dB ERLE is less than 0 (ratio <1). Note it is in Q7.24 format
     erle_agm_delta_q24 = (log2erle_q24 - state->erle_bad_bits_q24);
-    erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, FLOAT_TO_Q24(log(10)/log(2))); //Scale from log2 to 10log10
+    // Convert from log2(ERLE) units to dB (10*log10(ERLE)) to match the Python reference:
+    // 10*log10(x) = (10 / log2(10)) * log2(x) = (10*log(2)/log(10)) * log2(x)
+    erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, FLOAT_TO_Q24(10.0 * log(2.0) / log(10.0)));
     erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, state->erle_bad_gain_q24);
   }
 
