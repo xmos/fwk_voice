@@ -41,6 +41,7 @@ void adec_init(adec_state_t *adec_state, adec_config_t *config){
 
 static void start_de_cycle(adec_state_t *state, adec_output_t *adec_output) {
     // Request transition to DE mode from stage 1.
+    // Set the delay value so we can see forwards/backwards
     adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
     adec_output->delay_estimator_enabled_flag = 1;
 
@@ -64,7 +65,6 @@ void adec_process_frame(
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
-  // const float_s32_t aec_peak_to_average_delay_correction_threshold = ADEC_PEAK_TO_AVERAGE_CORRECTION_THRESH;
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
   if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset)){
@@ -119,6 +119,7 @@ void adec_process_frame(
           (adec_in->from_de.measured_delay_samples > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (!state->adec_config.bypass)){
 
+          //We have a new estimate RELATIVE to current delay settings
           // # delay_estimate_s tells us how late the near is, so negate before setting far
           state->last_measured_delay += adec_in->from_de.measured_delay_samples;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
@@ -165,8 +166,7 @@ void adec_process_frame(
                           );
 
           // After a delay change/reset, allow the AEC some time to settle before
-          // allowing another DE cycle. Without this holdoff, the goodness metric can
-          // dip negative transiently and cause AEC<->DE ping-pong.
+          // allowing another DE cycle.
           if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
               (state->agm_q24 < 0 || watchdog_triggered) &&
               (state->shadow_flag_counter >= ADEC_SHADOW_FLAG_COUNTER_LIMIT ||
@@ -185,19 +185,9 @@ void adec_process_frame(
         if ((state->gated_milliseconds_since_mode_change > ADEC_DELAY_EST_MODE_TIME_MS) &&
           float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold)){
 
-          // We have come from DE mode with a new estimate and need to reset AEC + adjust delay.
-          // Python reference comment: "positive delay_estimate means reference is late".
-          //
-          // Python reference formula:
-          //   delay_estimate_s = delay_estimator_offset_near_s - peak_phase * seconds_per_phase
-          // In sample-domain terms this is:
-          //   signed_delay_samples = measured_delay_samples - offset_near_samples
+          // We have come from DE mode with a new estimate and need to reset AEC + adjust delay
           //so switch back to AEC normal mode + set delay from fresh
-          // Python reference (py_voice/modules/adec.py) models the DE-mode mic pre-delay as exactly
-          // `delay_estimator_offset_near_s * Fs` = 0.15s * 16k = 2400 samples.
-          // The C pipeline requests `ADEC_DE_DELAY_OFFSET_SAMPS` (2399) to avoid delay-line wrap,
-          // but the DE output itself is phase-quantised (multiples of AEC_FRAME_ADVANCE), so the
-          // correct reference-point for converting peak position to a signed delay is 2400.
+          // # positive delay_estimate means reference is late
           state->last_measured_delay = adec_in->from_de.measured_delay_samples - ADEC_DE_DELAY_SAMPS;
 #ifdef ENABLE_ADEC_DEBUG_PRINTS
           printf("DE MODE - Measured delay estimate: %ld (raw %ld)\n", state->last_measured_delay, adec_in->from_de.measured_delay_samples); //+ve means MIC delay
@@ -206,7 +196,6 @@ void adec_process_frame(
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled_flag = 0;
 
-          // Python reference resets AEC (and the DE filter) when exiting DE mode.
           // Request an AEC reset here to avoid re-triggering DE cycles.
           adec_output->reset_aec_flag = 1;
 
