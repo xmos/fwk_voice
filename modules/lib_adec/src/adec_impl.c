@@ -45,8 +45,6 @@ static void start_de_cycle(adec_state_t *state, adec_output_t *adec_output) {
     adec_output->requested_mic_delay_samples = ADEC_DE_DELAY_OFFSET_SAMPS;
     adec_output->delay_estimator_enabled_flag = 1;
 
-    adec_output->reset_aec_flag = 1;
-
     state->mode = ADEC_DELAY_ESTIMATOR_MODE;
     state->gated_milliseconds_since_mode_change = 0;
     adec_output->delay_change_request_flag = 1;
@@ -195,9 +193,6 @@ void adec_process_frame(
           set_delay_params_from_signed_delay(state->last_measured_delay, &adec_output->requested_mic_delay_samples, &adec_output->requested_delay_samples_debug);
           state->mode = ADEC_NORMAL_AEC_MODE;
           adec_output->delay_estimator_enabled_flag = 0;
-
-          // Request an AEC reset here to avoid re-triggering DE cycles.
-          adec_output->reset_aec_flag = 1;
 
           adec_output->delay_change_request_flag = 1;
         }
