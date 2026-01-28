@@ -64,11 +64,7 @@ void adec_process_frame(
 
   const float_s32_t aec_peak_to_average_good_de_threshold       = ADEC_PEAK_TO_AVERAGE_GOOD_DE;
   const float_s32_t aec_peak_to_average_ruined_aec_threshold    = ADEC_PEAK_TO_AVERAGE_RUINED_AEC;
-  // Python's AEC-mode delay correction uses the main AEC filter's peak:average ratio.
-  // The xcore implementation's available pk:avg signal is noisier in some scenarios
-  // (e.g. phase-energy-spreading tests), so use a slightly more conservative threshold
-  // for triggering *AEC-mode* delay corrections.
-  const float_s32_t aec_peak_to_average_delay_correction_threshold = f32_to_float_s32(6.0);
+  // const float_s32_t aec_peak_to_average_delay_correction_threshold = ADEC_PEAK_TO_AVERAGE_CORRECTION_THRESH;
 
   //Log the biggest peak:ave ratio since AEC reset - gives inidication of convergence
   if (float_s32_gte(adec_in->from_de.peak_to_average_ratio, state->max_peak_to_average_ratio_since_reset)){
@@ -119,7 +115,7 @@ void adec_process_frame(
         if ((state->gated_milliseconds_since_mode_change > ADEC_AEC_DELAY_EST_TIME_MS) &&
           (adec_in->from_aec.shadow_flag_ch0 == EQUAL) &&
           (state->sf_copy_flag) &&
-          (float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_delay_correction_threshold)) &&
+          (float_s32_gte(adec_in->from_de.peak_to_average_ratio, aec_peak_to_average_good_de_threshold)) &&
           (adec_in->from_de.measured_delay_samples > MILLISECONDS_TO_SAMPLES(ADEC_AEC_ESTIMATE_MIN_MS)) &&
           (!state->adec_config.bypass)){
 
@@ -145,7 +141,7 @@ void adec_process_frame(
             printf("force_de_cycle_trigger\n");
 #endif
             // Trigger a DE cycle
-            _cycle(state, adec_output);
+            start_de_cycle(state, adec_output);
             break;
         }
 
