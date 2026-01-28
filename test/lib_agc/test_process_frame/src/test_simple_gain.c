@@ -23,11 +23,7 @@ void test_simple_gain() {
     agc_state_t agc;
     agc_init(&agc, &AGC_PROFILE_FIXED_GAIN);
 
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
-    md.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md.ref_active_flag = 0;
+    agc_meta_data_t md = agc_meta_data_init();
 
     // Scale down the input so that the fixed gain doesn't overflow
     float_s32_t scale = float_s32_div(f32_to_float_s32(1), agc.config.gain);

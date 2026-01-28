@@ -70,8 +70,7 @@ static void perform_transition(agc_state_t *agc, struct lc_test_params *params, 
 
     bfp_s32_init(&input_bfp, input, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
 
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
+    agc_meta_data_t md = agc_meta_data_init();
 
     // Scale input frame by 0.5 to avoid AGC adaption upper threshold
     float_s32_t scale = f32_to_float_s32(0.5 * params->silence_scale);

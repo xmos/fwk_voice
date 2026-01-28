@@ -7,6 +7,9 @@
 enum e_td_ema {Y_EMA, X_EMA, ERROR_EMA};
 enum e_fft {Y_FFT, X_FFT, ERROR_FFT};
 
+#define REF_ACTIVE_THRESHOLD_dB (-60) // Reference input level above which it is considered active
+#define REF_ACTIVE_THRESHOLD f64_to_float_s32(pow(10, REF_ACTIVE_THRESHOLD_dB/20.0))
+
 #ifdef __XS3A__
 #include <xcore/parallel.h>
 DECLARE_JOB(calc_time_domain_ema_energy_task, (const aec_par_tasks_and_channels_t*, aec_filter_state_t *, int32_t*, int, int, enum e_td_ema));
@@ -200,11 +203,12 @@ void calc_freq_domain_energy_task(const aec_par_tasks_and_channels_t *s, aec_fil
         if(is_active) {
             if(task == 0) {
                 aec_calc_freq_domain_energy(&main_state->overall_Error[ch], &main_state->Error[ch]);
-            }
-            else if(task == 1){
-                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
+                // main_state->shared_state->overall_Yhat[ch] is updated
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Yhat[ch], &main_state->Y_hat[ch]);
+                main_state->shared_state->overall_Yhat[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
             }
             else {
+                aec_calc_freq_domain_energy(&main_state->shared_state->overall_Y[ch], &main_state->shared_state->Y[ch]);
                 if(shadow_state != NULL) {
                     aec_calc_freq_domain_energy(&shadow_state->overall_Error[ch], &shadow_state->Error[ch]);
                 }
@@ -321,6 +325,8 @@ void aec_process_frame(
     aec_filter_state_t *main_state = &aec_state->main_state;
     aec_filter_state_t *shadow_state = &aec_state->shadow_state;
     const aec_task_distribution_t *tdist = aec_state->shared_state.tdist;
+
+    main_state->shared_state->ref_active_flag = aec_detect_input_activity(x_data, REF_ACTIVE_THRESHOLD, main_state->shared_state->num_x_channels);;
 
     // Read number of mic and reference channels. These are specified as part of the configuration when aec_init() is called.
     int num_y_channels = main_state->shared_state->num_y_channels; //Number of mic channels
@@ -493,9 +499,9 @@ void aec_process_frame(
      */
     PAR_THREADS_PJOBS(
         calc_freq_domain_energy_task,
-        tdist->par_3_tasks_and_channels,
+        tdist->par_2_tasks_and_channels,
         tdist->thread_count,
-        main_state, shadow_state, tdist->passes_for_3_tasks_and_channels, num_y_channels
+        main_state, shadow_state, tdist->passes_for_2_tasks_and_channels, num_y_channels
     );
 
     // Compare and update filters. Calculate adaption step_size mu

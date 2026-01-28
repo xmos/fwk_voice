@@ -23,7 +23,6 @@ static inline void consumer(int32_t frame_y[AEC_MAX_Y_CHANNELS][AEC_FRAME_ADVANC
     printf("frame done\n");
 }
 
-
 int main() {
 
     #if AEC_THREADS == 1

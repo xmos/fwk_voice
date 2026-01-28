@@ -23,7 +23,7 @@ void test_input_output() {
     bfp_s32_init(&input_bfp, input, FRAME_EXP, AGC_FRAME_ADVANCE, 0);
 
     // Meta-data can be shared between AGC instances
-    agc_meta_data_t md;
+    agc_meta_data_t md = agc_meta_data_init();
 
     agc_state_t agc0;
     agc_init(&agc0, &AGC_PROFILE_XCV_COMMS);

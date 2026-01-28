@@ -40,14 +40,13 @@ void reset_stuff_on_AEC_mode_start(adec_state_t *adec_state, unsigned set_toggle
   adec_state->peak_power_history_idx = 0;
   adec_state->peak_power_history_valid = 0;
 
-  adec_state->peak_to_average_ratio_valid_flag = 0;
   adec_state->max_peak_to_average_ratio_since_reset = f64_to_float_s32(1.0);
 
-  adec_state->gated_milliseconds_since_mode_change = 0;
-
   if (set_toggle) {
+    adec_state->gated_milliseconds_since_mode_change = 0;
     adec_state->sf_copy_flag = 0;
     adec_state->shadow_flag_counter = 0;
+    adec_state->convergence_counter = 0;
   }
 }
 
@@ -221,7 +220,9 @@ q8_24 calculate_aec_goodness_metric(adec_state_t *state, q8_24 log2erle_q24, flo
   if (log2erle_q24 < state->erle_bad_bits_q24){
     //This value will be negative when dB ERLE is less than 0 (ratio <1). Note it is in Q7.24 format
     erle_agm_delta_q24 = (log2erle_q24 - state->erle_bad_bits_q24);
-    erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, FLOAT_TO_Q24(log(10)/log(2))); //Scale from log2 to 10log10
+    // Convert from log2(ERLE) units to dB (10*log10(ERLE)) to match the Python reference:
+    // 10*log10(x) = (10 / log2(10)) * log2(x) = (10*log(2)/log(10)) * log2(x)
+    erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, FLOAT_TO_Q24(10.0 * log(2.0) / log(10.0)));
     erle_agm_delta_q24 = multiply_q24_no_saturation(erle_agm_delta_q24, state->erle_bad_gain_q24);
   }
 

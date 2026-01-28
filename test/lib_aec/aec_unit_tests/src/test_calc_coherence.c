@@ -13,7 +13,6 @@ typedef struct {
     double mu_scalar;
     double eps;
     double thresh_minus20dB;
-    double x_energy_thresh;
 
     unsigned mu_coh_time;
     unsigned mu_shad_time;
@@ -35,7 +34,6 @@ static void init_coherence_mu_config_fp(coherence_mu_params_fp *cfg, int channel
     cfg->mu_scalar = 1;
     cfg->eps = 1e-100;
 
-    cfg->x_energy_thresh = -40;
     cfg->mu_coh_time = 2;
     cfg->mu_shad_time = 30;
     cfg->adaption_config = AEC_ADAPTION_AUTO;
@@ -54,7 +52,7 @@ void aec_calc_coherence_fp(
         double (*y)[AEC_PROC_FRAME_LENGTH],
         double (*y_hat)[AEC_PROC_FRAME_LENGTH],
         int channels,
-        int bypass) {
+        int bypass, int ref_flag) {
     if(bypass) {
         return;
     }
@@ -79,7 +77,11 @@ void aec_calc_coherence_fp(
 
         //# update slow moving averages used for thresholding
         //self.coh_slow = self.coh_slow_alpha*self.coh_slow + (1.0 - self.coh_slow_alpha)*self.coh
-        cfg->coh_slow[ch] = (cfg->coh_slow_alpha * cfg->coh_slow[ch]) + ((1.0 - cfg->coh_slow_alpha) * cfg->coh[ch]);
+        if (ref_flag == 1) {
+            if (cfg->coh[ch] > cfg->coh_thresh_abs) {
+                cfg->coh_slow[ch] = (cfg->coh_slow_alpha * cfg->coh_slow[ch]) + ((1.0 - cfg->coh_slow_alpha) * cfg->coh[ch]);
+            }
+        }
     }
 }
 
@@ -131,7 +133,7 @@ void test_calc_coherence() {
         }
 
 
-        aec_calc_coherence_fp(&coh_params_fp, y_fp, y_hat_fp, num_y_channels, aec_state.main_state.shared_state->config_params.aec_core_conf.bypass);
+        aec_calc_coherence_fp(&coh_params_fp, y_fp, y_hat_fp, num_y_channels, aec_state.main_state.shared_state->config_params.aec_core_conf.bypass, aec_state.main_state.shared_state->ref_active_flag);
 
         for(int ch=0; ch<num_y_channels; ch++) {
             aec_calc_coherence(&aec_state.main_state, ch);

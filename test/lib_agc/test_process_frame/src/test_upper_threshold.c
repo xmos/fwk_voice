@@ -29,11 +29,7 @@ void test_upper_threshold() {
     // Set initial gain to a lower value to save time adapting
     conf.gain = f32_to_float_s32(1);
 
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
-    md.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md.ref_active_flag = 0;
+    agc_meta_data_t md = agc_meta_data_init();
 
     // Random seed
     unsigned seed = 16395;

@@ -7,6 +7,9 @@
 #include "aec_priv.h"
 #include "xmath/xmath.h"
 
+#define FLOAT_S32_ZERO (float_s32_t){0, -31}
+#define FLOAT_S32_ONE (float_s32_t){1073741824, -30}
+
 void aec_priv_main_init(
         aec_filter_state_t *state,
         aec_shared_filter_state_t *shared_state,
@@ -117,7 +120,9 @@ void aec_priv_main_init(
     for(unsigned ch=0; ch<num_y_channels; ch++) {
         coh_params[ch].coh = f64_to_float_s32(1.0);
         coh_params[ch].coh_slow = f64_to_float_s32(0.0);
-        coh_params[ch].mu_coh_count = 0;
+        coh_params[ch].erle = f64_to_float_s32(0.0);
+        coh_params[ch].mov_erle = f64_to_float_s32(0.0);
+        coh_params[ch].mu_coh_timer = 0;
         coh_params[ch].mu_shad_count = 0;
     }
 
@@ -269,13 +274,7 @@ void aec_priv_compare_filters(
     aec_shared_filter_state_t *shared_state = main_state->shared_state;
     shadow_filt_config_params_t *shadow_conf = &shared_state->config_params.shadow_filt_conf;
     shadow_filter_params_t *shadow_params = &shared_state->shadow_filter_params;
-    unsigned ref_low_all_xch = 1;
-    for(unsigned ch=0; ch<main_state->shared_state->num_x_channels; ch++) {
-        if(float_s32_gte(shared_state->sum_X_energy[ch], shadow_conf->x_energy_thresh)) {
-            ref_low_all_xch = 0;
-            break;
-        }
-    }
+
     for(unsigned ch=0; ch<main_state->shared_state->num_y_channels; ch++) {
         main_state->shared_state->overall_Y[ch].exp -= 1; //Y_data is 512 samples, Errors are 272 (inc window), approx half the size
         //printf("Ov_Error_shad = %f, Ov_Error = %f, Ov_input = %f\n", float_s32_to_double(shadow_state->overall_Error[ch]), float_s32_to_double(main_state->overall_Error[ch]), float_s32_to_double(shared_state->overall_Y[ch]));
@@ -283,7 +282,7 @@ void aec_priv_compare_filters(
         float_s32_t shadow_sigma_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_sigma_thresh, main_state->overall_Error[ch]);
         float_s32_t shadow_reset_thresh_x_Ov_Error = float_s32_mul(shadow_conf->shadow_reset_thresh, main_state->overall_Error[ch]);
         //# check if shadow or reference filter will be used and flag accordingly
-        if(ref_low_all_xch) {
+        if(shared_state->ref_active_flag == 0) {
             //# input level is low, so error is unreliable, do nothing
             shadow_params->shadow_flag[ch] = LOW_REF;
             continue;
@@ -370,22 +369,49 @@ void aec_priv_compare_filters(
     }
 }
 
+void aec_priv_calc_erle(
+    aec_filter_state_t *main_state,
+    const int32_t *shadow_flag,
+    coherence_mu_params_t *coh_mu_state,
+    const coherence_mu_config_params_t *coh_conf)
+{
+    for(unsigned ch=0; ch<main_state->shared_state->num_y_channels; ch++)
+    {
+        if(shadow_flag[ch] != LOW_REF) {
+            if (main_state->overall_Error[ch].mant == 0) {
+                coh_mu_state[ch].erle = f32_to_float_s32(0.0);
+            } else {
+                coh_mu_state[ch].erle = float_s32_div(main_state->shared_state->overall_Yhat[ch], main_state->overall_Error[ch]);
+            }
+
+            //# update moving average ERLE
+            float_s32_t erle_thresh_val = float_s32_mul(coh_mu_state[ch].mov_erle, coh_conf->erle_thresh);
+            if(float_s32_gt(coh_mu_state[ch].erle, erle_thresh_val)) {
+                if(float_s32_gt(coh_mu_state[ch].mov_erle, coh_mu_state[ch].erle)) {
+                    coh_mu_state[ch].mov_erle = float_s32_ema(coh_mu_state[ch].mov_erle, coh_mu_state[ch].erle, coh_conf->erle_alpha_fall);
+                }
+                else {
+                    coh_mu_state[ch].mov_erle = float_s32_ema(coh_mu_state[ch].mov_erle, coh_mu_state[ch].erle, coh_conf->erle_alpha_rise);
+                }
+            }
+        }
+    }
+}
+
 void aec_priv_calc_coherence_mu(
         coherence_mu_params_t *coh_mu_state,
         const coherence_mu_config_params_t *coh_conf,
         const float_s32_t *sum_X_energy,
         const int32_t *shadow_flag,
         unsigned num_y_channels,
-        unsigned num_x_channels)
+        unsigned num_x_channels,
+        const int32_t ref_active_flag)
 {
-    //# If the coherence has been low within the last 15 frames, keep the count != 0
+    //# If the coherence has been low, decrement the timer
     for(unsigned ch=0; ch<num_y_channels; ch++)
     {
-        if(coh_mu_state[ch].mu_coh_count > 0) {
-            coh_mu_state[ch].mu_coh_count += 1;
-        }
-        if(coh_mu_state[ch].mu_coh_count > coh_conf->mu_coh_time) {
-            coh_mu_state[ch].mu_coh_count = 0;
+        if(coh_mu_state[ch].mu_coh_timer > 0) {
+            coh_mu_state[ch].mu_coh_timer -= 1;
         }
     }
     //# If the shadow filter has be en used within the last 15 frames, keep the count != 0
@@ -415,12 +441,23 @@ void aec_priv_calc_coherence_mu(
     {
         if(shadow_flag[ch] >= SIGMA) {
             //# if the shadow filter has triggered, override any drop in coherence
-            coh_mu_state[ch].mu_coh_count = 0;
+            coh_mu_state[ch].mu_coh_timer = 0;
         }
         else {
-            //# otherwise if the coherence is low start the count
-            if(float_s32_gt(coh_conf->coh_thresh_abs, coh_mu_state[ch].coh)) {
-                coh_mu_state[ch].mu_coh_count = 1;
+            if((shadow_flag[ch] != LOW_REF) && float_s32_gt(coh_mu_state[ch].coh_slow, coh_conf->coh_thresh_abs)){
+                if(float_s32_gt(coh_conf->coh_thresh_abs, coh_mu_state[ch].coh)) {
+                    //# if coherence is below threshold, start the timer
+                    coh_mu_state[ch].mu_coh_timer = coh_conf->mu_coh_time;
+                }
+                else {
+                    float_s32_t thresh = float_s32_mul(coh_mu_state[ch].mov_erle, coh_conf->erle_thresh);
+                    if(float_s32_gt(thresh, coh_mu_state[ch].erle)) {
+                        //# if the erle is low, start the timer (assuming mu_coh_time > mu_erle_time)
+                        if (coh_mu_state[ch].mu_coh_timer < coh_conf->mu_erle_time){
+                            coh_mu_state[ch].mu_coh_timer = coh_conf->mu_erle_time;
+                        }
+                    }
+                }
             }
         }
     }
@@ -434,36 +471,56 @@ void aec_priv_calc_coherence_mu(
             if(coh_mu_state[ch].mu_shad_count >= 1)
             {
                 for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                    coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(1.0); //TODO profile f64_to_float_s32
+                    coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ONE; //TODO profile f64_to_float_s32
                 }
             }
-            else if(coh_mu_state[ch].mu_coh_count > 0)
+            else if(coh_mu_state[ch].mu_coh_timer > 0)
             {
                 for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                    coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(0);
+                    coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
                 }
             }
             else { //# if yy_hat coherence denotes absence of near-end/noise
-                if(float_s32_gt(coh_mu_state[ch].coh, coh_mu_state[ch].coh_slow)) {
-                    for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                        coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(1.0);
+
+                if(float_s32_gt(coh_mu_state[ch].coh_slow, coh_conf->coh_thresh_abs)) {
+
+                    if(float_s32_gt(coh_mu_state[ch].coh, coh_mu_state[ch].coh_slow)) {
+                        for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+                            coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ONE;
+                        }
                     }
-                }
-                else if(float_s32_gt(coh_mu_state[ch].coh, CC_thres))
-                {
-                    //# scale coh_mu depending on how far above the threshold it is
-                    //self.mu[y_ch] = ((self.coh[y_ch]-CC_thres)/(self.coh_slow[y_ch]-CC_thres))**2
-                    float_s32_t s1 = float_s32_sub(coh_mu_state[ch].coh, CC_thres);
-                    float_s32_t s2 = float_s32_sub(coh_mu_state[ch].coh_slow, CC_thres);
-                    float_s32_t s3 = float_s32_div(s1, s2);
-                    s3 = float_s32_mul(s3, s3);
-                    for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                        coh_mu_state[ch].coh_mu[x_ch] = s3;
+                    else if(float_s32_gt(coh_mu_state[ch].coh, CC_thres))
+                    {
+                        //# scale coh_mu depending on how far above the threshold it is
+                        //self.mu[y_ch] = 0.5*((self.coh[y_ch]-CC_thres)/(self.coh_slow[y_ch]-CC_thres))**2
+                        float_s32_t s1 = float_s32_sub(coh_mu_state[ch].coh, CC_thres);
+                        float_s32_t s2 = float_s32_sub(coh_mu_state[ch].coh_slow, CC_thres);
+                        float_s32_t s3 = float_s32_div(s1, s2);
+                        s3 = float_s32_mul(s3, s3);
+                        s3 = float_s32_mul(s3, f64_to_float_s32(0.5));
+                        for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+                            coh_mu_state[ch].coh_mu[x_ch] = s3;
+                        }
                     }
+                    else {
+                        for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+                            coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
+                        }
+                    }
+
                 }
-                else {
-                    for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-                        coh_mu_state[ch].coh_mu[x_ch] = f64_to_float_s32(0);
+                else{
+                    //# slow coherence is low, filter has not converged.
+                    if (float_s32_gt(coh_mu_state[ch].coh, coh_conf->coh_thresh_abs)) {
+                        for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+                            coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ONE;
+                        }
+                    }
+                    else {
+                        // # we will be here until the first shadow filter copy
+                        for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
+                            coh_mu_state[ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
+                        }
                     }
                 }
             }
@@ -477,14 +534,14 @@ void aec_priv_calc_coherence_mu(
         //np.max(ref_energy_log)-20 is done as (max_ref_energy_not_log*(pow(10, -20/10)))
         float_s32_t max_ref_energy_minus_20dB = float_s32_mul(max_ref_energy, coh_conf->thresh_minus20dB);
         for(unsigned x_ch=0; x_ch<num_x_channels; x_ch++) {
-            //if ref_energy_log[x_ch] <= ref_energy_thresh or ref_energy_log[x_ch] < np.max(ref_energy_log)-20:
+            //if not self.ref_flag or ref_energy_log[x_ch] < np.max(ref_energy_log)-20:
             //        self.mu[:, x_ch] = 0
-            if(float_s32_gte(coh_conf->x_energy_thresh, sum_X_energy[x_ch]) ||
+            if(ref_active_flag == 0 ||
                 float_s32_gt(max_ref_energy_minus_20dB, sum_X_energy[x_ch])
                 )
             {
                 for(unsigned y_ch=0; y_ch<num_y_channels; y_ch++) {
-                    coh_mu_state[y_ch].coh_mu[x_ch] = f64_to_float_s32(0);
+                    coh_mu_state[y_ch].coh_mu[x_ch] = FLOAT_S32_ZERO;
                 }
             }
         }
@@ -659,7 +716,9 @@ void aec_priv_calc_coherence(
         coherence_mu_params_t *coh_mu_state,
         const bfp_s32_t *y_subset,
         const bfp_s32_t *y_hat_subset,
-        const aec_config_params_t *conf)
+        const aec_config_params_t *conf,
+        const int32_t ref_flag,
+        const unsigned num_y_channels)
 {
     const coherence_mu_config_params_t *coh_conf = &conf->coh_mu_conf;
 
@@ -688,12 +747,18 @@ void aec_priv_calc_coherence(
     float_s32_t t2 = float_s32_mul(one_minus_alpha, this_coh);
     coh_mu_state->coh = float_s32_add(t1, t2);
 
-    //# update slow moving averages used for thresholding
-    //self.coh_slow = self.coh_slow_alpha*self.coh_slow + (1.0 - self.coh_slow_alpha)*self.coh
-    float_s32_t one_minus_slow_alpha = float_s32_sub(one, coh_conf->coh_slow_alpha);
-    t1 = float_s32_mul(coh_conf->coh_slow_alpha, coh_mu_state->coh_slow);
-    t2 = float_s32_mul(one_minus_slow_alpha, coh_mu_state->coh);
-    coh_mu_state->coh_slow = float_s32_add(t1, t2);
+    // only update slow moving average if reference is active and coherence
+    // is above threshold
+    if (ref_flag == 1){
+        if (float_s32_gt(coh_mu_state->coh, coh_conf->coh_thresh_abs)){
+            //# update slow moving averages used for thresholding
+            //self.coh_slow = self.coh_slow_alpha*self.coh_slow + (1.0 - self.coh_slow_alpha)*self.coh
+            float_s32_t one_minus_slow_alpha = float_s32_sub(one, coh_conf->coh_slow_alpha);
+            t1 = float_s32_mul(coh_conf->coh_slow_alpha, coh_mu_state->coh_slow);
+            t2 = float_s32_mul(one_minus_slow_alpha, coh_mu_state->coh);
+            coh_mu_state->coh_slow = float_s32_add(t1, t2);
+        }
+    }
 }
 
 float_s32_t aec_priv_calc_corr_factor(bfp_s32_t *y, bfp_s32_t *yhat) {
@@ -973,7 +1038,6 @@ void aec_priv_init_config_params(
     shadow_cfg->shadow_copy_thresh = f64_to_float_s32(0.5); //# threshold for copying shadow filter
     shadow_cfg->shadow_reset_thresh = f64_to_float_s32(1.5);
     shadow_cfg->shadow_delay_thresh = f64_to_float_s32(0.5); //# will not reset if reference delay is large
-    shadow_cfg->x_energy_thresh = f64_to_float_s32(pow(10, -40/10.0));
     shadow_cfg->shadow_better_thresh = 5; //# how many times better before copying
     shadow_cfg->shadow_zero_thresh = 5;//# zero shadow filter every n resets
     shadow_cfg->shadow_reset_timer = 20; //# number of frames between zeroing resets
@@ -983,13 +1047,16 @@ void aec_priv_init_config_params(
     coherence_mu_config_params_t *coh_cfg = &config_params->coh_mu_conf;
     coh_cfg->coh_alpha = f64_to_float_s32(0.0);
     coh_cfg->coh_slow_alpha = f64_to_float_s32(0.99);
-    coh_cfg->coh_thresh_slow = f64_to_float_s32(0.9);
-    coh_cfg->coh_thresh_abs = f64_to_float_s32(0.65);
+    coh_cfg->coh_thresh_slow = f64_to_float_s32(0.95);
+    coh_cfg->coh_thresh_abs = f64_to_float_s32(0.75);
+    coh_cfg->erle_thresh = f64_to_float_s32(pow(10, -25/10.0));
+    coh_cfg->erle_alpha_rise = Q30(0.95);
+    coh_cfg->erle_alpha_fall = Q30(0.975);
     coh_cfg->mu_scalar = f64_to_float_s32(1.0);
     coh_cfg->eps = f64_to_float_s32((double)1e-100);
     coh_cfg->thresh_minus20dB = f64_to_float_s32(pow(10, -20/10.0));
-    coh_cfg->x_energy_thresh = f64_to_float_s32(pow(10, -40/10.0));
-    coh_cfg->mu_coh_time = 2;
+    coh_cfg->mu_coh_time = 5;
+    coh_cfg->mu_erle_time = 2;
     coh_cfg->mu_shad_time = 5;
 
     coh_cfg->adaption_config = AEC_ADAPTION_AUTO;

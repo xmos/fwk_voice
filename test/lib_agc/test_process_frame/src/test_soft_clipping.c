@@ -30,11 +30,7 @@ void test_soft_clipping() {
     agc_init(&agc_no_clip, &conf_no_clip);
 
     // Meta-data is constant and can be shared by the two AGC instances
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
-    md.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md.ref_active_flag = 0;
+    agc_meta_data_t md = agc_meta_data_init();
 
     // Random seed
     unsigned seed = 62809;

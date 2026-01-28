@@ -27,7 +27,7 @@ DECLARE_JOB(pipeline_stage_4, (chanend_t, chanend_t));
 
 /// pipeline_stage_1
 // Stage 1 state
-stage1_t DWORD_ALIGNED stage_1_state;
+stage1_t DWORD_ALIGNED stage_1_state = {0};
 void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     // Pipeline metadata
     pipeline_metadata_t md;
@@ -65,6 +65,8 @@ void pipeline_stage_1(chanend_t c_frame_in, chanend_t c_frame_out) {
     int32_t DWORD_ALIGNED frame[AP_MAX_X_CHANNELS + AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     int32_t DWORD_ALIGNED stage_1_out[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE]; // stage1 will not process the frame in-place since Mic input is needed to overwrite the output in certain cases
     while(1) {
+        memset(&md, 0, sizeof(pipeline_metadata_t));
+
         // Receive input frame
         chan_in_buf_word(c_frame_in, (uint32_t*)&frame[0][0], ((AP_MAX_X_CHANNELS+AP_MAX_Y_CHANNELS) * AP_FRAME_ADVANCE));
 #if DISABLE_STAGE_1
@@ -191,14 +193,13 @@ void pipeline_stage_4(chanend_t c_frame_in, chanend_t c_frame_out) {
     agc_init(&agc_state[0], &agc_conf_asr);
     agc_init(&agc_state[1], &agc_conf_asr);
 
-    agc_meta_data_t agc_md;
+    agc_meta_data_t agc_md = agc_meta_data_init();
 
     int32_t frame[AP_MAX_Y_CHANNELS][AP_FRAME_ADVANCE];
     while(1) {
         // Receive metadata
         chan_in_buf_byte(c_frame_in, (uint8_t*)&md, sizeof(pipeline_metadata_t));
         agc_md.aec_ref_power = md.max_ref_energy;
-        agc_md.aec_corr_factor = md.aec_corr_factor[0]; // Using the first channel's AEC correlation factor for all channels
         agc_md.vnr_flag = md.vnr_pred_flag;
         agc_md.ref_active_flag = md.ref_active_flag;
 

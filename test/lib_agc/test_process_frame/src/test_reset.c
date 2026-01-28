@@ -23,11 +23,7 @@ void test_reset() {
     conf.adapt_on_vnr = 0;
     conf.lc_enabled = 0;
 
-    agc_meta_data_t md;
-    md.vnr_flag = AGC_META_DATA_NO_VNR;
-    md.aec_ref_power = AGC_META_DATA_NO_AEC;
-    md.aec_corr_factor = AGC_META_DATA_NO_AEC;
-    md.ref_active_flag = 0;
+    agc_meta_data_t md = agc_meta_data_init();
 
     // Random seed
     unsigned seed = 8895;

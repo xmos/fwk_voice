@@ -55,7 +55,7 @@
         "y_channel_count": 2,
         "mic_shift": 0,
         "mic_saturate": 0,
-        "use_mcra": true, 
+        "use_mcra": true,
         "enable_aes": false,
         "enable_ns": true
     },

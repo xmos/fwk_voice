@@ -49,8 +49,9 @@ class UnityTestExecutable(pytest.Item):
         unity_pass = False
         test_output = test_output.split('\n')
         for line in test_output:
-            if 'test' in line:
-                test_report = line.split(':')
+            if 'PASS' in line or 'FAIL' in line:
+                test_report = line.removeprefix('C:')
+                test_report = test_report.split(':')
                 # Unity output is as follows:
                 #   <test_source>:<line_number>:<test_case>:PASS
                 #   <test_source>:<line_number>:<test_case>:FAIL:<failure_reason>

@@ -19,9 +19,12 @@ typedef struct {
     double mu_scalar;
     double eps;
     double thresh_minus20dB;
-    double x_energy_thresh;
+    double erle_thresh;
+    double erle_alpha_rise;
+    double erle_alpha_fall;
 
     unsigned mu_coh_time;
+    unsigned mu_erle_time;
     unsigned mu_shad_time;
     aec_adaption_e adaption_config;
     double force_adaption_mu;
@@ -32,7 +35,6 @@ typedef struct {
     double shadow_copy_thresh;
     double shadow_reset_thresh;
     double shadow_delay_thresh;
-    double x_energy_thresh;
     double shadow_mu;
 
     int shadow_better_thresh;
@@ -50,9 +52,15 @@ typedef struct {
     //coherence mu
     double coh[AEC_MAX_Y_CHANNELS];
     double coh_slow[AEC_MAX_Y_CHANNELS];
-    int mu_coh_count[AEC_MAX_Y_CHANNELS];
+    int mu_coh_timer[AEC_MAX_Y_CHANNELS];
     int mu_shad_count[AEC_MAX_Y_CHANNELS];
     double coh_mu[AEC_MAX_Y_CHANNELS][AEC_MAX_X_CHANNELS];
+    int32_t ref_active_flag;
+
+    // ERLE parameters
+    double erle[AEC_MAX_Y_CHANNELS];
+    double mov_erle[AEC_MAX_Y_CHANNELS];
+    double overall_Yhat[AEC_MAX_Y_CHANNELS];
 
     //common
     complex_double_t H_hat[TEST_NUM_Y][TEST_NUM_X][TEST_MAIN_PHASES][NUM_BINS];
@@ -86,7 +94,6 @@ static void init_shadow_config_fp(shadow_filt_config_fp_t *cfg) {
     cfg->shadow_copy_thresh = 0.5;
     cfg->shadow_reset_thresh = 1.5;
     cfg->shadow_delay_thresh = 0.5;
-    cfg->x_energy_thresh = pow(10, -40/10);
     cfg->shadow_mu = 1.0;
     cfg->shadow_better_thresh = 5;
     cfg->shadow_zero_thresh = 5;
@@ -97,14 +104,17 @@ static void init_coherence_mu_config_fp(coherence_mu_config_fp_t *cfg) {
     //config
     cfg->coh_alpha = 0.0;
     cfg->coh_slow_alpha = 0.99;
-    cfg->coh_thresh_slow = 0.9;
-    cfg->coh_thresh_abs = 0.65;
+    cfg->coh_thresh_slow = 0.95;
+    cfg->coh_thresh_abs = 0.75;
     cfg->mu_scalar = 1.0;
     cfg->eps = (double)1e-100;
 
     cfg->thresh_minus20dB = pow(10, -20/10);
-    cfg->x_energy_thresh = pow(10, -40/10);
-    cfg->mu_coh_time = 2;
+    cfg->erle_thresh = pow(10, -25/10.0);
+    cfg->erle_alpha_rise = 0.95;
+    cfg->erle_alpha_fall = 0.975;
+    cfg->mu_coh_time = 5;
+    cfg->mu_erle_time = 2;
     cfg->mu_shad_time = 5;
     cfg->adaption_config = AEC_ADAPTION_AUTO;
     cfg->force_adaption_mu = 1.0;
@@ -135,8 +145,13 @@ static void init_params_fp(
 
         params->coh[ch] = 1.0;
         params->coh_slow[ch] = 0.0;
-        params->mu_coh_count[ch] = 0;
+        params->mu_coh_timer[ch] = 0;
         params->mu_shad_count[ch] = 0;
+
+        // Initialize ERLE fields
+        params->erle[ch] = 0.0;
+        params->mov_erle[ch] = 0.0;
+        params->overall_Yhat[ch] = 0.0;
     }
 }
 
@@ -191,36 +206,62 @@ void main_to_shadow_filter_copy_fp(shadow_filt_params_fp_t *params, int y_ch) {
     }
 }
 
-#define NUM_MU_CHECKPOINTS (15)
+#define NUM_MU_CHECKPOINTS (16)
 int checkpoints_mu[NUM_MU_CHECKPOINTS] = {0};
+
+void calc_erle_fp(
+        shadow_filt_params_fp_t *params,
+        const coherence_mu_config_fp_t *cfg)
+{
+    // Calculate ERLE and update moving average
+    for(int ch=0; ch<params->y_channels; ch++) {
+        if(params->shadow_flag[ch] != LOW_REF) {
+            if (params->overall_Error[ch] == 0.0) {
+                params->erle[ch] = 0.0;
+            } else {
+                params->erle[ch] = params->overall_Yhat[ch] / params->overall_Error[ch];
+            }
+
+            //# update moving average ERLE
+            double erle_thresh_val = params->mov_erle[ch] * cfg->erle_thresh;
+            if(params->erle[ch] > erle_thresh_val) {
+                if(params->mov_erle[ch] > params->erle[ch]) {
+                    // EMA with alpha_fall
+                    params->mov_erle[ch] = cfg->erle_alpha_fall * params->mov_erle[ch] + (1.0 - cfg->erle_alpha_fall) * params->erle[ch];
+                }
+                else {
+                    // EMA with alpha_rise
+                    params->mov_erle[ch] = cfg->erle_alpha_rise * params->mov_erle[ch] + (1.0 - cfg->erle_alpha_rise) * params->erle[ch];
+                }
+            }
+        }
+    }
+}
+
 void calc_coherence_mu_fp(
         shadow_filt_params_fp_t *params,
         const coherence_mu_config_fp_t *cfg)
 {
     double *sum_X_energy = params->sum_X_energy;
-    //# If the coherence has been low within the last 15 frames, keep the count != 0
+    //# If the coherence has been low, decrement the timer
     for(int ch=0; ch<params->y_channels; ch++) {
-        if(params->mu_coh_count[ch] > 0) {
+        if(params->mu_coh_timer[ch] > 0) {
             checkpoints_mu[0] |= 1;
-            params->mu_coh_count[ch] += 1;
-        }
-        if(params->mu_coh_count[ch] > cfg->mu_coh_time) {
-            checkpoints_mu[1] |= 1;
-            params->mu_coh_count[ch] = 0;
+            params->mu_coh_timer[ch] -= 1;
         }
     }
-    //# If the shadow filter has be en used within the last 15 frames, keep the count != 0
+    //# If the shadow filter has been used within the last 15 frames, keep the count != 0
     for(int ch=0; ch<params->y_channels; ch++) {
         if(params->shadow_flag[ch] == COPY) {
-            checkpoints_mu[2] |= 1;
+            checkpoints_mu[1] |= 1;
             params->mu_shad_count[ch] = 1;
         }
         else if(params->mu_shad_count[ch] > 0) {
-            checkpoints_mu[3] |= 1;
+            checkpoints_mu[2] |= 1;
             params->mu_shad_count[ch] += 1;
         }
         if(params->mu_shad_count[ch] > cfg->mu_shad_time) {
-            checkpoints_mu[4] |= 1;
+            checkpoints_mu[3] |= 1;
             params->mu_shad_count[ch] = 0;
         }
     }
@@ -232,15 +273,27 @@ void calc_coherence_mu_fp(
     double CC_thres = min_coh_slow * cfg->coh_thresh_slow;
     for(int ch=0; ch<params->y_channels; ch++) {
         if(params->shadow_flag[ch] >= SIGMA) {
-            checkpoints_mu[5] |= 1;
+            checkpoints_mu[4] |= 1;
             //# if the shadow filter has triggered, override any drop in coherence
-            params->mu_coh_count[ch] = 0;
+            params->mu_coh_timer[ch] = 0;
         }
         else {
-            //# otherwise if the coherence is low start the count
-            if(params->coh[ch] < cfg->coh_thresh_abs) {
-                checkpoints_mu[6] |= 1;
-                params->mu_coh_count[ch] = 1;
+            if((params->shadow_flag[ch] != LOW_REF) && (params->coh_slow[ch] > cfg->coh_thresh_abs)){
+                if(cfg->coh_thresh_abs > params->coh[ch]) {
+                    checkpoints_mu[5] |= 1;
+                    //# if coherence is below threshold, start the timer
+                    params->mu_coh_timer[ch] = cfg->mu_coh_time;
+                }
+                else {
+                    double thresh = params->mov_erle[ch] * cfg->erle_thresh;
+                    if(thresh > params->erle[ch]) {
+                        checkpoints_mu[6] |= 1;
+                        //# if the erle is low, start the timer (assuming mu_coh_time > mu_erle_time)
+                        if (params->mu_coh_timer[ch] < cfg->mu_erle_time){
+                            params->mu_coh_timer[ch] = cfg->mu_erle_time;
+                        }
+                    }
+                }
             }
         }
     }
@@ -258,7 +311,7 @@ void calc_coherence_mu_fp(
                     params->coh_mu[ch][xch] = 1.0;
                 }
             }
-            else if(params->mu_coh_count[ch] > 0) {
+            else if(params->mu_coh_timer[ch] > 0) {
                 //printf("here 2\n");
                 checkpoints_mu[8] |= 1;
                 for(int xch=0; xch<params->x_channels; xch++) {
@@ -268,26 +321,45 @@ void calc_coherence_mu_fp(
             else { //# if yy_hat coherence denotes absence of near-end/noise
                 //printf("here 3\n");
                 //printf("coh %f, coh_slow %f, CC_thres %f\n",params->coh[ch], params->coh_slow[ch], CC_thres);
-                if(params->coh[ch] > params->coh_slow[ch]) {
-                    checkpoints_mu[9] |= 1;
-                    for(int xch=0; xch<params->x_channels; xch++) {
-                        params->coh_mu[ch][xch] = 1.0;
+
+                if(params->coh_slow[ch] > cfg->coh_thresh_abs) {
+
+                    if(params->coh[ch] > params->coh_slow[ch]) {
+                        checkpoints_mu[9] |= 1;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 1.0;
+                        }
+                    }
+                    else if(params->coh[ch] > CC_thres) {
+                        checkpoints_mu[10] |= 1;
+                        //# scale mu depending on how far above the threshold it is
+                        //self.mu[y_ch] = 0.5*((self.coh[y_ch]-CC_thres)/(self.coh_slow[y_ch]-CC_thres))**2
+                        double t = (params->coh[ch] - CC_thres) / (params->coh_slow[ch] - CC_thres);
+                        t = t * t * 0.5;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = t;
+                        }
+                    }
+                    else {
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 0.0;
+                        }
                     }
                 }
-                else if(params->coh[ch] > CC_thres) {
-                    checkpoints_mu[10] |= 1;
-                    //# scale mu depending on how far above the threshold it is
-                    //self.mu[y_ch] = ((self.coh[y_ch]-CC_thres)/(self.coh_slow[y_ch]-CC_thres))**2
-                    double t = (params->coh[ch] - CC_thres) / (params->coh_slow[ch] - CC_thres);
-                    t = t * t;
-                    for(int xch=0; xch<params->x_channels; xch++) {
-                        params->coh_mu[ch][xch] = t;
+                else{
+                    //# slow coherence is low, filter has not converged.
+                    if (params->coh[ch] > cfg->coh_thresh_abs) {
+                        checkpoints_mu[15] |= 1;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 1.0;
+                        }
                     }
-                }
-                else { //# shouldn't go through here, but if it does coherence is low so don't adapt
-                    checkpoints_mu[11] |= 1;
-                    for(int xch=0; xch<params->x_channels; xch++) {
-                        params->coh_mu[ch][xch] = 0.0;
+                    else{
+                        //# slow coherence is low, filter has not converged.
+                        checkpoints_mu[11] |= 1;
+                        for(int xch=0; xch<params->x_channels; xch++) {
+                            params->coh_mu[ch][xch] = 0.0;
+                        }
                     }
                 }
             }
@@ -297,8 +369,8 @@ void calc_coherence_mu_fp(
             if(sum_X_energy_max < sum_X_energy[xch]) sum_X_energy_max = sum_X_energy[xch];
         }
         for(int xch=0; xch<params->x_channels; xch++) {
-            //if ref_energy_log[x_ch] <= ref_energy_thresh or ref_energy_log[x_ch] < np.max(ref_energy_log)-20:
-            if((sum_X_energy[xch] <= cfg->x_energy_thresh) || (sum_X_energy[xch] < (sum_X_energy_max * cfg->thresh_minus20dB))) {
+            //if not self.ref_flag or ref_energy_log[x_ch] < np.max(ref_energy_log)-20:
+            if((params->ref_active_flag == 0) || (sum_X_energy[xch] < (sum_X_energy_max * cfg->thresh_minus20dB))) {
                 checkpoints_mu[12] |= 1;
                 for(int ych=0; ych<params->y_channels; ych++) {
                     params->coh_mu[ych][xch] = 0.0;
@@ -342,16 +414,9 @@ void compare_filter_fp(
     double *sum_X_energy = params->sum_X_energy;
 
     //# check if shadow or reference filter will be used and flag accordingly
-    int ref_low_all = 1;
-    for(int i=0; i<params->x_channels; i++) {
-        if(sum_X_energy[i] >= cfg->x_energy_thresh) {
-            ref_low_all = 0;
-            break;
-        }
-    }
     for(int ch=0; ch<params->y_channels; ch++) {
         overall_Input[ch] = overall_Input[ch] / 2;
-        if(ref_low_all) {
+        if(params->ref_active_flag == 0) {
             //printf("checkpoint 0\n");
             checkpoints[0] |= 1;
             params->shadow_flag[ch] = LOW_REF;
@@ -512,6 +577,9 @@ void compare_filters_and_calc_mu_fp(
     //TODO check if all paths executed
     calc_delta_fp(params, coh_mu_cfg);
 
+    // Calculate ERLE before coherence_mu
+    calc_erle_fp(params, coh_mu_cfg);
+
     calc_coherence_mu_fp(
             params,
             coh_mu_cfg);
@@ -573,11 +641,17 @@ void test_compare_filters_and_calc_mu() {
     int32_t new_frame[TEST_NUM_Y + TEST_NUM_X][AEC_FRAME_ADVANCE];
     unsigned max_diff_coh_mu = 0;
     for(int iter=0; iter<(1<<11)/F; iter++) {
-        //every 200 frames set bypass
+        //every 200 frames set bypass or toggle ref active flag
+        aec_state.main_state.shared_state->ref_active_flag = 1;
         aec_state.main_state.shared_state->config_params.aec_core_conf.bypass = 0;
         if((iter > 0) && !(iter % 200)) {
             aec_state.main_state.shared_state->config_params.aec_core_conf.bypass = pseudo_rand_uint32(&seed) % 2;
         }
+        else if ((iter > 0) && !(iter % 150)) {
+            aec_state.main_state.shared_state->ref_active_flag = 0;
+        }
+        shadow_filt_coh_mu_params_fp.ref_active_flag = aec_state.main_state.shared_state->ref_active_flag;
+
         //printf("iter %d\n",iter);
         aec_frame_init(&aec_state.main_state, &aec_state.shadow_state, &new_frame[0], &new_frame[TEST_NUM_Y]);
         for(int ch=0; ch<num_y_channels; ch++) {
@@ -671,10 +745,10 @@ void test_compare_filters_and_calc_mu() {
             aec_state.main_state.shared_state->coh_mu_state[ych].coh_slow.mant = pseudo_rand_uint32(&seed) & 0x7fffffff;
             params_fp->coh_slow[ych] = ldexp(aec_state.main_state.shared_state->coh_mu_state[ych].coh_slow.mant, aec_state.main_state.shared_state->coh_mu_state[ych].coh_slow.exp);
 
-            //clear mu_coh_count and mu_shad_count every few frames for better code coverage in calc_coherence_mu_fp
+            //clear mu_coh_timer and mu_shad_count every few frames for better code coverage in calc_coherence_mu_fp
             if((iter > 0) && !(iter % (params_fp->mu_shad_count[ych] + 2))) {
-                aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_count = 0;
-                params_fp->mu_coh_count[ych] = 0;
+                aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_timer = 0;
+                params_fp->mu_coh_timer[ych] = 0;
                 aec_state.main_state.shared_state->coh_mu_state[ych].mu_shad_count = 0;
                 params_fp->mu_shad_count[ych] = 0;
             }
@@ -804,9 +878,9 @@ void test_compare_filters_and_calc_mu() {
         //check calc_mu outputs
         for(int ych=0; ych<num_y_channels; ych++) {
 
-            //compare mu_coh_count
-            if(params_fp->mu_coh_count[ych] != aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_count) {
-                printf("iter %d. mu_coh_count mismatch. (ref %d, dut %ld)\n",iter, params_fp->mu_coh_count[ych], aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_count); assert(0);}
+            //compare mu_coh_timer
+            if(params_fp->mu_coh_timer[ych] != aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_timer) {
+                printf("iter %d. mu_coh_timer mismatch. (ref %d, dut %ld)\n",iter, params_fp->mu_coh_timer[ych], aec_state.main_state.shared_state->coh_mu_state[ych].mu_coh_timer); assert(0);}
 
             //compare mu_shad_count
             if(params_fp->mu_shad_count[ych] != aec_state.main_state.shared_state->coh_mu_state[ych].mu_shad_count) {printf("iter %d. mu_shad_count mismatch. (ref %d, dut %ld\n",iter, params_fp->mu_shad_count[ych], aec_state.main_state.shared_state->coh_mu_state[ych].mu_shad_count); assert(0);}
@@ -843,9 +917,16 @@ void test_compare_filters_and_calc_mu() {
         //printf("checkpoints[%d] = %d\n",i, checkpoints[i]);
     }
     printf("max_diff_coh_mu = %d\n",max_diff_coh_mu);
+    int fail = 0;
     for(int i=0; i<NUM_MU_CHECKPOINTS; i++) {
-        if((checkpoints_mu[i] != 1) && ( i!=7 )) {printf("checkpoint_mu %d not tested\n",i); assert(0);}
+        if(checkpoints_mu[i] != 1) {
+            printf("checkpoint_mu %d not tested\n",i);
+            if (( i!=7 ) && (i!=6)) { fail = 1;}
+        }
         //printf("checkpoints_mu[%d] = %d\n",i, checkpoints_mu[i]);
+    }
+    if (fail == 1) {
+        assert(0);
     }
 
 }

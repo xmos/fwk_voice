@@ -97,7 +97,7 @@ void aec_l2_bfp_s32_unify_exponent(
 {
     *final_exp = INT_MIN; //find biggest exponent (fewest fraction bits)
     for(int i=0; i<array_len; i++) {
-        if((mapping == NULL) || ((mapping != NULL) && (mapping[i] == desired_index) && (chunks[i].length > 0))) {
+        if(((mapping == NULL) || (mapping[i] == desired_index)) && (chunks[i].length > 0)) {
             if((int32_t)(chunks[i].exp - chunks[i].hr + min_headroom) > *final_exp) {
                 *final_exp = chunks[i].exp - chunks[i].hr + min_headroom;
             }
@@ -105,7 +105,7 @@ void aec_l2_bfp_s32_unify_exponent(
     }
     *final_hr = INT_MAX; //smallest hr
     for(int i=0; i<array_len; i++) {
-        if((mapping == NULL) || ((mapping != NULL) && (mapping[i] == desired_index) && (chunks[i].length > 0))) {
+        if(((mapping == NULL) || (mapping[i] == desired_index)) && (chunks[i].length > 0)) {
            bfp_s32_use_exponent(&chunks[i], *final_exp);
            *final_hr = (chunks[i].hr < *final_hr) ? chunks[i].hr : *final_hr;
         }

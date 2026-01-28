@@ -133,7 +133,6 @@ typedef struct {
     q8_24 erle_bad_gain_q24; ///< Multiplier determining how steeply we reduce aec's goodness when measured erle falls below the bad erle threshold
 
     adec_mode_t mode; ///< ADEC's mode of operation. Can be operating in normal AEC or delay estimation mode
-    int32_t peak_to_average_ratio_valid_flag;
     int32_t gated_milliseconds_since_mode_change; ///< milliseconds elapsed since a delay change was last requested. Used to ensure that delay corrections are not requested too early without allowing enough time for aec filter to converge.
     int32_t last_measured_delay; ///< Last measured delay
     int32_t peak_power_history_idx; ///< index storing the head of the peak_power_history circular buffer

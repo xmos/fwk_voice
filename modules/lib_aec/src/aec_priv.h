@@ -369,13 +369,20 @@ void aec_priv_compare_filters(
         aec_filter_state_t *main_state,
         aec_filter_state_t *shadow_state);
 
+void aec_priv_calc_erle(
+    aec_filter_state_t *main_state,
+    const int32_t *shadow_flag,
+    coherence_mu_params_t *coh_mu_state,
+    const coherence_mu_config_params_t *coh_conf);
+
 void aec_priv_calc_coherence_mu(
         coherence_mu_params_t *coh_mu_state,
         const coherence_mu_config_params_t *coh_conf,
         const float_s32_t *sum_X_energy,
         const int32_t *shadow_flag,
         unsigned num_y_channels,
-        unsigned num_x_channels);
+        unsigned num_x_channels,
+        const int32_t ref_active_flag);
 
 void aec_priv_update_total_X_energy(
         bfp_s32_t *X_energy,
@@ -407,7 +414,9 @@ void aec_priv_calc_coherence(
         coherence_mu_params_t *coh_mu_state,
         const bfp_s32_t *y,
         const bfp_s32_t *y_hat,
-        const aec_config_params_t *conf);
+        const aec_config_params_t *conf,
+        const int32_t ref_flag,
+        const unsigned num_y_channels);
 
 void aec_priv_create_output(
         bfp_s32_t *output,
